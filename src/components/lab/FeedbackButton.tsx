@@ -33,7 +33,9 @@ export default function FeedbackButton({ pageId, sectionId }: FeedbackButtonProp
     const [comment, setComment] = useState("");
     const [title, setTitle] = useState("");
     const [name, setName] = useState("");
+    const [feedbackType, setFeedbackType] = useState<"bug" | "idea" | "question">("idea");
     const [userImage, setUserImage] = useState<string | null>(null);
+    const [userImagePreview, setUserImagePreview] = useState<string | null>(null);
     const { displayName } = useUser();
     const { submit, isSubmitting, error, success, isRateLimited } = useFeedback({ pageId, sectionId });
     const modalRef = useRef<HTMLDivElement>(null);
@@ -85,6 +87,8 @@ export default function FeedbackButton({ pageId, sectionId }: FeedbackButtonProp
                 setComment("");
                 setTitle("");
                 setUserImage(null);
+                setUserImagePreview(null);
+                setFeedbackType("idea");
             }, 2000);
             return () => clearTimeout(id);
         }
@@ -101,7 +105,10 @@ export default function FeedbackButton({ pageId, sectionId }: FeedbackButtonProp
                     e.preventDefault();
                     const file = item.getAsFile();
                     if (!file) continue;
-                    fileToBase64(file).then(setUserImage).catch(() => { });
+                    fileToBase64(file).then((b64) => {
+                        setUserImage(b64);
+                        setUserImagePreview(`data:${file.type};base64,${b64}`);
+                    }).catch(() => { });
                     break;
                 }
             }
@@ -122,10 +129,17 @@ export default function FeedbackButton({ pageId, sectionId }: FeedbackButtonProp
         try {
             const b64 = await fileToBase64(file);
             setUserImage(b64);
+            setUserImagePreview(`data:${file.type};base64,${b64}`);
         } catch {
             // Ignore file read errors
         }
         // Reset input so same file can be re-selected
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    }, []);
+
+    const handleClearImage = useCallback(() => {
+        setUserImage(null);
+        setUserImagePreview(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
     }, []);
 
@@ -138,8 +152,9 @@ export default function FeedbackButton({ pageId, sectionId }: FeedbackButtonProp
             name: name.trim() || undefined,
             screenshotB64: undefined,
             userScreenshotB64: userImage || undefined,
+            feedbackType,
         });
-    }, [comment, title, name, userImage, submit]);
+    }, [comment, title, name, userImage, feedbackType, submit]);
 
     return (
         <>
@@ -213,6 +228,28 @@ export default function FeedbackButton({ pageId, sectionId }: FeedbackButtonProp
                                             />
                                         </div>
 
+                                        {/* Type */}
+                                        <div>
+                                            <label className="text-xs font-medium text-[var(--lab-text-muted)] mb-1 block">
+                                                Type
+                                            </label>
+                                            <div className="flex gap-2">
+                                                {(['bug', 'idea', 'question'] as const).map(type => (
+                                                    <button
+                                                        key={type}
+                                                        type="button"
+                                                        onClick={() => setFeedbackType(type)}
+                                                        className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${feedbackType === type
+                                                            ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
+                                                            : 'bg-[var(--lab-card)] border-[var(--lab-border)] text-[var(--lab-text-muted)] hover:border-[var(--lab-text-subtle)]'
+                                                            } border`}
+                                                    >
+                                                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
                                         {/* Title */}
                                         <div>
                                             <label className="text-xs font-medium text-[var(--lab-text-muted)] mb-1 block">
@@ -224,7 +261,7 @@ export default function FeedbackButton({ pageId, sectionId }: FeedbackButtonProp
                                                 onChange={(e) => setTitle(e.target.value)}
                                                 maxLength={200}
                                                 className="w-full px-3 py-2 rounded-lg bg-[var(--lab-card)] border border-[var(--lab-border)] text-sm text-[var(--lab-text)] placeholder:text-[var(--lab-text-subtle)] outline-none focus:border-emerald-500/40 transition-colors"
-                                                placeholder="Brief summary of the issue"
+                                                placeholder="Brief summary"
                                             />
                                         </div>
 
@@ -246,17 +283,26 @@ export default function FeedbackButton({ pageId, sectionId }: FeedbackButtonProp
 
                                         {/* User screenshot attach */}
                                         <div className="space-y-2">
-                                            {userImage ? (
-                                                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                                                    <Paperclip className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                                                    <span className="text-xs text-emerald-400 flex-1">Image attached</span>
-                                                    <button
-                                                        onClick={() => setUserImage(null)}
-                                                        className="p-0.5 rounded hover:bg-red-500/20 text-[var(--lab-text-subtle)] hover:text-red-400 transition-colors"
-                                                        aria-label="Remove image"
-                                                    >
-                                                        <Trash2 className="w-3 h-3" />
-                                                    </button>
+                                            {userImagePreview ? (
+                                                <div className="space-y-2">
+                                                    <div className="relative rounded-lg overflow-hidden border border-emerald-500/20 bg-black/20">
+                                                        <img
+                                                            src={userImagePreview}
+                                                            alt="Attached screenshot"
+                                                            className="w-full h-auto max-h-48 object-contain"
+                                                        />
+                                                        <button
+                                                            onClick={handleClearImage}
+                                                            className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-500/90 hover:bg-red-500 text-white transition-colors"
+                                                            aria-label="Remove image"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                                                        <Paperclip className="w-3 h-3 text-emerald-400" />
+                                                        <span className="text-xs text-emerald-400">Screenshot attached</span>
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center gap-2">

@@ -18,6 +18,7 @@ interface SubmitOptions {
     name?: string;
     screenshotB64?: string;
     userScreenshotB64?: string;
+    feedbackType?: "bug" | "idea" | "question";
 }
 
 interface UseFeedbackReturn {
@@ -82,29 +83,44 @@ export function useFeedback({ pageId, sectionId }: UseFeedbackOptions): UseFeedb
         : false;
 
     const submit = useCallback(async (opts: SubmitOptions) => {
-        setError(null);
-        setSuccess(false);
-
-        if (checkLocalRateLimit(normalizedPageId, normalizedSectionId)) {
-            setError("Please wait 30 seconds before submitting again.");
+        if (isRateLimited) {
+            setError("You've submitted feedback recently. Please wait 30 seconds before trying again.");
             return;
         }
 
         setIsSubmitting(true);
+        setError(null);
+        setSuccess(false);
+
         try {
+            // Capture extended metadata
+            const now = new Date();
+            const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            const language = navigator.language || 'en';
+
+            const payload = {
+                page_id: normalizedPageId,
+                section_id: normalizedSectionId,
+                comment: opts.comment,
+                title: opts.title || null,
+                name: opts.name || displayName || null,
+                anon_id: anonId || null,
+                screenshot_b64: opts.screenshotB64 || null,
+                user_screenshot_b64: opts.userScreenshotB64 || null,
+                feedback_type: opts.feedbackType || 'idea',
+                url: typeof window !== 'undefined' ? window.location.href : null,
+                user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+                viewport_width: typeof window !== 'undefined' ? window.innerWidth : null,
+                viewport_height: typeof window !== 'undefined' ? window.innerHeight : null,
+                theme,
+                language,
+                local_timestamp: now.toISOString(),
+            };
+
             const res = await fetch(`${BASE_URL}/api/v1/feedback`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    page_id: normalizedPageId,
-                    section_id: normalizedSectionId,
-                    comment: opts.comment,
-                    title: opts.title || undefined,
-                    anon_id: anonId || undefined,
-                    name: opts.name || displayName || undefined,
-                    screenshot_b64: opts.screenshotB64 || undefined,
-                    user_screenshot_b64: opts.userScreenshotB64 || undefined,
-                }),
+                body: JSON.stringify(payload),
             });
 
             if (!res.ok) {
