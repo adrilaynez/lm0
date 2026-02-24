@@ -80,6 +80,7 @@ function TypewriterText({ seed, text }: { seed: string; text: string }) {
 
 function CopyButton({ text }: { text: string }) {
     const [copied, setCopied] = useState(false);
+    const { t } = useI18n();
     const handleCopy = useCallback(async () => {
         try {
             await navigator.clipboard.writeText(text);
@@ -92,7 +93,7 @@ function CopyButton({ text }: { text: string }) {
         <button
             onClick={handleCopy}
             className="absolute top-2 right-2 p-1.5 rounded-md bg-black/40 border border-white/[0.06] opacity-0 group-hover/text:opacity-100 hover:border-amber-500/30 transition-all"
-            title="Copy to clipboard"
+            title={t("ngramNarrative.generationBattle.copyToClipboard")}
         >
             {copied ? (
                 <CheckCircle2 className="w-3 h-3 text-emerald-400" />
@@ -305,7 +306,7 @@ export function NgramGenerationBattle({
 
             {/* Footer info */}
             <p className="text-[10px] text-white/20 text-center font-mono">
-                {t("ngramNarrative.generationBattle.tokensLabel").replace("{count}", String(maxTokens))} · {temperature} temperature
+                {t("ngramNarrative.generationBattle.tokensLabel").replace("{count}", String(maxTokens))} · {temperature} {t("ngramNarrative.generationBattle.temperatureLabel")}
             </p>
         </div>
     );

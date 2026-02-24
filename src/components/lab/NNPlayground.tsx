@@ -44,7 +44,7 @@ function Explained({ i18nKey, children, className }: { i18nKey: string; children
     return (
         <TooltipProvider delayDuration={300}>
             <Tooltip>
-                <TooltipTrigger asChild className={cn("cursor-help", className)}>
+                <TooltipTrigger asChild className={cn("cursor-default", className)}>
                     {children}
                 </TooltipTrigger>
                 <TooltipContent side="right" className="max-w-[280px] bg-zinc-950 border-white/10 text-white/80 p-3">
@@ -209,49 +209,52 @@ export function NNPlayground() {
                         <Explained i18nKey={`${PLAYGROUND_KEY}.training`}>
                             <p className="inline-block text-[9px] font-mono uppercase tracking-widest text-white/25 mb-2.5 hover:text-white/50 transition-colors border-b border-dashed border-transparent hover:border-white/30">{t(`${PLAYGROUND_KEY}.training.title`)}</p>
                         </Explained>
-                        <div className="space-y-2">
+                        <p className="text-[9px] font-mono uppercase tracking-widest text-white/25 mb-2">Model Setup</p>
+                        <div className="grid grid-cols-2 gap-4">
                             <Slider label="target" value={nn.target} min={-1} max={2} step={0.05} onChange={nn.setTarget} accent="emerald" tooltipKey={`${PLAYGROUND_KEY}.training.target`} />
                             <Slider label="η (learn rate)" value={nn.learningRate} min={0.01} max={2} step={0.01} onChange={nn.setLearningRate} accent="indigo" tooltipKey={`${PLAYGROUND_KEY}.training.learningRate`} />
                         </div>
-                    </div>
 
-                    <div className="border-t border-white/[0.06]" />
-
-                    <div className="space-y-2">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button onClick={handleTrainStep}
-                                        className="w-full px-3 py-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-mono font-bold hover:bg-rose-500/20 transition-colors">
-                                        {t(`${PLAYGROUND_KEY}.buttons.trainStep`)}
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent side="right" className="max-w-[250px] bg-zinc-950 border-white/10 text-white/80 p-3">
-                                    <p className="text-xs">{t(`${PLAYGROUND_KEY}.training.step`)}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button onClick={handleAutoTrain}
-                                        className="w-full px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-mono font-bold hover:bg-indigo-500/20 transition-colors">
-                                        {t(`${PLAYGROUND_KEY}.buttons.autoTrain`)}
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent side="right" className="max-w-[250px] bg-zinc-950 border-white/10 text-white/80 p-3">
-                                    <p className="text-xs">{t(`${PLAYGROUND_KEY}.training.auto`)}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-
-                        <div className="flex gap-2">
+                        <div className="mt-3 flex gap-2">
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <button onClick={nn.reset}
-                                            className="flex-1 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/40 text-[10px] font-mono font-bold hover:text-white/60 transition-colors">
+                                        <button
+                                            onClick={handleTrainStep}
+                                            className="flex-1 px-2 py-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-mono font-bold hover:bg-rose-500/20 transition-colors"
+                                        >
+                                            {t(`${PLAYGROUND_KEY}.buttons.trainStep`)}
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom" className="max-w-[250px] bg-zinc-950 border-white/10 text-white/80 p-3">
+                                        <p className="text-xs">{t(`${PLAYGROUND_KEY}.training.step`)}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button
+                                            onClick={handleAutoTrain}
+                                            className="flex-1 px-2 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-mono font-bold hover:bg-indigo-500/20 transition-colors"
+                                        >
+                                            {t(`${PLAYGROUND_KEY}.buttons.autoTrain`)}
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom" className="max-w-[250px] bg-zinc-950 border-white/10 text-white/80 p-3">
+                                        <p className="text-xs">{t(`${PLAYGROUND_KEY}.training.auto`)}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button
+                                            onClick={nn.reset}
+                                            className="flex-1 px-2 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/40 text-[10px] font-mono font-bold hover:text-white/60 transition-colors"
+                                        >
                                             {t(`${PLAYGROUND_KEY}.buttons.reset`)}
                                         </button>
                                     </TooltipTrigger>
@@ -264,8 +267,10 @@ export function NNPlayground() {
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <button onClick={nn.randomize}
-                                            className="flex-1 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/40 text-[10px] font-mono font-bold hover:text-white/60 transition-colors">
+                                        <button
+                                            onClick={nn.randomize}
+                                            className="flex-1 px-2 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-white/40 text-[10px] font-mono font-bold hover:text-white/60 transition-colors"
+                                        >
                                             {t(`${PLAYGROUND_KEY}.buttons.random`)}
                                         </button>
                                     </TooltipTrigger>
@@ -274,6 +279,15 @@ export function NNPlayground() {
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
+                        </div>
+
+                        <div className="mt-3 flex items-center justify-between text-[10px] font-mono text-white/35">
+                            <span>
+                                steps: <span className="text-white/60 font-bold">{nn.history.length}</span>
+                            </span>
+                            <span>
+                                loss: <span className="text-amber-400 font-bold">{nn.loss.toFixed(6)}</span>
+                            </span>
                         </div>
                     </div>
                 </div>

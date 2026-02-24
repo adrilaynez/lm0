@@ -3,10 +3,12 @@
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import { CheckCircle2, XCircle } from "lucide-react";
+import { useI18n } from "@/i18n/context";
 
 type RightState = "idle" | "loading" | "failed";
 
 export function GeneralizationFailureDemo() {
+    const { t } = useI18n();
     const ref = useRef<HTMLDivElement>(null);
     const isInView = useInView(ref, { once: true, margin: "-80px" });
     const [rightState, setRightState] = useState<RightState>("idle");
@@ -30,7 +32,7 @@ export function GeneralizationFailureDemo() {
                     className="rounded-xl border border-emerald-500/20 bg-emerald-950/10 p-5 flex flex-col gap-4"
                 >
                     <span className="text-[10px] font-mono font-bold uppercase tracking-[0.18em] text-emerald-400/50">
-                        Seen in training
+                        {t("ngram.widgets.generalizationFailure.seenInTraining")}
                     </span>
 
                     <div className="font-mono text-sm text-white/70 bg-white/[0.04] rounded-lg px-3 py-2 leading-relaxed">
@@ -40,7 +42,7 @@ export function GeneralizationFailureDemo() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <span className="text-white/30 text-xs font-mono">next word →</span>
+                        <span className="text-white/30 text-xs font-mono">{t("ngram.widgets.generalizationFailure.nextWord")}</span>
                         <motion.div
                             initial={{ opacity: 0, scale: 0.7 }}
                             animate={isInView ? { opacity: 1, scale: 1 } : {}}
@@ -56,7 +58,7 @@ export function GeneralizationFailureDemo() {
 
                     <div>
                         <div className="flex items-center justify-between mb-1">
-                            <span className="text-[9px] text-white/20 font-mono uppercase tracking-wider">confidence</span>
+                            <span className="text-[9px] text-white/20 font-mono uppercase tracking-wider">{t("ngram.widgets.generalizationFailure.confidence")}</span>
                             <motion.span
                                 initial={{ opacity: 0 }}
                                 animate={isInView ? { opacity: 1 } : {}}
@@ -85,7 +87,7 @@ export function GeneralizationFailureDemo() {
                     className="rounded-xl border border-red-500/20 bg-red-950/[0.07] p-5 flex flex-col gap-4"
                 >
                     <span className="text-[10px] font-mono font-bold uppercase tracking-[0.18em] text-red-400/50">
-                        Never seen in training
+                        {t("ngram.widgets.generalizationFailure.neverSeenInTraining")}
                     </span>
 
                     <div className="font-mono text-sm text-white/70 bg-white/[0.04] rounded-lg px-3 py-2 leading-relaxed">
@@ -95,7 +97,7 @@ export function GeneralizationFailureDemo() {
                     </div>
 
                     <div className="flex items-center gap-3 min-h-[32px]">
-                        <span className="text-white/30 text-xs font-mono">next word →</span>
+                        <span className="text-white/30 text-xs font-mono">{t("ngram.widgets.generalizationFailure.nextWord")}</span>
                         <AnimatePresence mode="wait">
                             {rightState === "idle" && (
                                 <motion.span key="idle" exit={{ opacity: 0 }}
@@ -135,7 +137,7 @@ export function GeneralizationFailureDemo() {
                                     animate={{ opacity: 1 }}
                                     className="text-[10px] font-mono text-red-400/45 uppercase tracking-widest"
                                 >
-                                    Never seen. No prediction possible.
+                                    {t("ngram.widgets.generalizationFailure.neverSeenNoPrediction")}
                                 </motion.span>
                             )}
                         </AnimatePresence>
@@ -150,8 +152,7 @@ export function GeneralizationFailureDemo() {
                 transition={{ delay: 3.2 }}
                 className="text-xs text-white/25 text-center leading-relaxed max-w-sm mx-auto"
             >
-                Swapping &ldquo;cat&rdquo; for &ldquo;dog&rdquo; creates a brand-new row in the table.
-                The model cannot transfer what it knows about cats — each context is completely isolated.
+                {t("ngram.widgets.generalizationFailure.explanation")}
             </motion.p>
         </div>
     );

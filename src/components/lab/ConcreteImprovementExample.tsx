@@ -3,6 +3,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import { TrendingUp } from "lucide-react";
+import { useI18n } from "@/i18n/context";
 
 const STEPS = [
     {
@@ -38,6 +39,7 @@ const STEPS = [
 ];
 
 export function ConcreteImprovementExample() {
+    const { t } = useI18n();
     const ref = useRef<HTMLDivElement>(null);
     const isInView = useInView(ref, { once: true, margin: "-80px" });
     const [expanded, setExpanded] = useState<number | null>(null);
@@ -51,10 +53,10 @@ export function ConcreteImprovementExample() {
                 </div>
                 <div>
                     <h4 className="text-sm font-bold text-white tracking-tight">
-                        How Context Sharpens Predictions
+                        {t("ngram.widgets.confidenceImprovement.title")}
                     </h4>
                     <p className="text-[10px] text-white/40">
-                        Click any row to see the full candidate distribution
+                        {t("ngram.widgets.confidenceImprovement.subtitle")}
                     </p>
                 </div>
             </div>
@@ -73,8 +75,8 @@ export function ConcreteImprovementExample() {
                             <button
                                 onClick={() => setExpanded(isOpen ? null : i)}
                                 className={`w-full text-left rounded-xl border p-4 transition-colors ${isOpen
-                                        ? "border-amber-500/20 bg-amber-500/[0.04]"
-                                        : "border-white/[0.08] bg-white/[0.02] hover:border-white/[0.12]"
+                                    ? "border-amber-500/20 bg-amber-500/[0.04]"
+                                    : "border-white/[0.08] bg-white/[0.02] hover:border-white/[0.12]"
                                     }`}
                             >
                                 <div className="flex items-center gap-3 mb-2">
@@ -82,7 +84,7 @@ export function ConcreteImprovementExample() {
                                         N={step.n}
                                     </span>
                                     <span className="text-xs text-white/50 font-mono">
-                                        After <span className="text-amber-300/80 font-bold">&ldquo;{step.context}&rdquo;</span>
+                                        {t("ngram.widgets.confidenceImprovement.after")} <span className="text-amber-300/80 font-bold">&ldquo;{step.context}&rdquo;</span>
                                         <span className="text-white/25 mx-1.5">→</span>
                                         <span className="text-white/70 font-bold">&ldquo;{step.next === " " ? "␣" : step.next}&rdquo;</span>
                                     </span>
@@ -152,7 +154,7 @@ export function ConcreteImprovementExample() {
             >
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent to-amber-500/15" />
                 <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-amber-400/40 font-bold">
-                    32% → 85% → 91% — more context = sharper predictions
+                    {t("ngram.widgets.confidenceImprovement.summary")}
                 </span>
                 <div className="h-px flex-1 bg-gradient-to-l from-transparent to-amber-500/15" />
             </motion.div>

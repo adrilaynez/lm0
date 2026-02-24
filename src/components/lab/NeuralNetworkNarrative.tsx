@@ -9,16 +9,56 @@ import { useRouter } from "next/navigation";
 import { useLabMode } from "@/context/LabModeContext";
 import { NNPerceptronDiagram } from "@/components/lab/NNPerceptronDiagram";
 import { NNActivationExplorer } from "@/components/lab/NNActivationExplorer";
-import { NNBackpropVisualizer } from "@/components/lab/NNBackpropVisualizer";
 import { NNTrainingDemo } from "@/components/lab/NNTrainingDemo";
 import type { TrainingStep } from "@/components/lab/NNTrainingDemo";
 import { NNLossLandscape } from "@/components/lab/NNLossLandscape";
 import { NNBigramComparison } from "@/components/lab/NNBigramComparison";
-import { XORDecisionBoundary } from "@/components/lab/XORDecisionBoundary";
-import { BatchGradientNoiseVisualizer } from "@/components/lab/BatchGradientNoiseVisualizer";
-import { BatchSizeLossCurveComparison } from "@/components/lab/BatchSizeLossCurveComparison";
 import { OverfittingComparisonDiagram } from "@/components/lab/OverfittingComparisonDiagram";
 import { TrainValLossCurveVisualizer } from "@/components/lab/TrainValLossCurveVisualizer";
+import { OperationExplorer } from "@/components/lab/nn/OperationExplorer";
+import { WeightSliderDemo } from "@/components/lab/nn/WeightSliderDemo";
+import { BiasDemo } from "@/components/lab/nn/BiasDemo";
+import { LinearStackingDemo } from "@/components/lab/nn/LinearStackingDemo";
+import { ParallelNeuronsDemo } from "@/components/lab/nn/ParallelNeuronsDemo";
+import { DecisionBoundaryIntro } from "@/components/lab/nn/DecisionBoundaryIntro";
+import { PredictionErrorDemo } from "@/components/lab/nn/PredictionErrorDemo";
+import { DerivativeIntuitionDemo } from "@/components/lab/nn/DerivativeIntuitionDemo";
+import { ChainRuleBuilder } from "@/components/lab/nn/ChainRuleBuilder";
+import { LossWeightParabolaVisualizer } from "@/components/lab/nn/LossWeightParabolaVisualizer";
+import { LossFormulaMotivation } from "@/components/lab/nn/LossFormulaMotivation";
+import { NeuronGradientCalculator } from "@/components/lab/nn/NeuronGradientCalculator";
+import { NudgeWeightDemo } from "@/components/lab/nn/NudgeWeightDemo";
+import { RepeatedTrainingDemo } from "@/components/lab/nn/RepeatedTrainingDemo";
+import { TrainingWithTextDemo } from "@/components/lab/nn/TrainingWithTextDemo";
+import { OutputLayerNetworkVisualizer } from "@/components/lab/nn/OutputLayerNetworkVisualizer";
+import { SoftmaxTransformDemo } from "@/components/lab/nn/SoftmaxTransformDemo";
+import { LearningRateDemo } from "@/components/lab/nn/LearningRateDemo";
+import { LetterToNumberDemo } from "@/components/lab/nn/LetterToNumberDemo";
+import { ToyAlphabetPredictor } from "@/components/lab/nn/ToyAlphabetPredictor";
+import { BeatTheMachineChallenge } from "@/components/lab/nn/BeatTheMachineChallenge";
+import { ContextLimitationDemo } from "@/components/lab/nn/ContextLimitationDemo";
+import { Challenge } from "@/components/lab/nn/Challenge";
+import { WeightTrajectoryDemo } from "@/components/lab/nn/WeightTrajectoryDemo";
+import { VisualizerFrame } from "@/components/lab/nn/VisualizerFrame";
+import { XORSolverDemo } from "@/components/lab/nn/XORSolverDemo";
+import { DivergenceDemo } from "@/components/lab/nn/DivergenceDemo";
+import { MatrixMultiplyVisual } from "@/components/lab/nn/MatrixMultiplyVisual";
+import { TrainValSplitVisualizer } from "@/components/lab/nn/TrainValSplitVisualizer";
+import { LossDerivativeVisualizer } from "@/components/lab/nn/LossDerivativeVisualizer";
+import { WeightImpactVisualizer } from "@/components/lab/nn/WeightImpactVisualizer";
+import { FlatGradientVisualizer } from "@/components/lab/nn/FlatGradientVisualizer";
+import { BackpropZeroDemo } from "@/components/lab/nn/BackpropZeroDemo";
+import { BiologicalVsArtificialDiagram } from "@/components/lab/nn/BiologicalVsArtificialDiagram";
+import { BatchSizeComparisonVisualizer } from "@/components/lab/nn/BatchSizeComparisonVisualizer";
+import { ActivationDerivativeVisualizer } from "@/components/lab/nn/ActivationDerivativeVisualizer";
+import { DeadNeuronDemo } from "@/components/lab/nn/DeadNeuronDemo";
+import { ToyVowelTeaser } from "@/components/lab/nn/ToyVowelTeaser";
+import { StepEpochBatchCounter } from "@/components/lab/nn/StepEpochBatchCounter";
+import { GradientNoiseVisualizer } from "@/components/lab/nn/GradientNoiseVisualizer";
+import { OverfittingPlayground } from "@/components/lab/nn/OverfittingPlayground";
+import { HiddenSection } from "@/components/lab/nn/VisualizerFrame";
+import { Highlight } from "@/components/lab/Highlight";
+import { SectionProgressBar } from "@/components/lab/SectionProgressBar";
 
 import { BlockMath } from "react-katex";
 import "katex/dist/katex.min.css";
@@ -27,9 +67,10 @@ import "katex/dist/katex.min.css";
    Primitive building blocks
    ───────────────────────────────────────────── */
 
-function Section({ children }: { children: React.ReactNode }) {
+function Section({ id, children }: { id: string; children: React.ReactNode }) {
     return (
         <motion.section
+            id={id}
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
@@ -44,10 +85,10 @@ function Section({ children }: { children: React.ReactNode }) {
 function SectionLabel({ number, label }: { number: string; label: string }) {
     return (
         <div className="flex items-center gap-3 mb-8">
-            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-rose-500/10 border border-rose-500/20 text-[11px] font-mono font-bold text-rose-400">
+            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-rose-500/20 to-pink-500/10 border border-rose-500/25 text-[11px] font-mono font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-400 to-pink-300" style={{ WebkitBackgroundClip: 'text', backgroundImage: 'linear-gradient(135deg, #fb7185, #f9a8d4)' }}>
                 {number}
             </span>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/25">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/30">
                 {label}
             </span>
             <div className="flex-1 h-px bg-gradient-to-r from-white/[0.06] to-transparent" />
@@ -57,7 +98,7 @@ function SectionLabel({ number, label }: { number: string; label: string }) {
 
 function Heading({ children }: { children: React.ReactNode }) {
     return (
-        <h2 className="text-2xl md:text-[2rem] font-bold text-white tracking-tight mb-6 leading-tight">
+        <h2 className="text-2xl md:text-[2rem] font-extrabold text-white tracking-tight mb-6 leading-tight">
             {children}
         </h2>
     );
@@ -77,16 +118,6 @@ function P({ children }: { children: React.ReactNode }) {
             {children}
         </p>
     );
-}
-
-function Highlight({ children, color = "rose" }: { children: React.ReactNode; color?: "rose" | "amber" | "indigo" | "emerald" }) {
-    const colors = {
-        rose: "text-rose-400",
-        amber: "text-amber-400",
-        indigo: "text-indigo-400",
-        emerald: "text-emerald-400",
-    };
-    return <strong className={`${colors[color]} font-semibold`}>{children}</strong>;
 }
 
 function Callout({
@@ -195,11 +226,23 @@ function PullQuote({ children }: { children: React.ReactNode }) {
     );
 }
 
-function FigureWrapper({ label, hint, children }: { label: string; hint: string; children: React.ReactNode }) {
+const FIGURE_ACCENTS = {
+    default: { border: "border-white/[0.07]", bg: "bg-white/[0.015]", bar: "border-white/[0.06] bg-white/[0.02]", text: "text-white/30" },
+    amber: { border: "border-amber-500/[0.12]", bg: "bg-gradient-to-br from-amber-500/[0.02] to-transparent", bar: "border-amber-500/[0.08] bg-amber-500/[0.02]", text: "text-amber-400/50" },
+    emerald: { border: "border-emerald-500/[0.1]", bg: "bg-[radial-gradient(ellipse_at_top,rgba(52,211,153,0.02),transparent)]", bar: "border-emerald-500/[0.08] bg-emerald-500/[0.02]", text: "text-emerald-400/50" },
+    rose: { border: "border-rose-500/[0.12]", bg: "bg-gradient-to-br from-rose-500/[0.03] to-transparent", bar: "border-rose-500/[0.08] bg-rose-500/[0.02]", text: "text-rose-400/50" },
+    violet: { border: "border-violet-500/[0.12]", bg: "bg-gradient-to-br from-violet-500/[0.03] to-transparent", bar: "border-violet-500/[0.08] bg-violet-500/[0.02]", text: "text-violet-400/50" },
+    indigo: { border: "border-indigo-500/[0.1]", bg: "bg-gradient-to-br from-indigo-500/[0.02] to-transparent", bar: "border-indigo-500/[0.08] bg-indigo-500/[0.02]", text: "text-indigo-400/50" },
+} as const;
+
+type FigureAccent = keyof typeof FIGURE_ACCENTS;
+
+function FigureWrapper({ label, hint, accent = "default", children }: { label: string; hint: string; accent?: FigureAccent; children: React.ReactNode }) {
+    const a = FIGURE_ACCENTS[accent];
     return (
-        <div className="my-8 -mx-2 sm:mx-0 rounded-2xl border border-white/[0.07] bg-white/[0.015] overflow-hidden">
-            <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-white/[0.06] bg-white/[0.02]">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-white/30">{label}</span>
+        <div className={`my-8 -mx-2 sm:mx-0 rounded-2xl border ${a.border} ${a.bg} overflow-hidden`}>
+            <div className={`flex items-center justify-between gap-3 px-4 py-2.5 border-b ${a.bar}`}>
+                <span className={`text-[10px] font-mono uppercase tracking-widest ${a.text}`}>{label}</span>
             </div>
             <div className="p-4">{children}</div>
             {hint && (
@@ -209,38 +252,6 @@ function FigureWrapper({ label, hint, children }: { label: string; hint: string;
     );
 }
 
-function Expandable({ title, defaultOpen = false, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
-    const [open, setOpen] = useState(defaultOpen);
-    return (
-        <div className="my-8 rounded-xl border border-white/[0.07] bg-white/[0.015] overflow-hidden">
-            <button
-                onClick={() => setOpen(o => !o)}
-                className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-white/[0.02] transition-colors"
-            >
-                <span className="text-sm font-semibold text-white/60">{title}</span>
-                <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown className="w-4 h-4 text-white/25" />
-                </motion.div>
-            </button>
-            <AnimatePresence initial={false}>
-                {open && (
-                    <motion.div
-                        key="content"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                    >
-                        <div className="px-5 pb-6 pt-2 border-t border-white/[0.05] space-y-0">
-                            {children}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-}
 
 function SectionBreak() {
     return (
@@ -388,7 +399,20 @@ function HistorySidebar({ t }: { t: (key: string) => string }) {
                                 <motion.div
                                     initial={{ x: -20, opacity: 0 }}
                                     animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: 0.4 }}
+                                    transition={{ delay: 0.35 }}
+                                    className="border-l-2 border-slate-500/20 pl-4"
+                                >
+                                    <div className="flex items-baseline gap-3 mb-2">
+                                        <span className="text-2xl font-bold text-slate-500 font-mono shrink-0">1970s</span>
+                                        <span className="text-xs uppercase tracking-wider text-slate-500/60 font-semibold">The Persistence</span>
+                                    </div>
+                                    <p className="text-sm text-white/50 leading-relaxed">{t("neuralNetworkNarrative.history.p3_5")}</p>
+                                </motion.div>
+
+                                <motion.div
+                                    initial={{ x: -20, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    transition={{ delay: 0.45 }}
                                     className="border-l-2 border-amber-500/30 pl-4"
                                 >
                                     <div className="flex items-baseline gap-3 mb-2">
@@ -436,7 +460,19 @@ export function NeuralNetworkNarrative() {
     }, []);
 
     return (
-        <article className="max-w-[920px] mx-auto px-6 pt-8 pb-24">
+        <article className="max-w-4xl mx-auto px-6 pb-28">
+            <SectionProgressBar
+                sections={[
+                    { id: "nn-01", label: t("neuralNetworkNarrative.sections.discovery.number"), name: t("neuralNetworkNarrative.sections.discovery.label") },
+                    { id: "nn-02", label: t("models.neuralNetworks.sections.artificialNeuron.number"), name: t("models.neuralNetworks.sections.artificialNeuron.label") },
+                    { id: "nn-03", label: t("models.neuralNetworks.sections.nonLinearity.number"), name: t("models.neuralNetworks.sections.nonLinearity.label") },
+                    { id: "nn-04", label: t("models.neuralNetworks.sections.findingDirection.number"), name: t("models.neuralNetworks.sections.findingDirection.label") },
+                    { id: "nn-05", label: t("models.neuralNetworks.sections.makingItLearn.number"), name: t("models.neuralNetworks.sections.makingItLearn.label") },
+                    { id: "nn-06", label: t("models.neuralNetworks.sections.trainingAtScale.number"), name: t("models.neuralNetworks.sections.trainingAtScale.label") },
+                    { id: "nn-07", label: t("models.neuralNetworks.sections.overfittingTrap.number"), name: t("models.neuralNetworks.sections.overfittingTrap.label") },
+                    { id: "nn-08", label: t("neuralNetworkNarrative.sections.fromNumbers.number"), name: t("neuralNetworkNarrative.sections.fromNumbers.label") },
+                ]}
+            />
 
             {/* ───────────────────── HERO ───────────────────── */}
             <header className="text-center mb-24 md:mb-32">
@@ -457,8 +493,12 @@ export function NeuralNetworkNarrative() {
                         </span>
                     </h1>
 
-                    <p className="text-lg md:text-xl text-white/35 max-w-xl mx-auto leading-relaxed mb-12">
+                    <p className="text-lg md:text-xl text-white/35 max-w-xl mx-auto leading-relaxed mb-4">
                         {t("neuralNetworkNarrative.hero.description")}
+                    </p>
+
+                    <p className="text-xs font-mono text-white/20 max-w-md mx-auto leading-relaxed mb-12 tracking-wide">
+                        {t("neuralNetworkNarrative.hero.recap")}
                     </p>
 
                     <div className="flex justify-center mb-14">
@@ -475,8 +515,133 @@ export function NeuralNetworkNarrative() {
                 </motion.div>
             </header>
 
-            {/* ─────────── 01 · THE ARTIFICIAL NEURON ─────────── */}
-            <Section>
+            {/* ─────────── 01 · LET'S TEACH A MACHINE TO LEARN ─────────── */}
+            <Section id="nn-01">
+                <SectionLabel number={t("neuralNetworkNarrative.sections.discovery.number")} label={t("neuralNetworkNarrative.sections.discovery.label")} />
+                <Heading>{t("neuralNetworkNarrative.discovery.heading")}</Heading>
+                <Lead>
+                    {t("neuralNetworkNarrative.discovery.lead")}
+                    <Highlight tooltip={t("neuralNetworkNarrative.narratorTooltips.learning")}>{t("neuralNetworkNarrative.discovery.leadHighlight")}</Highlight>
+                    {t("neuralNetworkNarrative.discovery.leadEnd")}
+                </Lead>
+
+                {/* Bridge from N-gram chapter */}
+                <P>{t("neuralNetworkNarrative.discovery.bigramBridge")}</P>
+                <P>{t("neuralNetworkNarrative.discovery.bigramQuestion")}</P>
+
+                {/* Counting vs Learning comparison table */}
+                <div className="my-8 rounded-2xl border border-white/[0.08] bg-white/[0.015] overflow-hidden">
+                    <div className="px-4 py-3 border-b border-white/[0.06] bg-white/[0.02]">
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-white/30">
+                            {t("neuralNetworkNarrative.discovery.countingVsLearning.title")}
+                        </span>
+                    </div>
+                    <div className="grid grid-cols-2 divide-x divide-white/[0.06]">
+                        <div className="px-4 py-3 bg-rose-500/[0.02]">
+                            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-rose-400/60 mb-3">
+                                {t("neuralNetworkNarrative.discovery.countingVsLearning.countingCol")}
+                            </p>
+                        </div>
+                        <div className="px-4 py-3 bg-emerald-500/[0.02]">
+                            <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-400/60 mb-3">
+                                {t("neuralNetworkNarrative.discovery.countingVsLearning.learningCol")}
+                            </p>
+                        </div>
+                    </div>
+                    {(["row1", "row2", "row3", "row4"] as const).map((row) => (
+                        <div key={row} className="grid grid-cols-2 divide-x divide-white/[0.06] border-t border-white/[0.04]">
+                            <div className="px-4 py-3">
+                                <p className="text-[10px] font-mono text-white/30 mb-1">
+                                    {t(`neuralNetworkNarrative.discovery.countingVsLearning.${row}Label`)}
+                                </p>
+                                <p className="text-xs text-rose-300/60 leading-relaxed">
+                                    {t(`neuralNetworkNarrative.discovery.countingVsLearning.${row}Counting`)}
+                                </p>
+                            </div>
+                            <div className="px-4 py-3">
+                                <p className="text-[10px] font-mono text-white/30 mb-1">
+                                    {t(`neuralNetworkNarrative.discovery.countingVsLearning.${row}Label`)}
+                                </p>
+                                <p className="text-xs text-emerald-300/60 leading-relaxed">
+                                    {t(`neuralNetworkNarrative.discovery.countingVsLearning.${row}Learning`)}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Part A: Build the recipe step by step */}
+                <P>
+                    {t("neuralNetworkNarrative.discovery.hookP1")}
+                    <Highlight tooltip={t("neuralNetworkNarrative.narratorTooltips.weights")}>{t("neuralNetworkNarrative.discovery.hookP1Highlight")}</Highlight>
+                    {t("neuralNetworkNarrative.discovery.hookP1End")}
+                </P>
+
+                <P>{t("neuralNetworkNarrative.discovery.hookP2")}</P>
+
+                <Callout icon={Lightbulb} accent="indigo" title={t("neuralNetworkNarrative.discovery.inputsFixedTitle")}>
+                    <p>{t("neuralNetworkNarrative.discovery.inputsFixed")}</p>
+                </Callout>
+
+                <P>{t("neuralNetworkNarrative.discovery.p1")}</P>
+
+                <p className="text-[15px] md:text-base text-white/35 leading-[1.9] mb-5 italic">
+                    {t("neuralNetworkNarrative.discovery.predict1")}
+                </p>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.discovery.fig1Label")}
+                    hint={t("neuralNetworkNarrative.discovery.fig1Hint")}
+                >
+                    <OperationExplorer />
+                </FigureWrapper>
+
+                <P>{t("neuralNetworkNarrative.discovery.p2")}</P>
+
+                <p className="text-[15px] md:text-base text-white/35 leading-[1.9] mb-5 italic">
+                    {t("neuralNetworkNarrative.discovery.predict2")}
+                </p>
+
+                <VisualizerFrame
+                    family="neuron"
+                    label={t("neuralNetworkNarrative.discovery.fig2Label")}
+                    hint={t("neuralNetworkNarrative.discovery.fig2Hint")}
+                >
+                    <WeightSliderDemo />
+                </VisualizerFrame>
+
+                <P>{t("neuralNetworkNarrative.discovery.p3")}</P>
+
+                <Challenge
+                    question={t("neuralNetworkNarrative.discovery.challenge2.question")}
+                    hint={t("neuralNetworkNarrative.discovery.challenge2.hint")}
+                    successMessage={t("neuralNetworkNarrative.discovery.challenge2.success")}
+                />
+
+                <P>{t("neuralNetworkNarrative.discovery.p4")}</P>
+
+                <p className="text-[15px] md:text-base text-white/35 leading-[1.9] mb-5 italic">
+                    {t("neuralNetworkNarrative.discovery.predict3")}
+                </p>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.discovery.fig3Label")}
+                    hint={t("neuralNetworkNarrative.discovery.fig3Hint")}
+                >
+                    <BiasDemo />
+                </FigureWrapper>
+
+                <Callout accent="rose" title={t("neuralNetworkNarrative.discovery.calloutTitle")}>
+                    <p>{t("neuralNetworkNarrative.discovery.calloutText")}</p>
+                </Callout>
+
+                <P>{t("neuralNetworkNarrative.discovery.bridge")}</P>
+            </Section>
+
+            <SectionBreak />
+
+            {/* ─────────── 02 · PUTTING IT TOGETHER ─────────── */}
+            <Section id="nn-02">
                 <SectionLabel
                     number={t("models.neuralNetworks.sections.artificialNeuron.number")}
                     label={t("models.neuralNetworks.sections.artificialNeuron.label")}
@@ -485,182 +650,41 @@ export function NeuralNetworkNarrative() {
 
                 <Lead>{t("neuralNetworkNarrative.artificialNeuron.lead")}</Lead>
 
-                <P>
-                    {t("neuralNetworkNarrative.artificialNeuron.p1")}{" "}
-                    <Highlight>{t("neuralNetworkNarrative.artificialNeuron.p1Highlight")}</Highlight>
-                    {t("neuralNetworkNarrative.artificialNeuron.p1End")}
-                </P>
+                <P>{t("neuralNetworkNarrative.artificialNeuron.p1")}</P>
+
+                <p className="text-[15px] md:text-base text-white/35 leading-[1.9] mb-5 italic">
+                    {t("neuralNetworkNarrative.artificialNeuron.predict4")}
+                </p>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.artificialNeuron.perceptronLabel")}
+                    hint={t("neuralNetworkNarrative.artificialNeuron.perceptronHint")}
+                    accent="rose"
+                >
+                    <NNPerceptronDiagram />
+                </FigureWrapper>
+
+                {/* Biological vs Artificial Neuron — side-by-side SVG diagrams */}
+                <HiddenSection
+                    category="historical"
+                    difficulty={1}
+                    title={t("neuralNetworkNarrative.artificialNeuron.biological.title")}
+                    description={t("neuralNetworkNarrative.artificialNeuron.biological.subtitle")}
+                >
+                    <p className="text-sm text-white/40 leading-relaxed mb-4">
+                        {t("neuralNetworkNarrative.bioVsArtificial.intro")}
+                    </p>
+                    <BiologicalVsArtificialDiagram />
+                    <p className="text-xs text-white/30 italic border-t border-white/[0.06] pt-3 mt-4">
+                        {t("neuralNetworkNarrative.artificialNeuron.biological.caveat")}
+                    </p>
+                </HiddenSection>
 
                 <P>{t("neuralNetworkNarrative.artificialNeuron.p2")}</P>
 
-                <FormulaBlock
-                    formula="y = f\left(\sum_{i=1}^{n} w_i \, x_i + b\right)"
-                    caption={t("neuralNetworkNarrative.artificialNeuron.formulaCaption")}
-                />
-
-                {/* Visual Formula Example */}
-                <div className="my-8 -mx-2 sm:mx-0 rounded-2xl border border-indigo-500/[0.15] bg-indigo-500/[0.02] overflow-hidden">
-                    <div className="flex items-center gap-3 px-5 py-3 border-b border-indigo-500/[0.1] bg-indigo-500/[0.03]">
-                        <Lightbulb className="w-4 h-4 text-indigo-400" />
-                        <span className="text-xs font-mono uppercase tracking-widest text-indigo-400/80">{t("neuralNetworkNarrative.artificialNeuron.walkthrough.title")}</span>
-                    </div>
-                    <div className="p-5 sm:p-6">
-                        <p className="text-sm text-white/50 mb-2">
-                            <strong className="text-indigo-400">{t("neuralNetworkNarrative.artificialNeuron.walkthrough.scenarioTitle")}</strong> {t("neuralNetworkNarrative.artificialNeuron.walkthrough.scenarioText")}
-                        </p>
-                        <p className="text-xs text-white/40 mb-6">
-                            {t("neuralNetworkNarrative.artificialNeuron.walkthrough.intro")}
-                        </p>
-
-                        {/* Step 1: Inputs */}
-                        <div className="mb-4 rounded-xl border border-white/[0.08] bg-white/[0.015] p-4">
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-400">1</div>
-                                <span className="text-sm font-semibold text-white/70">{t("neuralNetworkNarrative.artificialNeuron.walkthrough.step1")}</span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2">
-                                    <span className="text-white/40 text-xs block mb-1">{t("lab.playground.inputs.x1Label")}</span>
-                                    <span className="font-mono font-bold text-white/70">0.8</span>
-                                    <span className="text-[10px] text-white/30 block mt-0.5">{t("lab.playground.inputs.scaleHint")}</span>
-                                </div>
-                                <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2">
-                                    <span className="text-white/40 text-xs block mb-1">{t("lab.playground.inputs.x2Label")}</span>
-                                    <span className="font-mono font-bold text-white/70">0.6</span>
-                                    <span className="text-[10px] text-white/30 block mt-0.5">{t("lab.playground.inputs.scaleHint")}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Step 2: Multiply by Weights */}
-                        <div className="mb-4 rounded-xl border border-white/[0.08] bg-white/[0.015] p-4">
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-400">2</div>
-                                <span className="text-sm font-semibold text-white/70">{t("neuralNetworkNarrative.artificialNeuron.walkthrough.step2")}</span>
-                            </div>
-                            <p className="text-xs text-white/40 mb-3">
-                                {t("neuralNetworkNarrative.artificialNeuron.walkthrough.step2Desc")}
-                            </p>
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-sm">
-                                    <code className="font-mono text-xs bg-rose-500/[0.08] border border-rose-500/[0.15] px-2 py-1 rounded text-rose-400">
-                                        w₁ = 1.5
-                                    </code>
-                                    <span className="text-white/30">×</span>
-                                    <code className="font-mono text-xs bg-white/[0.04] border border-white/[0.06] px-2 py-1 rounded">
-                                        x₁ = 0.8
-                                    </code>
-                                    <span className="text-white/30">=</span>
-                                    <code className="font-mono text-xs bg-white/[0.04] border border-white/[0.06] px-2 py-1 rounded font-bold">
-                                        1.2
-                                    </code>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm">
-                                    <code className="font-mono text-xs bg-rose-500/[0.08] border border-rose-500/[0.15] px-2 py-1 rounded text-rose-400">
-                                        w₂ = 0.3
-                                    </code>
-                                    <span className="text-white/30">×</span>
-                                    <code className="font-mono text-xs bg-white/[0.04] border border-white/[0.06] px-2 py-1 rounded">
-                                        x₂ = 0.6
-                                    </code>
-                                    <span className="text-white/30">=</span>
-                                    <code className="font-mono text-xs bg-white/[0.04] border border-white/[0.06] px-2 py-1 rounded font-bold">
-                                        0.18
-                                    </code>
-                                </div>
-                            </div>
-                            <p className="text-xs text-white/30 italic mt-3">
-                                {t("neuralNetworkNarrative.artificialNeuron.walkthrough.step2Hint")}
-                            </p>
-                        </div>
-
-                        {/* Step 3: Sum Everything */}
-                        <div className="mb-4 rounded-xl border border-white/[0.08] bg-white/[0.015] p-4">
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-400">3</div>
-                                <span className="text-sm font-semibold text-white/70">{t("neuralNetworkNarrative.artificialNeuron.walkthrough.step3")}</span>
-                            </div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <code className="font-mono text-xs bg-white/[0.04] px-2 py-1 rounded border border-white/[0.06]">
-                                    1.2 + 0.18 = <span className="text-white/70 font-bold">1.38</span>
-                                </code>
-                            </div>
-                            <p className="text-xs text-white/35 italic mt-2">
-                                {t("neuralNetworkNarrative.artificialNeuron.walkthrough.step3Hint")}
-                            </p>
-                        </div>
-
-                        {/* Step 4: Add Bias */}
-                        <div className="mb-4 rounded-xl border border-white/[0.08] bg-white/[0.015] p-4">
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-400">4</div>
-                                <span className="text-sm font-semibold text-white/70">{t("neuralNetworkNarrative.artificialNeuron.walkthrough.step4")}</span>
-                            </div>
-                            <p className="text-xs text-white/40 mb-3">
-                                {t("neuralNetworkNarrative.artificialNeuron.walkthrough.step4Desc")}
-                            </p>
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <code className="font-mono text-xs bg-white/[0.04] px-2 py-1 rounded border border-white/[0.06]">
-                                    1.38
-                                </code>
-                                <span className="text-white/30">+</span>
-                                <code className="font-mono text-xs bg-amber-500/[0.08] border border-amber-500/[0.15] px-2 py-1 rounded text-amber-400">
-                                    b = −0.5
-                                </code>
-                                <span className="text-white/30">=</span>
-                                <code className="font-mono text-xs bg-white/[0.04] px-2 py-1 rounded border border-white/[0.06] font-bold">
-                                    z = 0.88
-                                </code>
-                            </div>
-                            <p className="text-xs text-white/30 italic mt-2">
-                                {t("neuralNetworkNarrative.artificialNeuron.walkthrough.step4Hint")}
-                            </p>
-                        </div>
-
-                        {/* Step 5: Activation */}
-                        <div className="mb-4 rounded-xl border border-white/[0.08] bg-white/[0.015] p-4">
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-400">5</div>
-                                <span className="text-sm font-semibold text-white/70">{t("neuralNetworkNarrative.artificialNeuron.walkthrough.step5")}</span>
-                            </div>
-                            <p className="text-xs text-white/40 mb-3">
-                                {t("neuralNetworkNarrative.artificialNeuron.walkthrough.step5Desc")}
-                            </p>
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <code className="font-mono text-xs bg-white/[0.04] px-2 py-1 rounded border border-white/[0.06]">
-                                    y = ReLU(0.88) = max(0, 0.88) = <span className="text-emerald-400 font-bold">0.88</span>
-                                </code>
-                            </div>
-                            <p className="text-xs text-white/35 italic mt-2">
-                                {t("neuralNetworkNarrative.artificialNeuron.walkthrough.step5Hint")}
-                            </p>
-                        </div>
-
-                        {/* Final Result */}
-                        <div className="rounded-xl border border-indigo-500/[0.2] bg-gradient-to-br from-indigo-500/[0.08] to-transparent p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="text-sm font-semibold text-indigo-400">✓ {t("neuralNetworkNarrative.artificialNeuron.walkthrough.resultTitle")}</span>
-                            </div>
-                            <p className="text-sm text-white/60">
-                                {t("neuralNetworkNarrative.artificialNeuron.walkthrough.resultTextPart")}{" "}
-                                <code className="font-mono font-bold text-emerald-400 bg-white/[0.04] px-2 py-0.5 rounded">0.88</code>
-                            </p>
-                            <p className="text-xs text-indigo-300/60 mt-2">
-                                {t("neuralNetworkNarrative.artificialNeuron.walkthrough.resultDesc")}
-                            </p>
-                        </div>
-
-                        <div className="mt-5 pt-4 border-t border-white/[0.06] text-xs text-white/35 italic text-center">
-                            {t("neuralNetworkNarrative.artificialNeuron.walkthrough.finalNote")}
-                        </div>
-                    </div>
-                </div>
-
-                <NNPerceptronDiagram />
-
                 <P>
                     {t("neuralNetworkNarrative.artificialNeuron.p3")}{" "}
-                    <Highlight>{t("neuralNetworkNarrative.artificialNeuron.p3Highlight")}</Highlight>
+                    <Highlight tooltip={t("neuralNetworkNarrative.narratorTooltips.activation")}>{t("neuralNetworkNarrative.artificialNeuron.p3Highlight")}</Highlight>
                     {t("neuralNetworkNarrative.artificialNeuron.p3End")}
                 </P>
 
@@ -668,14 +692,23 @@ export function NeuralNetworkNarrative() {
                     <p>{t("neuralNetworkNarrative.artificialNeuron.calloutText")}</p>
                 </Callout>
 
+                <P>{t("neuralNetworkNarrative.artificialNeuron.formalizeParagraph")}</P>
+
+                <FormulaBlock
+                    formula="y = f\left(\sum_{i=1}^{n} w_i \, x_i + b\right)"
+                    caption={t("neuralNetworkNarrative.artificialNeuron.formulaCaptionMoved")}
+                />
+
                 {/* ─────────── COLLAPSIBLE HISTORY SIDEBAR ─────────── */}
                 <HistorySidebar t={t} />
+
+                <P>{t("neuralNetworkNarrative.artificialNeuron.bridgeToScaling")}</P>
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── 02 · WHY NON-LINEARITY? ─────────── */}
-            <Section>
+            {/* ─────────── 03 · WHAT IF WE ADD MORE NEURONS? ─────────── */}
+            <Section id="nn-03">
                 <SectionLabel
                     number={t("models.neuralNetworks.sections.nonLinearity.number")}
                     label={t("models.neuralNetworks.sections.nonLinearity.label")}
@@ -684,176 +717,576 @@ export function NeuralNetworkNarrative() {
 
                 <Lead>{t("neuralNetworkNarrative.nonLinearity.lead")}</Lead>
 
-                <P>{t("neuralNetworkNarrative.nonLinearity.p1")}</P>
+                {/* Phase A: Parallel neurons — width */}
+                <P>{t("neuralNetworkNarrative.nonLinearity.parallelIntro")}</P>
 
-                <P>{t("neuralNetworkNarrative.nonLinearity.p2")}</P>
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.parallelNeurons.title")}
+                    hint={t("neuralNetworkNarrative.parallelNeurons.hint")}
+                >
+                    <ParallelNeuronsDemo />
+                </FigureWrapper>
 
-                <NNActivationExplorer />
+                <P>{t("neuralNetworkNarrative.nonLinearity.parallelOutro")}</P>
+
+                {/* "Why a line?" — 1 neuron = 1 yes/no question (idea #2 + improvement E) */}
+                <P>{t("neuralNetworkNarrative.nonLinearity.whyALine")}</P>
+                <P>{t("neuralNetworkNarrative.nonLinearity.whyALineDetail")}</P>
+
+                {/* Phase B: Decision boundaries */}
+                <P>{t("neuralNetworkNarrative.nonLinearity.boundaryIntro")}</P>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.decisionBoundary.title")}
+                    hint={t("neuralNetworkNarrative.decisionBoundary.hint")}
+                >
+                    <DecisionBoundaryIntro />
+                </FigureWrapper>
+
+                <P>{t("neuralNetworkNarrative.nonLinearity.boundaryOutro")}</P>
+
+                {/* XOR Challenge — immediately after Decision Boundary (idea #3) */}
+                <Challenge
+                    question={t("neuralNetworkNarrative.nonLinearity.xorChallenge.question")}
+                    hint={t("neuralNetworkNarrative.nonLinearity.xorChallenge.hint")}
+                    successMessage={t("neuralNetworkNarrative.nonLinearity.xorChallenge.success")}
+                />
+
+                {/* ★ PEAK 2 */}
+                <p className="text-center text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-rose-300 via-pink-200 to-rose-300 my-10 italic">
+                    {t("neuralNetworkNarrative.nonLinearity.peak2")}
+                </p>
+
+                {/* Reflection 1 */}
+                <p className="text-center text-sm text-white/30 italic my-6">
+                    {t("neuralNetworkNarrative.nonLinearity.reflection1")}
+                </p>
+
+                {/* Phase C: Depth motivation — from XOR failure */}
+                <P>{t("neuralNetworkNarrative.nonLinearity.layerIntro")}</P>
+
+                {/* Phase D: Linear collapse */}
+                <P>
+                    {t("neuralNetworkNarrative.nonLinearity.linearProblem")}
+                    <Highlight color="amber" tooltip={t("neuralNetworkNarrative.narratorTooltips.nonLinearity")}>{t("neuralNetworkNarrative.nonLinearity.linearProblemHighlight")}</Highlight>
+                    {t("neuralNetworkNarrative.nonLinearity.linearProblemEnd")}
+                </P>
+
+                <P>{t("neuralNetworkNarrative.nonLinearity.stackingIntro")}</P>
+
+                <VisualizerFrame
+                    family="function"
+                    label={t("neuralNetworkNarrative.nonLinearity.stackingLabel")}
+                    hint={t("neuralNetworkNarrative.nonLinearity.stackingHint")}
+                >
+                    <LinearStackingDemo />
+                </VisualizerFrame>
+
+                <P>{t("neuralNetworkNarrative.nonLinearity.stackingOutro")}</P>
+
+                {/* What If #1 — upgraded with matrix algebra (idea #5) */}
+                <HiddenSection
+                    category="math"
+                    difficulty={2}
+                    title={t("neuralNetworkNarrative.nonLinearity.whatIf1Title")}
+                    description={t("neuralNetworkNarrative.nonLinearity.whatIf1Desc")}
+                >
+                    <p className="text-sm text-white/40 leading-relaxed mb-4">
+                        {t("neuralNetworkNarrative.nonLinearity.whatIf1Text")}
+                    </p>
+                    <div className="rounded-xl bg-black/40 border border-indigo-500/10 p-4 mb-4">
+                        <p className="text-[10px] font-mono uppercase tracking-wider text-indigo-400/50 mb-3">
+                            {t("neuralNetworkNarrative.nonLinearity.whatIf1MatrixLabel")}
+                        </p>
+                        <BlockMath math={String.raw`\underset{\text{Layer 2}}{W_2} \cdot \underset{\text{Layer 1}}{W_1} = \underset{\text{Single equivalent}}{W_3}`} />
+                        <BlockMath math={String.raw`\begin{bmatrix} a & b \\ c & d \end{bmatrix} \cdot \begin{bmatrix} e & f \\ g & h \end{bmatrix} = \begin{bmatrix} ae+bg & af+bh \\ ce+dg & cf+dh \end{bmatrix}`} />
+                    </div>
+                    <p className="text-sm text-white/40 leading-relaxed">
+                        {t("neuralNetworkNarrative.nonLinearity.whatIf1Conclusion")}
+                    </p>
+                </HiddenSection>
+
+                {/* Phase E: Activation functions — the fix */}
+                <P>{t("neuralNetworkNarrative.nonLinearity.activationIntro")}</P>
+
+                <VisualizerFrame
+                    family="function"
+                    label={t("neuralNetworkNarrative.nonLinearity.activationLabel")}
+                    hint={t("neuralNetworkNarrative.nonLinearity.activationHint")}
+                >
+                    <NNActivationExplorer />
+                </VisualizerFrame>
 
                 <P>
                     {t("neuralNetworkNarrative.nonLinearity.p3")}{" "}
-                    <Highlight color="indigo">{t("neuralNetworkNarrative.nonLinearity.p3Highlight")}</Highlight>{" "}
+                    <Highlight color="indigo" tooltip={t("neuralNetworkNarrative.narratorTooltips.relu")}>{t("neuralNetworkNarrative.nonLinearity.p3Highlight")}</Highlight>{" "}
                     {t("neuralNetworkNarrative.nonLinearity.p3End")}
                 </P>
+
+                {/* XOR Solver Demo — activation + 2 neurons solves XOR (idea #6.5) */}
+                <P>{t("neuralNetworkNarrative.nonLinearity.xorSolverIntro")}</P>
+
+                <VisualizerFrame
+                    family="neuron"
+                    label={t("neuralNetworkNarrative.xorSolver.title")}
+                    hint={t("neuralNetworkNarrative.xorSolver.hint")}
+                >
+                    <XORSolverDemo />
+                </VisualizerFrame>
+
+                <P>{t("neuralNetworkNarrative.nonLinearity.xorSolverOutro")}</P>
+
+                <Callout icon={Layers} accent="rose" title={t("neuralNetworkNarrative.nonLinearity.summaryCalloutTitle")}>
+                    <p>{t("neuralNetworkNarrative.nonLinearity.summaryCalloutText")}</p>
+                </Callout>
+
+                {/* Toy Vowel Teaser — visual promise for §07 */}
+                <VisualizerFrame
+                    family="neuron"
+                    label={t("neuralNetworkNarrative.vowelTeaser.title")}
+                    hint={t("neuralNetworkNarrative.vowelTeaser.hint")}
+                >
+                    <ToyVowelTeaser />
+                </VisualizerFrame>
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── 03 · HOW A NETWORK LEARNS ─────────── */}
-            <Section>
+            {/* ─────────── 04 · CAN WE FIX A BAD PREDICTION? ─────────── */}
+            <Section id="nn-04">
                 <SectionLabel
-                    number={t("models.neuralNetworks.sections.howItLearns.number")}
-                    label={t("models.neuralNetworks.sections.howItLearns.label")}
+                    number={t("models.neuralNetworks.sections.findingDirection.number")}
+                    label={t("models.neuralNetworks.sections.findingDirection.label")}
                 />
-                <Heading>{t("neuralNetworkNarrative.howItLearns.title")}</Heading>
+                <Heading>{t("neuralNetworkNarrative.findingDirection.title")}</Heading>
 
-                <Lead>{t("neuralNetworkNarrative.howItLearns.lead")}</Lead>
+                <Lead>{t("neuralNetworkNarrative.findingDirection.lead")}</Lead>
 
-                <P>
-                    {t("neuralNetworkNarrative.howItLearns.p1")}{" "}
-                    <Highlight>{t("neuralNetworkNarrative.howItLearns.p1Highlight")}</Highlight>
-                    {t("neuralNetworkNarrative.howItLearns.p1End")}
-                </P>
+                {/* Phase A: The Hook — model is wrong */}
+                <P>{t("neuralNetworkNarrative.howItLearns.phaseA.p1")}</P>
+                <P>{t("neuralNetworkNarrative.howItLearns.phaseA.p2")}</P>
 
-                {/* Visual Training Example */}
-                <div className="my-10 -mx-2 sm:mx-0 rounded-2xl border border-amber-500/[0.15] bg-amber-500/[0.02] overflow-hidden">
-                    <div className="flex items-center gap-3 px-5 py-3 border-b border-amber-500/[0.1] bg-amber-500/[0.03]">
-                        <Lightbulb className="w-4 h-4 text-amber-400" />
-                        <span className="text-xs font-mono uppercase tracking-widest text-amber-400/80">{t("neuralNetworkNarrative.howItLearns.workedExample.title")}</span>
-                    </div>
-                    <div className="p-5 sm:p-6">
-                        <p className="text-sm text-white/50 mb-6">
-                            {t("neuralNetworkNarrative.howItLearns.workedExample.intro")}
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.howItLearns.predictionError.title")}
+                    hint={t("neuralNetworkNarrative.howItLearns.phaseA.hint")}
+                >
+                    <PredictionErrorDemo />
+                </FigureWrapper>
+
+                {/* ★ PEAK 3 */}
+                <p className="text-center text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-violet-200 to-indigo-300 my-10 italic">
+                    {t("neuralNetworkNarrative.findingDirection.peak3")}
+                </p>
+
+                {/* Phase B: Nudge — what if we change a weight? */}
+                <P>{t("neuralNetworkNarrative.howItLearns.phaseB.intro")}</P>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.howItLearns.nudge.title")}
+                    hint={t("neuralNetworkNarrative.howItLearns.phaseB.nudgeHint")}
+                >
+                    <NudgeWeightDemo />
+                </FigureWrapper>
+
+                <P>{t("neuralNetworkNarrative.howItLearns.phaseB.discovery")}</P>
+
+                {/* Phase C: The Derivative — measuring sensitivity */}
+                <P>{t("neuralNetworkNarrative.howItLearns.phaseC.intro")}</P>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.howItLearns.derivative.title")}
+                    hint={t("neuralNetworkNarrative.howItLearns.phaseC.derivativeHint")}
+                >
+                    <DerivativeIntuitionDemo />
+                </FigureWrapper>
+
+                <P>{t("neuralNetworkNarrative.howItLearns.phaseC.nameIt")}</P>
+
+                {/* Phase D: Chain Rule — chained operations */}
+                <P>{t("neuralNetworkNarrative.howItLearns.phaseD.intro")}</P>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.howItLearns.chainRule.title")}
+                    hint={t("neuralNetworkNarrative.howItLearns.phaseD.chainHint")}
+                >
+                    <ChainRuleBuilder />
+                </FigureWrapper>
+
+                <P>{t("neuralNetworkNarrative.howItLearns.phaseD.nameIt")}</P>
+
+                {/* Reflection 2 */}
+                <p className="text-center text-sm text-white/30 italic my-6">
+                    {t("neuralNetworkNarrative.findingDirection.reflection2")}
+                </p>
+            </Section>
+
+            <SectionBreak />
+
+            {/* ─────────── 05 · MAKING IT LEARN ─────────── */}
+            <Section id="nn-05">
+                <SectionLabel
+                    number={t("models.neuralNetworks.sections.makingItLearn.number")}
+                    label={t("models.neuralNetworks.sections.makingItLearn.label")}
+                />
+                <Heading>{t("neuralNetworkNarrative.makingItLearn.title")}</Heading>
+
+                <Lead>{t("neuralNetworkNarrative.makingItLearn.lead")}</Lead>
+
+                {/* Phase F FIRST: Loss — error → squaring → loss defined (ideas #12, #13) */}
+                <P>{t("neuralNetworkNarrative.howItLearns.phaseF.intro")}</P>
+
+                <HiddenSection
+                    category="math"
+                    difficulty={2}
+                    title={t("neuralNetworkNarrative.howItLearns.lossMotive.title")}
+                    description={t("neuralNetworkNarrative.howItLearns.phaseF.lossHint")}
+                >
+                    <LossFormulaMotivation />
+                </HiddenSection>
+
+                <P>{t("neuralNetworkNarrative.howItLearns.phaseF.named")}</P>
+
+                {/* Weight Impact — neuron-based diagram showing how Δw → Δloss */}
+                <P>{t("neuralNetworkNarrative.weightImpact.introText")}</P>
+
+                <VisualizerFrame
+                    family="neuron"
+                    label={t("neuralNetworkNarrative.weightImpact.title")}
+                    hint={t("neuralNetworkNarrative.weightImpact.hint")}
+                >
+                    <WeightImpactVisualizer />
+                </VisualizerFrame>
+
+                <P>{t("neuralNetworkNarrative.weightImpact.bridge")}</P>
+
+                {/* Loss Derivative — now shown as a graph after user understands the concept */}
+                <P>{t("neuralNetworkNarrative.lossDerivative.introText")}</P>
+
+                <VisualizerFrame
+                    family="function"
+                    label={t("neuralNetworkNarrative.lossDerivative.title")}
+                    hint={t("neuralNetworkNarrative.lossDerivative.hint")}
+                >
+                    <LossDerivativeVisualizer />
+                </VisualizerFrame>
+
+                {/* Phase E SECOND: Direction — now makes sense: minimize the loss you just defined */}
+                <P>{t("neuralNetworkNarrative.howItLearns.phaseE.intro")}</P>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.howItLearns.parabola.title")}
+                    hint={t("neuralNetworkNarrative.howItLearns.parabola.hint")}
+                >
+                    <LossWeightParabolaVisualizer />
+                </FigureWrapper>
+
+                <P>{t("neuralNetworkNarrative.howItLearns.phaseE.rule")}</P>
+
+                {/* Phase G: One Training Step */}
+                <P>{t("neuralNetworkNarrative.howItLearns.phaseG.intro")}</P>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.howItLearns.neuronCalc.title")}
+                    hint={t("neuralNetworkNarrative.howItLearns.phaseG.calcHint")}
+                >
+                    <NeuronGradientCalculator />
+                </FigureWrapper>
+
+                {/* Gradient explanation (idea #14) */}
+                <P>{t("neuralNetworkNarrative.howItLearns.gradientMeaning")}</P>
+
+                {/* Naming callout */}
+                <P>{t("neuralNetworkNarrative.howItLearns.namingTransition")}</P>
+
+                <Callout accent="rose" title={t("neuralNetworkNarrative.howItLearns.naming.title")}>
+                    <p>{t("neuralNetworkNarrative.howItLearns.naming.text")}</p>
+                </Callout>
+
+                {/* ★ PEAK 4 */}
+                <p className="text-center text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-300 my-10 italic">
+                    {t("neuralNetworkNarrative.makingItLearn.peak4")}
+                </p>
+
+                {/* Worked Example Expandable */}
+                <HiddenSection
+                    category="supplementary"
+                    difficulty={2}
+                    title={t("neuralNetworkNarrative.howItLearns.workedExample.title")}
+                    description={t("neuralNetworkNarrative.howItLearns.workedExample.intro")}
+                >
+                    <p className="text-sm text-white/50 leading-relaxed mb-3">{t("neuralNetworkNarrative.howItLearns.workedExample.intro")}</p>
+                    {(["step1", "step2", "step3", "step4", "step5"] as const).map((step) => (
+                        <div key={step} className="mb-3 border-l-2 border-indigo-500/20 pl-3">
+                            <p className="text-xs font-semibold text-white/60 mb-1">{t(`neuralNetworkNarrative.howItLearns.workedExample.${step}Title`)}</p>
+                            <p className="text-xs text-white/40">{t(`neuralNetworkNarrative.howItLearns.workedExample.${step}Text`)}</p>
+                        </div>
+                    ))}
+                    <p className="text-xs text-white/30 italic border-t border-white/[0.06] pt-3">
+                        {t("neuralNetworkNarrative.howItLearns.workedUpdateNote")}
+                    </p>
+                </HiddenSection>
+
+                {/* Divergence Demo — what happens without learning rate (idea #16) */}
+                <P>{t("neuralNetworkNarrative.training.divergenceIntro")}</P>
+
+                <VisualizerFrame
+                    family="dashboard"
+                    label={t("neuralNetworkNarrative.divergence.title")}
+                    hint={t("neuralNetworkNarrative.divergence.hint")}
+                >
+                    <DivergenceDemo />
+                </VisualizerFrame>
+
+                {/* Phase H: Repeated training */}
+                <P>{t("neuralNetworkNarrative.training.repeatedIntro")}</P>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.howItLearns.repeated.title")}
+                    hint={t("neuralNetworkNarrative.howItLearns.phaseH.repeatHint")}
+                >
+                    <RepeatedTrainingDemo />
+                </FigureWrapper>
+
+                {/* Rephrased challenge (idea #15) */}
+                <Challenge
+                    question={t("neuralNetworkNarrative.training.repeatedChallenge.question")}
+                    hint={t("neuralNetworkNarrative.training.repeatedChallenge.hint")}
+                    successMessage={t("neuralNetworkNarrative.training.repeatedChallenge.success")}
+                />
+
+                {/* ★ PEAK 5 */}
+                <p className="text-center text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-green-200 to-emerald-300 my-10 italic">
+                    {t("neuralNetworkNarrative.makingItLearn.peak5")}
+                </p>
+
+                {/* Phase I: Learning Rate */}
+                <P>{t("neuralNetworkNarrative.training.lrIntro")}</P>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.howItLearns.phaseI.lrLabel")}
+                    hint={t("neuralNetworkNarrative.howItLearns.phaseI.lrHint")}
+                >
+                    <LearningRateDemo />
+                </FigureWrapper>
+
+                <Challenge
+                    question={t("neuralNetworkNarrative.training.lrChallenge.question")}
+                    hint={t("neuralNetworkNarrative.training.lrChallenge.hint")}
+                    successMessage={t("neuralNetworkNarrative.training.lrChallenge.success")}
+                />
+
+                {/* What If #3 */}
+                <HiddenSection
+                    category="math"
+                    difficulty={1}
+                    title={t("neuralNetworkNarrative.makingItLearn.whatIf3Title")}
+                    description={t("neuralNetworkNarrative.makingItLearn.whatIf3Text")}
+                >
+                    <p className="text-sm text-white/40 leading-relaxed">
+                        {t("neuralNetworkNarrative.makingItLearn.whatIf3Text")}
+                    </p>
+                </HiddenSection>
+
+                {/* Phase J: Weight Landscape */}
+                <P>{t("neuralNetworkNarrative.training.trajectoryIntro")}</P>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.howItLearns.phaseJ.trajectoryLabel")}
+                    hint={t("neuralNetworkNarrative.howItLearns.phaseJ.trajectoryHint")}
+                >
+                    <WeightTrajectoryDemo />
+                </FigureWrapper>
+
+                {/* Activation Derivative — advanced expandable (MOVED from §03, idea #7) */}
+                <HiddenSection
+                    category="advanced"
+                    difficulty={2}
+                    title={t("neuralNetworkNarrative.activationDeriv.expandableTitle")}
+                    description={t("neuralNetworkNarrative.activationDeriv.hint")}
+                >
+                    <VisualizerFrame
+                        family="function"
+                        label={t("neuralNetworkNarrative.activationDeriv.title")}
+                        hint={t("neuralNetworkNarrative.activationDeriv.hint")}
+                    >
+                        <ActivationDerivativeVisualizer />
+                    </VisualizerFrame>
+                </HiddenSection>
+
+                {/* Dead Neuron Demo (MOVED from §03, idea #7) */}
+                <P>{t("neuralNetworkNarrative.nonLinearity.deadNeuronIntro")}</P>
+
+                <VisualizerFrame
+                    family="neuron"
+                    label={t("neuralNetworkNarrative.deadNeuron.title")}
+                    hint={t("neuralNetworkNarrative.deadNeuron.hint")}
+                >
+                    <DeadNeuronDemo />
+                </VisualizerFrame>
+
+                {/* What If #2 — derivative = 0 (MOVED from §04, idea #11) — EXPANDED */}
+                <HiddenSection
+                    category="advanced"
+                    difficulty={2}
+                    title={t("neuralNetworkNarrative.flatGradient.title")}
+                    description={t("neuralNetworkNarrative.flatGradient.desc")}
+                >
+                    <p className="text-sm text-white/40 leading-relaxed mb-4">
+                        {t("neuralNetworkNarrative.flatGradient.intro")}
+                    </p>
+                    <VisualizerFrame
+                        family="function"
+                        label={t("neuralNetworkNarrative.flatGradient.vizTitle")}
+                        hint={t("neuralNetworkNarrative.flatGradient.vizHint")}
+                    >
+                        <FlatGradientVisualizer />
+                    </VisualizerFrame>
+
+                    <p className="text-sm text-white/40 leading-relaxed my-4">
+                        {t("neuralNetworkNarrative.backpropZero.intro")}
+                    </p>
+
+                    <VisualizerFrame
+                        family="neuron"
+                        label={t("neuralNetworkNarrative.backpropZero.title")}
+                        hint={t("neuralNetworkNarrative.backpropZero.hint")}
+                    >
+                        <BackpropZeroDemo />
+                    </VisualizerFrame>
+
+                    <div className="mt-4 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
+                        <p className="text-[10px] font-mono text-white/25 mb-2 uppercase tracking-wider">
+                            {t("neuralNetworkNarrative.flatGradient.mathTitle")}
                         </p>
-
-                        {/* Step 1: Setup */}
-                        <div className="mb-4 rounded-xl border border-white/[0.08] bg-white/[0.015] p-4">
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-400">1</div>
-                                <span className="text-sm font-semibold text-white/70">{t("neuralNetworkNarrative.howItLearns.workedExample.step1Title")}</span>
-                            </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                                <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2">
-                                    <span className="text-white/40 block mb-1">{t("lab.playground.inputs.xLabel")}</span>
-                                    <span className="font-mono font-bold text-white/70">1.0</span>
-                                </div>
-                                <div className="rounded-lg bg-rose-500/[0.08] border border-rose-500/[0.15] px-3 py-2">
-                                    <span className="text-rose-300/60 block mb-1">{t("lab.playground.inputs.wLabel")}</span>
-                                    <span className="font-mono font-bold text-rose-400">0.50</span>
-                                </div>
-                                <div className="rounded-lg bg-amber-500/[0.08] border border-amber-500/[0.15] px-3 py-2">
-                                    <span className="text-amber-300/60 block mb-1">{t("lab.playground.inputs.bLabel")}</span>
-                                    <span className="font-mono font-bold text-amber-400">−0.20</span>
-                                </div>
-                                <div className="rounded-lg bg-indigo-500/[0.08] border border-indigo-500/[0.15] px-3 py-2">
-                                    <span className="text-indigo-300/60 block mb-1">{t("lab.playground.inputs.targetLabel")}</span>
-                                    <span className="font-mono font-bold text-indigo-400">0.80</span>
-                                </div>
-                            </div>
-                            <p className="text-xs text-white/40 mt-3">{t("neuralNetworkNarrative.howItLearns.workedExample.step1Text")}</p>
+                        <div className="text-center overflow-x-auto mb-2">
+                            <BlockMath math="\sigma'(z) = \sigma(z)(1 - \sigma(z))" />
                         </div>
+                        <p className="text-[11px] text-white/30 leading-relaxed">
+                            {t("neuralNetworkNarrative.flatGradient.mathExplain")}
+                        </p>
+                    </div>
+                    <p className="text-xs text-white/30 italic mt-3">
+                        {t("neuralNetworkNarrative.flatGradient.solution")}
+                    </p>
+                </HiddenSection>
 
-                        {/* Step 2: Forward Pass */}
-                        <div className="mb-4 rounded-xl border border-white/[0.08] bg-white/[0.015] p-4">
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-400">2</div>
-                                <span className="text-sm font-semibold text-white/70">{t("neuralNetworkNarrative.howItLearns.workedExample.step2Title")}</span>
-                            </div>
-                            <div className="space-y-2 text-sm text-white/50">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-white/40">{t("neuralNetworkNarrative.howItLearns.workedForward")}:</span>
-                                </div>
-                                <p className="text-xs text-white/35 italic mt-2">
-                                    {t("neuralNetworkNarrative.howItLearns.workedExample.step2Text")}
-                                </p>
-                            </div>
+                {/* Reflection 3 */}
+                <p className="text-center text-sm text-white/30 italic my-6">
+                    {t("neuralNetworkNarrative.makingItLearn.reflection3")}
+                </p>
+            </Section>
+
+            <SectionBreak />
+
+            {/* ─────────── 06 · TRAINING AT SCALE ─────────── */}
+            <Section id="nn-06">
+                <SectionLabel
+                    number={t("models.neuralNetworks.sections.trainingAtScale.number")}
+                    label={t("models.neuralNetworks.sections.trainingAtScale.label")}
+                />
+                <Heading>{t("neuralNetworkNarrative.trainingAtScale.title")}</Heading>
+
+                <Lead>{t("neuralNetworkNarrative.trainingAtScale.lead")}</Lead>
+
+                {/* Terminology block — Step + Epoch + Batch */}
+                <P>{t("neuralNetworkNarrative.training.terminologyIntro")}</P>
+
+                <div className="my-8 rounded-2xl border border-indigo-500/[0.15] bg-indigo-500/[0.02] p-5 sm:p-6 space-y-4">
+                    <div className="flex items-start gap-3">
+                        <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-indigo-400 mt-0.5">S</span>
+                        <div>
+                            <p className="text-sm font-semibold text-white/70 mb-1">
+                                <Highlight color="indigo" tooltip={t("neuralNetworkNarrative.narratorTooltips.step")}>{t("neuralNetworkNarrative.watchingItLearn.termStep")}</Highlight>
+                            </p>
+                            <p className="text-xs text-white/40">{t("neuralNetworkNarrative.watchingItLearn.termStepDesc")}</p>
                         </div>
-
-                        {/* Step 3: Loss */}
-                        <div className="mb-4 rounded-xl border border-white/[0.08] bg-white/[0.015] p-4">
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-400">3</div>
-                                <span className="text-sm font-semibold text-white/70">{t("neuralNetworkNarrative.howItLearns.workedExample.step3Title")}</span>
-                            </div>
-                            <div className="space-y-2 text-sm text-white/50">
-                                <p className="text-xs text-white/35 italic">
-                                    {t("neuralNetworkNarrative.howItLearns.workedExample.step3Text")}
-                                </p>
-                            </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-indigo-400 mt-0.5">E</span>
+                        <div>
+                            <p className="text-sm font-semibold text-white/70 mb-1">
+                                <Highlight color="indigo" tooltip={t("neuralNetworkNarrative.narratorTooltips.epoch")}>{t("neuralNetworkNarrative.watchingItLearn.termEpoch")}</Highlight>
+                            </p>
+                            <p className="text-xs text-white/40">{t("neuralNetworkNarrative.watchingItLearn.termEpochDesc")}</p>
                         </div>
-
-                        {/* Step 4: Backward Pass */}
-                        <div className="mb-4 rounded-xl border border-white/[0.08] bg-white/[0.015] p-4">
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs font-bold text-indigo-400">4</div>
-                                <span className="text-sm font-semibold text-white/70">{t("neuralNetworkNarrative.howItLearns.workedExample.step4Title")}</span>
-                            </div>
-                            <div className="space-y-2 text-sm text-white/50">
-                                <p className="text-xs text-white/40 mb-2">
-                                    {t("neuralNetworkNarrative.howItLearns.workedExample.step4Text")}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Step 5: Update */}
-                        <div className="rounded-xl border border-amber-500/[0.2] bg-gradient-to-br from-amber-500/[0.08] to-transparent p-4">
-                            <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded-full bg-amber-500/30 flex items-center justify-center text-xs font-bold text-amber-400">5</div>
-                                <span className="text-sm font-semibold text-amber-400">{t("neuralNetworkNarrative.howItLearns.workedExample.step5Title")}</span>
-                            </div>
-                            <div className="space-y-2 text-sm text-white/50">
-                                <p className="text-xs text-amber-300/60 font-semibold mt-3">
-                                    {t("neuralNetworkNarrative.howItLearns.workedExample.step5Text")}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="mt-5 pt-4 border-t border-white/[0.06] text-xs text-white/35 italic text-center">
-                            {t("neuralNetworkNarrative.howItLearns.workedUpdateNote")}
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-indigo-400 mt-0.5">B</span>
+                        <div>
+                            <p className="text-sm font-semibold text-white/70 mb-1">
+                                <Highlight color="indigo" tooltip={t("neuralNetworkNarrative.narratorTooltips.batch")}>{t("neuralNetworkNarrative.watchingItLearn.termBatch")}</Highlight>
+                            </p>
+                            <p className="text-xs text-white/40">{t("neuralNetworkNarrative.watchingItLearn.termBatchDesc")}</p>
                         </div>
                     </div>
                 </div>
 
-                <P>
-                    {t("neuralNetworkNarrative.howItLearns.p2")}{" "}
-                    <Highlight color="amber">{t("neuralNetworkNarrative.howItLearns.p2Highlight")}</Highlight>
-                    {t("neuralNetworkNarrative.howItLearns.p2End")}
-                </P>
+                <VisualizerFrame
+                    family="dashboard"
+                    label={t("neuralNetworkNarrative.stepEpochBatch.title")}
+                    hint={t("neuralNetworkNarrative.stepEpochBatch.hint")}
+                >
+                    <StepEpochBatchCounter />
+                </VisualizerFrame>
 
-                <NNBackpropVisualizer />
+                {/* Batching section (previously unrendered) */}
+                <P>{t("neuralNetworkNarrative.howItLearns.batchingTransition")}</P>
+                <P>{t("neuralNetworkNarrative.howItLearns.batching.p1")}</P>
+                <P>{t("neuralNetworkNarrative.howItLearns.batching.p2")}</P>
 
-                <FormulaBlock
-                    formula="w \leftarrow w - \eta \, \frac{\partial \mathcal{L}}{\partial w}"
-                    caption={t("neuralNetworkNarrative.howItLearns.formulaCaption")}
-                />
+                <Callout icon={Lightbulb} accent="emerald" title={t("neuralNetworkNarrative.howItLearns.batching.calloutTitle")}>
+                    <p>{t("neuralNetworkNarrative.howItLearns.batching.calloutText")}</p>
+                </Callout>
 
-                <P>{t("neuralNetworkNarrative.howItLearns.p3")}</P>
-            </Section >
+                <P>{t("neuralNetworkNarrative.howItLearns.batching.conclusion")}</P>
 
-            <SectionBreak />
+                <VisualizerFrame
+                    family="function"
+                    label={t("neuralNetworkNarrative.gradientNoise.title")}
+                    hint={t("neuralNetworkNarrative.gradientNoise.hint")}
+                >
+                    <GradientNoiseVisualizer />
+                </VisualizerFrame>
 
-            {/* ─────────── 04 · WATCHING IT LEARN ─────────── */}
-            <Section>
-                <SectionLabel
-                    number={t("models.neuralNetworks.sections.watchingItLearn.number")}
-                    label={t("models.neuralNetworks.sections.watchingItLearn.label")}
-                />
-                <Heading>{t("neuralNetworkNarrative.watchingItLearn.title")}</Heading>
+                {/* Batch size comparison — single example vs batch */}
+                <P>{t("neuralNetworkNarrative.batchComparison.introText")}</P>
 
-                <Lead>{t("neuralNetworkNarrative.watchingItLearn.lead")}</Lead>
+                <VisualizerFrame
+                    family="dashboard"
+                    label={t("neuralNetworkNarrative.batchComparison.title")}
+                    hint={t("neuralNetworkNarrative.batchComparison.hint")}
+                >
+                    <BatchSizeComparisonVisualizer />
+                </VisualizerFrame>
 
-                <P>{t("neuralNetworkNarrative.watchingItLearn.p1")}</P>
+                <P>{t("neuralNetworkNarrative.batchComparison.outroText")}</P>
 
-                <NNTrainingDemo onHistoryChange={handleTrainingHistory} />
+                {/* Live training demo + loss landscape */}
+                <P>{t("neuralNetworkNarrative.training.liveIntro")}</P>
+
+                <P>{t("neuralNetworkNarrative.training.liveP1")}</P>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.training.liveDemoLabel")}
+                    hint={t("neuralNetworkNarrative.training.liveDemoHint")}
+                    accent="amber"
+                >
+                    <NNTrainingDemo onHistoryChange={handleTrainingHistory} />
+                </FigureWrapper>
 
                 {landscapeHistory.length > 3 &&
                     landscapeHistory[landscapeHistory.length - 1].loss > landscapeHistory[0].loss && (
                         <Callout icon={AlertTriangle} accent="amber" title={t("neuralNetworkNarrative.watchingItLearn.alertTitle")}>
-                            <p>
-                                {t("neuralNetworkNarrative.watchingItLearn.alertText")}
-                            </p>
+                            <p>{t("neuralNetworkNarrative.watchingItLearn.alertText")}</p>
                         </Callout>
                     )}
+
+                {/* Training challenge: small batch can increase loss */}
+                <Challenge
+                    question={t("neuralNetworkNarrative.batchChallenge.question")}
+                    hint={t("neuralNetworkNarrative.batchChallenge.hint")}
+                    successMessage={t("neuralNetworkNarrative.batchChallenge.success")}
+                />
 
                 <p className="text-[10px] font-mono uppercase tracking-widest text-white/25 mt-8 mb-1">
                     {t("neuralNetworkNarrative.watchingItLearn.landscapeTitle")}
@@ -866,187 +1299,74 @@ export function NeuralNetworkNarrative() {
                     <NNLossLandscape history={landscapeHistory} target={landscapeTarget} />
                 )}
 
-                <P>{t("neuralNetworkNarrative.watchingItLearn.p2")}</P>
-
-                {/* ─────────── THE MINI-BATCH REVOLUTION ─────────── */}
-                <motion.aside
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-40px" }}
-                    className="my-12 rounded-2xl border border-rose-500/20 overflow-hidden relative"
+                {/* Matrix Multiply HiddenSection (idea #19) */}
+                <HiddenSection
+                    category="math"
+                    difficulty={2}
+                    title={t("neuralNetworkNarrative.matrixMultiply.title")}
+                    description={t("neuralNetworkNarrative.matrixMultiply.desc")}
                 >
-                    <button
-                        onClick={() => {
-                            const elem = document.getElementById('minibatch-content');
-                            if (elem) elem.classList.toggle('hidden');
-                        }}
-                        className="w-full flex items-center gap-4 px-6 py-5 text-left group transition-all duration-300 relative bg-gradient-to-br from-rose-500/[0.08] via-pink-500/[0.04] to-rose-500/[0.06] hover:from-rose-500/[0.12] hover:via-pink-500/[0.06] hover:to-rose-500/[0.08]"
-                    >
-                        <div className="shrink-0 p-2.5 rounded-xl bg-gradient-to-br from-rose-500/20 to-pink-500/20 ring-1 ring-rose-500/30 group-hover:ring-rose-500/50 transition-all">
-                            <Beaker className="w-5 h-5 text-rose-300" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <p className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-200 via-pink-200 to-rose-200 mb-1">
-                                {t("neuralNetworkNarrative.howItLearns.batching.title")}
-                            </p>
-                            <p className="text-xs text-white/40 leading-relaxed">
-                                {t("neuralNetworkNarrative.howItLearns.batching.lead")}
-                            </p>
-                        </div>
-                        <motion.div
-                            animate={{ rotate: 0 }}
-                            transition={{ duration: 0.3, ease: "easeInOut" }}
-                            className="shrink-0"
-                        >
-                            <ChevronDown className="w-5 h-5 text-rose-400/60 group-hover:text-rose-400 transition-colors" />
-                        </motion.div>
-                    </button>
+                    <MatrixMultiplyVisual />
+                </HiddenSection>
 
-                    <div id="minibatch-content" className="hidden bg-black">
-                        <div className="px-6 py-6 border-t border-white/[0.04]">
-                            <div className="space-y-5 mb-8">
-                                <p className="text-sm text-white/50 leading-relaxed">
-                                    Computing gradients one example at a time is inefficient. Modern GPUs process hundreds in parallel. Instead of updating after every example, we average gradients from a small batch — typically <span className="text-violet-400 font-semibold">32 to 256</span> — and update once per batch. This is mini-batch gradient descent.
-                                </p>
-
-                                <p className="text-sm text-white/50 leading-relaxed">
-                                    Batch size controls a fundamental trade-off. Size <span className="text-red-400 font-semibold">1</span> (SGD) gives noisy gradients. <span className="text-blue-400 font-semibold">Full dataset</span> gives smooth gradients but is slow and can overfit. Mini-batches balance stable gradients with efficient computation.
-                                </p>
-
-                                <p className="text-sm text-white/50 leading-relaxed">
-                                    The noise isn't just necessary — it's helpful. Noisy gradients help escape local minima and improve generalization on unseen data.
-                                </p>
-                            </div>
-
-                            {/* Visual Comparison Cards */}
-                            <div className="grid md:grid-cols-3 gap-4 my-8">
-                                {/* Batch Size = 1 */}
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.1 }}
-                                    viewport={{ once: true }}
-                                    className="rounded-xl border border-red-500/20 p-4"
-                                >
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
-                                            <span className="text-sm font-bold text-red-400">1</span>
-                                        </div>
-                                        <span className="text-xs font-semibold text-red-300">Single Example</span>
-                                    </div>
-                                    <p className="text-xs text-white/45 leading-relaxed mb-3">
-                                        Updates after every single example. Fast iterations but noisy, erratic gradients.
-                                    </p>
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="flex-1 h-1.5 rounded-full bg-red-500/20">
-                                            <div className="h-full w-3/4 rounded-full bg-red-500/60" />
-                                        </div>
-                                        <span className="text-[10px] text-red-400/60 font-mono">Noisy</span>
-                                    </div>
-                                </motion.div>
-
-                                {/* Batch Size = 32 */}
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.2 }}
-                                    viewport={{ once: true }}
-                                    className="rounded-xl border border-violet-500/20 p-4 ring-2 ring-violet-500/30"
-                                >
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
-                                            <span className="text-sm font-bold text-violet-300">32</span>
-                                        </div>
-                                        <span className="text-xs font-semibold text-violet-200">Mini-Batch ✓</span>
-                                    </div>
-                                    <p className="text-xs text-white/45 leading-relaxed mb-3">
-                                        Sweet spot: smooth gradients, good GPU utilization, faster convergence.
-                                    </p>
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="flex-1 h-1.5 rounded-full bg-violet-500/20">
-                                            <div className="h-full w-full rounded-full bg-violet-500/70" />
-                                        </div>
-                                        <span className="text-[10px] text-violet-300 font-mono">Optimal</span>
-                                    </div>
-                                </motion.div>
-
-                                {/* Full Batch */}
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.3 }}
-                                    viewport={{ once: true }}
-                                    className="rounded-xl border border-blue-500/20 p-4"
-                                >
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                                            <span className="text-[10px] font-bold text-blue-400">ALL</span>
-                                        </div>
-                                        <span className="text-xs font-semibold text-blue-300">Full Batch</span>
-                                    </div>
-                                    <p className="text-xs text-white/45 leading-relaxed mb-3">
-                                        Uses entire dataset. Smooth but slow, memory-hungry, poor generalization.
-                                    </p>
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="flex-1 h-1.5 rounded-full bg-blue-500/20">
-                                            <div className="h-full w-2/5 rounded-full bg-blue-500/60" />
-                                        </div>
-                                        <span className="text-[10px] text-blue-400/60 font-mono">Slow</span>
-                                    </div>
-                                </motion.div>
-                            </div>
-
-                            <Callout icon={Lightbulb} accent="indigo" title={t("neuralNetworkNarrative.howItLearns.batching.calloutTitle")}>
-                                <p>{t("neuralNetworkNarrative.howItLearns.batching.calloutText")}</p>
-                            </Callout>
-
-                            {/* New: Interactive Batch Size Comparison */}
-                            <FigureWrapper
-                                label="Interactive · Batch Size Impact on Training"
-                                hint="Compare how different batch sizes affect training speed and gradient quality"
-                            >
-                                <BatchSizeLossCurveComparison />
-                            </FigureWrapper>
-
-                            <P>{t("neuralNetworkNarrative.howItLearns.batching.conclusion")}</P>
-                        </div>
-                    </div>
-                </motion.aside>
+                {/* Multi-neuron teaser */}
+                <P>{t("neuralNetworkNarrative.trainingAtScale.multiNeuronTeaser")}</P>
+                <P>{t("neuralNetworkNarrative.trainingAtScale.multiNeuronTeaser2")}</P>
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── 05 · THE RISK OF OVERFITTING ─────────── */}
-            <Section>
+            {/* ─────────── 07 · THE OVERFITTING TRAP ─────────── */}
+            <Section id="nn-07">
                 <SectionLabel
-                    number={t("models.neuralNetworks.sections.overfitting.number")}
-                    label={t("models.neuralNetworks.sections.overfitting.label")}
+                    number={t("models.neuralNetworks.sections.overfittingTrap.number")}
+                    label={t("models.neuralNetworks.sections.overfittingTrap.label")}
                 />
                 <Heading>{t("neuralNetworkNarrative.overfitting.heading")}</Heading>
 
                 <Lead>{t("neuralNetworkNarrative.overfitting.lead")}</Lead>
 
+                <VisualizerFrame
+                    family="dashboard"
+                    label={t("neuralNetworkNarrative.overfittingPlay.title")}
+                    hint={t("neuralNetworkNarrative.overfittingPlay.hint")}
+                >
+                    <OverfittingPlayground />
+                </VisualizerFrame>
+
                 <P>{t("neuralNetworkNarrative.overfitting.p1")}</P>
                 <P>{t("neuralNetworkNarrative.overfitting.p2")}</P>
+
+                {/* Train/Val Split Visualizer (idea #24) */}
                 <P>{t("neuralNetworkNarrative.overfitting.p3")}</P>
+
+                <VisualizerFrame
+                    family="dashboard"
+                    label={t("neuralNetworkNarrative.trainValSplit.title")}
+                    hint={t("neuralNetworkNarrative.trainValSplit.hint")}
+                >
+                    <TrainValSplitVisualizer />
+                </VisualizerFrame>
 
                 <Callout icon={AlertTriangle} accent="amber" title={t("neuralNetworkNarrative.overfitting.callout1Title")}>
                     <p>{t("neuralNetworkNarrative.overfitting.callout1Text")}</p>
                 </Callout>
 
-                <FigureWrapper
+                <VisualizerFrame
+                    family="comparison"
                     label={t("neuralNetworkNarrative.overfitting.visual1Label")}
                     hint={t("neuralNetworkNarrative.overfitting.visual1Hint")}
                 >
                     <OverfittingComparisonDiagram />
-                </FigureWrapper>
+                </VisualizerFrame>
 
-                <FigureWrapper
+                <VisualizerFrame
+                    family="dashboard"
                     label={t("neuralNetworkNarrative.overfitting.visual2Label")}
                     hint={t("neuralNetworkNarrative.overfitting.visual2Hint")}
                 >
                     <TrainValLossCurveVisualizer />
-                </FigureWrapper>
+                </VisualizerFrame>
 
                 <P>{t("neuralNetworkNarrative.overfitting.p4")}</P>
                 <P>{t("neuralNetworkNarrative.overfitting.p5")}</P>
@@ -1055,80 +1375,256 @@ export function NeuralNetworkNarrative() {
                     <p>{t("neuralNetworkNarrative.overfitting.callout2Text")}</p>
                 </Callout>
 
+                {/* Reflection 4 */}
+                <p className="text-center text-sm text-white/30 italic my-6">
+                    {t("neuralNetworkNarrative.trainingAtScale.reflection4")}
+                </p>
+
                 <P>{t("neuralNetworkNarrative.overfitting.conclusion")}</P>
+
+                {/* Supervised learning — improved with flow diagram */}
+                <HiddenSection
+                    category="supplementary"
+                    difficulty={1}
+                    title={t("neuralNetworkNarrative.training.supervisedTitle")}
+                    description={t("neuralNetworkNarrative.training.supervisedDef")}
+                >
+                    {/* SVG flow: example → model → prediction → compare → update */}
+                    <div className="rounded-xl bg-black/20 border border-white/[0.05] p-3 mb-4 overflow-x-auto">
+                        <svg viewBox="0 0 340 64" className="w-full block" style={{ minWidth: 280 }}>
+                            {/* Step boxes */}
+                            {[
+                                { x: 4, label: "Input", sub: "(x₁, x₂...)", col: "#38bdf8" },
+                                { x: 84, label: "Model", sub: "(weights)", col: "#fb7185" },
+                                { x: 164, label: "Prediction", sub: "ŷ", col: "#a78bfa" },
+                                { x: 244, label: "True label", sub: "y", col: "#fbbf24" },
+                            ].map(({ x, label, sub, col }) => (
+                                <g key={label}>
+                                    <rect x={x} y={8} width={72} height={36} rx={6}
+                                        fill={col + "15"} stroke={col + "40"} strokeWidth={1} />
+                                    <text x={x + 36} y={24} textAnchor="middle" fill={col}
+                                        fontSize="8" fontFamily="monospace" fontWeight="bold">{label}</text>
+                                    <text x={x + 36} y={36} textAnchor="middle" fill="rgba(255,255,255,0.3)"
+                                        fontSize="7" fontFamily="monospace">{sub}</text>
+                                </g>
+                            ))}
+                            {/* Arrows */}
+                            {[76, 156, 236].map(ax => (
+                                <g key={ax}>
+                                    <line x1={ax} y1={26} x2={ax + 8} y2={26} stroke="rgba(255,255,255,0.2)" strokeWidth={1} />
+                                    <polygon points={`${ax + 8},23 ${ax + 8},29 ${ax + 12},26`} fill="rgba(255,255,255,0.2)" />
+                                </g>
+                            ))}
+                            {/* Loss/compare arc */}
+                            <path d="M280,26 Q310,26 310,50 Q310,58 258,58 Q200,58 200,50 Q200,44 244,44"
+                                fill="none" stroke="#f43f5e60" strokeWidth="1" strokeDasharray="3 2" />
+                            <text x={258} y={62} textAnchor="middle" fill="#f43f5e80"
+                                fontSize="6.5" fontFamily="monospace">compare → loss → update weights</text>
+                        </svg>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 mb-4">
+                        {([
+                            { emoji: "\ud83d\uddbc\ufe0f", input: t("neuralNetworkNarrative.training.supervisedCard1Input"), output: t("neuralNetworkNarrative.training.supervisedCard1Output") },
+                            { emoji: "\u2709\ufe0f", input: t("neuralNetworkNarrative.training.supervisedCard2Input"), output: t("neuralNetworkNarrative.training.supervisedCard2Output") },
+                            { emoji: "\ud83e\ude7b", input: t("neuralNetworkNarrative.training.supervisedCard3Input"), output: t("neuralNetworkNarrative.training.supervisedCard3Output") },
+                        ]).map(({ emoji, input, output }) => (
+                            <div key={input} className="rounded-lg border border-rose-500/[0.08] bg-rose-500/[0.03] p-3 text-center">
+                                <span className="text-xl block mb-1.5">{emoji}</span>
+                                <p className="text-[9px] font-mono text-white/30 mb-0.5">{input}</p>
+                                <p className="text-[10px] font-mono font-bold" style={{ color: '#fb7185cc' }}>→ {output}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <p className="text-xs text-white/30 italic border-t border-white/[0.06] pt-3">
+                        {t("neuralNetworkNarrative.training.supervisedNote")}
+                    </p>
+                </HiddenSection>
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── 06 · THE BRIDGE: TABLES TO PARAMETERS ─────────── */}
-            <Section>
+            {/* ─────────── 08 · FROM NUMBERS TO LETTERS ─────────── */}
+            <Section id="nn-08">
                 <SectionLabel
-                    number={t("models.neuralNetworks.sections.bridge.number")}
-                    label={t("models.neuralNetworks.sections.bridge.label")}
+                    number={t("neuralNetworkNarrative.sections.fromNumbers.number")}
+                    label={t("neuralNetworkNarrative.sections.fromNumbers.label")}
                 />
-                <Heading>{t("neuralNetworkNarrative.bridge.title")}</Heading>
+                <Heading>{t("neuralNetworkNarrative.fromNumbers.title")}</Heading>
 
-                <Lead>{t("neuralNetworkNarrative.bridge.lead")}</Lead>
+                <Lead>{t("neuralNetworkNarrative.fromNumbers.lead")}</Lead>
 
-                <P>{t("neuralNetworkNarrative.bridge.p1")}</P>
+                {/* Bigram callback (idea #27) */}
+                <P>{t("neuralNetworkNarrative.fromNumbers.bigramCallback")}</P>
 
+                {/* 1. ToyAlphabetPredictor — on-ramp */}
+                <P>{t("neuralNetworkNarrative.fromNumbers.toyIntro")}</P>
+
+                {/* Vowel pattern explanation — now after "let's start tiny" */}
+                <P>{t("neuralNetworkNarrative.fromNumbers.vowelPatternIntro")}</P>
+
+                <VisualizerFrame
+                    family="neuron"
+                    label={t("neuralNetworkNarrative.toyPredictor.title")}
+                    hint={t("neuralNetworkNarrative.toyPredictor.hint")}
+                >
+                    <ToyAlphabetPredictor />
+                </VisualizerFrame>
+
+                <P>{t("neuralNetworkNarrative.fromNumbers.toyOutro")}</P>
+
+                {/* 2. LetterToNumberDemo — relocated from §01, with encoding caveat */}
+                <P>{t("neuralNetworkNarrative.fromNumbers.encodingIntro")}</P>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.discovery.letterDemo.title")}
+                    hint=""
+                >
+                    <LetterToNumberDemo />
+                </FigureWrapper>
+
+                <Callout accent="amber" title={t("neuralNetworkNarrative.fromNumbers.encodingCaveat.title")}>
+                    <p>{t("neuralNetworkNarrative.fromNumbers.encodingCaveat.text")}</p>
+                </Callout>
+
+                {/* 3. TrainingWithTextDemo — keep */}
                 <P>
-                    {t("neuralNetworkNarrative.bridge.p2")}{" "}
-                    <Highlight color="emerald">{t("neuralNetworkNarrative.bridge.p2Highlight")}</Highlight>
-                    {t("neuralNetworkNarrative.bridge.p2End")}
+                    {t("neuralNetworkNarrative.fromNumbers.trainingDataIntro")}
+                    <Highlight tooltip={t("neuralNetworkNarrative.narratorTooltips.contextWindow")}>{t("neuralNetworkNarrative.fromNumbers.trainingDataIntroHighlight")}</Highlight>
+                    {t("neuralNetworkNarrative.fromNumbers.trainingDataIntroEnd")}
                 </P>
 
-                <Callout icon={Lightbulb} accent="rose" title={t("neuralNetworkNarrative.bridge.insightTitle")}>
-                    <p>{t("neuralNetworkNarrative.bridge.insightText")}</p>
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.training.textDemo.title")}
+                    hint={t("neuralNetworkNarrative.watchingItLearn.textDemoHint")}
+                >
+                    <TrainingWithTextDemo />
+                </FigureWrapper>
+
+                {/* 4. OutputLayerNetworkVisualizer — keep */}
+                <P>{t("neuralNetworkNarrative.fromNumbers.p1")}</P>
+
+                <FigureWrapper
+                    label={t("neuralNetworkNarrative.fromNumbers.networkViz.label")}
+                    hint={t("neuralNetworkNarrative.fromNumbers.networkViz.hint")}
+                >
+                    <OutputLayerNetworkVisualizer />
+                </FigureWrapper>
+
+                <P>{t("neuralNetworkNarrative.fromNumbers.p2")}</P>
+
+                {/* 5. SoftmaxTransformDemo — redesigned */}
+                <VisualizerFrame
+                    family="function"
+                    label={t("neuralNetworkNarrative.fromNumbers.softmax.title")}
+                    hint={t("neuralNetworkNarrative.fromNumbers.softmaxHint")}
+                >
+                    <SoftmaxTransformDemo />
+                </VisualizerFrame>
+
+                <P>{t("neuralNetworkNarrative.fromNumbers.p3")}</P>
+
+                <P>{t("neuralNetworkNarrative.fromNumbers.p4")}</P>
+
+                {/* 6. NNBigramComparison — enhanced ★ PEAK 6 */}
+                <VisualizerFrame
+                    family="comparison"
+                    label={t("neuralNetworkNarrative.fromNumbers.comparisonLabel")}
+                    hint={t("neuralNetworkNarrative.fromNumbers.comparisonHint")}
+                >
+                    <NNBigramComparison />
+                </VisualizerFrame>
+
+                <P>{t("neuralNetworkNarrative.fromNumbers.p5")}</P>
+
+                <Callout accent="amber" title={t("neuralNetworkNarrative.fromNumbers.whyCalloutTitle")}>
+                    <p>{t("neuralNetworkNarrative.fromNumbers.whyCalloutText")}</p>
                 </Callout>
 
-                <NNBigramComparison />
+                {/* ★ PEAK 6 */}
+                <p className="text-center text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-300 my-10 italic">
+                    {t("neuralNetworkNarrative.fromNumbers.peak6")}
+                </p>
 
-                <P>{t("neuralNetworkNarrative.bridge.p3")}</P>
-            </Section>
+                {/* 7. BeatTheMachineChallenge */}
+                <P>{t("neuralNetworkNarrative.fromNumbers.challengeIntro")}</P>
 
-            <SectionBreak />
+                <VisualizerFrame
+                    family="dashboard"
+                    label={t("neuralNetworkNarrative.beatMachine.title")}
+                    hint={t("neuralNetworkNarrative.beatMachine.hint")}
+                >
+                    <BeatTheMachineChallenge />
+                </VisualizerFrame>
 
-            {/* ─────────── 07 · POWER, LIMITS, AND WHAT COMES NEXT ─────────── */}
-            <Section>
-                <SectionLabel
-                    number={t("models.neuralNetworks.sections.powerAndLimits.number")}
-                    label={t("models.neuralNetworks.sections.powerAndLimits.label")}
-                />
-                <Heading>{t("neuralNetworkNarrative.powerAndLimits.title")}</Heading>
+                <P>{t("neuralNetworkNarrative.fromNumbers.p6")}</P>
 
-                <Lead>{t("neuralNetworkNarrative.powerAndLimits.lead")}</Lead>
+                {/* Softmax math HiddenSection (improvement G) */}
+                <HiddenSection
+                    category="math"
+                    difficulty={2}
+                    title={t("neuralNetworkNarrative.fromNumbers.softmaxMath.title")}
+                    description={t("neuralNetworkNarrative.fromNumbers.softmaxMath.desc")}
+                >
+                    <p className="text-sm text-white/40 leading-relaxed mb-3">
+                        {t("neuralNetworkNarrative.fromNumbers.softmaxMath.intro")}
+                    </p>
+                    <div className="text-center overflow-x-auto mb-3">
+                        <BlockMath math="P(\text{next} = j \mid \text{prev} = i) = \frac{e^{W_{ij}}}{\sum_k e^{W_{ik}}}" />
+                    </div>
+                    <p className="text-xs text-white/30 leading-relaxed mb-3">
+                        {t("neuralNetworkNarrative.fromNumbers.softmaxMath.explain")}
+                    </p>
+                    <div className="text-center overflow-x-auto mb-3">
+                        <BlockMath math="\mathbf{W} \in \mathbb{R}^{27 \times 27}" />
+                    </div>
+                    <p className="text-xs text-white/30 italic">
+                        {t("neuralNetworkNarrative.fromNumbers.softmaxMath.note")}
+                    </p>
+                </HiddenSection>
 
-                <P>
-                    {t("neuralNetworkNarrative.powerAndLimits.p1")}{" "}
-                    <Highlight>{t("neuralNetworkNarrative.powerAndLimits.p1Highlight")}</Highlight>{" "}
-                    {t("neuralNetworkNarrative.powerAndLimits.p1End")}
-                </P>
+                {/* 9. ContextLimitationDemo → MLP bridge */}
+                <P>{t("neuralNetworkNarrative.fromNumbers.contextLimitIntro")}</P>
 
-                <Callout icon={AlertTriangle} accent="amber" title="XOR Problem">
-                    <p>{t("neuralNetworkNarrative.powerAndLimits.p2")}</p>
-                </Callout>
+                <VisualizerFrame
+                    family="function"
+                    label={t("neuralNetworkNarrative.contextLimit.title")}
+                    hint={t("neuralNetworkNarrative.contextLimit.hint")}
+                >
+                    <ContextLimitationDemo />
+                </VisualizerFrame>
 
-                <XORDecisionBoundary />
-
-                <P>{t("neuralNetworkNarrative.powerAndLimits.p3")}</P>
-
-                <P>{t("neuralNetworkNarrative.powerAndLimits.p4")}</P>
-
-                <Callout icon={Layers} accent="indigo" title={t("neuralNetworkNarrative.powerAndLimits.calloutTitle")}>
-                    <p>{t("neuralNetworkNarrative.powerAndLimits.calloutText")}</p>
-                </Callout>
+                <P>{t("neuralNetworkNarrative.fromNumbers.mlpBridge")}</P>
             </Section>
 
             {/* ───────────────── CTA ───────────────── */}
-            <Section>
-                <div className="text-center mb-10">
+            <Section id="nn-cta">
+                <div className="text-center mb-8">
                     <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
                         {t("neuralNetworkNarrative.cta.title")}
                     </h2>
-                    <p className="text-sm text-white/35 max-w-md mx-auto leading-relaxed">
+                    <p className="text-sm text-white/40 max-w-lg mx-auto leading-relaxed">
                         {t("neuralNetworkNarrative.cta.subtitle")}
                     </p>
+                </div>
+
+                {/* What's Next preview */}
+                <div className="mb-8 rounded-2xl border border-rose-500/[0.15] bg-rose-500/[0.03] p-5 sm:p-6">
+                    <p className="text-[10px] font-mono uppercase tracking-widest text-rose-400/50 mb-4">
+                        {t("neuralNetworkNarrative.cta.whatsNextTitle")}
+                    </p>
+                    <ul className="space-y-3">
+                        {(["whatsNext1", "whatsNext2", "whatsNext3"] as const).map((key, i) => (
+                            <li key={key} className="flex items-start gap-3">
+                                <span className="shrink-0 w-5 h-5 rounded-full bg-rose-500/20 flex items-center justify-center text-[10px] font-bold text-rose-400 mt-0.5">
+                                    {i + 1}
+                                </span>
+                                <span className="text-sm text-white/50 leading-relaxed">
+                                    {t(`neuralNetworkNarrative.cta.${key}`)}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -1158,13 +1654,13 @@ export function NeuralNetworkNarrative() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => router.push("/lab/mlp")}
-                        className="group relative rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-950/20 to-black/60 p-6 text-left transition-colors hover:border-violet-500/40 overflow-hidden"
+                        className="group relative rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-950/20 to-black/60 p-6 text-left transition-colors hover:border-rose-500/40 overflow-hidden"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-rose-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                         <div className="relative">
                             <div className="flex items-center gap-3 mb-3">
-                                <div className="p-2 rounded-xl bg-violet-500/15">
-                                    <Layers className="w-5 h-5 text-violet-300" />
+                                <div className="p-2 rounded-xl bg-rose-500/15">
+                                    <Layers className="w-5 h-5 text-rose-300" />
                                 </div>
                                 <span className="text-lg font-bold text-white">
                                     {t("neuralNetworkNarrative.cta.mlpButton")}

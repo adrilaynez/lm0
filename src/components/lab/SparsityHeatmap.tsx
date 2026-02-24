@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Grid3X3, AlertTriangle } from "lucide-react";
+import { useI18n } from "@/i18n/context";
 
 /* ─────────────────────────────────────────────
    E8 — Sparsity Heatmap
@@ -84,6 +85,7 @@ function computeOverallFill(grid: number[][]): number {
 }
 
 export function SparsityHeatmap() {
+    const { t } = useI18n();
     const [selectedN, setSelectedN] = useState(1);
 
     const grid = FILL_DATA[selectedN] ?? FILL_DATA[1];
@@ -101,10 +103,10 @@ export function SparsityHeatmap() {
                 </div>
                 <div>
                     <h4 className="text-sm font-bold text-white tracking-tight">
-                        Table Density Heatmap
+                        {t("ngram.widgets.sparsityHeatmap.title")}
                     </h4>
                     <p className="text-[10px] text-white/40">
-                        How much of the probability table actually has data?
+                        {t("ngram.widgets.sparsityHeatmap.subtitle")}
                     </p>
                 </div>
             </div>
@@ -119,8 +121,8 @@ export function SparsityHeatmap() {
                             key={n}
                             onClick={() => setSelectedN(n)}
                             className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-colors border ${active
-                                    ? "bg-amber-500/15 border-amber-500/30 text-amber-300"
-                                    : "bg-white/[0.02] border-white/[0.06] text-white/30 hover:text-white/50"
+                                ? "bg-amber-500/15 border-amber-500/30 text-amber-300"
+                                : "bg-white/[0.02] border-white/[0.06] text-white/30 hover:text-white/50"
                                 }`}
                         >
                             {label}
@@ -133,11 +135,11 @@ export function SparsityHeatmap() {
             <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-4">
                     <span className="text-white/40">
-                        <span className="font-mono text-white/60">{ngramName}</span> · {tableEntries} entries
+                        <span className="font-mono text-white/60">{ngramName}</span> · {tableEntries} {t("ngram.widgets.sparsityHeatmap.entriesSuffix")}
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase tracking-[0.1em] text-white/30 font-bold">Fill</span>
+                    <span className="text-[10px] uppercase tracking-[0.1em] text-white/30 font-bold">{t("ngram.widgets.sparsityHeatmap.fill")}</span>
                     <span className={`font-mono font-bold ${overallFill > 50 ? "text-emerald-400" : overallFill > 15 ? "text-amber-400" : "text-red-400"}`}>
                         {overallFill.toFixed(0)}%
                     </span>
@@ -185,12 +187,12 @@ export function SparsityHeatmap() {
 
                 {/* Legend */}
                 <div className="flex items-center justify-center gap-3 mt-4 pt-3 border-t border-white/[0.04]">
-                    <span className="text-[9px] text-white/25 font-bold uppercase tracking-widest">Density:</span>
+                    <span className="text-[9px] text-white/25 font-bold uppercase tracking-widest">{t("ngram.widgets.sparsityHeatmap.density")}</span>
                     {[
-                        { color: "bg-emerald-600/50", label: "High" },
-                        { color: "bg-amber-600/30", label: "Medium" },
-                        { color: "bg-red-700/18", label: "Low" },
-                        { color: "bg-white/[0.03] border border-white/[0.06]", label: "Empty" },
+                        { color: "bg-emerald-600/50", label: t("ngram.widgets.sparsityHeatmap.legend.high") },
+                        { color: "bg-amber-600/30", label: t("ngram.widgets.sparsityHeatmap.legend.medium") },
+                        { color: "bg-red-700/18", label: t("ngram.widgets.sparsityHeatmap.legend.low") },
+                        { color: "bg-white/[0.03] border border-white/[0.06]", label: t("ngram.widgets.sparsityHeatmap.legend.empty") },
                     ].map((item) => (
                         <div key={item.label} className="flex items-center gap-1.5">
                             <div className={`w-2.5 h-2.5 rounded-sm ${item.color}`} />
@@ -210,34 +212,27 @@ export function SparsityHeatmap() {
             >
                 {selectedN <= 1 ? (
                     <p className="text-xs text-white/40 leading-relaxed">
-                        The bigram table is <strong className="text-emerald-400">mostly filled</strong> — with only 96 possible contexts,
-                        even a modest corpus covers most character pairs. But this model only sees <em>one</em> character of history.
+                        {t("ngram.widgets.sparsityHeatmap.insights.n1")}
                     </p>
                 ) : selectedN === 2 ? (
                     <>
                         <AlertTriangle className="w-4 h-4 text-amber-400/60 shrink-0 mt-0.5" />
                         <p className="text-xs text-white/40 leading-relaxed">
-                            The trigram table is already <strong className="text-amber-400">noticeably sparser</strong>.
-                            With 9,216 possible contexts, many 2-character combinations never appear in training.
-                            The model starts guessing randomly for unseen contexts.
+                            {t("ngram.widgets.sparsityHeatmap.insights.n2")}
                         </p>
                     </>
                 ) : selectedN === 3 ? (
                     <>
                         <AlertTriangle className="w-4 h-4 text-red-400/60 shrink-0 mt-0.5" />
                         <p className="text-xs text-white/40 leading-relaxed">
-                            The 4-gram table is <strong className="text-red-400">almost entirely empty</strong>.
-                            With 884,736 possible contexts, the vast majority have zero training examples.
-                            The model is essentially blind for most inputs.
+                            {t("ngram.widgets.sparsityHeatmap.insights.n3")}
                         </p>
                     </>
                 ) : (
                     <>
                         <AlertTriangle className="w-4 h-4 text-red-400/60 shrink-0 mt-0.5" />
                         <p className="text-xs text-white/40 leading-relaxed">
-                            The 5-gram table is a <strong className="text-red-400">desert of zeros</strong>.
-                            Over 8 billion possible contexts, and your training data covers a vanishingly small fraction.
-                            This is not a solvable problem — it&apos;s a mathematical certainty.
+                            {t("ngram.widgets.sparsityHeatmap.insights.n4")}
                         </p>
                     </>
                 )}

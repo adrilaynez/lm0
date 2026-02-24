@@ -8,11 +8,10 @@ import { useI18n } from "@/i18n/context";
 import { useLabMode } from "@/context/LabModeContext";
 
 const NGRAM_NAME_KEYS: Record<number, string> = {
-    1: "models.ngram.controls.unigram",
-    2: "models.ngram.controls.bigram",
-    3: "models.ngram.controls.trigram",
-    4: "models.ngram.controls.fourgram",
-    5: "models.ngram.controls.fivegram",
+    1: "models.ngram.controls.bigram",
+    2: "models.ngram.controls.trigram",
+    3: "models.ngram.controls.fourgram",
+    4: "models.ngram.controls.fivegram",
 };
 
 const CONTEXT_LEVEL_KEYS: Record<number, string> = {
@@ -20,7 +19,6 @@ const CONTEXT_LEVEL_KEYS: Record<number, string> = {
     2: "models.ngram.lab.contextLevels.2",
     3: "models.ngram.lab.contextLevels.3",
     4: "models.ngram.lab.contextLevels.4",
-    5: "models.ngram.lab.contextLevels.5",
 };
 
 interface ContextControlProps {
@@ -74,7 +72,7 @@ export function ContextControl({ value, onChange, disabled, min = 1 }: ContextCo
                 <Slider
                     value={[value]}
                     min={min}
-                    max={5}
+                    max={4}
                     step={1}
                     onValueChange={(vals: number[]) => onChange(vals[0])}
                     disabled={disabled}
@@ -83,7 +81,7 @@ export function ContextControl({ value, onChange, disabled, min = 1 }: ContextCo
             </div>
 
             <div className="flex justify-between px-1 mb-4">
-                {[1, 2, 3, 4, 5].filter((n) => n >= min).map((n) => (
+                {[1, 2, 3, 4].filter((n) => n >= min).map((n) => (
                     <button
                         key={n}
                         onClick={() => onChange(n)}
@@ -92,9 +90,7 @@ export function ContextControl({ value, onChange, disabled, min = 1 }: ContextCo
                             ? isEdu
                                 ? "text-amber-300 font-bold"
                                 : "text-cyan-300 font-bold"
-                            : n === 5
-                                ? "text-red-400/50 hover:text-red-400/70"
-                                : "text-white/30 hover:text-white/50"
+                            : "text-white/30 hover:text-white/50"
                             }`}
                     >
                         {t(NGRAM_NAME_KEYS[n])}

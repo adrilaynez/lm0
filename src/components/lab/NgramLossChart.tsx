@@ -3,25 +3,32 @@
 import { useI18n } from "@/i18n/context";
 
 interface NgramLossChartProps {
-    lossHistory: number[];
+    trainLossHistory: number[];
+    valLossHistory?: number[];
     perplexity?: number;
     finalLoss?: number;
 }
 
-export function NgramLossChart({ lossHistory, perplexity, finalLoss }: NgramLossChartProps) {
-    const { t } = useI18n();
-
-    const maxLoss = Math.max(...lossHistory);
-    const minLoss = Math.min(...lossHistory);
-    const range = maxLoss - minLoss || 1;
-
-    const points = lossHistory
+function buildPolylinePoints(values: number[], minLoss: number, range: number) {
+    return values
         .map((v, i) => {
-            const x = (i / (lossHistory.length - 1)) * 100;
+            const x = (i / (values.length - 1)) * 100;
             const y = 100 - ((v - minLoss) / range) * 90 - 5;
             return `${x},${y}`;
         })
         .join(" ");
+}
+
+export function NgramLossChart({ trainLossHistory, valLossHistory, perplexity, finalLoss }: NgramLossChartProps) {
+    const { t } = useI18n();
+
+    const allSeries = valLossHistory?.length ? [...trainLossHistory, ...valLossHistory] : trainLossHistory;
+    const maxLoss = Math.max(...allSeries);
+    const minLoss = Math.min(...allSeries);
+    const range = maxLoss - minLoss || 1;
+
+    const trainPoints = buildPolylinePoints(trainLossHistory, minLoss, range);
+    const valPoints = valLossHistory?.length ? buildPolylinePoints(valLossHistory, minLoss, range) : null;
 
     return (
         <div className="space-y-4">
@@ -53,14 +60,24 @@ export function NgramLossChart({ lossHistory, perplexity, finalLoss }: NgramLoss
                         </linearGradient>
                     </defs>
                     <polyline
-                        points={points}
+                        points={trainPoints}
                         fill="none"
                         stroke="rgb(6,182,212)"
                         strokeWidth="0.8"
                         strokeLinejoin="round"
                         vectorEffect="non-scaling-stroke"
                     />
-                    <polygon points={`0,100 ${points} 100,100`} fill="url(#lossGradient)" />
+                    <polygon points={`0,100 ${trainPoints} 100,100`} fill="url(#lossGradient)" />
+                    {valPoints && (
+                        <polyline
+                            points={valPoints}
+                            fill="none"
+                            stroke="rgb(245,158,11)"
+                            strokeWidth="0.8"
+                            strokeLinejoin="round"
+                            vectorEffect="non-scaling-stroke"
+                        />
+                    )}
                 </svg>
                 <div className="flex justify-between text-[10px] text-white/20 font-mono mt-1">
                     <span>{t("models.ngram.lab.lossChart.start")}</span>

@@ -107,7 +107,11 @@ export interface NGramTrainingInfo {
     sparsity?: number | null;
     transition_density?: number | null;
     loss_history?: number[];
+    train_loss_history?: number[];
+    val_loss_history?: number[];
     final_loss?: number | null;
+    final_train_loss?: number | null;
+    final_val_loss?: number | null;
     perplexity?: number | null;
     smoothing_alpha?: number | null;
     corpus_name?: string | null;

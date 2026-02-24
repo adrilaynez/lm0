@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Database, AlertTriangle } from "lucide-react";
+import { useI18n } from "@/i18n/context";
 
 /* ─────────────────────────────────────────────
    V2 — Infinite Table Thought Experiment
@@ -72,6 +73,7 @@ function barTextColor(pct: number): string {
 }
 
 export function InfiniteTableThoughtExperiment() {
+    const { t } = useI18n();
     const [stepIdx, setStepIdx] = useState(3); // default 1M
     const step = DATA_STEPS[stepIdx];
 
@@ -94,10 +96,10 @@ export function InfiniteTableThoughtExperiment() {
                 </div>
                 <div>
                     <h4 className="text-sm font-bold text-white tracking-tight">
-                        The Data Coverage Problem
+                        {t("ngram.widgets.infiniteTable.title")}
                     </h4>
                     <p className="text-[10px] text-white/40">
-                        How much of each N-gram table can you fill with real data?
+                        {t("ngram.widgets.infiniteTable.subtitle")}
                     </p>
                 </div>
             </div>
@@ -106,10 +108,10 @@ export function InfiniteTableThoughtExperiment() {
             <div>
                 <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">
-                        Training data size
+                        {t("ngram.widgets.infiniteTable.trainingDataSize")}
                     </span>
                     <span className="font-mono text-sm text-amber-300 font-bold">
-                        {step.label} tokens
+                        {t("ngram.widgets.infiniteTable.tokensLabel", { count: step.label })}
                     </span>
                 </div>
                 <input
@@ -128,9 +130,8 @@ export function InfiniteTableThoughtExperiment() {
                     {DATA_STEPS.map((s, i) => (
                         <span
                             key={s.label}
-                            className={`text-[9px] font-mono ${
-                                i === stepIdx ? "text-amber-300 font-bold" : "text-white/20"
-                            }`}
+                            className={`text-[9px] font-mono ${i === stepIdx ? "text-amber-300 font-bold" : "text-white/20"
+                                }`}
                         >
                             {s.label}
                         </span>
@@ -148,7 +149,7 @@ export function InfiniteTableThoughtExperiment() {
                                     N={n}
                                 </span>
                                 <span className="text-[10px] text-white/25 font-mono">
-                                    {tableSize.toLocaleString()} entries
+                                    {t("ngram.widgets.infiniteTable.entriesLabel", { count: tableSize.toLocaleString() })}
                                 </span>
                             </div>
                             <span className={`text-xs font-mono font-bold ${barTextColor(pct)}`}>
@@ -180,23 +181,23 @@ export function InfiniteTableThoughtExperiment() {
                 <p className="text-xs text-white/45 leading-relaxed">
                     {fills[4].pct < 0.01 ? (
                         <>
-                            Even with <strong className="text-amber-300">{step.label}</strong> tokens of training data,
-                            the 5-gram table ({fills[4].tableSize.toLocaleString()} entries) is{" "}
-                            <strong className="text-red-400">virtually empty</strong>. The model
-                            would have no prediction for almost any context it encounters.
+                            {t("ngram.widgets.infiniteTable.insight.v0", {
+                                tokens: step.label,
+                                entries: fills[4].tableSize.toLocaleString(),
+                            })}
                         </>
                     ) : fills[4].pct < 1 ? (
                         <>
-                            With <strong className="text-amber-300">{step.label}</strong> tokens,
-                            the 5-gram table is less than 1% filled.
-                            Most contexts the model encounters at test time will have <strong className="text-red-400">zero</strong> training examples.
+                            {t("ngram.widgets.infiniteTable.insight.v1", {
+                                tokens: step.label,
+                            })}
                         </>
                     ) : (
                         <>
-                            With <strong className="text-amber-300">{step.label}</strong> tokens,
-                            low-N tables fill up — but the 5-gram table is still only{" "}
-                            <strong className="text-amber-300">{formatPercent(fills[4].pct)}</strong> covered.
-                            Sparsity is a <em>data</em> problem, not just a storage problem.
+                            {t("ngram.widgets.infiniteTable.insight.v2", {
+                                tokens: step.label,
+                                pct: formatPercent(fills[4].pct),
+                            })}
                         </>
                     )}
                 </p>

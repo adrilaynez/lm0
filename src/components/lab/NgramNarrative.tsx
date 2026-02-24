@@ -163,6 +163,7 @@ function ExpandableSection({
     defaultOpen?: boolean;
 }) {
     const [open, setOpen] = useState(defaultOpen);
+    const { t } = useI18n();
     return (
         <div className="my-10">
             <button
@@ -173,7 +174,7 @@ function ExpandableSection({
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
                 <h3 className="text-lg font-bold text-white flex-1 leading-snug">{title}</h3>
                 <span className="shrink-0 text-[10px] font-mono uppercase tracking-widest text-white/25 group-hover:text-white/40 transition-colors mr-1">
-                    {open ? "collapse" : "expand"}
+                    {open ? t("ngramNarrative.ui.collapse") : t("ngramNarrative.ui.expand")}
                 </span>
                 <motion.div
                     animate={{ rotate: open ? 180 : 0 }}
@@ -245,6 +246,7 @@ function FigureWrapper({
    ───────────────────────────────────────────── */
 
 function ContextWindowVisualizer() {
+    const { t } = useI18n();
     const [selectedN, setSelectedN] = useState(1);
     const tokens = "I want to eat pizza".split("");
     const PREDICTIONS: Record<number, { candidates: string[]; best: string; confidence: number }> = {
@@ -263,15 +265,15 @@ function ContextWindowVisualizer() {
             {/* N selector buttons */}
             <div className="flex items-center gap-2">
                 <span className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold mr-1">
-                    Context size:
+                    {t("ngramNarrative.figures.contextWindow.contextSize")}
                 </span>
                 {[1, 2, 3, 4, 5].map((n) => (
                     <button
                         key={n}
                         onClick={() => setSelectedN(n)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all border ${n === selectedN
-                                ? "bg-amber-500/15 border-amber-500/30 text-amber-300 shadow-[0_0_12px_-3px_rgba(251,191,36,0.3)]"
-                                : "bg-white/[0.02] border-white/[0.06] text-white/30 hover:text-white/50 hover:border-white/10"
+                            ? "bg-amber-500/15 border-amber-500/30 text-amber-300 shadow-[0_0_12px_-3px_rgba(251,191,36,0.3)]"
+                            : "bg-white/[0.02] border-white/[0.06] text-white/30 hover:text-white/50 hover:border-white/10"
                             }`}
                     >
                         N={n}
@@ -282,7 +284,7 @@ function ContextWindowVisualizer() {
             {/* Sentence with animated context highlight */}
             <div className="rounded-xl border border-white/[0.08] bg-black/30 p-5">
                 <p className="text-[9px] uppercase tracking-[0.2em] text-white/30 font-bold mb-3">
-                    Predicting the next character after:
+                    {t("ngramNarrative.figures.contextWindow.predictingAfter")}
                 </p>
                 <div className="font-mono text-lg leading-relaxed flex flex-wrap items-center">
                     {tokens.map((ch, i) => {
@@ -320,13 +322,13 @@ function ContextWindowVisualizer() {
                     className="mt-3 flex items-center gap-3"
                 >
                     <span className="text-[10px] font-mono text-amber-400/60 uppercase tracking-wider">
-                        {LABELS[selectedN]} sees:
+                        {LABELS[selectedN]} {t("ngramNarrative.figures.contextWindow.sees")}
                     </span>
                     <span className="font-mono text-sm text-amber-300 font-bold bg-amber-500/10 px-2 py-0.5 rounded">
                         &ldquo;{tokens.slice(ctxStart).join("")}&rdquo;
                     </span>
                     <ArrowRight className="w-3 h-3 text-white/20" />
-                    <span className="text-[10px] text-white/30">next?</span>
+                    <span className="text-[10px] text-white/30">{t("ngramNarrative.figures.contextWindow.next")}</span>
                 </motion.div>
             </div>
 
@@ -340,10 +342,10 @@ function ContextWindowVisualizer() {
             >
                 <div className="flex items-center justify-between mb-3">
                     <span className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">
-                        Model&apos;s best guess
+                        {t("ngramNarrative.figures.contextWindow.modelBestGuess")}
                     </span>
                     <span className="font-mono text-xs text-amber-300 font-bold">
-                        {pred.confidence}% confident
+                        {t("ngramNarrative.figures.contextWindow.confident").replace("{pct}", String(pred.confidence))}
                     </span>
                 </div>
 
@@ -360,14 +362,14 @@ function ContextWindowVisualizer() {
                 {/* Candidate chips */}
                 <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[10px] text-white/25 font-mono uppercase tracking-wider">
-                        Candidates:
+                        {t("ngramNarrative.figures.contextWindow.candidates")}
                     </span>
                     {pred.candidates.map((c, i) => (
                         <span
                             key={c}
                             className={`font-mono text-sm px-2 py-0.5 rounded border ${c === pred.best
-                                    ? "text-emerald-300 border-emerald-500/30 bg-emerald-500/10 font-bold"
-                                    : "text-white/40 border-white/[0.06] bg-white/[0.02]"
+                                ? "text-emerald-300 border-emerald-500/30 bg-emerald-500/10 font-bold"
+                                : "text-white/40 border-white/[0.06] bg-white/[0.02]"
                                 }`}
                         >
                             {c === " " ? "␣" : c}
@@ -376,11 +378,11 @@ function ContextWindowVisualizer() {
                 </div>
 
                 <p className="text-[10px] text-white/25 mt-3 leading-relaxed">
-                    {selectedN === 1 && "With just 1 character, the model sees only \"a\" — too little to narrow down the options."}
-                    {selectedN === 2 && "Two characters give \"za\" — still ambiguous, but starting to form patterns."}
-                    {selectedN === 3 && "Three characters reveal \"zza\" — the model starts recognizing word-like fragments."}
-                    {selectedN === 4 && "Four characters show \"izza\" — strong signal that this is probably \"pizza\"."}
-                    {selectedN === 5 && "Five characters capture \"pizza\" — the model knows exactly what comes next."}
+                    {selectedN === 1 && t("ngramNarrative.figures.contextWindow.n1hint")}
+                    {selectedN === 2 && t("ngramNarrative.figures.contextWindow.n2hint")}
+                    {selectedN === 3 && t("ngramNarrative.figures.contextWindow.n3hint")}
+                    {selectedN === 4 && t("ngramNarrative.figures.contextWindow.n4hint")}
+                    {selectedN === 5 && t("ngramNarrative.figures.contextWindow.n5hint")}
                 </p>
             </motion.div>
         </div>
@@ -461,7 +463,7 @@ export function NgramNarrative({
                 <P>{t("ngramNarrative.moreContext.p3")}</P>
 
                 <FigureWrapper
-                    label="Context window · Natural language example"
+                    label={t("ngramNarrative.figures.contextWindow.label")}
                     hint={t("ngramNarrative.contextWindow.caption")}
                 >
                     <ContextWindowVisualizer />
@@ -557,8 +559,8 @@ export function NgramNarrative({
                 <P>{t("ngramNarrative.complexity.p1")}</P>
 
                 <FigureWrapper
-                    label="Exponential growth · Table size by N"
-                    hint="Each step multiplies the previous count by the vocabulary size."
+                    label={t("ngramNarrative.figures.exponentialGrowth.label")}
+                    hint={t("ngramNarrative.figures.exponentialGrowth.hint")}
                 >
                     <ExponentialGrowthAnimator />
                 </FigureWrapper>
@@ -692,8 +694,8 @@ export function NgramNarrative({
                 <P>{t("ngramNarrative.endOfCounting.p3")}</P>
 
                 <FigureWrapper
-                    label="Statistical era · Learning path"
-                    hint="The counting era is complete. Something fundamentally different comes next."
+                    label={t("ngramNarrative.figures.statisticalEra.label")}
+                    hint={t("ngramNarrative.figures.statisticalEra.hint")}
                 >
                     <StatisticalEraTimeline />
                 </FigureWrapper>

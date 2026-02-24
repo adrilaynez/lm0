@@ -138,50 +138,15 @@ function FlowHint({ text }: { text: string }) {
    Guided Experiments panel
    ───────────────────────────────────────────── */
 
-const EXPERIMENTS = [
-    {
-        id: 1,
-        title: "The Context Effect",
-        instruction: "Set N=1, generate 50 characters, and save the output. Then set N=3 and generate again from the same seed phrase.",
-        observation: "N=3 output reads more naturally — you'll see common prefixes like 'th', 'the', 'in' appear more reliably than with N=1.",
-        accent: "amber",
-        scrollTarget: "generation-playground",
-    },
-    {
-        id: 2,
-        title: "Finding the Wall",
-        instruction: "Step through N=1 → N=2 → N=3 → N=4 and watch the Sparsity panel after each change. Record the perplexity and context utilization at each N.",
-        observation: "Perplexity drops with each step, but context utilization also plummets. At N=4, most rows in the table are empty — the model runs out of evidence.",
-        accent: "cyan",
-        scrollTarget: "sparsity-comparison",
-    },
-    {
-        id: 3,
-        title: "The Impossible Context",
-        instruction: "Set N=4. In the Inference Console, type a phrase the model has never seen — try 'zqxj' or any unusual 4-character combination.",
-        observation: "The model returns no confident prediction. It has no entry for this exact 4-character context and cannot reason by analogy.",
-        accent: "red",
-        scrollTarget: "inference-console",
-    },
-    {
-        id: 4,
-        title: "Bigram vs 4-gram Showdown",
-        instruction: "Generate 80 characters at N=1 and save it. Then switch to N=4 and generate 80 characters from the same seed. Read both outputs aloud.",
-        observation: "N=1 sounds random. N=4 produces recognizable fragments but breaks down mid-sequence when it hits unseen contexts and has to guess randomly.",
-        accent: "violet",
-        scrollTarget: "generation-playground",
-    },
-    {
-        id: 5,
-        title: "Diminishing Returns",
-        instruction: "Record the perplexity from the Performance Summary at N=1, 2, 3, and 4. Calculate the drop from each step to the next.",
-        observation: "The improvement from N=1→2 is large. N=2→3 is smaller. N=3→4 is smaller still. More memory helps less and less as sparsity grows.",
-        accent: "emerald",
-        scrollTarget: "sparsity-comparison",
-    },
+const EXPERIMENT_META = [
+    { id: 1 as const, accent: "amber" as const, scrollTarget: "generation-playground" },
+    { id: 2 as const, accent: "cyan" as const, scrollTarget: "sparsity-comparison" },
+    { id: 3 as const, accent: "red" as const, scrollTarget: "inference-console" },
+    { id: 4 as const, accent: "violet" as const, scrollTarget: "generation-playground" },
+    { id: 5 as const, accent: "emerald" as const, scrollTarget: "sparsity-comparison" },
 ] as const;
 
-type ExperimentAccent = typeof EXPERIMENTS[number]["accent"];
+type ExperimentAccent = typeof EXPERIMENT_META[number]["accent"];
 
 const EXP_BORDER: Record<ExperimentAccent, string> = {
     amber: "border-amber-500/20",
@@ -208,6 +173,7 @@ const EXP_TEXT: Record<ExperimentAccent, string> = {
 function GuidedExperiments() {
     const [open, setOpen] = useState(true);
     const [expanded, setExpanded] = useState<number | null>(1);
+    const { t } = useI18n();
 
     return (
         <motion.div
@@ -224,10 +190,10 @@ function GuidedExperiments() {
                 <Microscope className="w-4 h-4 text-amber-400/60 shrink-0" />
                 <div className="flex-1 text-left">
                     <span className="text-sm font-bold text-white/60 group-hover:text-white/80 transition-colors">
-                        Guided Experiments
+                        {t("models.ngram.lab.guidedExperiments")}
                     </span>
                     <span className="ml-2.5 text-[10px] font-mono text-amber-400/35 uppercase tracking-widest">
-                        5 challenges
+                        {t("models.ngram.lab.guidedExperimentsChallenges")}
                     </span>
                 </div>
                 <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
@@ -246,7 +212,7 @@ function GuidedExperiments() {
                         className="overflow-hidden"
                     >
                         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-3">
-                            {EXPERIMENTS.map((exp) => {
+                            {EXPERIMENT_META.map((exp) => {
                                 const isExpanded = expanded === exp.id;
                                 return (
                                     <div
@@ -257,7 +223,7 @@ function GuidedExperiments() {
                                         <div className="flex items-center gap-3 px-4 py-3">
                                             <div className={`w-2 h-2 rounded-full shrink-0 ${EXP_DOT[exp.accent]}`} />
                                             <span className={`text-sm font-bold flex-1 leading-tight ${EXP_TEXT[exp.accent]}`}>
-                                                {exp.title}
+                                                {t(`models.ngram.lab.experiments.${exp.id}.title`)}
                                             </span>
                                             <motion.div
                                                 animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -279,18 +245,18 @@ function GuidedExperiments() {
                                                     <div className="px-4 pb-4 pt-3 border-t border-white/[0.05] flex flex-col gap-3">
                                                         <div>
                                                             <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-white/25 mb-1.5">
-                                                                Instructions
+                                                                {t("models.ngram.lab.experiments.instructions")}
                                                             </p>
                                                             <p className="text-xs text-white/45 leading-relaxed">
-                                                                {exp.instruction}
+                                                                {t(`models.ngram.lab.experiments.${exp.id}.instruction`)}
                                                             </p>
                                                         </div>
                                                         <div className={`rounded-lg border ${EXP_BORDER[exp.accent]} bg-white/[0.015] px-3 py-2.5`}>
                                                             <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-white/20 mb-1.5">
-                                                                Expected observation
+                                                                {t("models.ngram.lab.experiments.expectedObservation")}
                                                             </p>
                                                             <p className={`text-xs leading-relaxed ${EXP_TEXT[exp.accent]} opacity-60`}>
-                                                                {exp.observation}
+                                                                {t(`models.ngram.lab.experiments.${exp.id}.observation`)}
                                                             </p>
                                                         </div>
                                                         <button
@@ -301,7 +267,7 @@ function GuidedExperiments() {
                                                             className={`self-start flex items-center gap-1.5 text-[10px] font-mono ${EXP_TEXT[exp.accent]} opacity-40 hover:opacity-80 transition-opacity`}
                                                         >
                                                             <ArrowRight className="w-3 h-3" />
-                                                            Go to panel
+                                                            {t("models.ngram.lab.experiments.goToPanel")}
                                                         </button>
                                                     </div>
                                                 </motion.div>
@@ -341,6 +307,15 @@ function AdvancedMetricsCollapsible({
     const [open, setOpen] = useState(false);
     const { t } = useI18n();
 
+    const displayedFinalLoss = useMemo(
+        () => training?.final_train_loss ?? training?.final_loss ?? undefined,
+        [training]
+    );
+    const displayedLossHistory = useMemo(
+        () => training?.train_loss_history ?? training?.loss_history ?? undefined,
+        [training]
+    );
+
     return (
         <>
             <button
@@ -350,14 +325,14 @@ function AdvancedMetricsCollapsible({
                 <Gauge className="w-4 h-4 text-amber-400/50 shrink-0" />
                 <div className="flex-1 text-left">
                     <span className="text-sm font-bold text-white/50 group-hover:text-white/70 transition-colors">
-                        Advanced Metrics
+                        {t("models.ngram.lab.advancedMetrics")}
                     </span>
                     <span className="ml-2.5 text-[10px] font-mono text-amber-400/30 uppercase tracking-widest">
-                        for experts
+                        {t("models.ngram.lab.advancedMetricsExperts")}
                     </span>
                 </div>
                 <span className="text-[10px] text-white/20 mr-2">
-                    Loss, perplexity &amp; performance
+                    {t("models.ngram.lab.advancedMetricsDesc")}
                 </span>
                 <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
                     <ChevronDown className="w-4 h-4 text-white/20" />
@@ -375,8 +350,7 @@ function AdvancedMetricsCollapsible({
                     >
                         <div className="pt-4 space-y-4">
                             <p className="text-xs text-amber-300/40 italic border-l-2 border-amber-500/15 pl-3">
-                                These metrics (loss, perplexity, NLL) will make more sense after the Neural Networks chapter.
-                                For now, lower perplexity = better predictions.
+                                {t("models.ngram.lab.advancedMetricsHint")}
                             </p>
 
                             {hasPerformanceData && (
@@ -392,12 +366,12 @@ function AdvancedMetricsCollapsible({
                                         totalTokens={training?.total_tokens ?? undefined}
                                         trainingDuration={(training as unknown as { training_duration_ms?: number } | null)?.training_duration_ms}
                                         perplexity={training?.perplexity ?? undefined}
-                                        finalLoss={training?.final_loss ?? undefined}
+                                        finalLoss={displayedFinalLoss}
                                     />
                                 </LabSection>
                             )}
 
-                            {hasLossHistory && training?.loss_history && (
+                            {hasLossHistory && displayedLossHistory && (
                                 <LabSection
                                     icon={TrendingDown}
                                     title={t("models.ngram.lab.sections.trainingQuality")}
@@ -405,9 +379,10 @@ function AdvancedMetricsCollapsible({
                                     accent="emerald"
                                 >
                                     <NgramLossChart
-                                        lossHistory={training.loss_history}
-                                        perplexity={training.perplexity ?? undefined}
-                                        finalLoss={training.final_loss ?? undefined}
+                                        trainLossHistory={displayedLossHistory}
+                                        valLossHistory={training?.val_loss_history ?? undefined}
+                                        perplexity={training?.perplexity ?? undefined}
+                                        finalLoss={displayedFinalLoss}
                                     />
                                 </LabSection>
                             )}
@@ -487,6 +462,14 @@ function NgramPageContent() {
     const nGramData = viz.data;
     const diagnostics = useMemo(() => nGramData?.visualization.diagnostics ?? null, [nGramData]);
     const training = useMemo(() => nGramData?.visualization.training ?? null, [nGramData]);
+    const displayedFinalLoss = useMemo(
+        () => training?.final_train_loss ?? training?.final_loss ?? undefined,
+        [training]
+    );
+    const displayedLossHistory = useMemo(
+        () => training?.train_loss_history ?? training?.loss_history ?? undefined,
+        [training]
+    );
     const activeSlice = nGramData?.visualization.active_slice;
     const contextDistributions = nGramData?.visualization.context_distributions;
     const vocabForScalability = useMemo(
@@ -593,7 +576,7 @@ function NgramPageContent() {
                         value={viz.contextSize}
                         onChange={viz.setContextSize}
                         disabled={viz.loading}
-                        min={2}
+                        min={1}
                     />
                 </div>
 

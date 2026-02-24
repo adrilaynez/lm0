@@ -30,9 +30,17 @@ const PAD = { t: 8, r: 8, b: 24, l: 38 };
 const IW = CW - PAD.l - PAD.r;
 const IH = CH - PAD.t - PAD.b;
 
-function LossChart({ history, initialLoss }: { history: TrainingStep[]; initialLoss: number }) {
+function seededNoise(step: number) {
+    let s = (step * 16807 + 12345) % 2147483647;
+    s = (s * 48271) % 2147483647;
+    return (s / 2147483647 - 0.5) * 2;
+}
+
+function LossChart({ history, initialLoss, batchSize = 4 }: { history: TrainingStep[]; initialLoss: number; batchSize?: number }) {
+    const noiseScale = 0.03 / Math.sqrt(batchSize);
     const visible = history.slice(-60);
-    const maxL = Math.max(initialLoss, ...visible.map(h => h.loss), 0.001);
+    const noisyLosses = visible.map(h => Math.max(0, h.loss + seededNoise(h.step) * noiseScale * (h.loss + 0.01)));
+    const maxL = Math.max(initialLoss, ...noisyLosses, 0.001);
 
     function px(i: number) {
         return PAD.l + (visible.length < 2 ? IW / 2 : (i / (visible.length - 1)) * IW);
@@ -41,7 +49,7 @@ function LossChart({ history, initialLoss }: { history: TrainingStep[]; initialL
         return PAD.t + IH - (loss / maxL) * IH;
     }
 
-    const polyline = visible.map((h, i) => `${px(i)},${py(h.loss)}`).join(" ");
+    const polyline = visible.map((h, i) => `${px(i)},${py(noisyLosses[i])}`).join(" ");
     const lastX = px(visible.length - 1);
     const lastY = py(visible[visible.length - 1].loss);
     const yTicks = [0, 0.5, 1].map(f => ({ v: f * maxL, y: PAD.t + IH - f * IH }));
@@ -120,9 +128,12 @@ export interface NNTrainingDemoCallbacks {
     onHistoryChange?: (history: TrainingStep[], target: number) => void;
 }
 
+const BATCH_SIZES = [1, 4, 16] as const;
+
 export function NNTrainingDemo({ onHistoryChange }: NNTrainingDemoCallbacks = {}) {
     const [target, setTarget] = useState(0.8);
     const [lr, setLr] = useState(1.0);
+    const [batchSize, setBatchSize] = useState<number>(4);
 
     const makeInitial = useCallback((tgt: number): TrainingStep => {
         const z = INITIAL_W * INPUT + INITIAL_B;
@@ -218,6 +229,26 @@ export function NNTrainingDemo({ onHistoryChange }: NNTrainingDemoCallbacks = {}
                             onChange={handleTargetChange} accent="indigo" />
                         <Slider label="Learning rate η" value={lr} min={0.05} max={5.0} step={0.05}
                             onChange={v => setLr(v)} accent="amber" />
+                        <div className="col-span-2 flex items-center gap-3">
+                            <span className="text-[10px] font-mono text-white/40">Batch size</span>
+                            <div className="flex gap-1.5">
+                                {BATCH_SIZES.map(bs => (
+                                    <button
+                                        key={bs}
+                                        onClick={() => setBatchSize(bs)}
+                                        className={`px-2.5 py-1 rounded text-[10px] font-mono font-bold border transition-all ${batchSize === bs
+                                            ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-400"
+                                            : "border-white/[0.06] bg-white/[0.02] text-white/30 hover:text-white/50"
+                                            }`}
+                                    >
+                                        {bs}
+                                    </button>
+                                ))}
+                            </div>
+                            <span className="text-[9px] font-mono text-white/20 ml-auto">
+                                noise ∝ 1/√{batchSize}
+                            </span>
+                        </div>
                     </div>
 
                     {/* Stats */}
@@ -248,7 +279,7 @@ export function NNTrainingDemo({ onHistoryChange }: NNTrainingDemoCallbacks = {}
                             Loss over training steps
                         </p>
                         <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] px-2 py-2">
-                            <LossChart history={history} initialLoss={initialLoss} />
+                            <LossChart history={history} initialLoss={initialLoss} batchSize={batchSize} />
                         </div>
                     </div>
 

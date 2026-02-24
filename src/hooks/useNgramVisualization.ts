@@ -18,7 +18,7 @@ export function useNgramVisualization(): UseNgramVisualizationReturn {
     const [data, setData] = useState<NGramInferenceResponse | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [contextSize, setContextSizeState] = useState(2);
+    const [contextSize, setContextSizeState] = useState(1);
     const [isCombinatorialExplosion, setCombinatorialExplosion] = useState(false);
 
     // Track last text so we can re-fetch when context size changes

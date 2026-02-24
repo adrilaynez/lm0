@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { datasetLookup } from "@/lib/lmLabClient";
 import { useLabMode } from "@/context/LabModeContext";
+import { useI18n } from "@/i18n/context";
 
 const NGRAM_NAMES: Record<number, string> = {
     1: "Bigram",
@@ -52,6 +53,7 @@ interface NgramContextPrimerProps {
 
 export function NgramContextPrimer({ n }: NgramContextPrimerProps) {
     const { isEdu, accentText, cardBg, cardBorder, accentGlow } = useModeColors();
+    const { t } = useI18n();
     const contextLength = Math.max(1, n);
     const history = "the qui";
     const visibleContext = history.slice(Math.max(0, history.length - contextLength));
@@ -70,7 +72,7 @@ export function NgramContextPrimer({ n }: NgramContextPrimerProps) {
                             <Brain className={`w-5 h-5 ${accentText}`} />
                         </div>
                         <h3 className="text-lg font-bold text-white tracking-tight">
-                            What is a {NGRAM_NAMES[n] ?? `${n}-gram`}?
+                            {t("ngramPedagogy.primer.title").replace("{name}", NGRAM_NAMES[n] ?? `${n}-gram`)}
                         </h3>
                     </div>
                     <Badge className={`${isEdu ? "bg-amber-500/15 text-amber-300 border-amber-500/30" : "bg-cyan-500/15 text-cyan-300 border-cyan-500/30"} font-mono text-sm px-3 py-1`}>
@@ -81,29 +83,38 @@ export function NgramContextPrimer({ n }: NgramContextPrimerProps) {
                 {isEdu ? (
                     <div className="space-y-3 mb-6">
                         <p className="text-sm text-white/75 leading-relaxed">
-                            Imagine you are trying to guess the next letter someone will type. A <strong className={accentText}>{NGRAM_NAMES[n]}</strong> model
-                            peeks at the last <strong className="text-white">{contextLength}</strong> letter{contextLength > 1 ? "s" : ""} and asks:
-                            <em className="text-white/60"> &quot;Based on what I just saw, what usually comes next?&quot;</em>
+                            {t("ngramPedagogy.primer.isEdu.p1")
+                                .replace("{name}", NGRAM_NAMES[n] ?? `${n}-gram`)
+                                .replace("{length}", String(contextLength))
+                                .replace("{suffix}", contextLength > 1 ? "s" : "")
+                                .replace(/<[^>]+>/g, "")}
                         </p>
                         <p className="text-sm text-white/60 leading-relaxed">
                             {n === 1
-                                ? "With only 1 character of memory, the model is essentially guessing blindly from frequency alone."
+                                ? t("ngramPedagogy.primer.isEdu.n1")
                                 : n === 2
-                                    ? "Two characters of context is enough to learn simple patterns like 'th' → 'e', but not much more."
+                                    ? t("ngramPedagogy.primer.isEdu.n2")
                                     : n <= 4
-                                        ? `With ${n} characters, the model starts capturing short word fragments — but the number of possible contexts is already ${Math.pow(96, n).toLocaleString()}.`
-                                        : "At N=5, the model theoretically has rich local context — but storing every possible 5-character combination requires billions of entries."}
+                                        ? t("ngramPedagogy.primer.isEdu.nSmall")
+                                            .replace("{n}", String(n))
+                                            .replace("{count}", Math.pow(96, n).toLocaleString())
+                                        : t("ngramPedagogy.primer.isEdu.nLarge")
+                                            .replace("{n}", String(n))}
                         </p>
                     </div>
                 ) : (
                     <p className="text-sm text-white/65 leading-relaxed mb-6">
-                        A {NGRAM_NAMES[n]} conditions on the last <span className={`font-semibold ${accentText}`}>{contextLength}</span> token{contextLength > 1 ? "s" : ""}.
-                        Context space grows as |V|<sup>{n}</sup>.
+                        {t("ngramPedagogy.primer.isFree.p1")
+                            .replace("{name}", NGRAM_NAMES[n] ?? `${n}-gram`)
+                            .replace("{length}", String(contextLength))
+                            .replace("{suffix}", contextLength > 1 ? "s" : "")
+                            .replace("{n}", String(n))
+                            .replace(/<[^>]+>/g, "")}
                     </p>
                 )}
 
                 <div className={`rounded-xl border ${isEdu ? "border-amber-500/20 bg-amber-950/15" : "border-cyan-500/20 bg-cyan-950/15"} p-4`}>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/45 mb-3 font-bold">Live context window</p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/45 mb-3 font-bold">{t("ngramPedagogy.primer.liveWindow")}</p>
                     <div className="font-mono text-base md:text-lg flex items-center gap-0.5 flex-wrap">
                         {faded.split("").map((ch, i) => (
                             <span key={`f-${i}`} className="text-white/20">{ch}</span>
@@ -130,6 +141,7 @@ export function NgramContextPrimer({ n }: NgramContextPrimerProps) {
 
 export function NgramContextGrowthAnimation() {
     const { isEdu, cardBg, cardBorder, accentText, accentGlow } = useModeColors();
+    const { t } = useI18n();
     const tokenStream = "the qui";
     const [activeN, setActiveN] = useState(1);
 
@@ -149,12 +161,11 @@ export function NgramContextGrowthAnimation() {
             <Card className={`${cardBg} ${cardBorder} p-6 md:p-8 ${accentGlow}`}>
                 <div className="flex items-center gap-3 mb-2">
                     <Sparkles className={`w-5 h-5 ${accentText}`} />
-                    <h3 className="text-lg font-bold text-white tracking-tight">Context growth</h3>
+                    <h3 className="text-lg font-bold text-white tracking-tight">{t("ngramPedagogy.growth.title")}</h3>
                 </div>
                 {isEdu && (
                     <p className="text-sm text-white/60 mb-5 leading-relaxed">
-                        Watch how the window of visible history expands as N increases.
-                        More context means sharper guesses — but also exponentially more possibilities.
+                        {t("ngramPedagogy.growth.body")}
                     </p>
                 )}
                 <div className="space-y-2">
@@ -241,6 +252,7 @@ function buildTransitions(n: number): ExampleTransition[] {
 
 export function NgramMiniTransitionTable({ n }: NgramMiniTransitionTableProps) {
     const { isEdu, cardBg, cardBorder, accentText, accentGlow, accentBorder } = useModeColors();
+    const { t } = useI18n();
     const rows = useMemo(() => buildTransitions(n), [n]);
     const [evidence, setEvidence] = useState<Record<number, string[]>>({});
     const [loadingRows, setLoadingRows] = useState<Record<number, boolean>>({});
@@ -277,18 +289,16 @@ export function NgramMiniTransitionTable({ n }: NgramMiniTransitionTableProps) {
             <Card className={`${cardBg} ${cardBorder} p-6 md:p-8 ${accentGlow}`}>
                 <div className="flex items-center gap-3 mb-2">
                     <Search className={`w-5 h-5 ${accentText}`} />
-                    <h3 className="text-lg font-bold text-white tracking-tight">How the Model Reads Context</h3>
+                    <h3 className="text-lg font-bold text-white tracking-tight">{t("ngramPedagogy.transitions.title")}</h3>
                 </div>
 
                 {isEdu ? (
                     <p className="text-sm text-white/60 mb-5 leading-relaxed">
-                        The model reads the phrase <span className="font-mono text-amber-300 font-semibold">&ldquo;the cat&rdquo;</span> one
-                        step at a time. At each position, it looks at the last <span className="font-bold text-white/80">{Math.max(1, n)}</span> character{n > 1 ? "s" : ""} and
-                        asks: <span className="italic text-white/70">&ldquo;what usually comes next?&rdquo;</span>
+                        {t("ngramPedagogy.transitions.isEduBody").replace(/<[^>]+>/g, "")}
                     </p>
                 ) : (
                     <p className="text-sm text-white/50 mb-5">
-                        Transitions from <span className="font-mono text-amber-300">&ldquo;the cat&rdquo;</span> with N={n} context and corpus evidence.
+                        {t("ngramPedagogy.transitions.isFreeBody").replace(/<[^>]+>/g, "")}
                     </p>
                 )}
 
@@ -323,7 +333,9 @@ export function NgramMiniTransitionTable({ n }: NgramMiniTransitionTableProps) {
                                                 {isLoading && <div className="w-3 h-3 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />}
                                                 {!isLoading && rowEvidence.length > 0 && (
                                                     <Badge className="bg-emerald-500/10 text-emerald-400/70 border-emerald-500/20 text-[10px]">
-                                                        {rowEvidence.length} match{rowEvidence.length !== 1 ? "es" : ""}
+                                                        {t("ngramPedagogy.transitions.matches")
+                                                            .replace("{count}", String(rowEvidence.length))
+                                                            .replace("{suffix}", rowEvidence.length !== 1 ? "es" : "")}
                                                     </Badge>
                                                 )}
                                                 <ChevronRight className={`w-4 h-4 text-white/25 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
@@ -359,10 +371,10 @@ export function NgramMiniTransitionTable({ n }: NgramMiniTransitionTableProps) {
                                             >
                                                 <div className="px-4 pb-4 space-y-2 border-t border-white/5 pt-3">
                                                     <p className="text-[10px] uppercase tracking-[0.15em] text-white/40 font-bold">
-                                                        Training corpus evidence
+                                                        {t("ngramPedagogy.transitions.corpusEvidence")}
                                                     </p>
                                                     {isLoading ? (
-                                                        <p className="text-xs text-white/40 animate-pulse">Searching training data...</p>
+                                                        <p className="text-xs text-white/40 animate-pulse">{t("ngramPedagogy.transitions.searching")}</p>
                                                     ) : rowEvidence.length > 0 ? (
                                                         rowEvidence.map((ex, exIdx) => (
                                                             <div key={exIdx} className="font-mono text-[11px] text-white/60 bg-black/30 rounded-lg px-3 py-2 truncate border border-white/5">
@@ -373,11 +385,10 @@ export function NgramMiniTransitionTable({ n }: NgramMiniTransitionTableProps) {
                                                         <div className="rounded-lg border border-amber-500/15 bg-amber-500/[0.03] p-3 space-y-1">
                                                             <div className="flex items-center gap-2">
                                                                 <AlertTriangle className="w-3.5 h-3.5 text-amber-400/60 shrink-0" />
-                                                                <p className="text-xs font-bold text-amber-300/70">No matches in sample</p>
+                                                                <p className="text-xs font-bold text-amber-300/70">{t("ngramPedagogy.transitions.noMatchesExpanded.title")}</p>
                                                             </div>
                                                             <p className="text-[11px] text-white/35 leading-relaxed">
-                                                                This exact {n}-character context wasn&apos;t found in our corpus sample.
-                                                                Not every N-gram appears in a finite dataset — this is the sparsity problem.
+                                                                {t("ngramPedagogy.transitions.noMatchesExpanded.explanation")}
                                                             </p>
                                                         </div>
                                                     )}
@@ -400,7 +411,9 @@ interface NgramFiveGramScaleProps {
 }
 
 export function NgramFiveGramScale({ vocabSize = 96 }: NgramFiveGramScaleProps) {
+    const { t } = useI18n();
     const combinations = Math.pow(vocabSize, 5);
+    const billionCount = (combinations / 1e9).toFixed(0);
 
     return (
         <motion.div
@@ -414,22 +427,23 @@ export function NgramFiveGramScale({ vocabSize = 96 }: NgramFiveGramScaleProps) 
                     <TrendingUp className="w-8 h-8" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">
-                    Combinatorial Explosion
+                    {t("ngramPedagogy.explosion.title")}
                 </h3>
                 <p className="text-white/55 max-w-lg mx-auto leading-relaxed mb-6 text-sm">
-                    A 5-gram model with V={vocabSize} characters would need to store probabilities
-                    for every possible 5-character context. That&apos;s:
+                    {t("ngramPedagogy.explosion.body1")
+                        .replace("{n}", "5")
+                        .replace("{vocabSize}", String(vocabSize))}
                 </p>
                 <div className="inline-block px-6 py-4 rounded-xl bg-black/50 border border-red-500/20 font-mono text-xl text-red-300 mb-4">
-                    {vocabSize}<sup>5</sup> = <span className="text-red-200 font-bold">{combinations.toLocaleString()}</span> entries
+                    {vocabSize}<sup>5</sup> = <span className="text-red-200 font-bold">{combinations.toLocaleString()}</span>{" "}
+                    {t("ngramPedagogy.explosion.entries").replace("{count}", "").trim()}
                 </div>
                 <p className="text-sm text-white/45 max-w-md mx-auto mb-6">
-                    Over 8 billion combinations. Most would never be observed in training data,
-                    making the table astronomically sparse and impractical.
+                    {t("ngramPedagogy.explosion.body2").replace("{billionCount}", billionCount)}
                 </p>
                 <div className="flex items-center justify-center gap-2 text-xs text-red-400/70 uppercase tracking-[0.15em] font-bold">
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    Classical scaling limit reached
+                    {t("ngramPedagogy.explosion.limitReached")}
                 </div>
             </div>
         </motion.div>
@@ -447,6 +461,7 @@ interface NgramComparisonProps {
 
 export function NgramComparison({ vocabSize = 96, metricsByN }: NgramComparisonProps) {
     const { isEdu, cardBg, cardBorder, accentText, accentGlow } = useModeColors();
+    const { t } = useI18n();
 
     const perplexities = [1, 2, 3, 4, 5]
         .map((n) => metricsByN?.[n]?.perplexity ?? null)
@@ -463,14 +478,13 @@ export function NgramComparison({ vocabSize = 96, metricsByN }: NgramComparisonP
     return (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <Card className={`${cardBg} ${cardBorder} p-6 md:p-8 ${accentGlow}`}>
-                <h3 className="text-lg font-bold text-white tracking-tight mb-1">Model comparison</h3>
+                <h3 className="text-lg font-bold text-white tracking-tight mb-1">{t("ngramPedagogy.comparison.title")}</h3>
                 {isEdu ? (
                     <p className="text-sm text-white/55 mb-6 leading-relaxed">
-                        As N grows, perplexity drops (the model gets better at predicting locally) — but context
-                        utilization plummets because most possible contexts are never seen in training.
+                        {t("ngramPedagogy.comparison.isEduBody")}
                     </p>
                 ) : (
-                    <p className="text-sm text-white/45 mb-6">Backend-driven metrics per N. Lower perplexity = better local fit.</p>
+                    <p className="text-sm text-white/45 mb-6">{t("ngramPedagogy.comparison.isFreeBody")}</p>
                 )}
 
                 <div className="space-y-2">
@@ -494,7 +508,7 @@ export function NgramComparison({ vocabSize = 96, metricsByN }: NgramComparisonP
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <p className="text-[10px] text-white/40 mb-1 uppercase tracking-wider font-semibold">Quality (↑ = lower ppl)</p>
+                                        <p className="text-[10px] text-white/40 mb-1 uppercase tracking-wider font-semibold">{t("ngramPedagogy.comparison.quality")}</p>
                                         <div className="h-2.5 rounded-full bg-white/8 overflow-hidden">
                                             <motion.div
                                                 initial={{ width: 0 }}
@@ -505,7 +519,7 @@ export function NgramComparison({ vocabSize = 96, metricsByN }: NgramComparisonP
                                         </div>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] text-white/40 mb-1 uppercase tracking-wider font-semibold">Utilization</p>
+                                        <p className="text-[10px] text-white/40 mb-1 uppercase tracking-wider font-semibold">{t("ngramPedagogy.comparison.utilization")}</p>
                                         <div className="h-2.5 rounded-full bg-white/8 overflow-hidden">
                                             <motion.div
                                                 initial={{ width: 0 }}
@@ -527,27 +541,28 @@ export function NgramComparison({ vocabSize = 96, metricsByN }: NgramComparisonP
 
 export function NgramLimitations() {
     const { isEdu, cardBg, cardBorder, accentText, accentGlow } = useModeColors();
+    const { t } = useI18n();
 
     const items = [
         {
-            title: "Limited context",
+            title: t("ngramPedagogy.limitations.items.context.title"),
             body: isEdu
-                ? "Even with N=5, the model forgets everything before those 5 characters. It can never learn that a paragraph is about cooking just because it saw the word 'recipe' ten sentences ago."
-                : "Even N=5 captures only 5 tokens of history. Long-range dependencies remain invisible.",
+                ? t("ngramPedagogy.limitations.items.context.isEdu")
+                : t("ngramPedagogy.limitations.items.context.isFree"),
             color: "text-red-400",
         },
         {
-            title: "Exponential scalability",
+            title: t("ngramPedagogy.limitations.items.scalability.title"),
             body: isEdu
-                ? "Every extra character of context multiplies the table size by the vocabulary size (~96×). Going from N=3 to N=4 means ~96× more rows to store."
-                : "Context space grows as |V|^N. Storage and data requirements become intractable for N > 4.",
+                ? t("ngramPedagogy.limitations.items.scalability.isEdu")
+                : t("ngramPedagogy.limitations.items.scalability.isFree"),
             color: "text-orange-400",
         },
         {
-            title: "Vocabulary explosion",
+            title: t("ngramPedagogy.limitations.items.vocabulary.title"),
             body: isEdu
-                ? "If we used words instead of characters, the vocabulary jumps from ~96 to tens of thousands — making even a bigram table enormous."
-                : "Word-level N-grams face vocabulary sizes of 50k+, making tables impractical even for small N.",
+                ? t("ngramPedagogy.limitations.items.vocabulary.isEdu")
+                : t("ngramPedagogy.limitations.items.vocabulary.isFree"),
             color: "text-yellow-400",
         },
     ];
@@ -557,7 +572,7 @@ export function NgramLimitations() {
             <Card className={`${cardBg} ${cardBorder} p-6 md:p-8 ${accentGlow}`}>
                 <div className="flex items-center gap-3 mb-5">
                     <AlertTriangle className={`w-5 h-5 ${accentText}`} />
-                    <h3 className="text-lg font-bold text-white tracking-tight">Key limitations</h3>
+                    <h3 className="text-lg font-bold text-white tracking-tight">{t("ngramPedagogy.limitations.title")}</h3>
                 </div>
                 <div className="space-y-4">
                     {items.map((item, i) => (
@@ -582,28 +597,14 @@ export function NgramLimitations() {
 }
 
 export function NgramEducationalNarrative() {
+    const { t } = useI18n();
+
     const steps = [
-        {
-            title: "The bigram bottleneck",
-            body: "We started with the simplest idea: predict the next character using only the previous one. But a bigram model has the memory of a goldfish — it immediately forgets everything except the last letter.",
-            icon: "01",
-        },
-        {
-            title: "A natural extension",
-            body: "The obvious fix? Look at more history. A trigram looks at 2 previous characters, a 4-gram at 3, and so on. Each step gives the model richer local context and noticeably better predictions.",
-            icon: "02",
-        },
-        {
-            title: "The cost of memory",
-            body: "But there's a catch. Each extra character of context multiplies the number of possible states by the vocabulary size. A trigram with 96 characters already has 884,736 possible contexts. Most are never observed in training — the table becomes astronomically sparse.",
-            icon: "03",
-        },
-        {
-            title: "The scaling wall",
-            body: "By N=5, we would need over 8 billion table entries. No dataset is large enough to fill that table meaningfully. This is the fundamental reason N-grams were eventually replaced by neural models that can generalize across similar contexts.",
-            icon: "04",
-        },
-    ];
+        { key: "s1", icon: "01" },
+        { key: "s2", icon: "02" },
+        { key: "s3", icon: "03" },
+        { key: "s4", icon: "04" },
+    ] as const;
 
     return (
         <motion.div
@@ -617,8 +618,8 @@ export function NgramEducationalNarrative() {
                     <BookOpen className="w-5 h-5 text-amber-300" />
                 </div>
                 <div>
-                    <h3 className="text-lg font-bold text-white tracking-tight">The story of N-grams</h3>
-                    <p className="text-xs text-amber-200/50">Why more context seemed like the answer — and why it wasn&apos;t enough</p>
+                    <h3 className="text-lg font-bold text-white tracking-tight">{t("ngramPedagogy.story.title")}</h3>
+                    <p className="text-xs text-amber-200/50">{t("ngramPedagogy.story.subtitle")}</p>
                 </div>
             </div>
 
@@ -635,8 +636,8 @@ export function NgramEducationalNarrative() {
                             {step.icon}
                         </div>
                         <div className="pt-1">
-                            <h4 className="text-sm font-bold text-amber-200 mb-1.5">{step.title}</h4>
-                            <p className="text-sm text-white/60 leading-relaxed">{step.body}</p>
+                            <h4 className="text-sm font-bold text-amber-200 mb-1.5">{t(`ngramPedagogy.story.steps.${step.key}.title`)}</h4>
+                            <p className="text-sm text-white/60 leading-relaxed">{t(`ngramPedagogy.story.steps.${step.key}.body`)}</p>
                         </div>
                     </motion.div>
                 ))}

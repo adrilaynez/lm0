@@ -119,7 +119,9 @@ export const TransitionMatrix = memo(function TransitionMatrix({
         const dpr = window.devicePixelRatio || 1;
         const padding = 32;
 
-        const baseWidth = 800;
+        const containerWidth = containerRef.current.clientWidth;
+        const baseWidth = Math.max(320, containerWidth);
+
         const cellW = ((baseWidth - padding * 2) / cols) * zoomLevel;
         const cellH = cellW;
 
@@ -187,7 +189,8 @@ export const TransitionMatrix = memo(function TransitionMatrix({
         const padding = 32;
         const rows = data.row_labels.length;
         const cols = data.col_labels.length;
-        const baseWidth = 800;
+        const containerWidth = containerRef.current?.clientWidth ?? 800;
+        const baseWidth = Math.max(320, containerWidth);
         const cellW = ((baseWidth - padding * 2) / cols) * zoomLevel;
         const cellH = cellW;
         const startX = padding;
@@ -328,7 +331,10 @@ export const TransitionMatrix = memo(function TransitionMatrix({
                 </Card>
             )}
 
-            <div className="relative flex-1 min-h-0 overflow-hidden bg-black/40 rounded-xl border border-white/5">
+            <div className={cn(
+                "relative overflow-hidden bg-black/40 rounded-xl border border-white/5",
+                isFullscreen ? "flex-1 min-h-0" : "max-h-[560px]"
+            )}>
                 {isSliceView && sliceTableRows.length > 0 ? (
                     <div className="p-4 overflow-auto max-h-[420px] custom-scrollbar">
                         <table className="w-full text-left border-collapse">
@@ -368,7 +374,13 @@ export const TransitionMatrix = memo(function TransitionMatrix({
                         </table>
                     </div>
                 ) : (
-                    <div ref={containerRef} className="w-full h-full overflow-auto flex items-center justify-center p-4 custom-scrollbar">
+                    <div
+                        ref={containerRef}
+                        className={cn(
+                            "w-full overflow-auto flex items-start justify-center p-4 custom-scrollbar",
+                            isFullscreen ? "h-full" : "h-[560px]"
+                        )}
+                    >
                         <canvas
                             ref={canvasRef}
                             onMouseMove={handleMouseMove}
@@ -378,7 +390,7 @@ export const TransitionMatrix = memo(function TransitionMatrix({
                                 setTooltip(null);
                             }}
                             onClick={handleClick}
-                            className="cursor-crosshair shadow-2xl"
+                            className={cn("cursor-crosshair shadow-2xl", onCellClick ? "cursor-pointer" : "")}
                         />
                     </div>
                 )}
@@ -394,69 +406,6 @@ export const TransitionMatrix = memo(function TransitionMatrix({
                             <span className={cn("font-mono px-1 rounded", style.tooltipCell)}>&apos;{tooltip.col}&apos;</span>
                         </div>
                         <div className="font-mono text-white font-bold">{(tooltip.value * 100).toFixed(4)}%</div>
-                    </div>
-                )}
-            </div>
-
-            {/* Search */}
-            <div className="px-5 pt-4">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/30" />
-                    <input
-                        type="text"
-                        value={searchChar}
-                        onChange={(e) => setSearchChar(e.target.value.slice(0, 1))}
-                        placeholder={t("models.bigram.matrix.searchPlaceholder")}
-                        maxLength={1}
-                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-white/20 font-mono focus:outline-none focus:ring-1 focus:ring-violet-500/50 transition-all"
-                    />
-                </div>
-            </div>
-
-            {/* Canvas */}
-            <div ref={containerRef} className="p-5 relative">
-                {!data ? (
-                    <div className="flex items-center justify-center h-64 text-white/30 text-xs font-mono">
-                        {t("models.bigram.matrix.runInference")}
-                    </div>
-                ) : (
-                    <div className="relative">
-                        <canvas
-                            ref={canvasRef}
-                            onClick={handleClick}
-                            onMouseMove={handleMouseMove}
-                            onMouseLeave={() => setTooltip(null)}
-                            className={cn("cursor-crosshair", onCellClick ? "cursor-pointer" : "")}
-                        />
-                        {tooltip && (
-                            <div
-                                className="absolute z-50 pointer-events-none bg-black/90 border border-white/10 backdrop-blur-lg rounded-lg px-3 py-2 text-xs font-mono shadow-xl whitespace-nowrap"
-                                style={{
-                                    left: tooltip.x + 12,
-                                    top: tooltip.y - 40,
-                                }}
-                            >
-                                <span className="text-white/50">
-                                    P(
-                                    <span className="text-emerald-400">
-                                        {tooltip.col === " " ? "␣" : tooltip.col}
-                                    </span>
-                                    {" | "}
-                                    {activeContext && (
-                                        <span className="text-indigo-400">
-                                            {activeContext.join("")}
-                                        </span>
-                                    )}
-                                    <span className="text-violet-400">
-                                        {tooltip.row === " " ? "␣" : tooltip.row}
-                                    </span>
-                                    ) ={" "}
-                                </span>
-                                <span className="text-white font-bold">
-                                    {(tooltip.value * 100).toFixed(2)}%
-                                </span>
-                            </div>
-                        )}
                     </div>
                 )}
             </div>

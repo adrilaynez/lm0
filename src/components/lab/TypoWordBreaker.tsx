@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Keyboard, XCircle, CheckCircle2, ArrowRight } from "lucide-react";
+import { useI18n } from "@/i18n/context";
 
 /* ─────────────────────────────────────────────
    V3 — Typo / Novel Word Breaker
@@ -56,6 +57,7 @@ const EXAMPLES = [
 ];
 
 export function TypoWordBreaker() {
+    const { t } = useI18n();
     const [input, setInput] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const [result, setResult] = useState<ReturnType<typeof simulateConfidence> | null>(null);
@@ -87,10 +89,10 @@ export function TypoWordBreaker() {
                 </div>
                 <div>
                     <h4 className="text-sm font-bold text-white tracking-tight">
-                        Break the Model
+                        {t("ngram.widgets.typoBreaker.title")}
                     </h4>
                     <p className="text-[10px] text-white/40">
-                        Type a misspelled word or novel phrase — watch the model fail
+                        {t("ngram.widgets.typoBreaker.subtitle")}
                     </p>
                 </div>
             </div>
@@ -107,7 +109,7 @@ export function TypoWordBreaker() {
                             setResult(null);
                         }}
                         onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                        placeholder="Type a misspelled word or new phrase…"
+                        placeholder={t("ngram.widgets.typoBreaker.placeholder")}
                         className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm font-mono text-white/80 placeholder:text-white/20 focus:outline-none focus:border-red-500/40 transition-colors"
                     />
                     <motion.button
@@ -117,14 +119,14 @@ export function TypoWordBreaker() {
                         disabled={!submitted && input.trim().length < 2}
                         className="px-4 py-2 rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/25 text-red-300 text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-30"
                     >
-                        {submitted ? "Reset" : "Test"}
+                        {submitted ? t("ngram.widgets.typoBreaker.reset") : t("ngram.widgets.typoBreaker.test")}
                     </motion.button>
                 </div>
 
                 {/* Quick examples */}
                 <div className="flex flex-wrap gap-2">
                     <span className="text-[9px] uppercase tracking-[0.15em] text-white/25 font-bold self-center mr-1">
-                        Try:
+                        {t("ngram.widgets.typoBreaker.tryLabel")}
                     </span>
                     {EXAMPLES.map((ex) => (
                         <button
@@ -153,7 +155,7 @@ export function TypoWordBreaker() {
                         <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
                             <div className="flex items-center gap-2 mb-3">
                                 <span className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">
-                                    Context lookup
+                                    {t("ngram.widgets.typoBreaker.contextLookup")}
                                 </span>
                                 <ArrowRight className="w-3 h-3 text-white/15" />
                                 <span className="font-mono text-sm text-white/60">
@@ -172,11 +174,10 @@ export function TypoWordBreaker() {
                                             initial={{ opacity: 0, y: 4 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: i * 0.03 }}
-                                            className={`px-0.5 rounded ${
-                                                result.isKnown && result.matchedContext?.includes(ch)
+                                            className={`px-0.5 rounded ${result.isKnown && result.matchedContext?.includes(ch)
                                                     ? "text-amber-300 bg-amber-500/10"
                                                     : "text-red-300/60"
-                                            }`}
+                                                }`}
                                         >
                                             {ch === " " ? "·" : ch}
                                         </motion.span>
@@ -188,7 +189,7 @@ export function TypoWordBreaker() {
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                     <span className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">
-                                        Model confidence
+                                        {t("ngram.widgets.typoBreaker.modelConfidence")}
                                     </span>
                                     <div className="flex items-center gap-2">
                                         {result.isKnown ? (
@@ -197,9 +198,8 @@ export function TypoWordBreaker() {
                                             <XCircle className="w-3.5 h-3.5 text-red-400" />
                                         )}
                                         <span
-                                            className={`text-sm font-mono font-bold ${
-                                                result.isKnown ? "text-emerald-400" : "text-red-400"
-                                            }`}
+                                            className={`text-sm font-mono font-bold ${result.isKnown ? "text-emerald-400" : "text-red-400"
+                                                }`}
                                         >
                                             {(result.confidence * 100).toFixed(1)}%
                                         </span>
@@ -215,16 +215,15 @@ export function TypoWordBreaker() {
                                         initial={{ width: 0 }}
                                         animate={{ width: `${result.confidence * 100}%` }}
                                         transition={{ duration: 0.6, ease: "easeOut" }}
-                                        className={`h-full rounded-full ${
-                                            result.isKnown
+                                        className={`h-full rounded-full ${result.isKnown
                                                 ? "bg-gradient-to-r from-emerald-600/80 to-emerald-400/80"
                                                 : "bg-gradient-to-r from-red-600/80 to-red-400/80"
-                                        }`}
+                                            }`}
                                     />
                                 </div>
                                 <div className="flex items-center justify-between text-[9px] font-mono text-white/20">
                                     <span>0%</span>
-                                    <span>↑ random (1/{96} ≈ 1%)</span>
+                                    <span>{t("ngram.widgets.typoBreaker.randomMarker", { vocab: 96 })}</span>
                                     <span>100%</span>
                                 </div>
                             </div>
@@ -235,27 +234,23 @@ export function TypoWordBreaker() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.4 }}
-                            className={`rounded-xl border p-4 ${
-                                result.isKnown
+                            className={`rounded-xl border p-4 ${result.isKnown
                                     ? "border-emerald-500/20 bg-emerald-500/[0.04]"
                                     : "border-red-500/20 bg-red-500/[0.04]"
-                            }`}
+                                }`}
                         >
                             {result.isKnown ? (
                                 <p className="text-xs text-emerald-300/70 leading-relaxed">
-                                    The model found a familiar context{" "}
+                                    {t("ngram.widgets.typoBreaker.verdictKnownPrefix")}{" "}
                                     <span className="font-mono font-bold text-emerald-300">
                                         &ldquo;{result.matchedContext}&rdquo;
                                     </span>{" "}
-                                    and can make a reasonable prediction. But change even one character
-                                    and the entire context becomes unknown.
+                                    {t("ngram.widgets.typoBreaker.verdictKnownSuffix")}
                                 </p>
                             ) : (
                                 <p className="text-xs text-red-300/70 leading-relaxed">
-                                    <strong className="text-red-300">No matching context found.</strong>{" "}
-                                    The model has never seen this exact character sequence in training.
-                                    Confidence collapses to random chance (1/{96} per character).
-                                    A human would easily understand the intent — the N-gram model cannot.
+                                    <strong className="text-red-300">{t("ngram.widgets.typoBreaker.verdictUnknownStrong")}</strong>{" "}
+                                    {t("ngram.widgets.typoBreaker.verdictUnknownBody", { vocab: 96 })}
                                 </p>
                             )}
                         </motion.div>

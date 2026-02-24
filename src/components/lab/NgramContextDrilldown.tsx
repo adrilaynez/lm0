@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, ChevronRight, Loader2, Type, ArrowLeft } from "lucide-react";
 import { visualizeNgram } from "@/lib/lmLabClient";
+import { useI18n } from "@/i18n/context";
 
 /* ─────────────────────────────────────────────
    NgramContextDrilldown
@@ -30,6 +31,7 @@ interface NgramContextDrilldownProps {
 }
 
 export function NgramContextDrilldown({ contextSize, vocabSize }: NgramContextDrilldownProps) {
+    const { t } = useI18n();
     const [path, setPath] = useState<string[]>([]);
     const [distribution, setDistribution] = useState<DistEntry[] | null>(null);
     const [loading, setLoading] = useState(false);
@@ -66,7 +68,7 @@ export function NgramContextDrilldown({ contextSize, vocabSize }: NgramContextDr
 
             setDistribution(entries.length > 0 ? entries.slice(0, 15) : null);
         } catch (err) {
-            setError((err as Error).message || "Failed to fetch distribution");
+            setError((err as Error).message || t("ngram.widgets.contextDrilldown.fetchError"));
         } finally {
             setLoading(false);
         }
@@ -111,10 +113,10 @@ export function NgramContextDrilldown({ contextSize, vocabSize }: NgramContextDr
                     </div>
                     <div>
                         <h4 className="text-sm font-bold text-white tracking-tight">
-                            Context Lookup
+                            {t("ngram.widgets.contextDrilldown.lookupTitle")}
                         </h4>
                         <p className="text-[10px] text-white/40">
-                            Type a {requiredDepth}-character context to see its next-character distribution
+                            {t("ngram.widgets.contextDrilldown.lookupSubtitle", { n: requiredDepth })}
                         </p>
                     </div>
                 </div>
@@ -125,7 +127,7 @@ export function NgramContextDrilldown({ contextSize, vocabSize }: NgramContextDr
                         value={freeInput}
                         onChange={(e) => setFreeInput(e.target.value.slice(0, requiredDepth))}
                         onKeyDown={(e) => e.key === "Enter" && handleFreeInputSubmit()}
-                        placeholder={`Enter ${requiredDepth} characters…`}
+                        placeholder={t("ngram.widgets.contextDrilldown.lookupPlaceholder", { n: requiredDepth })}
                         maxLength={requiredDepth}
                         className="flex-1 bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm font-mono text-white/80 placeholder:text-white/20 focus:outline-none focus:border-amber-500/40 transition-colors"
                     />
@@ -134,13 +136,13 @@ export function NgramContextDrilldown({ contextSize, vocabSize }: NgramContextDr
                         disabled={freeInput.length !== requiredDepth || loading}
                         className="px-4 py-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/25 text-amber-300 text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-30"
                     >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Lookup"}
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t("ngram.widgets.contextDrilldown.lookupButton")}
                     </button>
                 </div>
 
                 {freeInput.length > 0 && freeInput.length < requiredDepth && (
                     <p className="text-[10px] text-amber-400/40 font-mono">
-                        {freeInput.length}/{requiredDepth} characters
+                        {freeInput.length}/{requiredDepth} {t("ngram.widgets.contextDrilldown.progressSuffix")}
                     </p>
                 )}
 
@@ -159,8 +161,7 @@ export function NgramContextDrilldown({ contextSize, vocabSize }: NgramContextDr
 
                 {distribution === null && !loading && !error && path.length >= requiredDepth && (
                     <div className="p-4 rounded-lg border border-amber-500/15 bg-amber-500/[0.03] text-xs text-amber-300/50">
-                        No data found for this context. The model may not have seen &ldquo;{freeInput}&rdquo; in training.
-                        This is the sparsity problem in action.
+                        {t("ngram.widgets.contextDrilldown.noDataFree", { context: freeInput })}
                     </div>
                 )}
             </div>
@@ -177,10 +178,13 @@ export function NgramContextDrilldown({ contextSize, vocabSize }: NgramContextDr
                 </div>
                 <div>
                     <h4 className="text-sm font-bold text-white tracking-tight">
-                        Context Drilldown
+                        {t("ngram.widgets.contextDrilldown.drilldownTitle")}
                     </h4>
                     <p className="text-[10px] text-white/40">
-                        Pick {requiredDepth} character{requiredDepth > 1 ? "s" : ""} to explore the model&apos;s predictions
+                        {t("ngram.widgets.contextDrilldown.drilldownSubtitle", {
+                            n: requiredDepth,
+                            suffix: requiredDepth > 1 ? "s" : "",
+                        })}
                     </p>
                 </div>
             </div>
@@ -192,7 +196,7 @@ export function NgramContextDrilldown({ contextSize, vocabSize }: NgramContextDr
                         onClick={handleReset}
                         className="text-[10px] text-amber-400/50 hover:text-amber-400/80 font-mono uppercase tracking-wider transition-colors"
                     >
-                        Start
+                        {t("ngram.widgets.contextDrilldown.breadcrumbStart")}
                     </button>
                     {path.map((ch, i) => (
                         <div key={i} className="flex items-center gap-2">
@@ -212,7 +216,7 @@ export function NgramContextDrilldown({ contextSize, vocabSize }: NgramContextDr
                         <>
                             <ChevronRight className="w-3 h-3 text-white/15" />
                             <span className="text-[10px] text-emerald-400/60 font-mono uppercase tracking-wider">
-                                distribution
+                                {t("ngram.widgets.contextDrilldown.breadcrumbDistribution")}
                             </span>
                         </>
                     )}
@@ -224,8 +228,11 @@ export function NgramContextDrilldown({ contextSize, vocabSize }: NgramContextDr
                 <div>
                     <p className="text-[10px] text-white/30 font-mono uppercase tracking-wider mb-3">
                         {currentDepth === 0
-                            ? `Pick the first character (${requiredDepth - currentDepth} remaining)`
-                            : `After "${path.join("")}" — pick next (${requiredDepth - currentDepth} remaining)`
+                            ? t("ngram.widgets.contextDrilldown.pickFirst", { remaining: requiredDepth - currentDepth })
+                            : t("ngram.widgets.contextDrilldown.pickNext", {
+                                context: path.join(""),
+                                remaining: requiredDepth - currentDepth,
+                            })
                         }
                     </p>
                     <div className="flex flex-wrap gap-1.5">
@@ -251,7 +258,7 @@ export function NgramContextDrilldown({ contextSize, vocabSize }: NgramContextDr
                     className="flex items-center gap-2 text-[10px] text-white/30 hover:text-white/50 font-mono uppercase tracking-wider transition-colors"
                 >
                     <ArrowLeft className="w-3 h-3" />
-                    Back
+                    {t("ngram.widgets.contextDrilldown.back")}
                 </button>
             )}
 
@@ -259,7 +266,7 @@ export function NgramContextDrilldown({ contextSize, vocabSize }: NgramContextDr
             {loading && (
                 <div className="flex items-center gap-3 p-6 justify-center">
                     <Loader2 className="w-4 h-4 animate-spin text-amber-400/50" />
-                    <span className="text-xs text-white/30">Fetching distribution for &ldquo;{path.join("")}&rdquo;…</span>
+                    <span className="text-xs text-white/30">{t("ngram.widgets.contextDrilldown.fetching", { context: path.join("") })}</span>
                 </div>
             )}
 
@@ -281,7 +288,7 @@ export function NgramContextDrilldown({ contextSize, vocabSize }: NgramContextDr
             {/* No data */}
             {distribution === null && isComplete && !loading && !error && (
                 <div className="p-4 rounded-lg border border-amber-500/15 bg-amber-500/[0.03] text-xs text-amber-300/50">
-                    No data for context &ldquo;{path.join("")}&rdquo;. This context was never observed in training — the sparsity problem in action.
+                    {t("ngram.widgets.contextDrilldown.noDataDrilldown", { context: path.join("") })}
                 </div>
             )}
         </div>
@@ -293,6 +300,7 @@ export function NgramContextDrilldown({ contextSize, vocabSize }: NgramContextDr
    ───────────────────────────────────────────── */
 
 function DistributionChart({ entries, contextLabel }: { entries: DistEntry[]; contextLabel: string }) {
+    const { t } = useI18n();
     const maxProb = entries[0]?.prob ?? 0;
     return (
         <motion.div
@@ -303,10 +311,10 @@ function DistributionChart({ entries, contextLabel }: { entries: DistEntry[]; co
         >
             <div className="flex items-center justify-between">
                 <span className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">
-                    P(next | &ldquo;{contextLabel}&rdquo;)
+                    {t("ngram.widgets.contextDrilldown.chartTitle", { context: contextLabel })}
                 </span>
                 <span className="text-[10px] text-white/20 font-mono">
-                    Top {entries.length} predictions
+                    {t("ngram.widgets.contextDrilldown.chartTop", { count: entries.length })}
                 </span>
             </div>
 
