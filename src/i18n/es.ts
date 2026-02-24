@@ -2831,6 +2831,10 @@ export const es: TranslationDictionary = {
             insightFull: "Con η = 1, restamos el gradiente completo. El primer paso sobrepasa el mínimo tan brutalmente que el siguiente lo sobrepasa aún más. La pérdida se dispara al infinito. Esto es divergencia.",
             insightSmall: "Con η = 0.01, cada paso es una pequeña fracción del gradiente. La pérdida baja suavemente hacia cero. Los pesos convergen a buenos valores. Por eso existe la tasa de aprendizaje.",
         },
+        lrOvershoot: {
+            title: "Interactivo · Sobreimpulso en el Cuenco de Pérdida",
+            hint: "Arrastra el slider de tasa de aprendizaje y pulsa Ejecutar. Observa cómo se comporta una bola en una parábola de pérdida convexa — convergencia suave, oscilación con rebote o divergencia descontrolada.",
+        },
         bioVsArtificial: {
             intro: "La neurona artificial fue inspirada directamente por cómo funcionan las células cerebrales reales. McCulloch y Pitts estudiaron neuronas biológicas en 1943 y notaron un patrón: las señales llegan por las dendritas, se procesan en el cuerpo celular, y si la señal total es suficientemente fuerte, la neurona dispara una salida por el axón. Preguntaron: ¿podemos construir un modelo matemático que haga lo mismo?",
             bioTitle: "Neurona Biológica",
@@ -3315,6 +3319,7 @@ export const es: TranslationDictionary = {
                 hint: "Prueba primero los tres preajustes. Demasiado pequeña = avance lento. Demasiado grande = la pérdida explota. El punto óptimo está en algún lugar intermedio.",
                 success: "¡Lo encontraste! El η óptimo equilibra el tamaño del paso con la estabilidad. Esta es una de las decisiones de hiperparámetros más importantes en el aprendizaje profundo.",
             },
+            overshootIntro: "Pero, ¿cómo se ve realmente el sobreimpulso? Imagina la pérdida como un cuenco — una parábola. El descenso de gradiente es una bola rodando por los lados. Una tasa de aprendizaje pequeña mantiene la bola bajo control. Una grande la hace rebotar más allá del fondo y subir por el otro lado. Pruébalo:",
             trajectoryIntro: "Veamos la imagen completa del aprendizaje. Abajo hay un mapa de todas las combinaciones posibles de pesos. Azul oscuro significa baja pérdida. Rojo significa alta pérdida. Observa cómo los pesos viajan desde su punto inicial aleatorio hacia una buena solución.",
             terminologyIntro: "Antes de continuar, aclaremos algunos términos que verás en todas partes en el aprendizaje automático.",
             liveIntro: "La teoría es una cosa. Verlo suceder es otra. La demostración a continuación ejecuta pasos de entrenamiento reales en una sola neurona.",

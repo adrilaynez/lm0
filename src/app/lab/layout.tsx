@@ -1,4 +1,5 @@
 import { LabModeProvider } from "@/context/LabModeContext";
+import { UserProvider } from "@/context/UserContext";
 
 export default function LabLayout({
     children,
@@ -7,7 +8,9 @@ export default function LabLayout({
 }) {
     return (
         <LabModeProvider>
-            {children}
+            <UserProvider>
+                {children}
+            </UserProvider>
         </LabModeProvider>
     );
 }

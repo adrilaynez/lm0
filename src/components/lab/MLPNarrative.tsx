@@ -29,6 +29,11 @@ import { ThinkFirst } from "@/components/lab/mlp/ThinkFirst";
 import { MLPGuidedExperiments } from "@/components/lab/mlp/MLPGuidedExperiments";
 import type { UseMLPGridReturn } from "@/hooks/useMLPGrid";
 import { useI18n } from "@/i18n/context";
+import { SectionProgressBar } from "@/components/lab/SectionProgressBar";
+import { ContinueToast } from "@/components/lab/ContinueToast";
+import { Term } from "@/components/lab/GlossaryTooltip";
+import { KeyTakeaway } from "@/components/lab/KeyTakeaway";
+import { SectionAnchor } from "@/components/lab/SectionAnchor";
 
 export interface MLPNarrativeProps {
     mlpGrid: UseMLPGridReturn;
@@ -38,9 +43,10 @@ export interface MLPNarrativeProps {
    Primitive building blocks (matches NN / Ngram narrative style)
    ───────────────────────────────────────────── */
 
-function Section({ children }: { children: React.ReactNode }) {
+function Section({ id, children }: { id?: string; children: React.ReactNode }) {
     return (
         <motion.section
+            id={id}
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
@@ -58,17 +64,17 @@ function SectionLabel({ number, label }: { number: string; label: string }) {
             <span className="flex items-center justify-center w-7 h-7 rounded-full bg-violet-500/10 border border-violet-500/20 text-[11px] font-mono font-bold text-violet-400">
                 {number}
             </span>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/25">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[var(--lab-text-subtle)]">
                 {label}
             </span>
-            <div className="flex-1 h-px bg-gradient-to-r from-white/[0.06] to-transparent" />
+            <div className="flex-1 h-px bg-gradient-to-r from-[var(--lab-border)] to-transparent" />
         </div>
     );
 }
 
 function Heading({ children }: { children: React.ReactNode }) {
     return (
-        <h2 className="text-2xl md:text-[2rem] font-bold text-white tracking-tight mb-6 leading-tight">
+        <h2 className="text-2xl md:text-[2rem] font-bold text-[var(--lab-text)] tracking-tight mb-6 leading-tight">
             {children}
         </h2>
     );
@@ -76,7 +82,7 @@ function Heading({ children }: { children: React.ReactNode }) {
 
 function Lead({ children }: { children: React.ReactNode }) {
     return (
-        <p className="text-lg md:text-xl text-white/50 leading-[1.8] mb-6 font-light">
+        <p className="text-lg md:text-xl text-[var(--lab-text-muted)] leading-[1.8] mb-6 font-light">
             {children}
         </p>
     );
@@ -84,7 +90,7 @@ function Lead({ children }: { children: React.ReactNode }) {
 
 function P({ children }: { children: React.ReactNode }) {
     return (
-        <p className="text-[15px] md:text-base text-white/45 leading-[1.9] mb-5 last:mb-0">
+        <p className="text-[15px] md:text-base text-[var(--lab-text-muted)] leading-[1.9] mb-5 last:mb-0">
             {children}
         </p>
     );
@@ -170,7 +176,7 @@ function Callout({
                             {title}
                         </p>
                     )}
-                    <div className="text-sm text-white/50 leading-relaxed [&>p]:mb-2 [&>p:last-child]:mb-0">
+                    <div className="text-sm text-[var(--lab-text-muted)] leading-relaxed [&>p]:mb-2 [&>p:last-child]:mb-0">
                         {children}
                     </div>
                 </div>
@@ -192,7 +198,7 @@ function FormulaBlock({ formula, caption }: { formula: string; caption: string }
                     <BlockMath math={formula} />
                 </div>
             </div>
-            <p className="text-center text-sm md:text-base text-white/40 italic font-light max-w-2xl mx-auto">
+            <p className="text-center text-sm md:text-base text-[var(--lab-text-muted)] italic font-light max-w-2xl mx-auto">
                 {caption}
             </p>
         </motion.div>
@@ -207,7 +213,7 @@ function PullQuote({ children }: { children: React.ReactNode }) {
             viewport={{ once: true, margin: "-40px" }}
             className="my-10 md:my-12 pl-6 border-l-2 border-violet-500/30"
         >
-            <p className="text-lg md:text-xl text-white/60 font-light italic leading-relaxed">
+            <p className="text-lg md:text-xl text-[var(--lab-text-muted)] font-light italic leading-relaxed">
                 {children}
             </p>
         </motion.blockquote>
@@ -217,9 +223,9 @@ function PullQuote({ children }: { children: React.ReactNode }) {
 function SectionBreak() {
     return (
         <div className="flex items-center justify-center gap-3 my-16 md:my-20">
-            <div className="h-px w-12 bg-gradient-to-r from-transparent to-white/[0.08]" />
-            <div className="w-1.5 h-1.5 rounded-full bg-white/[0.08]" />
-            <div className="h-px w-12 bg-gradient-to-l from-transparent to-white/[0.08]" />
+            <div className="h-px w-12 bg-gradient-to-r from-transparent to-[var(--lab-border)]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[var(--lab-border)]" />
+            <div className="h-px w-12 bg-gradient-to-l from-transparent to-[var(--lab-border)]" />
         </div>
     );
 }
@@ -231,23 +237,23 @@ function TrainingChallengePanel({ title, preview, defaultOpen = false, children 
             initial={{ opacity: 0, y: 8 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
-            className="my-6 rounded-xl border border-white/[0.08] bg-white/[0.02] overflow-hidden"
+            className="my-6 rounded-xl border border-[var(--lab-border)] bg-[var(--lab-card)] overflow-hidden"
         >
             <button
                 onClick={() => setOpen(!open)}
-                className="flex items-center justify-between w-full p-4 text-left hover:bg-white/[0.02] transition-colors"
+                className="flex items-center justify-between w-full p-4 text-left hover:bg-[var(--lab-card)] transition-colors"
                 aria-expanded={open}
             >
                 <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-mono font-bold text-violet-300 mb-1">{title}</h4>
-                    <p className="text-xs text-white/40">{preview}</p>
+                    <p className="text-xs text-[var(--lab-text-subtle)]">{preview}</p>
                 </div>
                 <motion.div
                     animate={{ rotate: open ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                     className="ml-3 shrink-0"
                 >
-                    <ArrowDown className="w-4 h-4 text-white/30" />
+                    <ArrowDown className="w-4 h-4 text-[var(--lab-text-subtle)]" />
                 </motion.div>
             </button>
             <AnimatePresence>
@@ -259,7 +265,7 @@ function TrainingChallengePanel({ title, preview, defaultOpen = false, children 
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden"
                     >
-                        <div className="px-4 pb-4 pt-2 border-t border-white/[0.06]">
+                        <div className="px-4 pb-4 pt-2 border-t border-[var(--lab-border)]">
                             {children}
                         </div>
                     </motion.div>
@@ -286,21 +292,21 @@ function FigureWrapper({
             transition={{ duration: 0.5 }}
             className="my-12 md:my-16 -mx-4 sm:mx-0"
         >
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] overflow-hidden">
-                <div className="flex items-center gap-3 px-5 py-3 border-b border-white/[0.06] bg-white/[0.02]">
+            <div className="rounded-2xl border border-[var(--lab-border)] bg-[var(--lab-card)] overflow-hidden">
+                <div className="flex items-center gap-3 px-5 py-3 border-b border-[var(--lab-border)] bg-[var(--lab-card)]">
                     <div className="flex gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-white/20" />
-                        <span className="w-2.5 h-2.5 rounded-full bg-white/15" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--lab-text-subtle)]" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--lab-border)]" />
                         <span className="w-2.5 h-2.5 rounded-full bg-violet-400/40" />
                     </div>
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-white/30">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--lab-text-subtle)]">
                         {label}
                     </span>
                 </div>
-                <div className="p-4 sm:p-6">{children}</div>
+                <div className="p-4 sm:p-6 bg-[var(--lab-viz-bg)]">{children}</div>
             </div>
             {hint && (
-                <figcaption className="mt-3 text-center text-xs text-white/25 italic">
+                <figcaption className="mt-3 text-center text-xs text-[var(--lab-text-subtle)] italic">
                     {hint}
                 </figcaption>
             )}
@@ -318,7 +324,7 @@ function OneHotVsEmbeddingVisual() {
 
     return (
         <div className="grid md:grid-cols-2 gap-6 my-10">
-            <div className="bg-white/[0.03] border border-white/10 rounded-xl p-6">
+            <div className="bg-[var(--lab-viz-bg)] border border-white/10 rounded-xl p-6">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="w-2 h-2 rounded-full bg-rose-400" />
                     <h3 className="text-lg font-bold text-white">{t("models.mlp.narrative.oneHot.title")}</h3>
@@ -345,7 +351,7 @@ function OneHotVsEmbeddingVisual() {
                 </div>
                 <p className="text-xs text-white/40 leading-relaxed">{t("models.mlp.narrative.oneHot.sparse")}</p>
             </div>
-            <div className="bg-white/[0.03] border border-white/10 rounded-xl p-6">
+            <div className="bg-[var(--lab-viz-bg)] border border-white/10 rounded-xl p-6">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="w-2 h-2 rounded-full bg-emerald-400" />
                     <h3 className="text-lg font-bold text-white">{t("models.mlp.narrative.oneHot.learnedTitle")}</h3>
@@ -390,6 +396,33 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
 
     return (
         <article className="max-w-[920px] mx-auto px-6 pt-8 pb-24">
+            <ContinueToast
+                pageId="mlp"
+                accent="violet"
+                sectionNames={{
+                    "mlp-00": "From Blocks to Language",
+                    "mlp-01": "Feeding Language to a NN",
+                    "mlp-02": "The One-Hot Problem",
+                    "mlp-03": "Word Embeddings",
+                    "mlp-04": "Exploring Configurations",
+                    "mlp-05": "Limitations",
+                    "mlp-06": "Training Challenges",
+                    "mlp-07": "The Path Ahead",
+                }}
+            />
+            <SectionProgressBar
+                sections={[
+                    { id: "mlp-00", label: "00", name: "From Blocks to Language" },
+                    { id: "mlp-01", label: "01", name: "Feeding Language" },
+                    { id: "mlp-02", label: "02", name: "One-Hot Problem" },
+                    { id: "mlp-03", label: "03", name: "Word Embeddings" },
+                    { id: "mlp-04", label: "04", name: "Configurations" },
+                    { id: "mlp-05", label: "05", name: "Limitations" },
+                    { id: "mlp-06", label: "06", name: "Training Challenges" },
+                    { id: "mlp-07", label: "07", name: "Path Ahead" },
+                ]}
+                accent="violet"
+            />
 
             {/* ───────────────────── HERO ───────────────────── */}
             <header className="text-center mb-24 md:mb-32">
@@ -403,15 +436,19 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
                         {t("models.mlp.narrative.hero.eyebrow")}
                     </span>
 
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6">
+                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-[var(--lab-text)] mb-6">
                         {t("models.mlp.narrative.hero.titlePrefix")}{" "}
                         <span className="bg-gradient-to-r from-violet-400 via-purple-300 to-violet-400 bg-clip-text text-transparent">
                             {t("models.mlp.narrative.hero.titleHighlight")}
                         </span>
                     </h1>
 
-                    <p className="text-lg md:text-xl text-white/35 max-w-xl mx-auto leading-relaxed mb-12">
+                    <p className="text-lg md:text-xl text-[var(--lab-text-subtle)] max-w-xl mx-auto leading-relaxed mb-12">
                         {t("models.mlp.narrative.hero.description")}
+                    </p>
+
+                    <p className="text-[11px] font-mono text-[var(--lab-text-subtle)] mb-8">
+                        ~20 min read · 12 interactive demos
                     </p>
 
                     <div className="flex justify-center mb-14">
@@ -421,7 +458,7 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
                     <motion.div
                         animate={{ y: [0, 6, 0] }}
                         transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                        className="text-white/10"
+                        className="text-[var(--lab-border)]"
                     >
                         <ArrowDown className="w-5 h-5 mx-auto" />
                     </motion.div>
@@ -429,9 +466,9 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
             </header>
 
             {/* ─────────── 00 · FROM BUILDING BLOCKS TO LANGUAGE ─────────── */}
-            <Section>
+            <Section id="mlp-00">
                 <SectionLabel number={t("models.mlp.narrative.sections.s00.number")} label={t("models.mlp.narrative.sections.s00.label")} />
-                <Heading>{t("models.mlp.narrative.s00.heading")}</Heading>
+                <SectionAnchor id="mlp-00"><Heading>{t("models.mlp.narrative.s00.heading")}</Heading></SectionAnchor>
 
                 <Lead>{t("models.mlp.narrative.s00.lead")}</Lead>
 
@@ -471,9 +508,9 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
             <SectionBreak />
 
             {/* ─────────── 01 · FEEDING LANGUAGE TO A NEURAL NETWORK ─────────── */}
-            <Section>
+            <Section id="mlp-01">
                 <SectionLabel number={t("models.mlp.narrative.sections.s01.number")} label={t("models.mlp.narrative.sections.s01.label")} />
-                <Heading>{t("models.mlp.narrative.s01.heading")}</Heading>
+                <SectionAnchor id="mlp-01"><Heading>{t("models.mlp.narrative.s01.heading")}</Heading></SectionAnchor>
                 <Lead>{t("models.mlp.narrative.s01.lead")}</Lead>
                 <P>
                     {t("models.mlp.narrative.s01.p1")}{" "}
@@ -510,9 +547,9 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
             <SectionBreak />
 
             {/* ─────────── 02 · THE ONE-HOT PROBLEM ─────────── */}
-            <Section>
+            <Section id="mlp-02">
                 <SectionLabel number={t("models.mlp.narrative.sections.s02.number")} label={t("models.mlp.narrative.sections.s02.label")} />
-                <Heading>{t("models.mlp.narrative.s02.heading")}</Heading>
+                <SectionAnchor id="mlp-02"><Heading>{t("models.mlp.narrative.s02.heading")}</Heading></SectionAnchor>
                 <Lead>{t("models.mlp.narrative.s02.lead")}</Lead>
                 <P><Highlight color="rose">{t("models.mlp.narrative.s02.p1H1")}</Highlight>{" "}{t("models.mlp.narrative.s02.p1")}</P>
                 <P><Highlight color="rose">{t("models.mlp.narrative.s02.p2H1")}</Highlight>{" "}{t("models.mlp.narrative.s02.p2")}</P>
@@ -536,9 +573,9 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
             <SectionBreak />
 
             {/* ─────────── 03 · THE GAME CHANGER: WORD EMBEDDINGS ─────────── */}
-            <Section>
+            <Section id="mlp-03">
                 <SectionLabel number={t("models.mlp.narrative.sections.s03.number")} label={t("models.mlp.narrative.sections.s03.label")} />
-                <Heading>{t("models.mlp.narrative.s03.heading")}</Heading>
+                <SectionAnchor id="mlp-03"><Heading>{t("models.mlp.narrative.s03.heading")}</Heading></SectionAnchor>
                 <Lead>{t("models.mlp.narrative.s03.lead")}</Lead>
 
                 <ThinkFirst
@@ -566,14 +603,18 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
                 <FigureWrapper label={t("models.mlp.narrative.s03.figLabel1")} hint={t("models.mlp.narrative.s03.figHint1")}>
                     <PedagogicalEmbeddingVisualizer />
                 </FigureWrapper>
+
+                <KeyTakeaway accent="violet">
+                    <Term word="embedding">Embeddings</Term> replace wasteful <Term word="one-hot encoding">one-hot vectors</Term> with dense, learned representations where similar tokens get similar vectors. This is the key insight that makes <Term word="MLP">MLPs</Term> powerful for language.
+                </KeyTakeaway>
             </Section>
 
             <SectionBreak />
 
             {/* ─────────── 04 · EXPLORING CONFIGURATIONS ─────────── */}
-            <Section>
+            <Section id="mlp-04">
                 <SectionLabel number={t("models.mlp.narrative.sections.s04.number")} label={t("models.mlp.narrative.sections.s04.label")} />
-                <Heading>{t("models.mlp.narrative.s04.heading")}</Heading>
+                <SectionAnchor id="mlp-04"><Heading>{t("models.mlp.narrative.s04.heading")}</Heading></SectionAnchor>
                 <Lead>{t("models.mlp.narrative.s04.lead")}</Lead>
 
                 <ThinkFirst
@@ -597,9 +638,9 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
                     className="grid grid-cols-1 md:grid-cols-2 gap-3 my-8"
                 >
                     {(["embDim", "hiddenSize", "numLayers", "contextWindow"] as const).map((key) => (
-                        <div key={key} className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+                        <div key={key} className="rounded-lg border border-[var(--lab-border)] bg-[var(--lab-card)] p-4">
                             <p className="text-xs font-mono font-bold text-violet-400/70 mb-1.5">{t(`models.mlp.narrative.s04.hyperparamCards.${key}.title`)}</p>
-                            <p className="text-sm text-white/40 leading-relaxed">{t(`models.mlp.narrative.s04.hyperparamCards.${key}.desc`)}</p>
+                            <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed">{t(`models.mlp.narrative.s04.hyperparamCards.${key}.desc`)}</p>
                         </div>
                     ))}
                 </motion.div>
@@ -634,9 +675,9 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
             <SectionBreak />
 
             {/* ─────────── 05 · LIMITATIONS OF MLP + EMBEDDINGS ─────────── */}
-            <Section>
+            <Section id="mlp-05">
                 <SectionLabel number={t("models.mlp.narrative.sections.s05.number")} label={t("models.mlp.narrative.sections.s05.label")} />
-                <Heading>{t("models.mlp.narrative.s05.heading")}</Heading>
+                <SectionAnchor id="mlp-05"><Heading>{t("models.mlp.narrative.s05.heading")}</Heading></SectionAnchor>
 
                 <Lead>{t("models.mlp.narrative.s05.lead")}</Lead>
 
@@ -702,14 +743,18 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
                 <Callout icon={AlertTriangle} accent="amber" title={t("models.mlp.narrative.s05.calloutTitle")}>
                     <p>{t("models.mlp.narrative.s05.calloutText")}</p>
                 </Callout>
+
+                <KeyTakeaway accent="violet">
+                    MLPs have a fixed <Term word="context window">context window</Term>, can&apos;t handle long-range dependencies, and treat position as implicit. These limitations point toward architectures that can attend to any part of the input.
+                </KeyTakeaway>
             </Section>
 
             <SectionBreak />
 
             {/* ─────────── 06 · TRAINING CHALLENGES ─────────── */}
-            <Section>
+            <Section id="mlp-06">
                 <SectionLabel number={t("models.mlp.narrative.sections.s06.number")} label={t("models.mlp.narrative.sections.s06.label")} />
-                <Heading>{t("models.mlp.narrative.s06.heading")}</Heading>
+                <SectionAnchor id="mlp-06"><Heading>{t("models.mlp.narrative.s06.heading")}</Heading></SectionAnchor>
                 <Lead>{t("models.mlp.narrative.s06.lead")}</Lead>
 
                 <TrainingChallengePanel
@@ -763,16 +808,16 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
             <SectionBreak />
 
             {/* ─────────── 07 · THE PATH AHEAD ─────────── */}
-            <Section>
+            <Section id="mlp-07">
                 <SectionLabel number={t("models.mlp.narrative.sections.s07.number")} label={t("models.mlp.narrative.sections.s07.label")} />
-                <Heading>{t("models.mlp.narrative.s07.heading")}</Heading>
+                <SectionAnchor id="mlp-07"><Heading>{t("models.mlp.narrative.s07.heading")}</Heading></SectionAnchor>
                 <Lead>{t("models.mlp.narrative.s07.lead")}</Lead>
                 <P>{t("models.mlp.narrative.s07.p1")}</P>
                 <P>{t("models.mlp.narrative.s07.p2")}</P>
                 <div className="my-6 space-y-3 pl-4 border-l-2 border-violet-500/20">
-                    <p className="text-white/60 text-sm leading-relaxed">{t("models.mlp.narrative.s07.rnnQ1")}</p>
-                    <p className="text-white/60 text-sm leading-relaxed">{t("models.mlp.narrative.s07.rnnQ2")}</p>
-                    <p className="text-white/60 text-sm leading-relaxed">{t("models.mlp.narrative.s07.rnnQ3")}</p>
+                    <p className="text-[var(--lab-text-muted)] text-sm leading-relaxed">{t("models.mlp.narrative.s07.rnnQ1")}</p>
+                    <p className="text-[var(--lab-text-muted)] text-sm leading-relaxed">{t("models.mlp.narrative.s07.rnnQ2")}</p>
+                    <p className="text-[var(--lab-text-muted)] text-sm leading-relaxed">{t("models.mlp.narrative.s07.rnnQ3")}</p>
                 </div>
                 <PullQuote>{t("models.mlp.narrative.s07.pullQuote")}</PullQuote>
                 <P>{t("models.mlp.narrative.s07.p3")}</P>
@@ -784,7 +829,7 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
             {/* ─────────── CALL TO ACTION ─────────── */}
             <Section>
                 <div className="text-center mb-10">
-                    <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
+                    <h2 className="text-2xl md:text-3xl font-bold text-[var(--lab-text)] tracking-tight mb-3">
                         {t("models.mlp.narrative.cta.heading")}
                     </h2>
                 </div>
@@ -794,7 +839,7 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setMode("free")}
-                        className="group relative rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-950/20 to-black/60 p-6 text-left transition-colors hover:border-violet-500/40 overflow-hidden"
+                        className="group relative rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-950/20 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-colors hover:border-violet-500/40 overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                         <div className="relative">
@@ -802,11 +847,11 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
                                 <div className="p-2 rounded-xl bg-violet-500/15">
                                     <Beaker className="w-5 h-5 text-violet-300" />
                                 </div>
-                                <span className="text-lg font-bold text-white">
+                                <span className="text-lg font-bold text-[var(--lab-text)]">
                                     {t("models.mlp.narrative.cta.freeLabTitle")}
                                 </span>
                             </div>
-                            <p className="text-sm text-white/45 leading-relaxed">
+                            <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed">
                                 {t("models.mlp.narrative.cta.freeLabDesc")}
                             </p>
                         </div>
@@ -816,7 +861,7 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => router.push("/lab/rnn")}
-                        className="group relative rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-950/20 to-black/60 p-6 text-left transition-colors hover:border-cyan-500/40 overflow-hidden"
+                        className="group relative rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-950/20 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-colors hover:border-cyan-500/40 overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                         <div className="relative">
@@ -824,11 +869,11 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
                                 <div className="p-2 rounded-xl bg-cyan-500/15">
                                     <BrainCircuit className="w-5 h-5 text-cyan-300" />
                                 </div>
-                                <span className="text-lg font-bold text-white">
+                                <span className="text-lg font-bold text-[var(--lab-text)]">
                                     {t("models.mlp.narrative.cta.transformerTitle")}
                                 </span>
                             </div>
-                            <p className="text-sm text-white/45 leading-relaxed">
+                            <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed">
                                 {t("models.mlp.narrative.cta.transformerDesc")}
                             </p>
                         </div>
@@ -841,12 +886,12 @@ export function MLPNarrative({ mlpGrid }: MLPNarrativeProps) {
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
-                className="mt-8 pt-12 border-t border-white/[0.06] text-center"
+                className="mt-8 pt-12 border-t border-[var(--lab-border)] text-center"
             >
-                <p className="text-sm text-white/25 italic max-w-md mx-auto leading-relaxed mb-10">
+                <p className="text-sm text-[var(--lab-text-subtle)] italic max-w-md mx-auto leading-relaxed mb-10">
                     {t("models.mlp.narrative.footer.text")}
                 </p>
-                <div className="flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-widest text-white/10">
+                <div className="flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-widest text-[var(--lab-border)]">
                     <FlaskConical className="h-3 w-3" />
                     {t("models.mlp.narrative.footer.brand")}
                 </div>

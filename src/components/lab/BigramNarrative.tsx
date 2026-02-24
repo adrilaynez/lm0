@@ -22,14 +22,20 @@ import { MemoryLimitDemo } from "@/components/lab/MemoryLimitDemo";
 import { NormalizationVisualizer } from "@/components/lab/NormalizationVisualizer";
 import { MatrixGuidedOverlay } from "@/components/lab/MatrixGuidedOverlay";
 import { SoftmaxTemperatureVisualizer } from "@/components/lab/mlp/SoftmaxTemperatureVisualizer";
+import { SectionProgressBar } from "@/components/lab/SectionProgressBar";
+import { ContinueToast } from "@/components/lab/ContinueToast";
+import { Term } from "@/components/lab/GlossaryTooltip";
+import { KeyTakeaway } from "@/components/lab/KeyTakeaway";
+import { SectionAnchor } from "@/components/lab/SectionAnchor";
 
 /* ─────────────────────────────────────────────
    Primitive building blocks
    ───────────────────────────────────────────── */
 
-function Section({ children }: { children: React.ReactNode }) {
+function Section({ id, children }: { id?: string; children: React.ReactNode }) {
     return (
         <motion.section
+            id={id}
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
@@ -47,17 +53,17 @@ function SectionLabel({ number, label }: { number: string; label: string }) {
             <span className="flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono font-bold text-emerald-400">
                 {number}
             </span>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/25">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[var(--lab-text-subtle)]">
                 {label}
             </span>
-            <div className="flex-1 h-px bg-gradient-to-r from-white/[0.06] to-transparent" />
+            <div className="flex-1 h-px bg-gradient-to-r from-[var(--lab-border)] to-transparent" />
         </div>
     );
 }
 
 function Heading({ children }: { children: React.ReactNode }) {
     return (
-        <h2 className="text-2xl md:text-[2rem] font-bold text-white tracking-tight mb-6 leading-tight">
+        <h2 className="text-2xl md:text-[2rem] font-bold text-[var(--lab-text)] tracking-tight mb-6 leading-tight">
             {children}
         </h2>
     );
@@ -65,7 +71,7 @@ function Heading({ children }: { children: React.ReactNode }) {
 
 function Lead({ children }: { children: React.ReactNode }) {
     return (
-        <p className="text-lg md:text-xl text-white/50 leading-[1.8] mb-6 font-light">
+        <p className="text-lg md:text-xl text-[var(--lab-text-muted)] leading-[1.8] mb-6 font-light">
             {children}
         </p>
     );
@@ -73,7 +79,7 @@ function Lead({ children }: { children: React.ReactNode }) {
 
 function P({ children }: { children: React.ReactNode }) {
     return (
-        <p className="text-[15px] md:text-base text-white/45 leading-[1.9] mb-5 last:mb-0">
+        <p className="text-[15px] md:text-base text-[var(--lab-text-muted)] leading-[1.9] mb-5 last:mb-0">
             {children}
         </p>
     );
@@ -110,7 +116,7 @@ function Callout({
                             {title}
                         </p>
                     )}
-                    <div className="text-sm text-white/60 leading-relaxed [&>p]:mb-2 [&>p:last-child]:mb-0">
+                    <div className="text-sm text-[var(--lab-text-muted)] leading-relaxed [&>p]:mb-2 [&>p:last-child]:mb-0">
                         {children}
                     </div>
                 </div>
@@ -132,7 +138,7 @@ function FormulaBlock({ formula, caption }: { formula: string; caption: string }
                     <BlockMath math={formula} />
                 </div>
             </div>
-            <p className="text-center text-sm md:text-base text-white/45 italic font-light max-w-2xl mx-auto">
+            <p className="text-center text-sm md:text-base text-[var(--lab-text-muted)] italic font-light max-w-2xl mx-auto">
                 {caption}
             </p>
         </motion.div>
@@ -147,7 +153,7 @@ function PullQuote({ children }: { children: React.ReactNode }) {
             viewport={{ once: true, margin: "-40px" }}
             className="my-10 md:my-12 pl-6 border-l-2 border-emerald-400/40"
         >
-            <p className="text-lg md:text-xl text-white/60 font-light italic leading-relaxed">
+            <p className="text-lg md:text-xl text-[var(--lab-text-muted)] font-light italic leading-relaxed">
                 {children}
             </p>
         </motion.blockquote>
@@ -157,9 +163,9 @@ function PullQuote({ children }: { children: React.ReactNode }) {
 function SectionBreak() {
     return (
         <div className="flex items-center justify-center gap-3 my-16 md:my-20">
-            <div className="h-px w-12 bg-gradient-to-r from-transparent to-white/[0.08]" />
-            <div className="w-1.5 h-1.5 rounded-full bg-white/[0.08]" />
-            <div className="h-px w-12 bg-gradient-to-l from-transparent to-white/[0.08]" />
+            <div className="h-px w-12 bg-gradient-to-r from-transparent to-[var(--lab-border)]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[var(--lab-border)]" />
+            <div className="h-px w-12 bg-gradient-to-l from-transparent to-[var(--lab-border)]" />
         </div>
     );
 }
@@ -183,8 +189,8 @@ function FigureWrapper({
             transition={{ duration: 0.5 }}
             className="my-12 md:my-16 -mx-4 sm:mx-0"
         >
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] overflow-hidden">
-                <div className="flex items-center gap-3 px-5 py-3 border-b border-white/[0.06] bg-white/[0.02]">
+            <div className="rounded-2xl border border-[var(--lab-border)] bg-[var(--lab-card)] overflow-hidden">
+                <div className="flex items-center gap-3 px-5 py-3 border-b border-[var(--lab-border)] bg-[var(--lab-card)]">
                     {showWindowDots && (
                         <div className="flex gap-1.5">
                             <span className="w-2.5 h-2.5 rounded-full bg-red-500/30" />
@@ -192,14 +198,14 @@ function FigureWrapper({
                             <span className="w-2.5 h-2.5 rounded-full bg-green-500/30" />
                         </div>
                     )}
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-white/30">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--lab-text-subtle)]">
                         {label}
                     </span>
                 </div>
-                <div className="p-4 sm:p-6">{children}</div>
+                <div className="p-4 sm:p-6 bg-[var(--lab-viz-bg)]">{children}</div>
             </div>
             {hint && (
-                <figcaption className="mt-3 text-center text-xs text-white/25 italic">
+                <figcaption className="mt-3 text-center text-xs text-[var(--lab-text-subtle)] italic">
                     {hint}
                 </figcaption>
             )}
@@ -249,6 +255,31 @@ export function BigramNarrative({
 
     return (
         <article className="max-w-[920px] mx-auto px-6 pt-8 pb-24">
+            <ContinueToast
+                pageId="bigram"
+                accent="emerald"
+                sectionNames={{
+                    "bigram-01": "How Computers See Text",
+                    "bigram-02": "The Problem",
+                    "bigram-03": "The Bigram Idea",
+                    "bigram-04": "Transition Matrix",
+                    "bigram-05": "Normalization",
+                    "bigram-06": "Generating Text",
+                    "bigram-07": "The One-Character Trap",
+                }}
+            />
+            <SectionProgressBar
+                sections={[
+                    { id: "bigram-01", label: "01", name: "How Computers See Text" },
+                    { id: "bigram-02", label: "02", name: "The Problem" },
+                    { id: "bigram-03", label: "03", name: "The Bigram Idea" },
+                    { id: "bigram-04", label: "04", name: "Transition Matrix" },
+                    { id: "bigram-05", label: "05", name: "Normalization" },
+                    { id: "bigram-06", label: "06", name: "Generating Text" },
+                    { id: "bigram-07", label: "07", name: "One-Character Trap" },
+                ]}
+                accent="emerald"
+            />
 
             {/* ───────────────────── HERO ───────────────────── */}
             <header className="text-center mb-24 md:mb-32">
@@ -262,15 +293,19 @@ export function BigramNarrative({
                         {t("bigramNarrative.hero.eyebrow")}
                     </span>
 
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6">
+                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-[var(--lab-text)] mb-6">
                         {t("bigramNarrative.hero.titlePrefix")}{" "}
                         <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
                             {t("bigramNarrative.hero.titleSuffix")}
                         </span>
                     </h1>
 
-                    <p className="text-lg md:text-xl text-white/35 max-w-xl mx-auto leading-relaxed mb-12">
+                    <p className="text-lg md:text-xl text-[var(--lab-text-subtle)] max-w-xl mx-auto leading-relaxed mb-12">
                         {t("bigramNarrative.hero.description")}
+                    </p>
+
+                    <p className="text-[11px] font-mono text-[var(--lab-text-subtle)] mb-8">
+                        ~12 min read · 7 interactive demos
                     </p>
 
                     <div className="flex justify-center mb-14">
@@ -278,14 +313,14 @@ export function BigramNarrative({
                     </div>
 
                     <div className="mt-10 max-w-lg mx-auto">
-                        <p className="text-xs text-center text-white/40 mb-3">{t("bigramNarrative.hero.autoCompleteHint")}</p>
+                        <p className="text-xs text-center text-[var(--lab-text-subtle)] mb-3">{t("bigramNarrative.hero.autoCompleteHint")}</p>
                         <HeroAutoComplete />
                     </div>
 
                     <motion.div
                         animate={{ y: [0, 6, 0] }}
                         transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                        className="mt-8 text-white/10"
+                        className="mt-8 text-[var(--lab-border)]"
                     >
                         <ArrowDown className="w-5 h-5 mx-auto" />
                     </motion.div>
@@ -293,9 +328,9 @@ export function BigramNarrative({
             </header>
 
             {/* ─────────── §1 · HOW COMPUTERS SEE TEXT ─────────── */}
-            <Section>
+            <Section id="bigram-01">
                 <SectionLabel number="1" label={t("bigramNarrative.textToNumbers.label")} />
-                <Heading>{t("bigramNarrative.textToNumbers.title")}</Heading>
+                <SectionAnchor id="bigram-01"><Heading>{t("bigramNarrative.textToNumbers.title")}</Heading></SectionAnchor>
                 <Lead>{t("bigramNarrative.textToNumbers.lead")}</Lead>
                 <P>{t("bigramNarrative.textToNumbers.p1")}</P>
                 <FigureWrapper
@@ -310,9 +345,9 @@ export function BigramNarrative({
             <SectionBreak />
 
             {/* ─────────── §2 · THE PROBLEM ─────────── */}
-            <Section>
+            <Section id="bigram-02">
                 <SectionLabel number="2" label={t("bigramNarrative.problem.label")} />
-                <Heading>{t("bigramNarrative.problem.title")}</Heading>
+                <SectionAnchor id="bigram-02"><Heading>{t("bigramNarrative.problem.title")}</Heading></SectionAnchor>
                 <Lead>{t("bigramNarrative.problem.lead")}</Lead>
                 <P>
                     {t("bigramNarrative.problem.p1")}
@@ -339,13 +374,13 @@ export function BigramNarrative({
             <SectionBreak />
 
             {/* ─────────── §3 · THE BIGRAM IDEA: JUST COUNT PAIRS ─────────── */}
-            <Section>
+            <Section id="bigram-03">
                 <SectionLabel number="3" label={t("bigramNarrative.coreIdea.label")} />
-                <Heading>{t("bigramNarrative.coreIdea.title")}</Heading>
+                <SectionAnchor id="bigram-03"><Heading>{t("bigramNarrative.coreIdea.title")}</Heading></SectionAnchor>
                 <Lead>{t("bigramNarrative.coreIdea.lead")}</Lead>
                 <P>
                     {t("bigramNarrative.coreIdea.p1")}
-                    <Highlight>{t("bigramNarrative.coreIdea.h1")}</Highlight>
+                    <Highlight><Term word="bigram">{t("bigramNarrative.coreIdea.h1")}</Term></Highlight>
                     {t("bigramNarrative.coreIdea.p2")}
                 </P>
                 <FormulaBlock
@@ -372,18 +407,22 @@ export function BigramNarrative({
                 <Callout title={t("bigramNarrative.counting.calloutTitle")}>
                     <p>{t("bigramNarrative.counting.calloutText")}</p>
                 </Callout>
+
+                <KeyTakeaway accent="emerald">
+                    A <Term word="bigram">bigram model</Term> predicts the next character by counting how often each pair appears in the training data. The simplest form of <Term word="n-gram">n-gram</Term> language modeling.
+                </KeyTakeaway>
             </Section>
 
             <SectionBreak />
 
             {/* ─────────── §4 · THE FULL PICTURE: TRANSITION MATRIX ─────────── */}
-            <Section>
+            <Section id="bigram-04">
                 <SectionLabel number="4" label={t("bigramNarrative.mechanics.label")} />
-                <Heading>{t("bigramNarrative.mechanics.title")}</Heading>
+                <SectionAnchor id="bigram-04"><Heading>{t("bigramNarrative.mechanics.title")}</Heading></SectionAnchor>
                 <Lead>{t("bigramNarrative.mechanics.lead")}</Lead>
                 <P>
                     {t("bigramNarrative.mechanics.p1")}
-                    <Highlight>{t("bigramNarrative.mechanics.h1")}</Highlight>
+                    <Highlight><Term word="transition matrix">{t("bigramNarrative.mechanics.h1")}</Term></Highlight>
                     {t("bigramNarrative.mechanics.p2")}
                 </P>
                 <P>{t("bigramNarrative.mechanics.p3")}</P>
@@ -416,13 +455,13 @@ export function BigramNarrative({
             <SectionBreak />
 
             {/* ─────────── §5 · NORMALIZATION ─────────── */}
-            <Section>
+            <Section id="bigram-05">
                 <SectionLabel number="5" label={t("bigramNarrative.normalization.label")} />
-                <Heading>{t("bigramNarrative.normalization.title")}</Heading>
+                <SectionAnchor id="bigram-05"><Heading>{t("bigramNarrative.normalization.title")}</Heading></SectionAnchor>
                 <Lead>{t("bigramNarrative.normalization.lead")}</Lead>
                 <P>
                     {t("bigramNarrative.normalization.p1")}
-                    <Highlight>{t("bigramNarrative.normalization.h1")}</Highlight>
+                    <Highlight><Term word="normalization">{t("bigramNarrative.normalization.h1")}</Term></Highlight>
                     {t("bigramNarrative.normalization.p2")}
                 </P>
                 <FormulaBlock
@@ -445,6 +484,10 @@ export function BigramNarrative({
                     <Highlight>{t("bigramNarrative.normalization.h2")}</Highlight>
                     {t("bigramNarrative.normalization.p5")}
                 </P>
+                <KeyTakeaway accent="emerald">
+                    <Term word="normalization">Normalization</Term> turns raw counts into a <Term word="probability distribution">probability distribution</Term> — numbers between 0 and 1 that sum to 1. This is what lets the model make probabilistic predictions.
+                </KeyTakeaway>
+
                 <P>{t("bigramNarrative.probabilities.inferenceIntro")}</P>
                 <FigureWrapper
                     label={t("bigramNarrative.probabilities.overlayTitle")}
@@ -464,24 +507,23 @@ export function BigramNarrative({
             <SectionBreak />
 
             {/* ─────────── §6 · GENERATING TEXT ─────────── */}
-            <Section>
+            <Section id="bigram-06">
                 <SectionLabel number="6" label={t("bigramNarrative.sampling.label")} />
-                <Heading>{t("bigramNarrative.sampling.title")}</Heading>
+                <SectionAnchor id="bigram-06"><Heading>{t("bigramNarrative.sampling.title")}</Heading></SectionAnchor>
                 <Lead>{t("bigramNarrative.sampling.lead")}</Lead>
                 <P>
                     {t("bigramNarrative.sampling.p1")}
-                    <Highlight>{t("bigramNarrative.sampling.h1")}</Highlight>
+                    <Highlight><Term word="sampling">{t("bigramNarrative.sampling.h1")}</Term></Highlight>
                     {t("bigramNarrative.sampling.p2")}
                 </P>
                 <P>
                     {t("bigramNarrative.sampling.tempP1")}
-                    <Highlight>{t("bigramNarrative.sampling.tempH1")}</Highlight>
+                    <Highlight><Term word="temperature">{t("bigramNarrative.sampling.tempH1")}</Term></Highlight>
                     {t("bigramNarrative.sampling.tempP2")}
                 </P>
                 <FigureWrapper
                     label={t("bigramNarrative.sampling.softmaxFigureLabel")}
                     hint={t("bigramNarrative.sampling.softmaxFigureHint")}
-                    showWindowDots={false}
                 >
                     <SoftmaxTemperatureVisualizer />
                 </FigureWrapper>
@@ -507,15 +549,19 @@ export function BigramNarrative({
             <SectionBreak />
 
             {/* ─────────── §7 · THE ONE-CHARACTER TRAP ─────────── */}
-            <Section>
+            <Section id="bigram-07">
                 <SectionLabel number="7" label={t("bigramNarrative.cliffhanger.label")} />
-                <Heading>{t("bigramNarrative.cliffhanger.title")}</Heading>
+                <SectionAnchor id="bigram-07"><Heading>{t("bigramNarrative.cliffhanger.title")}</Heading></SectionAnchor>
                 <Lead>{t("bigramNarrative.cliffhanger.lead")}</Lead>
                 <P>{t("bigramNarrative.cliffhanger.p1")}</P>
                 <FigureWrapper label={t("bigramNarrative.cliffhanger.label")}>
                     <MemoryLimitDemo />
                 </FigureWrapper>
                 <PullQuote>{t("bigramNarrative.cliffhanger.hookLine")}</PullQuote>
+
+                <KeyTakeaway accent="emerald">
+                    A bigram only sees one character of <Term word="context window">context</Term>. That&apos;s its fundamental limitation — and the reason we need <Term word="n-gram">n-grams</Term> and eventually neural networks.
+                </KeyTakeaway>
             </Section>
 
             <SectionBreak />
@@ -523,7 +569,7 @@ export function BigramNarrative({
             {/* ─────────── CTA ─────────── */}
             <Section>
                 <div className="text-center mb-10">
-                    <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
+                    <h2 className="text-2xl md:text-3xl font-bold text-[var(--lab-text)] tracking-tight mb-3">
                         {t("bigramNarrative.cta.title")}
                     </h2>
                 </div>
@@ -533,7 +579,7 @@ export function BigramNarrative({
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setMode("free")}
-                        className="group relative rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/20 to-black/60 p-6 text-left transition-colors hover:border-emerald-500/40 overflow-hidden"
+                        className="group relative rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/20 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-colors hover:border-emerald-500/40 overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                         <div className="relative">
@@ -541,11 +587,11 @@ export function BigramNarrative({
                                 <div className="p-2 rounded-xl bg-emerald-500/15">
                                     <Beaker className="w-5 h-5 text-emerald-300" />
                                 </div>
-                                <span className="text-lg font-bold text-white">
+                                <span className="text-lg font-bold text-[var(--lab-text)]">
                                     {t("bigramNarrative.cta.freeLabButton")}
                                 </span>
                             </div>
-                            <p className="text-sm text-white/45 leading-relaxed">
+                            <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed">
                                 {t("bigramNarrative.cta.freeLabDesc")}
                             </p>
                         </div>
@@ -555,7 +601,7 @@ export function BigramNarrative({
                         <motion.div
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="group relative rounded-2xl border border-teal-500/20 bg-gradient-to-br from-teal-950/20 to-black/60 p-6 text-left transition-colors hover:border-teal-500/40 overflow-hidden h-full"
+                            className="group relative rounded-2xl border border-teal-500/20 bg-gradient-to-br from-teal-950/20 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-colors hover:border-teal-500/40 overflow-hidden h-full"
                         >
                             <div className="absolute inset-0 bg-gradient-to-br from-teal-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                             <div className="relative">
@@ -563,11 +609,11 @@ export function BigramNarrative({
                                     <div className="p-2 rounded-xl bg-teal-500/15">
                                         <ArrowRight className="w-5 h-5 text-teal-300" />
                                     </div>
-                                    <span className="text-lg font-bold text-white">
+                                    <span className="text-lg font-bold text-[var(--lab-text)]">
                                         {t("bigramNarrative.cta.nextTitle")}
                                     </span>
                                 </div>
-                                <p className="text-sm text-white/45 leading-relaxed">
+                                <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed">
                                     {t("bigramNarrative.cta.nextDesc")}
                                 </p>
                             </div>
@@ -581,9 +627,9 @@ export function BigramNarrative({
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
-                className="mt-8 pt-12 border-t border-white/[0.06] text-center"
+                className="mt-8 pt-12 border-t border-[var(--lab-border)] text-center"
             >
-                <div className="flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-widest text-white/10">
+                <div className="flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-widest text-[var(--lab-border)]">
                     <FlaskConical className="h-3 w-3" />
                     {t("bigramNarrative.footer.brand")}
                 </div>

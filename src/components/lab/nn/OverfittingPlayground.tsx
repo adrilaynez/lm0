@@ -14,27 +14,36 @@ import { NN_COLORS } from "./visualizer-theme";
 
 interface Pt { x: number; y: number; cls: 0 | 1 }
 
-// True boundary: diagonal with a gentle hump
+// True boundary: a curved diagonal that makes sense visually
 function trueBoundary(x: number) {
-    return 25 + x * 0.5 + 10 * Math.sin((x / 100) * Math.PI);
+    return 20 + x * 0.55 + 12 * Math.sin((x / 100) * Math.PI * 1.3);
 }
 
-// Balanced hardcoded training points (7 red cls=0 below boundary, 7 green cls=1 above)
+// Training points scattered with NOISE: some red above boundary, some green below
+// This makes overfitting possible and visually clear
 const TRAIN_PTS: Pt[] = [
-    { x: 12, y: 15, cls: 0 }, { x: 28, y: 22, cls: 0 }, { x: 40, y: 30, cls: 0 },
-    { x: 55, y: 40, cls: 0 }, { x: 68, y: 52, cls: 0 }, { x: 78, y: 48, cls: 0 },
-    { x: 88, y: 62, cls: 0 },
-    { x: 10, y: 72, cls: 1 }, { x: 22, y: 58, cls: 1 }, { x: 35, y: 75, cls: 1 },
-    { x: 50, y: 82, cls: 1 }, { x: 62, y: 70, cls: 1 }, { x: 75, y: 88, cls: 1 },
-    { x: 90, y: 78, cls: 1 },
+    // Red (cls=0) — mostly below boundary but some cross over
+    { x: 8, y: 12, cls: 0 }, { x: 20, y: 18, cls: 0 }, { x: 32, y: 24, cls: 0 },
+    { x: 45, y: 28, cls: 0 }, { x: 58, y: 38, cls: 0 }, { x: 72, y: 50, cls: 0 },
+    { x: 85, y: 55, cls: 0 }, { x: 92, y: 60, cls: 0 },
+    { x: 25, y: 52, cls: 0 },  // noisy — red point in green territory
+    { x: 65, y: 68, cls: 0 },  // noisy — red point in green territory
+    // Green (cls=1) — mostly above boundary but some cross over
+    { x: 12, y: 62, cls: 1 }, { x: 22, y: 72, cls: 1 }, { x: 38, y: 78, cls: 1 },
+    { x: 48, y: 85, cls: 1 }, { x: 60, y: 72, cls: 1 }, { x: 75, y: 82, cls: 1 },
+    { x: 88, y: 90, cls: 1 }, { x: 95, y: 80, cls: 1 },
+    { x: 40, y: 32, cls: 1 },  // noisy — green point in red territory
+    { x: 78, y: 45, cls: 1 },  // noisy — green point in red territory
 ];
 
-// Balanced test points
+// Test points — also scattered with noise
 const TEST_PTS: Pt[] = [
-    { x: 18, y: 20, cls: 0 }, { x: 45, y: 35, cls: 0 },
-    { x: 70, y: 55, cls: 0 }, { x: 83, y: 58, cls: 0 },
-    { x: 15, y: 65, cls: 1 }, { x: 38, y: 80, cls: 1 },
-    { x: 58, y: 75, cls: 1 }, { x: 80, y: 82, cls: 1 },
+    { x: 15, y: 15, cls: 0 }, { x: 35, y: 20, cls: 0 },
+    { x: 52, y: 32, cls: 0 }, { x: 80, y: 52, cls: 0 },
+    { x: 30, y: 58, cls: 0 },  // noisy test red in green zone
+    { x: 18, y: 68, cls: 1 }, { x: 42, y: 82, cls: 1 },
+    { x: 55, y: 70, cls: 1 }, { x: 85, y: 85, cls: 1 },
+    { x: 68, y: 42, cls: 1 },  // noisy test green in red zone
 ];
 
 const PW = 100;
@@ -48,46 +57,47 @@ function ptToSvg(pt: Pt) {
 }
 
 function underfitBoundary(): string {
-    // Straight line — too simple, doesn't follow the curve
-    return `M${PAD},${PAD + PH - 42} L${PAD + PW},${PAD + PH - 60}`;
+    // Dead-simple horizontal line at y=50 — clearly too simple for the curved data
+    const sy = PAD + PH - (50 / 100) * PH;
+    return `M${PAD},${sy.toFixed(1)} L${PAD + PW},${sy.toFixed(1)}`;
 }
 
 function optimalBoundary(): string {
     const pts: string[] = [];
-    for (let i = 0; i <= 50; i++) {
-        const rawX = (i / 50) * 100;
-        const x = PAD + (i / 50) * PW;
-        const y = PAD + PH - trueBoundary(rawX);
+    for (let i = 0; i <= 60; i++) {
+        const rawX = (i / 60) * 100;
+        const x = PAD + (i / 60) * PW;
+        const y = PAD + PH - (trueBoundary(rawX) / 100) * PH;
         pts.push(`${i === 0 ? "M" : "L"}${x.toFixed(1)},${Math.max(PAD + 1, Math.min(PAD + PH - 1, y)).toFixed(1)}`);
     }
     return pts.join(" ");
 }
 
 function overfitBoundary(): string {
-    // Smooth Catmull-Rom-style spline that threads tightly between training points
+    // Wildly oscillating line that memorizes every training point
+    // Thread through each training point, alternating class sides dramatically
     const sorted = [...TRAIN_PTS].sort((a, b) => a.x - b.x);
 
-    // Build control points: midway between each adjacent pair of different classes
-    const ctrls: { x: number; y: number }[] = [{ x: 0, y: trueBoundary(0) }];
-    for (let i = 0; i < sorted.length - 1; i++) {
-        const a = sorted[i], b = sorted[i + 1];
-        if (a.cls !== b.cls) {
-            // Boundary crosses here — make it hug the closer point tightly
-            ctrls.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+    // For each point, the boundary dips to that point's side (below for cls=0, above for cls=1)
+    // with extreme vertical swings
+    const ctrls: { x: number; y: number }[] = [{ x: 0, y: 35 }];
+    for (const pt of sorted) {
+        // Push boundary to hug each point individually
+        if (pt.cls === 0) {
+            ctrls.push({ x: pt.x, y: pt.y + 5 }); // just above the red point
         } else {
-            // Same class — add a waypoint through/near this point
-            const offset = a.cls === 0 ? 8 : -8;
-            ctrls.push({ x: a.x, y: a.y + offset });
+            ctrls.push({ x: pt.x, y: pt.y - 5 }); // just below the green point
         }
     }
-    ctrls.push({ x: 100, y: trueBoundary(100) });
+    ctrls.push({ x: 100, y: 70 });
 
-    // Convert to SVG coords and build smooth path with quadratic bezier segments
+    // Convert to SVG coords
     const svgPts = ctrls.map(p => ({
         x: PAD + (p.x / 100) * PW,
         y: Math.max(PAD + 1, Math.min(PAD + PH - 1, PAD + PH - (p.y / 100) * PH)),
     }));
 
+    // Build path with quadratic bezier for smooth but wild curves
     let d = `M${svgPts[0].x.toFixed(1)},${svgPts[0].y.toFixed(1)}`;
     for (let i = 1; i < svgPts.length - 1; i++) {
         const mx = (svgPts[i].x + svgPts[i + 1].x) / 2;
@@ -102,9 +112,9 @@ function overfitBoundary(): string {
 type PanelType = "underfit" | "overfit" | "optimal";
 
 const PANELS: { type: PanelType; boundary: string; color: string; trainAcc: number; testAcc: number }[] = [
-    { type: "underfit", boundary: underfitBoundary(), color: "#f59e0b", trainAcc: 57, testAcc: 50 },
-    { type: "overfit", boundary: overfitBoundary(), color: NN_COLORS.error.hex, trainAcc: 100, testAcc: 50 },
-    { type: "optimal", boundary: optimalBoundary(), color: NN_COLORS.output.hex, trainAcc: 86, testAcc: 87 },
+    { type: "underfit", boundary: underfitBoundary(), color: "#f59e0b", trainAcc: 60, testAcc: 55 },
+    { type: "overfit", boundary: overfitBoundary(), color: NN_COLORS.error.hex, trainAcc: 100, testAcc: 40 },
+    { type: "optimal", boundary: optimalBoundary(), color: NN_COLORS.output.hex, trainAcc: 85, testAcc: 80 },
 ];
 
 interface DataPointProps { pt: Pt; isTest: boolean; faded: boolean }

@@ -67,7 +67,7 @@ export function PredictionErrorDemo() {
                             </div>
                             <span className="text-sm font-mono font-bold" style={{ color }}>{val.toFixed(1)}</span>
                         </div>
-                        <Slider min={min} max={max} step={step} value={[val]} onValueChange={([v]) => set(v)} />
+                        <Slider min={min} max={max} step={step} value={[val]} onValueChange={([v]) => set(v)} trackColor={color} thumbColor={color} />
                         {label !== "b" && (
                             <p className="text-[10px] text-white/25 mt-1.5 font-mono">
                                 {t("neuralNetworkNarrative.howItLearns.predictionError.sensitivity").replace("{w}", label).replace("{n}", String(sens))}

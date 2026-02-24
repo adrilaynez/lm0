@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Swords, RefreshCw, Copy, CheckCircle2 } from "lucide-react";
+import { Swords, RefreshCw, Copy, CheckCircle2, WifiOff } from "lucide-react";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useI18n } from "@/i18n/context";
 import { generateNgram } from "@/lib/lmLabClient";
@@ -173,6 +173,9 @@ export function NgramGenerationBattle({
     }, [autoGenerate, generateAll]);
 
     const hasResults = Object.values(results).some((r) => r.text || r.loading);
+    const allErrored = nValues.length > 0
+        && nValues.every((n) => results[n]?.error)
+        && !nValues.some((n) => results[n]?.loading);
 
     return (
         <div ref={containerRef} className="space-y-5">
@@ -239,70 +242,98 @@ export function NgramGenerationBattle({
                 {t("ngramNarrative.generationBattle.description")}
             </p>
 
+            {/* All-error retry card */}
+            {allErrored && (
+                <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-xl border border-red-500/20 bg-red-500/[0.04] p-6 text-center"
+                >
+                    <WifiOff className="w-6 h-6 text-red-400/60 mx-auto mb-3" />
+                    <p className="text-sm text-white/50 mb-1">
+                        Server may still be starting up
+                    </p>
+                    <p className="text-xs text-white/30 mb-4">
+                        The backend takes ~20 seconds to wake from sleep.
+                    </p>
+                    <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={generateAll}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/25 hover:border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider transition-colors"
+                    >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        Try again
+                    </motion.button>
+                </motion.div>
+            )}
+
             {/* Columns grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {nValues.map((n) => {
-                    const col = results[n];
-                    const isHighlighted = highlightedN === n;
-                    const qualityKey = `ngramNarrative.generationBattle.qualityLabels.${n}` as const;
-                    const qualityLabel = t(qualityKey);
+            {!allErrored && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {nValues.map((n) => {
+                        const col = results[n];
+                        const isHighlighted = highlightedN === n;
+                        const qualityKey = `ngramNarrative.generationBattle.qualityLabels.${n}` as const;
+                        const qualityLabel = t(qualityKey);
 
-                    return (
-                        <motion.div
-                            key={n}
-                            initial={{ opacity: 0, y: 12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: n * 0.06, duration: 0.4 }}
-                            className={`rounded-xl border overflow-hidden transition-colors ${isHighlighted
-                                ? "border-amber-500/40 bg-amber-500/[0.04]"
-                                : "border-white/[0.08] bg-white/[0.02]"
-                                }`}
-                        >
-                            {/* Column header */}
-                            <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06]">
-                                <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono text-xs font-bold">
-                                    N = {n}
-                                </span>
-                                {col?.loading && (
-                                    <span className="text-[10px] text-amber-300/50 animate-pulse">
-                                        {t("ngramNarrative.generationBattle.streaming")}
+                        return (
+                            <motion.div
+                                key={n}
+                                initial={{ opacity: 0, y: 12 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: n * 0.06, duration: 0.4 }}
+                                className={`rounded-xl border overflow-hidden transition-colors ${isHighlighted
+                                    ? "border-amber-500/40 bg-amber-500/[0.04]"
+                                    : "border-white/[0.08] bg-white/[0.02]"
+                                    }`}
+                            >
+                                {/* Column header */}
+                                <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06]">
+                                    <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono text-xs font-bold">
+                                        N = {n}
                                     </span>
-                                )}
-                            </div>
-
-                            {/* Text area */}
-                            <div className="bg-black/30 p-4 min-h-[120px] flex items-start relative group/text">
-                                {col?.loading ? (
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-3 h-3 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
-                                        <span className="text-xs text-white/30">
+                                    {col?.loading && (
+                                        <span className="text-[10px] text-amber-300/50 animate-pulse">
                                             {t("ngramNarrative.generationBattle.streaming")}
                                         </span>
-                                    </div>
-                                ) : col?.error ? (
-                                    <p className="text-xs text-red-400/70">{col.error}</p>
-                                ) : col?.text ? (
-                                    <TypewriterText seed={selectedSeed} text={col.text} />
-                                ) : (
-                                    <p className="text-xs text-white/20 italic">
-                                        {t("ngramNarrative.generationBattle.emptyState")}
-                                    </p>
-                                )}
-                                {col?.text && !col.loading && (
-                                    <CopyButton text={selectedSeed + col.text} />
-                                )}
-                            </div>
+                                    )}
+                                </div>
 
-                            {/* Quality label */}
-                            <div className="px-4 py-2 border-t border-white/[0.04]">
-                                <p className={`text-[10px] uppercase tracking-[0.15em] font-bold ${QUALITY_COLORS[n] ?? "text-white/40"}`}>
-                                    {qualityLabel}
-                                </p>
-                            </div>
-                        </motion.div>
-                    );
-                })}
-            </div>
+                                {/* Text area */}
+                                <div className="bg-black/30 p-4 min-h-[120px] flex items-start relative group/text">
+                                    {col?.loading ? (
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-3 h-3 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+                                            <span className="text-xs text-white/30">
+                                                {t("ngramNarrative.generationBattle.streaming")}
+                                            </span>
+                                        </div>
+                                    ) : col?.error ? (
+                                        <p className="text-xs text-red-400/70">{col.error}</p>
+                                    ) : col?.text ? (
+                                        <TypewriterText seed={selectedSeed} text={col.text} />
+                                    ) : (
+                                        <p className="text-xs text-white/20 italic">
+                                            {t("ngramNarrative.generationBattle.emptyState")}
+                                        </p>
+                                    )}
+                                    {col?.text && !col.loading && (
+                                        <CopyButton text={selectedSeed + col.text} />
+                                    )}
+                                </div>
+
+                                {/* Quality label */}
+                                <div className="px-4 py-2 border-t border-white/[0.04]">
+                                    <p className={`text-[10px] uppercase tracking-[0.15em] font-bold ${QUALITY_COLORS[n] ?? "text-white/40"}`}>
+                                        {qualityLabel}
+                                    </p>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
+                </div>
+            )}
 
             {/* Footer info */}
             <p className="text-[10px] text-white/20 text-center font-mono">

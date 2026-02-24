@@ -32,7 +32,7 @@ export function VisualizerFrame({ family, label, hint, children }: VisualizerFra
 
     return (
         <div
-            className={`my-8 -mx-2 sm:mx-0 rounded-2xl border ${s.border} overflow-hidden relative`}
+            className={`my-8 -mx-2 sm:mx-0 rounded-2xl border ${s.border} overflow-hidden relative bg-[var(--lab-viz-bg)]`}
             onMouseEnter={handleInteraction}
         >
             {/* Neuron family: radial rose glow + pulse ring */}
@@ -135,10 +135,10 @@ export function HiddenSection({ category, title, description, difficulty = 1, ch
     const meta = CATEGORY_META[category];
 
     return (
-        <div className="my-6 rounded-xl border border-white/[0.07] bg-white/[0.01] overflow-hidden">
+        <div className="my-6 rounded-xl border border-white/[0.07] bg-[var(--lab-viz-bg)] overflow-hidden">
             <button
                 onClick={() => setOpen((v) => !v)}
-                className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-white/[0.02] transition-colors group"
+                className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-white/[0.03] transition-colors group"
                 aria-expanded={open}
             >
                 {/* Category icon */}

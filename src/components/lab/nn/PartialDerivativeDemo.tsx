@@ -121,14 +121,14 @@ export function PartialDerivativeDemo() {
                         <span className="text-xs font-mono font-bold text-sky-400">x</span>
                         <span className="text-sm font-mono font-bold text-sky-400">{x.toFixed(1)}</span>
                     </div>
-                    <Slider min={-3} max={3} step={0.1} value={[x]} onValueChange={([v]) => setX(v)} />
+                    <Slider min={-3} max={3} step={0.1} value={[x]} onValueChange={([v]) => setX(v)} trackColor="#38bdf8" thumbColor="#38bdf8" />
                 </div>
                 <div className="rounded-lg border border-amber-500/15 bg-amber-500/[0.03] px-3 py-2 space-y-2">
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-mono font-bold text-amber-400">y</span>
                         <span className="text-sm font-mono font-bold text-amber-400">{y.toFixed(1)}</span>
                     </div>
-                    <Slider min={-3} max={3} step={0.1} value={[y]} onValueChange={([v]) => setY(v)} />
+                    <Slider min={-3} max={3} step={0.1} value={[y]} onValueChange={([v]) => setY(v)} trackColor="#fbbf24" thumbColor="#fbbf24" />
                 </div>
             </div>
 

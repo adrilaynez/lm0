@@ -119,6 +119,31 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* ─── Lab theme tokens (Dark Island approach) ─── */
+[data-lab-theme="dark"] {
+  --lab-bg: #0a0a0f;
+  --lab-text: #ffffff;
+  --lab-text-muted: rgba(255, 255, 255, 0.45);
+  --lab-text-subtle: rgba(255, 255, 255, 0.25);
+  --lab-border: rgba(255, 255, 255, 0.06);
+  --lab-card: rgba(255, 255, 255, 0.02);
+  --lab-surface: rgba(255, 255, 255, 0.06);
+  --lab-viz-bg: #0f0f14;
+  --lab-header-bg: rgba(10, 10, 15, 0.95);
+}
+
+[data-lab-theme="light"] {
+  --lab-bg: #fafafa;
+  --lab-text: #1a1a1a;
+  --lab-text-muted: rgba(0, 0, 0, 0.6);
+  --lab-text-subtle: rgba(0, 0, 0, 0.35);
+  --lab-border: rgba(0, 0, 0, 0.1);
+  --lab-card: rgba(0, 0, 0, 0.03);
+  --lab-surface: rgba(0, 0, 0, 0.04);
+  --lab-viz-bg: #0f0f14;
+  --lab-header-bg: rgba(250, 250, 250, 0.95);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -184,5 +209,47 @@
       linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
     background-size: 40px 40px;
+  }
+}
+
+/* ─── Print ─── */
+@media print {
+
+  .sticky,
+  [data-feedback],
+  [aria-label="Back to top"] {
+    display: none !important;
+  }
+
+  header,
+  footer,
+  nav {
+    position: static !important;
+  }
+
+  body,
+  main,
+  article {
+    background: white !important;
+    color: black !important;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  p,
+  li,
+  span,
+  div {
+    color: inherit !important;
+  }
+
+  [data-lab-theme] {
+    --lab-text: #111;
+    --lab-text-muted: #444;
+    --lab-text-subtle: #888;
+    --lab-bg: #fff;
+    --lab-border: #ddd;
   }
 }

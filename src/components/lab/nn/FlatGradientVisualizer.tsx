@@ -69,7 +69,8 @@ export function FlatGradientVisualizer() {
                     min={-6} max={6} step={0.1}
                     value={inputVal}
                     onChange={e => setInputVal(+e.target.value)}
-                    className="flex-1 accent-indigo-500"
+                    className="flex-1 cursor-pointer"
+                    style={{ accentColor: NN_COLORS.input.hex }}
                 />
                 <span className="text-sm font-mono font-bold w-10 text-right text-white/60">
                     {inputVal.toFixed(1)}

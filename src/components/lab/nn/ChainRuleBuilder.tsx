@@ -167,7 +167,7 @@ export function ChainRuleBuilder() {
                     <span className="text-xs font-mono font-bold" style={{ color: NN_COLORS.input.hex }}>x (input)</span>
                     <span className="text-sm font-mono font-bold" style={{ color: NN_COLORS.input.hex }}>{x}</span>
                 </div>
-                <Slider min={0} max={8} step={1} value={[x]} onValueChange={([v]) => setX(v)} />
+                <Slider min={0} max={8} step={1} value={[x]} onValueChange={([v]) => setX(v)} trackColor={NN_COLORS.input.hex} thumbColor={NN_COLORS.input.hex} />
             </div>
 
             {/* Pipeline visualization */}

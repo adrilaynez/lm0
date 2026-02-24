@@ -12,17 +12,17 @@ export function ModeToggle() {
 
     if (!isInitialized) {
         return (
-            <div className="flex items-center p-1 bg-white/[0.03] border border-white/[0.08] rounded-lg w-[80px] lg:w-[172px] h-[34px] animate-pulse" />
+            <div className="flex items-center p-1 bg-[var(--lab-card)] border border-[var(--lab-border)] rounded-lg w-[80px] lg:w-[172px] h-[34px] animate-pulse" />
         );
     }
 
     return (
-        <div className="flex items-center p-1 bg-white/[0.03] border border-white/[0.08] rounded-lg">
+        <div className="flex items-center p-1 bg-[var(--lab-card)] border border-[var(--lab-border)] rounded-lg">
             <button
                 onClick={() => setMode('educational')}
                 className={cn(
                     "relative flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all",
-                    mode === 'educational' ? "text-emerald-400" : "text-white/30 hover:text-white/50"
+                    mode === 'educational' ? "text-emerald-400" : "text-[var(--lab-text-subtle)] hover:text-[var(--lab-text-muted)]"
                 )}
             >
                 <BookOpen className="h-3.5 w-3.5" />
@@ -39,7 +39,7 @@ export function ModeToggle() {
                 onClick={() => setMode('free')}
                 className={cn(
                     "relative flex items-center gap-2 px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all",
-                    mode === 'free' ? "text-blue-400" : "text-white/30 hover:text-white/50"
+                    mode === 'free' ? "text-blue-400" : "text-[var(--lab-text-subtle)] hover:text-[var(--lab-text-muted)]"
                 )}
             >
                 <FlaskConical className="h-3.5 w-3.5" />

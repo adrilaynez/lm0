@@ -160,10 +160,12 @@ export function LearningRateDemo() {
                 </div>
                 <Slider
                     min={0.001}
-                    max={0.5}
+                    max={1.0}
                     step={0.001}
                     value={[useCustom ? customLr : lr]}
                     onValueChange={([v]) => { setCustomLr(v); setUseCustom(true); }}
+                    trackColor="#a78bfa"
+                    thumbColor="#a78bfa"
                 />
             </div>
 
@@ -315,10 +317,10 @@ export function LearningRateDemo() {
                     exit={{ opacity: 0, scale: 0.95, y: -8 }}
                     transition={{ duration: 0.3 }}
                     className={`rounded-xl p-4 border text-center backdrop-blur-sm ${diverged
-                            ? "bg-gradient-to-r from-rose-500/15 via-rose-500/10 to-rose-500/15 border-rose-500/30 shadow-[0_0_30px_-10px_rgba(244,63,94,0.3)]"
-                            : converged
-                                ? "bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-emerald-500/15 border-emerald-500/30 shadow-[0_0_30px_-10px_rgba(52,211,153,0.3)]"
-                                : "bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/15 border-amber-500/30 shadow-[0_0_30px_-10px_rgba(251,191,36,0.3)]"
+                        ? "bg-gradient-to-r from-rose-500/15 via-rose-500/10 to-rose-500/15 border-rose-500/30 shadow-[0_0_30px_-10px_rgba(244,63,94,0.3)]"
+                        : converged
+                            ? "bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-emerald-500/15 border-emerald-500/30 shadow-[0_0_30px_-10px_rgba(52,211,153,0.3)]"
+                            : "bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/15 border-amber-500/30 shadow-[0_0_30px_-10px_rgba(251,191,36,0.3)]"
                         }`}
                 >
                     {animStep >= maxStep ? (

@@ -2839,6 +2839,10 @@ export const en = {
             insightFull: "With η = 1, we subtract the entire gradient. The first step overshoots the minimum so badly that the next step overshoots even more. The loss spirals to infinity. This is divergence.",
             insightSmall: "With η = 0.01, each step is a small fraction of the gradient. The loss drops smoothly toward zero. The weights converge to good values. This is why the learning rate exists.",
         },
+        lrOvershoot: {
+            title: "Interactive · Overshoot on the Loss Bowl",
+            hint: "Drag the learning rate slider and press Run. Watch how a ball on a convex loss parabola behaves — smooth convergence, bouncing oscillation, or wild divergence.",
+        },
         bioVsArtificial: {
             intro: "The artificial neuron was directly inspired by how real brain cells work. McCulloch and Pitts studied biological neurons in 1943 and noticed a pattern: signals arrive through dendrites, get processed in the cell body, and if the total signal is strong enough, the neuron fires an output down the axon. They asked: can we build a mathematical model that does the same thing?",
             bioTitle: "Biological Neuron",
@@ -3323,6 +3327,7 @@ export const en = {
                 hint: "Try all three presets first. Too small = slow crawl. Too large = the loss explodes. The sweet spot is somewhere in between.",
                 success: "Found it! The optimal η balances step size against stability. This is one of the most important hyperparameter choices in all of deep learning.",
             },
+            overshootIntro: "But what does overshoot actually look like? Imagine the loss as a bowl — a parabola. Gradient descent is a ball rolling down the sides. A small learning rate keeps the ball under control. A large one makes it bounce past the bottom and climb the other side. Try it:",
             trajectoryIntro: "Let's see the full picture of learning. Below is a map of all possible weight combinations. Dark blue means low loss. Red means high loss. Watch the weights travel from their random starting point toward a good solution.",
             terminologyIntro: "Before we go further, let's clarify some terminology you'll see everywhere in machine learning.",
             liveIntro: "Theory is one thing. Watching it happen is another. The demo below runs real training steps on a single neuron.",

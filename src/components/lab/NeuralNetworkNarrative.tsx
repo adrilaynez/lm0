@@ -33,6 +33,7 @@ import { TrainingWithTextDemo } from "@/components/lab/nn/TrainingWithTextDemo";
 import { OutputLayerNetworkVisualizer } from "@/components/lab/nn/OutputLayerNetworkVisualizer";
 import { SoftmaxTransformDemo } from "@/components/lab/nn/SoftmaxTransformDemo";
 import { LearningRateDemo } from "@/components/lab/nn/LearningRateDemo";
+import { LROvershootVisualizer } from "@/components/lab/nn/LROvershootVisualizer";
 import { LetterToNumberDemo } from "@/components/lab/nn/LetterToNumberDemo";
 import { ToyAlphabetPredictor } from "@/components/lab/nn/ToyAlphabetPredictor";
 import { BeatTheMachineChallenge } from "@/components/lab/nn/BeatTheMachineChallenge";
@@ -59,6 +60,10 @@ import { OverfittingPlayground } from "@/components/lab/nn/OverfittingPlayground
 import { HiddenSection } from "@/components/lab/nn/VisualizerFrame";
 import { Highlight } from "@/components/lab/Highlight";
 import { SectionProgressBar } from "@/components/lab/SectionProgressBar";
+import { ContinueToast } from "@/components/lab/ContinueToast";
+import { Term } from "@/components/lab/GlossaryTooltip";
+import { KeyTakeaway } from "@/components/lab/KeyTakeaway";
+import { SectionAnchor } from "@/components/lab/SectionAnchor";
 
 import { BlockMath } from "react-katex";
 import "katex/dist/katex.min.css";
@@ -88,17 +93,17 @@ function SectionLabel({ number, label }: { number: string; label: string }) {
             <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-rose-500/20 to-pink-500/10 border border-rose-500/25 text-[11px] font-mono font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-400 to-pink-300" style={{ WebkitBackgroundClip: 'text', backgroundImage: 'linear-gradient(135deg, #fb7185, #f9a8d4)' }}>
                 {number}
             </span>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/30">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[var(--lab-text-subtle)]">
                 {label}
             </span>
-            <div className="flex-1 h-px bg-gradient-to-r from-white/[0.06] to-transparent" />
+            <div className="flex-1 h-px bg-gradient-to-r from-[var(--lab-border)] to-transparent" />
         </div>
     );
 }
 
 function Heading({ children }: { children: React.ReactNode }) {
     return (
-        <h2 className="text-2xl md:text-[2rem] font-extrabold text-white tracking-tight mb-6 leading-tight">
+        <h2 className="text-2xl md:text-[2rem] font-extrabold text-[var(--lab-text)] tracking-tight mb-6 leading-tight">
             {children}
         </h2>
     );
@@ -106,7 +111,7 @@ function Heading({ children }: { children: React.ReactNode }) {
 
 function Lead({ children }: { children: React.ReactNode }) {
     return (
-        <p className="text-lg md:text-xl text-white/50 leading-[1.8] mb-6 font-light">
+        <p className="text-lg md:text-xl text-[var(--lab-text-muted)] leading-[1.8] mb-6 font-light">
             {children}
         </p>
     );
@@ -114,7 +119,7 @@ function Lead({ children }: { children: React.ReactNode }) {
 
 function P({ children }: { children: React.ReactNode }) {
     return (
-        <p className="text-[15px] md:text-base text-white/45 leading-[1.9] mb-5 last:mb-0">
+        <p className="text-[15px] md:text-base text-[var(--lab-text-muted)] leading-[1.9] mb-5 last:mb-0">
             {children}
         </p>
     );
@@ -182,7 +187,7 @@ function Callout({
                             {title}
                         </p>
                     )}
-                    <div className="text-sm text-white/50 leading-relaxed [&>p]:mb-2 [&>p:last-child]:mb-0">
+                    <div className="text-sm text-[var(--lab-text-muted)] leading-relaxed [&>p]:mb-2 [&>p:last-child]:mb-0">
                         {children}
                     </div>
                 </div>
@@ -204,7 +209,7 @@ function FormulaBlock({ formula, caption }: { formula: string; caption: string }
                     <BlockMath math={formula} />
                 </div>
             </div>
-            <p className="text-center text-sm md:text-base text-white/40 italic font-light max-w-2xl mx-auto">
+            <p className="text-center text-sm md:text-base text-[var(--lab-text-muted)] italic font-light max-w-2xl mx-auto">
                 {caption}
             </p>
         </motion.div>
@@ -219,7 +224,7 @@ function PullQuote({ children }: { children: React.ReactNode }) {
             viewport={{ once: true, margin: "-40px" }}
             className="my-10 md:my-12 pl-6 border-l-2 border-rose-500/30"
         >
-            <p className="text-lg md:text-xl text-white/60 font-light italic leading-relaxed">
+            <p className="text-lg md:text-xl text-[var(--lab-text-muted)] font-light italic leading-relaxed">
                 {children}
             </p>
         </motion.blockquote>
@@ -227,7 +232,7 @@ function PullQuote({ children }: { children: React.ReactNode }) {
 }
 
 const FIGURE_ACCENTS = {
-    default: { border: "border-white/[0.07]", bg: "bg-white/[0.015]", bar: "border-white/[0.06] bg-white/[0.02]", text: "text-white/30" },
+    default: { border: "border-[var(--lab-border)]", bg: "bg-[var(--lab-card)]", bar: "border-[var(--lab-border)] bg-[var(--lab-card)]", text: "text-[var(--lab-text-subtle)]" },
     amber: { border: "border-amber-500/[0.12]", bg: "bg-gradient-to-br from-amber-500/[0.02] to-transparent", bar: "border-amber-500/[0.08] bg-amber-500/[0.02]", text: "text-amber-400/50" },
     emerald: { border: "border-emerald-500/[0.1]", bg: "bg-[radial-gradient(ellipse_at_top,rgba(52,211,153,0.02),transparent)]", bar: "border-emerald-500/[0.08] bg-emerald-500/[0.02]", text: "text-emerald-400/50" },
     rose: { border: "border-rose-500/[0.12]", bg: "bg-gradient-to-br from-rose-500/[0.03] to-transparent", bar: "border-rose-500/[0.08] bg-rose-500/[0.02]", text: "text-rose-400/50" },
@@ -244,9 +249,9 @@ function FigureWrapper({ label, hint, accent = "default", children }: { label: s
             <div className={`flex items-center justify-between gap-3 px-4 py-2.5 border-b ${a.bar}`}>
                 <span className={`text-[10px] font-mono uppercase tracking-widest ${a.text}`}>{label}</span>
             </div>
-            <div className="p-4">{children}</div>
+            <div className="p-4 bg-[var(--lab-viz-bg)]">{children}</div>
             {hint && (
-                <p className="px-4 pb-3 text-[11px] text-white/25 italic">{hint}</p>
+                <p className="px-4 pb-3 text-[11px] text-[var(--lab-text-subtle)] italic">{hint}</p>
             )}
         </div>
     );
@@ -256,9 +261,9 @@ function FigureWrapper({ label, hint, accent = "default", children }: { label: s
 function SectionBreak() {
     return (
         <div className="flex items-center justify-center gap-3 my-16 md:my-20">
-            <div className="h-px w-12 bg-gradient-to-r from-transparent to-white/[0.08]" />
-            <div className="w-1.5 h-1.5 rounded-full bg-white/[0.08]" />
-            <div className="h-px w-12 bg-gradient-to-l from-transparent to-white/[0.08]" />
+            <div className="h-px w-12 bg-gradient-to-r from-transparent to-[var(--lab-border)]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[var(--lab-border)]" />
+            <div className="h-px w-12 bg-gradient-to-l from-transparent to-[var(--lab-border)]" />
         </div>
     );
 }
@@ -296,7 +301,7 @@ function HistorySidebar({ t }: { t: (key: string) => string }) {
                     <p className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-200 via-pink-200 to-rose-200 mb-1">
                         {t("neuralNetworkNarrative.history.title")}
                     </p>
-                    <p className="text-xs text-white/40 leading-relaxed">
+                    <p className="text-xs text-[var(--lab-text-muted)] leading-relaxed">
                         {t("neuralNetworkNarrative.history.summary")}
                     </p>
                 </div>
@@ -316,9 +321,9 @@ function HistorySidebar({ t }: { t: (key: string) => string }) {
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-                        className="overflow-hidden bg-black"
+                        className="overflow-hidden bg-[var(--lab-viz-bg)]"
                     >
-                        <div className="px-6 pb-6 border-t border-white/[0.04] pt-5">
+                        <div className="px-6 pb-6 border-t border-white/[0.06] pt-5">
                             {/* Subtitle */}
                             <p className="text-xs font-bold uppercase tracking-[0.15em] text-rose-400/50 mb-6 text-center">
                                 {t("neuralNetworkNarrative.history.subtitle")}
@@ -461,6 +466,20 @@ export function NeuralNetworkNarrative() {
 
     return (
         <article className="max-w-4xl mx-auto px-6 pb-28">
+            <ContinueToast
+                pageId="neural-networks"
+                accent="rose"
+                sectionNames={{
+                    "nn-01": t("neuralNetworkNarrative.sections.discovery.label"),
+                    "nn-02": t("models.neuralNetworks.sections.artificialNeuron.label"),
+                    "nn-03": t("models.neuralNetworks.sections.nonLinearity.label"),
+                    "nn-04": t("models.neuralNetworks.sections.findingDirection.label"),
+                    "nn-05": t("models.neuralNetworks.sections.makingItLearn.label"),
+                    "nn-06": t("models.neuralNetworks.sections.trainingAtScale.label"),
+                    "nn-07": t("models.neuralNetworks.sections.overfittingTrap.label"),
+                    "nn-08": t("neuralNetworkNarrative.sections.fromNumbers.label"),
+                }}
+            />
             <SectionProgressBar
                 sections={[
                     { id: "nn-01", label: t("neuralNetworkNarrative.sections.discovery.number"), name: t("neuralNetworkNarrative.sections.discovery.label") },
@@ -472,6 +491,7 @@ export function NeuralNetworkNarrative() {
                     { id: "nn-07", label: t("models.neuralNetworks.sections.overfittingTrap.number"), name: t("models.neuralNetworks.sections.overfittingTrap.label") },
                     { id: "nn-08", label: t("neuralNetworkNarrative.sections.fromNumbers.number"), name: t("neuralNetworkNarrative.sections.fromNumbers.label") },
                 ]}
+                accent="rose"
             />
 
             {/* ───────────────────── HERO ───────────────────── */}
@@ -486,19 +506,23 @@ export function NeuralNetworkNarrative() {
                         {t("neuralNetworkNarrative.hero.eyebrow")}
                     </span>
 
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6">
+                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-[var(--lab-text)] mb-6">
                         {t("neuralNetworkNarrative.hero.titlePrefix")}{" "}
                         <span className="bg-gradient-to-r from-rose-400 via-pink-300 to-rose-400 bg-clip-text text-transparent">
                             {t("neuralNetworkNarrative.hero.titleSuffix")}
                         </span>
                     </h1>
 
-                    <p className="text-lg md:text-xl text-white/35 max-w-xl mx-auto leading-relaxed mb-4">
+                    <p className="text-lg md:text-xl text-[var(--lab-text-subtle)] max-w-xl mx-auto leading-relaxed mb-4">
                         {t("neuralNetworkNarrative.hero.description")}
                     </p>
 
-                    <p className="text-xs font-mono text-white/20 max-w-md mx-auto leading-relaxed mb-12 tracking-wide">
+                    <p className="text-xs font-mono text-[var(--lab-text-subtle)] max-w-md mx-auto leading-relaxed mb-4 tracking-wide">
                         {t("neuralNetworkNarrative.hero.recap")}
+                    </p>
+
+                    <p className="text-[11px] font-mono text-[var(--lab-text-subtle)] mb-12">
+                        ~25 min read · 16 interactive demos
                     </p>
 
                     <div className="flex justify-center mb-14">
@@ -508,7 +532,7 @@ export function NeuralNetworkNarrative() {
                     <motion.div
                         animate={{ y: [0, 6, 0] }}
                         transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                        className="text-white/10"
+                        className="text-[var(--lab-border)]"
                     >
                         <ArrowDown className="w-5 h-5 mx-auto" />
                     </motion.div>
@@ -518,7 +542,7 @@ export function NeuralNetworkNarrative() {
             {/* ─────────── 01 · LET'S TEACH A MACHINE TO LEARN ─────────── */}
             <Section id="nn-01">
                 <SectionLabel number={t("neuralNetworkNarrative.sections.discovery.number")} label={t("neuralNetworkNarrative.sections.discovery.label")} />
-                <Heading>{t("neuralNetworkNarrative.discovery.heading")}</Heading>
+                <SectionAnchor id="nn-01"><Heading>{t("neuralNetworkNarrative.discovery.heading")}</Heading></SectionAnchor>
                 <Lead>
                     {t("neuralNetworkNarrative.discovery.lead")}
                     <Highlight tooltip={t("neuralNetworkNarrative.narratorTooltips.learning")}>{t("neuralNetworkNarrative.discovery.leadHighlight")}</Highlight>
@@ -530,7 +554,7 @@ export function NeuralNetworkNarrative() {
                 <P>{t("neuralNetworkNarrative.discovery.bigramQuestion")}</P>
 
                 {/* Counting vs Learning comparison table */}
-                <div className="my-8 rounded-2xl border border-white/[0.08] bg-white/[0.015] overflow-hidden">
+                <div className="my-8 rounded-2xl border border-white/[0.08] bg-[var(--lab-viz-bg)] overflow-hidden">
                     <div className="px-4 py-3 border-b border-white/[0.06] bg-white/[0.02]">
                         <span className="text-[10px] font-mono uppercase tracking-widest text-white/30">
                             {t("neuralNetworkNarrative.discovery.countingVsLearning.title")}
@@ -585,7 +609,7 @@ export function NeuralNetworkNarrative() {
 
                 <P>{t("neuralNetworkNarrative.discovery.p1")}</P>
 
-                <p className="text-[15px] md:text-base text-white/35 leading-[1.9] mb-5 italic">
+                <p className="text-[15px] md:text-base text-[var(--lab-text-muted)] leading-[1.9] mb-5 italic">
                     {t("neuralNetworkNarrative.discovery.predict1")}
                 </p>
 
@@ -598,7 +622,7 @@ export function NeuralNetworkNarrative() {
 
                 <P>{t("neuralNetworkNarrative.discovery.p2")}</P>
 
-                <p className="text-[15px] md:text-base text-white/35 leading-[1.9] mb-5 italic">
+                <p className="text-[15px] md:text-base text-[var(--lab-text-muted)] leading-[1.9] mb-5 italic">
                     {t("neuralNetworkNarrative.discovery.predict2")}
                 </p>
 
@@ -620,7 +644,7 @@ export function NeuralNetworkNarrative() {
 
                 <P>{t("neuralNetworkNarrative.discovery.p4")}</P>
 
-                <p className="text-[15px] md:text-base text-white/35 leading-[1.9] mb-5 italic">
+                <p className="text-[15px] md:text-base text-[var(--lab-text-muted)] leading-[1.9] mb-5 italic">
                     {t("neuralNetworkNarrative.discovery.predict3")}
                 </p>
 
@@ -636,6 +660,10 @@ export function NeuralNetworkNarrative() {
                 </Callout>
 
                 <P>{t("neuralNetworkNarrative.discovery.bridge")}</P>
+
+                <KeyTakeaway accent="rose">
+                    A <Term word="neuron">neuron</Term> takes inputs, multiplies each by a <Term word="weight">weight</Term>, adds a <Term word="bias">bias</Term>, and outputs a number. These three ingredients are all you need to start learning.
+                </KeyTakeaway>
             </Section>
 
             <SectionBreak />
@@ -646,13 +674,13 @@ export function NeuralNetworkNarrative() {
                     number={t("models.neuralNetworks.sections.artificialNeuron.number")}
                     label={t("models.neuralNetworks.sections.artificialNeuron.label")}
                 />
-                <Heading>{t("neuralNetworkNarrative.artificialNeuron.title")}</Heading>
+                <SectionAnchor id="nn-02"><Heading>{t("neuralNetworkNarrative.artificialNeuron.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("neuralNetworkNarrative.artificialNeuron.lead")}</Lead>
 
                 <P>{t("neuralNetworkNarrative.artificialNeuron.p1")}</P>
 
-                <p className="text-[15px] md:text-base text-white/35 leading-[1.9] mb-5 italic">
+                <p className="text-[15px] md:text-base text-[var(--lab-text-muted)] leading-[1.9] mb-5 italic">
                     {t("neuralNetworkNarrative.artificialNeuron.predict4")}
                 </p>
 
@@ -713,7 +741,7 @@ export function NeuralNetworkNarrative() {
                     number={t("models.neuralNetworks.sections.nonLinearity.number")}
                     label={t("models.neuralNetworks.sections.nonLinearity.label")}
                 />
-                <Heading>{t("neuralNetworkNarrative.nonLinearity.title")}</Heading>
+                <SectionAnchor id="nn-03"><Heading>{t("neuralNetworkNarrative.nonLinearity.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("neuralNetworkNarrative.nonLinearity.lead")}</Lead>
 
@@ -858,7 +886,7 @@ export function NeuralNetworkNarrative() {
                     number={t("models.neuralNetworks.sections.findingDirection.number")}
                     label={t("models.neuralNetworks.sections.findingDirection.label")}
                 />
-                <Heading>{t("neuralNetworkNarrative.findingDirection.title")}</Heading>
+                <SectionAnchor id="nn-04"><Heading>{t("neuralNetworkNarrative.findingDirection.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("neuralNetworkNarrative.findingDirection.lead")}</Lead>
 
@@ -928,7 +956,7 @@ export function NeuralNetworkNarrative() {
                     number={t("models.neuralNetworks.sections.makingItLearn.number")}
                     label={t("models.neuralNetworks.sections.makingItLearn.label")}
                 />
-                <Heading>{t("neuralNetworkNarrative.makingItLearn.title")}</Heading>
+                <SectionAnchor id="nn-05"><Heading>{t("neuralNetworkNarrative.makingItLearn.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("neuralNetworkNarrative.makingItLearn.lead")}</Lead>
 
@@ -1075,6 +1103,17 @@ export function NeuralNetworkNarrative() {
                     successMessage={t("neuralNetworkNarrative.training.lrChallenge.success")}
                 />
 
+                {/* LR Overshoot — see the ball bounce on the loss bowl */}
+                <P>{t("neuralNetworkNarrative.training.overshootIntro")}</P>
+
+                <VisualizerFrame
+                    family="dashboard"
+                    label={t("neuralNetworkNarrative.lrOvershoot.title")}
+                    hint={t("neuralNetworkNarrative.lrOvershoot.hint")}
+                >
+                    <LROvershootVisualizer />
+                </VisualizerFrame>
+
                 {/* What If #3 */}
                 <HiddenSection
                     category="math"
@@ -1174,6 +1213,10 @@ export function NeuralNetworkNarrative() {
                 <p className="text-center text-sm text-white/30 italic my-6">
                     {t("neuralNetworkNarrative.makingItLearn.reflection3")}
                 </p>
+
+                <KeyTakeaway accent="rose">
+                    <Term word="gradient descent">Gradient descent</Term> is how neural networks learn: measure the <Term word="loss">loss</Term>, compute the <Term word="gradient">gradient</Term>, and nudge each <Term word="weight">weight</Term> in the direction that reduces error. Repeat thousands of times.
+                </KeyTakeaway>
             </Section>
 
             <SectionBreak />
@@ -1184,7 +1227,7 @@ export function NeuralNetworkNarrative() {
                     number={t("models.neuralNetworks.sections.trainingAtScale.number")}
                     label={t("models.neuralNetworks.sections.trainingAtScale.label")}
                 />
-                <Heading>{t("neuralNetworkNarrative.trainingAtScale.title")}</Heading>
+                <SectionAnchor id="nn-06"><Heading>{t("neuralNetworkNarrative.trainingAtScale.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("neuralNetworkNarrative.trainingAtScale.lead")}</Lead>
 
@@ -1322,7 +1365,7 @@ export function NeuralNetworkNarrative() {
                     number={t("models.neuralNetworks.sections.overfittingTrap.number")}
                     label={t("models.neuralNetworks.sections.overfittingTrap.label")}
                 />
-                <Heading>{t("neuralNetworkNarrative.overfitting.heading")}</Heading>
+                <SectionAnchor id="nn-07"><Heading>{t("neuralNetworkNarrative.overfitting.heading")}</Heading></SectionAnchor>
 
                 <Lead>{t("neuralNetworkNarrative.overfitting.lead")}</Lead>
 
@@ -1381,6 +1424,10 @@ export function NeuralNetworkNarrative() {
                 </p>
 
                 <P>{t("neuralNetworkNarrative.overfitting.conclusion")}</P>
+
+                <KeyTakeaway accent="rose">
+                    <Term word="overfitting">Overfitting</Term> happens when a model memorizes training data instead of learning patterns. Split your data into train and validation sets, and watch the <Term word="validation loss">validation loss</Term> to know when to stop.
+                </KeyTakeaway>
 
                 {/* Supervised learning — improved with flow diagram */}
                 <HiddenSection
@@ -1450,7 +1497,7 @@ export function NeuralNetworkNarrative() {
                     number={t("neuralNetworkNarrative.sections.fromNumbers.number")}
                     label={t("neuralNetworkNarrative.sections.fromNumbers.label")}
                 />
-                <Heading>{t("neuralNetworkNarrative.fromNumbers.title")}</Heading>
+                <SectionAnchor id="nn-08"><Heading>{t("neuralNetworkNarrative.fromNumbers.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("neuralNetworkNarrative.fromNumbers.lead")}</Lead>
 
@@ -1595,15 +1642,19 @@ export function NeuralNetworkNarrative() {
                 </VisualizerFrame>
 
                 <P>{t("neuralNetworkNarrative.fromNumbers.mlpBridge")}</P>
+
+                <KeyTakeaway accent="rose">
+                    A neural network with a single <Term word="layer">layer</Term> of weights can learn the same <Term word="bigram">bigram</Term> probabilities as counting — but with <Term word="softmax">softmax</Term> and <Term word="cross-entropy">cross-entropy loss</Term>, it&apos;s ready to scale to deeper architectures.
+                </KeyTakeaway>
             </Section>
 
             {/* ───────────────── CTA ───────────────── */}
             <Section id="nn-cta">
                 <div className="text-center mb-8">
-                    <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
+                    <h2 className="text-2xl md:text-3xl font-bold text-[var(--lab-text)] tracking-tight mb-3">
                         {t("neuralNetworkNarrative.cta.title")}
                     </h2>
-                    <p className="text-sm text-white/40 max-w-lg mx-auto leading-relaxed">
+                    <p className="text-sm text-[var(--lab-text-muted)] max-w-lg mx-auto leading-relaxed">
                         {t("neuralNetworkNarrative.cta.subtitle")}
                     </p>
                 </div>
@@ -1619,7 +1670,7 @@ export function NeuralNetworkNarrative() {
                                 <span className="shrink-0 w-5 h-5 rounded-full bg-rose-500/20 flex items-center justify-center text-[10px] font-bold text-rose-400 mt-0.5">
                                     {i + 1}
                                 </span>
-                                <span className="text-sm text-white/50 leading-relaxed">
+                                <span className="text-sm text-[var(--lab-text-muted)] leading-relaxed">
                                     {t(`neuralNetworkNarrative.cta.${key}`)}
                                 </span>
                             </li>
@@ -1632,7 +1683,7 @@ export function NeuralNetworkNarrative() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setMode("free")}
-                        className="group relative rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-950/20 to-black/60 p-6 text-left transition-colors hover:border-rose-500/40 overflow-hidden"
+                        className="group relative rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-950/20 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-colors hover:border-rose-500/40 overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-rose-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                         <div className="relative">
@@ -1640,11 +1691,11 @@ export function NeuralNetworkNarrative() {
                                 <div className="p-2 rounded-xl bg-rose-500/15">
                                     <Beaker className="w-5 h-5 text-rose-300" />
                                 </div>
-                                <span className="text-lg font-bold text-white">
+                                <span className="text-lg font-bold text-[var(--lab-text)]">
                                     {t("neuralNetworkNarrative.cta.labButton")}
                                 </span>
                             </div>
-                            <p className="text-sm text-white/45 leading-relaxed">
+                            <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed">
                                 {t("neuralNetworkNarrative.cta.labDesc")}
                             </p>
                         </div>
@@ -1654,7 +1705,7 @@ export function NeuralNetworkNarrative() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => router.push("/lab/mlp")}
-                        className="group relative rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-950/20 to-black/60 p-6 text-left transition-colors hover:border-rose-500/40 overflow-hidden"
+                        className="group relative rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-950/20 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-colors hover:border-rose-500/40 overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-rose-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                         <div className="relative">
@@ -1662,11 +1713,11 @@ export function NeuralNetworkNarrative() {
                                 <div className="p-2 rounded-xl bg-rose-500/15">
                                     <Layers className="w-5 h-5 text-rose-300" />
                                 </div>
-                                <span className="text-lg font-bold text-white">
+                                <span className="text-lg font-bold text-[var(--lab-text)]">
                                     {t("neuralNetworkNarrative.cta.mlpButton")}
                                 </span>
                             </div>
-                            <p className="text-sm text-white/45 leading-relaxed">
+                            <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed">
                                 {t("neuralNetworkNarrative.cta.mlpDesc")}
                             </p>
                         </div>
@@ -1679,12 +1730,12 @@ export function NeuralNetworkNarrative() {
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
-                className="mt-8 pt-12 border-t border-white/[0.06] text-center"
+                className="mt-8 pt-12 border-t border-[var(--lab-border)] text-center"
             >
-                <p className="text-sm text-white/25 italic max-w-md mx-auto leading-relaxed mb-10">
+                <p className="text-sm text-[var(--lab-text-subtle)] italic max-w-md mx-auto leading-relaxed mb-10">
                     {t("neuralNetworkNarrative.footer.text")}
                 </p>
-                <div className="flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-widest text-white/10">
+                <div className="flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-widest text-[var(--lab-border)]">
                     <FlaskConical className="h-3 w-3" />
                     {t("neuralNetworkNarrative.footer.brand")}
                 </div>

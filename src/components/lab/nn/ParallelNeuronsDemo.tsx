@@ -272,21 +272,21 @@ export function ParallelNeuronsDemo() {
                 <div className="grid grid-cols-2 gap-4 mb-4">
                     <label className="block">
                         <div className="flex justify-between mb-1">
-                            <span className="text-[10px] font-mono text-white/40">x₁</span>
-                            <span className="text-[11px] font-mono font-bold text-white/60">{x1.toFixed(2)}</span>
+                            <span className="text-[10px] font-mono font-bold" style={{ color: '#38bdf8' }}>x₁</span>
+                            <span className="text-[11px] font-mono font-bold" style={{ color: '#38bdf8' }}>{x1.toFixed(2)}</span>
                         </div>
                         <input type="range" min={-2} max={2} step={0.1} value={x1}
                             onChange={(e) => setX1(+e.target.value)}
-                            className="w-full cursor-pointer accent-white" />
+                            className="w-full cursor-pointer" style={{ accentColor: '#38bdf8' }} />
                     </label>
                     <label className="block">
                         <div className="flex justify-between mb-1">
-                            <span className="text-[10px] font-mono text-white/40">x₂</span>
-                            <span className="text-[11px] font-mono font-bold text-white/60">{x2.toFixed(2)}</span>
+                            <span className="text-[10px] font-mono font-bold" style={{ color: '#fbbf24' }}>x₂</span>
+                            <span className="text-[11px] font-mono font-bold" style={{ color: '#fbbf24' }}>{x2.toFixed(2)}</span>
                         </div>
                         <input type="range" min={-2} max={2} step={0.1} value={x2}
                             onChange={(e) => setX2(+e.target.value)}
-                            className="w-full cursor-pointer accent-white" />
+                            className="w-full cursor-pointer" style={{ accentColor: '#fbbf24' }} />
                     </label>
                 </div>
 

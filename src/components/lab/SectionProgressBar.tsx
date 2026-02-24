@@ -8,7 +8,22 @@ export type SectionProgressItem = {
     name?: string;
 };
 
-export function SectionProgressBar({ sections }: { sections: SectionProgressItem[] }) {
+type ProgressAccent = "rose" | "emerald" | "amber" | "violet";
+
+const ACTIVE_DOT: Record<ProgressAccent, string> = {
+    rose: "bg-rose-400",
+    emerald: "bg-emerald-400",
+    amber: "bg-amber-400",
+    violet: "bg-violet-400",
+};
+
+export function SectionProgressBar({
+    sections,
+    accent = "rose",
+}: {
+    sections: SectionProgressItem[];
+    accent?: ProgressAccent;
+}) {
     const [activeIdx, setActiveIdx] = useState(0);
 
     const ids = useMemo(() => sections.map((s) => s.id), [sections]);
@@ -44,7 +59,7 @@ export function SectionProgressBar({ sections }: { sections: SectionProgressItem
 
     return (
         <div className="sticky top-4 z-40 flex justify-center mb-6 pointer-events-none">
-            <div className="pointer-events-auto rounded-full border border-white/[0.08] bg-black/40 backdrop-blur px-3 py-2">
+            <div className="pointer-events-auto rounded-full border border-[var(--lab-border)] bg-[var(--lab-header-bg)] backdrop-blur px-3 py-2">
                 <div className="flex items-center gap-2">
                     {sections.map((s, i) => {
                         const isActive = i === activeIdx;
@@ -59,21 +74,21 @@ export function SectionProgressBar({ sections }: { sections: SectionProgressItem
                             >
                                 <span
                                     className={`w-2.5 h-2.5 rounded-full transition-all ${isActive
-                                            ? "bg-rose-400"
-                                            : isDone
-                                                ? "bg-white/25"
-                                                : "bg-white/10"
+                                        ? ACTIVE_DOT[accent]
+                                        : isDone
+                                            ? "bg-[var(--lab-text-subtle)]"
+                                            : "bg-[var(--lab-border)]"
                                         }`}
                                 />
                                 <span
-                                    className={`hidden sm:block text-[10px] font-mono uppercase tracking-widest transition-colors ${isActive ? "text-white/55" : "text-white/20 group-hover:text-white/35"
+                                    className={`hidden sm:block text-[10px] font-mono uppercase tracking-widest transition-colors ${isActive ? "text-[var(--lab-text-muted)]" : "text-[var(--lab-text-subtle)] group-hover:text-[var(--lab-text-muted)]"
                                         }`}
                                 >
                                     {s.label}
                                 </span>
                                 {/* Hover tooltip with section name */}
                                 {s.name && (
-                                    <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-black/80 border border-white/10 px-2 py-0.5 text-[9px] font-mono text-white/60 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                                    <span className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-[var(--lab-viz-bg)] border border-[var(--lab-border)] px-2 py-0.5 text-[9px] font-mono text-[var(--lab-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                                         {s.name}
                                     </span>
                                 )}

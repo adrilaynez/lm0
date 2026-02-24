@@ -30,14 +30,20 @@ import { CombinatoricExplosionTable } from "@/components/lab/CombinatoricExplosi
 import { SparsityHeatmap } from "@/components/lab/SparsityHeatmap";
 import { InfiniteTableThoughtExperiment } from "@/components/lab/InfiniteTableThoughtExperiment";
 import { TypoWordBreaker } from "@/components/lab/TypoWordBreaker";
+import { SectionProgressBar } from "@/components/lab/SectionProgressBar";
+import { ContinueToast } from "@/components/lab/ContinueToast";
+import { Term } from "@/components/lab/GlossaryTooltip";
+import { KeyTakeaway } from "@/components/lab/KeyTakeaway";
+import { SectionAnchor } from "@/components/lab/SectionAnchor";
 
 /* ─────────────────────────────────────────────
    Primitive building blocks (matches Bigram / NN narrative style)
    ───────────────────────────────────────────── */
 
-function Section({ children }: { children: React.ReactNode }) {
+function Section({ id, children }: { id?: string; children: React.ReactNode }) {
     return (
         <motion.section
+            id={id}
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
@@ -55,17 +61,17 @@ function SectionLabel({ number, label }: { number: string; label: string }) {
             <span className="flex items-center justify-center w-7 h-7 rounded-full bg-amber-500/10 border border-amber-500/20 text-[11px] font-mono font-bold text-amber-400">
                 {number}
             </span>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-white/25">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[var(--lab-text-subtle)]">
                 {label}
             </span>
-            <div className="flex-1 h-px bg-gradient-to-r from-white/[0.06] to-transparent" />
+            <div className="flex-1 h-px bg-gradient-to-r from-[var(--lab-border)] to-transparent" />
         </div>
     );
 }
 
 function Heading({ children }: { children: React.ReactNode }) {
     return (
-        <h2 className="text-2xl md:text-[2rem] font-bold text-white tracking-tight mb-6 leading-tight">
+        <h2 className="text-2xl md:text-[2rem] font-bold text-[var(--lab-text)] tracking-tight mb-6 leading-tight">
             {children}
         </h2>
     );
@@ -73,7 +79,7 @@ function Heading({ children }: { children: React.ReactNode }) {
 
 function Lead({ children }: { children: React.ReactNode }) {
     return (
-        <p className="text-lg md:text-xl text-white/50 leading-[1.8] mb-6 font-light">
+        <p className="text-lg md:text-xl text-[var(--lab-text-muted)] leading-[1.8] mb-6 font-light">
             {children}
         </p>
     );
@@ -81,7 +87,7 @@ function Lead({ children }: { children: React.ReactNode }) {
 
 function P({ children }: { children: React.ReactNode }) {
     return (
-        <p className="text-[15px] md:text-base text-white/45 leading-[1.9] mb-5 last:mb-0">
+        <p className="text-[15px] md:text-base text-[var(--lab-text-muted)] leading-[1.9] mb-5 last:mb-0">
             {children}
         </p>
     );
@@ -119,7 +125,7 @@ function Callout({
                             {title}
                         </p>
                     )}
-                    <div className="text-sm text-white/50 leading-relaxed [&>p]:mb-2 [&>p:last-child]:mb-0">
+                    <div className="text-sm text-[var(--lab-text-muted)] leading-relaxed [&>p]:mb-2 [&>p:last-child]:mb-0">
                         {children}
                     </div>
                 </div>
@@ -136,7 +142,7 @@ function PullQuote({ children }: { children: React.ReactNode }) {
             viewport={{ once: true, margin: "-40px" }}
             className="my-10 md:my-12 pl-6 border-l-2 border-amber-400/40"
         >
-            <p className="text-lg md:text-xl text-white/60 font-light italic leading-relaxed">
+            <p className="text-lg md:text-xl text-[var(--lab-text-muted)] font-light italic leading-relaxed">
                 {children}
             </p>
         </motion.blockquote>
@@ -146,9 +152,9 @@ function PullQuote({ children }: { children: React.ReactNode }) {
 function SectionBreak() {
     return (
         <div className="flex items-center justify-center gap-3 my-16 md:my-20">
-            <div className="h-px w-12 bg-gradient-to-r from-transparent to-white/[0.08]" />
-            <div className="w-1.5 h-1.5 rounded-full bg-white/[0.08]" />
-            <div className="h-px w-12 bg-gradient-to-l from-transparent to-white/[0.08]" />
+            <div className="h-px w-12 bg-gradient-to-r from-transparent to-[var(--lab-border)]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[var(--lab-border)]" />
+            <div className="h-px w-12 bg-gradient-to-l from-transparent to-[var(--lab-border)]" />
         </div>
     );
 }
@@ -172,8 +178,8 @@ function ExpandableSection({
                 aria-expanded={open}
             >
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-                <h3 className="text-lg font-bold text-white flex-1 leading-snug">{title}</h3>
-                <span className="shrink-0 text-[10px] font-mono uppercase tracking-widest text-white/25 group-hover:text-white/40 transition-colors mr-1">
+                <h3 className="text-lg font-bold text-[var(--lab-text)] flex-1 leading-snug">{title}</h3>
+                <span className="shrink-0 text-[10px] font-mono uppercase tracking-widest text-[var(--lab-text-subtle)] group-hover:text-[var(--lab-text-muted)] transition-colors mr-1">
                     {open ? t("ngramNarrative.ui.collapse") : t("ngramNarrative.ui.expand")}
                 </span>
                 <motion.div
@@ -181,7 +187,7 @@ function ExpandableSection({
                     transition={{ duration: 0.2 }}
                     className="shrink-0"
                 >
-                    <ChevronDown className="w-4 h-4 text-white/25 group-hover:text-white/50 transition-colors" />
+                    <ChevronDown className="w-4 h-4 text-[var(--lab-text-subtle)] group-hover:text-[var(--lab-text-muted)] transition-colors" />
                 </motion.div>
             </button>
             <AnimatePresence initial={false}>
@@ -219,21 +225,21 @@ function FigureWrapper({
             transition={{ duration: 0.5 }}
             className="my-12 md:my-16 -mx-4 sm:mx-0"
         >
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] overflow-hidden">
-                <div className="flex items-center gap-3 px-5 py-3 border-b border-white/[0.06] bg-white/[0.02]">
+            <div className="rounded-2xl border border-[var(--lab-border)] bg-[var(--lab-card)] overflow-hidden">
+                <div className="flex items-center gap-3 px-5 py-3 border-b border-[var(--lab-border)] bg-[var(--lab-card)]">
                     <div className="flex gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-white/20" />
-                        <span className="w-2.5 h-2.5 rounded-full bg-white/15" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--lab-text-subtle)]" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-[var(--lab-border)]" />
                         <span className="w-2.5 h-2.5 rounded-full bg-amber-400/40" />
                     </div>
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-white/30">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--lab-text-subtle)]">
                         {label}
                     </span>
                 </div>
-                <div className="p-4 sm:p-6">{children}</div>
+                <div className="p-4 sm:p-6 bg-[var(--lab-viz-bg)]">{children}</div>
             </div>
             {hint && (
-                <figcaption className="mt-3 text-center text-xs text-white/25 italic">
+                <figcaption className="mt-3 text-center text-xs text-[var(--lab-text-subtle)] italic">
                     {hint}
                 </figcaption>
             )}
@@ -408,6 +414,29 @@ export function NgramNarrative({
 
     return (
         <article className="max-w-[920px] mx-auto px-6 pt-8 pb-24">
+            <ContinueToast
+                pageId="ngram"
+                accent="amber"
+                sectionNames={{
+                    "ngram-01": "More Context",
+                    "ngram-02": "Counting With Context",
+                    "ngram-03": "Better Predictions",
+                    "ngram-04": "Price of Memory",
+                    "ngram-05": "The Deeper Problem",
+                    "ngram-06": "End of Counting",
+                }}
+            />
+            <SectionProgressBar
+                sections={[
+                    { id: "ngram-01", label: "01", name: "More Context" },
+                    { id: "ngram-02", label: "02", name: "Counting With Context" },
+                    { id: "ngram-03", label: "03", name: "Better Predictions" },
+                    { id: "ngram-04", label: "04", name: "Price of Memory" },
+                    { id: "ngram-05", label: "05", name: "The Deeper Problem" },
+                    { id: "ngram-06", label: "06", name: "End of Counting" },
+                ]}
+                accent="amber"
+            />
 
             {/* ───────────────────── HERO ───────────────────── */}
             <header className="text-center mb-24 md:mb-32">
@@ -421,15 +450,19 @@ export function NgramNarrative({
                         {t("ngramNarrative.hero.eyebrow")}
                     </span>
 
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6">
+                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-[var(--lab-text)] mb-6">
                         {t("ngramNarrative.hero.titlePrefix")}{" "}
                         <span className="bg-gradient-to-r from-amber-400 to-orange-300 bg-clip-text text-transparent">
                             {t("ngramNarrative.hero.titleSuffix")}
                         </span>
                     </h1>
 
-                    <p className="text-lg md:text-xl text-white/35 max-w-xl mx-auto leading-relaxed mb-12">
+                    <p className="text-lg md:text-xl text-[var(--lab-text-subtle)] max-w-xl mx-auto leading-relaxed mb-12">
                         {t("ngramNarrative.hero.description")}
+                    </p>
+
+                    <p className="text-[11px] font-mono text-[var(--lab-text-subtle)] mb-8">
+                        ~15 min read · 8 interactive demos
                     </p>
 
                     <div className="flex justify-center mb-14">
@@ -439,7 +472,7 @@ export function NgramNarrative({
                     <motion.div
                         animate={{ y: [0, 6, 0] }}
                         transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                        className="text-white/10"
+                        className="text-[var(--lab-border)]"
                     >
                         <ArrowDown className="w-5 h-5 mx-auto" />
                     </motion.div>
@@ -447,15 +480,15 @@ export function NgramNarrative({
             </header>
 
             {/* ─────────── §1 · THE FIX: MORE CONTEXT ─────────── */}
-            <Section>
+            <Section id="ngram-01">
                 <SectionLabel number="01" label={t("ngramNarrative.moreContext.label")} />
-                <Heading>{t("ngramNarrative.moreContext.title")}</Heading>
+                <SectionAnchor id="ngram-01"><Heading>{t("ngramNarrative.moreContext.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("ngramNarrative.moreContext.lead")}</Lead>
 
                 <P>
                     {t("ngramNarrative.moreContext.p1")}{" "}
-                    <Highlight>{t("ngramNarrative.moreContext.p1Highlight")}</Highlight>{" "}
+                    <Highlight><Term word="context window">{t("ngramNarrative.moreContext.p1Highlight")}</Term></Highlight>{" "}
                     {t("ngramNarrative.moreContext.p1End")}
                 </P>
 
@@ -477,9 +510,9 @@ export function NgramNarrative({
             <SectionBreak />
 
             {/* ─────────── §2 · COUNTING WITH CONTEXT ─────────── */}
-            <Section>
+            <Section id="ngram-02">
                 <SectionLabel number="02" label={t("ngramNarrative.howItWorks.label")} />
-                <Heading>{t("ngramNarrative.howItWorks.title")}</Heading>
+                <SectionAnchor id="ngram-02"><Heading>{t("ngramNarrative.howItWorks.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("ngramNarrative.howItWorks.lead")}</Lead>
 
@@ -511,9 +544,9 @@ export function NgramNarrative({
             <SectionBreak />
 
             {/* ─────────── §3 · THE PREDICTION GETS BETTER ─────────── */}
-            <Section>
+            <Section id="ngram-03">
                 <SectionLabel number="03" label={t("ngramNarrative.improvement.label")} />
-                <Heading>{t("ngramNarrative.improvement.title")}</Heading>
+                <SectionAnchor id="ngram-03"><Heading>{t("ngramNarrative.improvement.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("ngramNarrative.improvement.lead")}</Lead>
 
@@ -550,9 +583,9 @@ export function NgramNarrative({
             <SectionBreak />
 
             {/* ─────────── §4 · THE PRICE OF MEMORY ─────────── */}
-            <Section>
+            <Section id="ngram-04">
                 <SectionLabel number="04" label={t("ngramNarrative.complexity.label")} />
-                <Heading>{t("ngramNarrative.complexity.title")}</Heading>
+                <SectionAnchor id="ngram-04"><Heading>{t("ngramNarrative.complexity.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("ngramNarrative.complexity.lead")}</Lead>
 
@@ -594,7 +627,7 @@ export function NgramNarrative({
                                     {t("ngramNarrative.tokenization.charTitle")}
                                 </h4>
                             </div>
-                            <p className="text-sm text-white/50 leading-relaxed mb-3">
+                            <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed mb-3">
                                 {t("ngramNarrative.tokenization.charDesc")}
                             </p>
                             <p className="text-xs text-emerald-400/60 font-mono">
@@ -609,7 +642,7 @@ export function NgramNarrative({
                                     {t("ngramNarrative.tokenization.wordTitle")}
                                 </h4>
                             </div>
-                            <p className="text-sm text-white/50 leading-relaxed mb-3">
+                            <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed mb-3">
                                 {t("ngramNarrative.tokenization.wordDesc")}
                             </p>
                             <p className="text-xs text-rose-400/60 font-mono">
@@ -642,9 +675,9 @@ export function NgramNarrative({
             <SectionBreak />
 
             {/* ─────────── §5 · THE DEEPER PROBLEM ─────────── */}
-            <Section>
+            <Section id="ngram-05">
                 <SectionLabel number="05" label={t("ngramNarrative.deeperProblem.label")} />
-                <Heading>{t("ngramNarrative.deeperProblem.title")}</Heading>
+                <SectionAnchor id="ngram-05"><Heading>{t("ngramNarrative.deeperProblem.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("ngramNarrative.deeperProblem.lead")}</Lead>
 
@@ -678,14 +711,18 @@ export function NgramNarrative({
                 <Callout icon={AlertTriangle} title={t("ngramNarrative.deeperProblem.calloutTitle")}>
                     <p>{t("ngramNarrative.deeperProblem.calloutText")}</p>
                 </Callout>
+
+                <KeyTakeaway accent="amber">
+                    N-grams can&apos;t generalize: if a sequence wasn&apos;t in the <Term word="training">training data</Term>, the <Term word="model">model</Term> assigns it zero probability. They memorize, they don&apos;t understand.
+                </KeyTakeaway>
             </Section>
 
             <SectionBreak />
 
             {/* ─────────── §6 · THE END OF COUNTING ─────────── */}
-            <Section>
+            <Section id="ngram-06">
                 <SectionLabel number="06" label={t("ngramNarrative.endOfCounting.label")} />
-                <Heading>{t("ngramNarrative.endOfCounting.title")}</Heading>
+                <SectionAnchor id="ngram-06"><Heading>{t("ngramNarrative.endOfCounting.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("ngramNarrative.endOfCounting.lead")}</Lead>
 
@@ -710,6 +747,10 @@ export function NgramNarrative({
                 >
                     {t("ngramNarrative.endOfCounting.hookLine")}
                 </motion.p>
+
+                <KeyTakeaway accent="amber">
+                    Counting-based models hit a wall: exponential memory, zero generalization, no understanding of similarity. The next leap requires <Term word="model">models</Term> that <em>learn</em> patterns instead of memorizing them.
+                </KeyTakeaway>
             </Section>
 
             <SectionBreak />
@@ -717,7 +758,7 @@ export function NgramNarrative({
             {/* ─────────── CTA ─────────── */}
             <Section>
                 <div className="text-center mb-10">
-                    <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
+                    <h2 className="text-2xl md:text-3xl font-bold text-[var(--lab-text)] tracking-tight mb-3">
                         {t("ngramNarrative.cta.title")}
                     </h2>
                 </div>
@@ -727,7 +768,7 @@ export function NgramNarrative({
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setMode("free")}
-                        className="group relative rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-950/20 to-black/60 p-6 text-left transition-colors hover:border-amber-500/40 overflow-hidden"
+                        className="group relative rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-950/20 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-colors hover:border-amber-500/40 overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                         <div className="relative">
@@ -735,11 +776,11 @@ export function NgramNarrative({
                                 <div className="p-2 rounded-xl bg-amber-500/15">
                                     <Beaker className="w-5 h-5 text-amber-300" />
                                 </div>
-                                <span className="text-lg font-bold text-white">
+                                <span className="text-lg font-bold text-[var(--lab-text)]">
                                     {t("ngramNarrative.cta.labButton")}
                                 </span>
                             </div>
-                            <p className="text-sm text-white/45 leading-relaxed">
+                            <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed">
                                 {t("ngramNarrative.cta.labDesc")}
                             </p>
                         </div>
@@ -749,7 +790,7 @@ export function NgramNarrative({
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => router.push("/lab/neural-networks")}
-                        className="group relative rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-950/20 to-black/60 p-6 text-left transition-colors hover:border-rose-500/40 overflow-hidden"
+                        className="group relative rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-950/20 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-colors hover:border-rose-500/40 overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-rose-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                         <div className="relative">
@@ -757,11 +798,11 @@ export function NgramNarrative({
                                 <div className="p-2 rounded-xl bg-rose-500/15">
                                     <BrainCircuit className="w-5 h-5 text-rose-300" />
                                 </div>
-                                <span className="text-lg font-bold text-white">
+                                <span className="text-lg font-bold text-[var(--lab-text)]">
                                     {t("ngramNarrative.cta.neuralButton")}
                                 </span>
                             </div>
-                            <p className="text-sm text-white/45 leading-relaxed">
+                            <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed">
                                 {t("ngramNarrative.cta.neuralDesc")}
                             </p>
                         </div>
@@ -774,12 +815,12 @@ export function NgramNarrative({
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
-                className="mt-8 pt-12 border-t border-white/[0.06] text-center"
+                className="mt-8 pt-12 border-t border-[var(--lab-border)] text-center"
             >
-                <p className="text-sm text-white/25 italic max-w-md mx-auto leading-relaxed mb-10">
+                <p className="text-sm text-[var(--lab-text-subtle)] italic max-w-md mx-auto leading-relaxed mb-10">
                     {t("ngramNarrative.footer.text")}
                 </p>
-                <div className="flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-widest text-white/10">
+                <div className="flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-widest text-[var(--lab-border)]">
                     <FlaskConical className="h-3 w-3" />
                     {t("ngramNarrative.footer.brand")}
                 </div>

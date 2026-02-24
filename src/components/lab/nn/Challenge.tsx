@@ -108,7 +108,7 @@ export function Challenge({
                         : { borderColor: "rgba(245,158,11,0.4)" }
                 }
                 transition={{ duration: 0.5 }}
-                className="rounded-2xl border-2 border-dashed overflow-hidden"
+                className="rounded-2xl border-2 border-dashed overflow-hidden bg-[var(--lab-viz-bg)]"
                 style={{ borderColor: "rgba(245,158,11,0.4)" }}
             >
                 {/* Gradient background */}
