@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, animate } from "framer-motion";
+import { memo,useEffect, useRef, useState } from "react";
+
 
 const LAYERS = [
-    { id: "input",   label: "Input",    desc: "Context tokens",        nodes: 4, color: "#a78bfa" },
-    { id: "hidden1", label: "Hidden 1", desc: "Learned features",      nodes: 5, color: "#818cf8" },
+    { id: "input", label: "Input", desc: "Context tokens", nodes: 4, color: "#a78bfa" },
+    { id: "hidden1", label: "Hidden 1", desc: "Learned features", nodes: 5, color: "#818cf8" },
     { id: "hidden2", label: "Hidden 2", desc: "Higher-order patterns", nodes: 5, color: "#60a5fa" },
-    { id: "output",  label: "Output",   desc: "Probability dist.",      nodes: 3, color: "#34d399" },
+    { id: "output", label: "Output", desc: "Probability dist.", nodes: 3, color: "#34d399" },
 ] as const;
 
 const TOKENS = ["t", "h", "e", " "];
@@ -54,7 +54,7 @@ function nodeX(layerIdx: number): number {
 const SVG_W = PAD_X * 2 + (LAYERS.length - 1) * COL_W;
 const SVG_H = PAD_Y * 2 + (Math.max(...LAYERS.map(l => l.nodes)) - 1) * ROW_GAP;
 
-export function MLPArchitectureDiagram() {
+export const MLPArchitectureDiagram = memo(function MLPArchitectureDiagram() {
     const [hovered, setHovered] = useState<NodeKey | null>(null);
     const [pulseProgress, setPulseProgress] = useState(0);
     const progressRef = useRef(0);
@@ -210,4 +210,4 @@ export function MLPArchitectureDiagram() {
             </div>
         </div>
     );
-}
+});

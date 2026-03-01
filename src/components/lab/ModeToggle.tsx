@@ -1,10 +1,11 @@
 "use client";
 
-import { useLabMode } from "@/context/LabModeContext";
-import { BookOpen, FlaskConical } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { BookOpen, FlaskConical } from "lucide-react";
+
+import { useLabMode } from "@/context/LabModeContext";
 import { useI18n } from "@/i18n/context";
+import { cn } from "@/lib/utils";
 
 export function ModeToggle() {
     const { mode, setMode, isInitialized } = useLabMode();

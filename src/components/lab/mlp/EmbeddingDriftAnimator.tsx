@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useI18n } from "@/i18n/context";
+import { useEffect, useRef,useState } from "react";
+
 import { Loader2 } from "lucide-react";
-import { EmbeddingSpaceVisualizer } from "./EmbeddingSpaceVisualizer";
+
+import { useI18n } from "@/i18n/context";
 import { fetchMLPEmbedding } from "@/lib/lmLabClient";
 import type { MLPEmbeddingResponse, MLPGridConfig } from "@/types/lmLab";
+
+import { EmbeddingSpaceVisualizer } from "./EmbeddingSpaceVisualizer";
 
 /*
   EmbeddingDriftAnimator
@@ -97,7 +100,7 @@ export function EmbeddingDriftAnimator({ selectedConfig }: EmbeddingDriftAnimato
             });
 
         return () => { cancelRef.current = true; };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [selectedConfig, stepIdx]);
 
     const phaseTexts = [

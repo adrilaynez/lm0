@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useI18n } from "@/i18n/context";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+
+import { AnimatePresence,motion } from "framer-motion";
+import { AlertCircle,GitBranch, Zap } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
-import { GitBranch, Zap, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useI18n } from "@/i18n/context";
 import type { StepDetail } from "@/types/lmLab";
 
 interface StepwisePredictionProps {

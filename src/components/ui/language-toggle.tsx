@@ -1,8 +1,9 @@
 "use client";
 
-import { useI18n } from "@/i18n/context";
-import { Button } from "@/components/ui/button";
 import { Globe } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { useI18n } from "@/i18n/context";
 import { cn } from "@/lib/utils";
 
 interface LanguageToggleProps {

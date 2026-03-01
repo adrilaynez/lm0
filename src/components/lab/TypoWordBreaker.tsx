@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Keyboard, XCircle, CheckCircle2, ArrowRight } from "lucide-react";
+import { useCallback,useState } from "react";
+
+import { AnimatePresence,motion } from "framer-motion";
+import { ArrowRight,CheckCircle2, Keyboard, XCircle } from "lucide-react";
+
 import { useI18n } from "@/i18n/context";
 
 /* ─────────────────────────────────────────────

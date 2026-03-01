@@ -1,7 +1,8 @@
-import { getNoteBySlug, getNoteSlugs } from "@/lib/mdx"
-import { MDXContent } from "@/components/mdx-content"
 import { notFound } from "next/navigation"
+
+import { MDXContent } from "@/components/mdx-content"
 import { NoteHeader } from "@/components/note-header"
+import { getNoteBySlug, getNoteSlugs } from "@/lib/mdx"
 
 // Force static generation for all notes
 export async function generateStaticParams() {

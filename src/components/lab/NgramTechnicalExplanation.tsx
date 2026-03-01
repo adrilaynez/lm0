@@ -1,11 +1,12 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { AlertTriangle, CheckCircle2, Cpu, Layers } from "lucide-react";
-import { useI18n } from "@/i18n/context";
-import { Badge } from "@/components/ui/badge";
 import { BlockMath } from "react-katex";
-import "katex/dist/katex.min.css";
+
+import { AlertTriangle, CheckCircle2, Cpu, Layers } from "lucide-react";
+
+import { FadeInView } from "@/components/lab/FadeInView";
+import { Badge } from "@/components/ui/badge";
+import { useI18n } from "@/i18n/context";
 
 interface NgramTechnicalExplanationProps {
     contextSize: number;
@@ -100,12 +101,7 @@ export function NgramTechnicalExplanation({
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
                     {/* Column 1: Mechanism */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="space-y-6"
-                    >
+                    <FadeInView className="space-y-6">
                         <h3 className="text-sm font-mono uppercase tracking-widest text-indigo-400 border-b border-indigo-500/20 pb-2 mb-4">
                             {t("models.ngram.lab.technicalExplanation.mechanism")}
                         </h3>
@@ -132,16 +128,10 @@ export function NgramTechnicalExplanation({
                                 </div>
                             </div>
                         ))}
-                    </motion.div>
+                    </FadeInView>
 
                     {/* Column 2: Capabilities/Constraints */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.1 }}
-                        className="space-y-8"
-                    >
+                    <FadeInView delay={0.1} className="space-y-8">
                         <div>
                             <h3 className="text-sm font-mono uppercase tracking-widest text-emerald-400 border-b border-emerald-500/20 pb-2 mb-4">
                                 {t("models.ngram.lab.technicalExplanation.capabilitiesTitle")}
@@ -169,16 +159,10 @@ export function NgramTechnicalExplanation({
                                 ))}
                             </ul>
                         </div>
-                    </motion.div>
+                    </FadeInView>
 
                     {/* Column 3: Model Card */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.2 }}
-                        className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 h-fit"
-                    >
+                    <FadeInView delay={0.2} className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 h-fit">
                         <div className="flex items-center gap-3 mb-6">
                             <Layers className="text-white/40" />
                             <h3 className="text-lg font-bold text-white">{t("models.ngram.lab.technicalExplanation.modelCardTitle")}</h3>
@@ -281,7 +265,7 @@ export function NgramTechnicalExplanation({
                                 </div>
                             </div>
                         </div>
-                    </motion.div>
+                    </FadeInView>
                 </div>
             </div>
         </section>

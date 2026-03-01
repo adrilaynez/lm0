@@ -1,51 +1,28 @@
 "use client";
 
-import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 
-const NODES = [
-    {
-        label: "Bigram",
-        sublabel: "One character of memory",
-        era: "Statistical era begins",
-        dot: "bg-emerald-400",
-        shadow: "shadow-emerald-500/30",
-        ring: "ring-emerald-500/20",
-        text: "text-emerald-300",
-        muted: "text-emerald-400/50",
-        summary: "One character of memory. Fast and simple. Surprisingly useful — but forgets everything beyond the last character.",
-        pulse: false,
-    },
-    {
-        label: "N-gram",
-        sublabel: "More context, same limits",
-        era: "Dominant in NLP",
-        dot: "bg-amber-400",
-        shadow: "shadow-amber-500/30",
-        ring: "ring-amber-500/20",
-        text: "text-amber-300",
-        muted: "text-amber-400/50",
-        summary: "More context, sharper predictions. But the table explodes exponentially, and the model still can't generalize from what it has seen.",
-        pulse: false,
-    },
-    {
-        label: "???",
-        sublabel: "Something different",
-        era: "A new era",
-        dot: "bg-rose-400",
-        shadow: "shadow-rose-500/50",
-        ring: "ring-rose-500/25",
-        text: "text-rose-300",
-        muted: "text-rose-400/50",
-        summary: "Neural Networks. We stop counting and start learning. Contexts are no longer islands — similar inputs share knowledge.",
-        pulse: true,
-    },
-] as const;
+import { AnimatePresence, motion, useInView } from "framer-motion";
+
+import { useI18n } from "@/i18n/context";
+
+const NODE_STYLES = [
+    { dot: "bg-emerald-400", shadow: "shadow-emerald-500/30", ring: "ring-emerald-500/20", text: "text-emerald-300", muted: "text-emerald-400/50", pulse: false },
+    { dot: "bg-amber-400", shadow: "shadow-amber-500/30", ring: "ring-amber-500/20", text: "text-amber-300", muted: "text-amber-400/50", pulse: false },
+    { dot: "bg-rose-400", shadow: "shadow-rose-500/50", ring: "ring-rose-500/25", text: "text-rose-300", muted: "text-rose-400/50", pulse: true },
+];
 
 export function StatisticalEraTimeline() {
+    const { t } = useI18n();
     const ref = useRef<HTMLDivElement>(null);
     const isInView = useInView(ref, { once: true, margin: "-80px" });
     const [hovered, setHovered] = useState<number | null>(null);
+
+    const NODES = [
+        { ...NODE_STYLES[0], label: t("ngramNarrative.statisticalEra.bigramLabel"), sublabel: t("ngramNarrative.statisticalEra.bigramSublabel"), era: t("ngramNarrative.statisticalEra.bigramEra"), summary: t("ngramNarrative.statisticalEra.bigramSummary") },
+        { ...NODE_STYLES[1], label: t("ngramNarrative.statisticalEra.ngramLabel"), sublabel: t("ngramNarrative.statisticalEra.ngramSublabel"), era: t("ngramNarrative.statisticalEra.ngramEra"), summary: t("ngramNarrative.statisticalEra.ngramSummary") },
+        { ...NODE_STYLES[2], label: t("ngramNarrative.statisticalEra.unknownLabel"), sublabel: t("ngramNarrative.statisticalEra.unknownSublabel"), era: t("ngramNarrative.statisticalEra.unknownEra"), summary: t("ngramNarrative.statisticalEra.unknownSummary") },
+    ];
 
     return (
         <div ref={ref} className="px-6 py-10 flex flex-col items-center gap-10">
@@ -126,7 +103,7 @@ export function StatisticalEraTimeline() {
                             exit={{ opacity: 0 }}
                             className="text-[11px] text-white/15 text-center font-mono"
                         >
-                            Hover a node to learn more
+                            {t("ngramNarrative.statisticalEra.hoverHint")}
                         </motion.p>
                     )}
                 </AnimatePresence>

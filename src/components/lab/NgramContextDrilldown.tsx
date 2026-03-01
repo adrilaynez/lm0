@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronRight, Loader2, Type, ArrowLeft } from "lucide-react";
-import { visualizeNgram } from "@/lib/lmLabClient";
+import { useCallback,useState } from "react";
+
+import {motion } from "framer-motion";
+import { ArrowLeft,ChevronRight, Loader2, Search } from "lucide-react";
+
 import { useI18n } from "@/i18n/context";
+import { visualizeNgram } from "@/lib/lmLabClient";
 
 /* ─────────────────────────────────────────────
    NgramContextDrilldown

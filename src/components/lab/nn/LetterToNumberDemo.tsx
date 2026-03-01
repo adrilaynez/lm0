@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
+import { AnimatePresence,motion } from "framer-motion";
+
 import { useI18n } from "@/i18n/context";
 
 /*

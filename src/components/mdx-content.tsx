@@ -1,10 +1,12 @@
 import { MDXRemote } from "next-mdx-remote/rsc"
-import remarkMath from "remark-math"
+
 import rehypeKatex from "rehype-katex"
 import rehypePrettyCode from "rehype-pretty-code"
+import remarkMath from "remark-math"
+
 import { Callout } from "@/components/mdx/callout"
-import { MathBlock, MathInline } from "@/components/mdx/math-block"
 import { InteractiveGraph } from "@/components/mdx/interactive-graph"
+import { MathBlock, MathInline } from "@/components/mdx/math-block"
 
 const options = {
     theme: "github-dark",

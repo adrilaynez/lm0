@@ -1,163 +1,67 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+
+import { AnimatePresence, motion } from "framer-motion";
 import {
-    BookOpen,
-    FlaskConical,
-    ArrowDown,
-    Lightbulb,
     AlertTriangle,
+    ArrowDown,
     ArrowRight,
     Beaker,
+    BookOpen,
     BrainCircuit,
     ChevronDown,
+    FlaskConical,
 } from "lucide-react";
-import { ModeToggle } from "@/components/lab/ModeToggle";
-import { useI18n } from "@/i18n/context";
-import { useRouter } from "next/navigation";
-import { useLabMode } from "@/context/LabModeContext";
 
-import { NgramMiniTransitionTable } from "@/components/lab/NgramPedagogyPanels";
-import { NgramFiveGramScale } from "@/components/lab/NgramPedagogyPanels";
-import { CountingComparisonWidget } from "@/components/lab/CountingComparisonWidget";
-import { ConcreteImprovementExample } from "@/components/lab/ConcreteImprovementExample";
-import { ExponentialGrowthAnimator } from "@/components/lab/ExponentialGrowthAnimator";
-import { NgramGenerationBattle } from "@/components/lab/NgramGenerationBattle";
-import { GeneralizationFailureDemo } from "@/components/lab/GeneralizationFailureDemo";
-import { StatisticalEraTimeline } from "@/components/lab/StatisticalEraTimeline";
-import { CombinatoricExplosionTable } from "@/components/lab/CombinatoricExplosionTable";
-import { SparsityHeatmap } from "@/components/lab/SparsityHeatmap";
-import { InfiniteTableThoughtExperiment } from "@/components/lab/InfiniteTableThoughtExperiment";
-import { TypoWordBreaker } from "@/components/lab/TypoWordBreaker";
-import { SectionProgressBar } from "@/components/lab/SectionProgressBar";
+import { lazy, Suspense } from "react";
+
 import { ContinueToast } from "@/components/lab/ContinueToast";
+import { FadeInView } from "@/components/lab/FadeInView";
 import { Term } from "@/components/lab/GlossaryTooltip";
 import { KeyTakeaway } from "@/components/lab/KeyTakeaway";
+import { LazySection, SectionSkeleton } from "@/components/lab/LazySection";
+import { ModeToggle } from "@/components/lab/ModeToggle";
 import { SectionAnchor } from "@/components/lab/SectionAnchor";
+import { SectionProgressBar } from "@/components/lab/SectionProgressBar";
+import { useLabMode } from "@/context/LabModeContext";
+import { useProgressTracker } from "@/hooks/useProgressTracker";
+import { useI18n } from "@/i18n/context";
 
-/* ─────────────────────────────────────────────
-   Primitive building blocks (matches Bigram / NN narrative style)
-   ───────────────────────────────────────────── */
+/* ─── Lazy-loaded interactive visualizers ─── */
+const CombinatoricExplosionTable = lazy(() => import("@/components/lab/CombinatoricExplosionTable").then(m => ({ default: m.CombinatoricExplosionTable })));
+const ConcreteImprovementExample = lazy(() => import("@/components/lab/ConcreteImprovementExample").then(m => ({ default: m.ConcreteImprovementExample })));
+const CountingComparisonWidget = lazy(() => import("@/components/lab/CountingComparisonWidget").then(m => ({ default: m.CountingComparisonWidget })));
+const ExponentialGrowthAnimator = lazy(() => import("@/components/lab/ExponentialGrowthAnimator").then(m => ({ default: m.ExponentialGrowthAnimator })));
+const GeneralizationFailureDemo = lazy(() => import("@/components/lab/GeneralizationFailureDemo").then(m => ({ default: m.GeneralizationFailureDemo })));
+const GrowingTablesComparison = lazy(() => import("@/components/lab/GrowingTablesComparison").then(m => ({ default: m.GrowingTablesComparison })));
+const InfiniteTableThoughtExperiment = lazy(() => import("@/components/lab/InfiniteTableThoughtExperiment").then(m => ({ default: m.InfiniteTableThoughtExperiment })));
+const NgramGenerationBattle = lazy(() => import("@/components/lab/NgramGenerationBattle").then(m => ({ default: m.NgramGenerationBattle })));
+const NgramInteractiveGenerator = lazy(() => import("@/components/lab/NgramInteractiveGenerator").then(m => ({ default: m.NgramInteractiveGenerator })));
+const NgramMiniTransitionTable = lazy(() => import("@/components/lab/NgramPedagogyPanels").then(m => ({ default: m.NgramMiniTransitionTable })));
+const NgramFiveGramScale = lazy(() => import("@/components/lab/NgramPedagogyPanels").then(m => ({ default: m.NgramFiveGramScale })));
+const SimilarityBlindSpot = lazy(() => import("@/components/lab/SimilarityBlindSpot").then(m => ({ default: m.SimilarityBlindSpot })));
+const SparsityHeatmap = lazy(() => import("@/components/lab/SparsityHeatmap").then(m => ({ default: m.SparsityHeatmap })));
+const StatisticalEraTimeline = lazy(() => import("@/components/lab/StatisticalEraTimeline").then(m => ({ default: m.StatisticalEraTimeline })));
+const TypoWordBreaker = lazy(() => import("@/components/lab/TypoWordBreaker").then(m => ({ default: m.TypoWordBreaker })));
 
-function Section({ id, children }: { id?: string; children: React.ReactNode }) {
-    return (
-        <motion.section
-            id={id}
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6 }}
-            className="mb-20 md:mb-28"
-        >
-            {children}
-        </motion.section>
-    );
-}
+import {
+    Callout as _Callout,
+    Heading, Highlight as _Highlight,
+    type HighlightColor,
+    Lead, type NarrativeAccent,
+    P, PullQuote as _PullQuote,
+    Section, SectionBreak,
+    SectionLabel as _SectionLabel,
+} from "./narrative-primitives";
 
-function SectionLabel({ number, label }: { number: string; label: string }) {
-    return (
-        <div className="flex items-center gap-3 mb-8">
-            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-amber-500/10 border border-amber-500/20 text-[11px] font-mono font-bold text-amber-400">
-                {number}
-            </span>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[var(--lab-text-subtle)]">
-                {label}
-            </span>
-            <div className="flex-1 h-px bg-gradient-to-r from-[var(--lab-border)] to-transparent" />
-        </div>
-    );
-}
-
-function Heading({ children }: { children: React.ReactNode }) {
-    return (
-        <h2 className="text-2xl md:text-[2rem] font-bold text-[var(--lab-text)] tracking-tight mb-6 leading-tight">
-            {children}
-        </h2>
-    );
-}
-
-function Lead({ children }: { children: React.ReactNode }) {
-    return (
-        <p className="text-lg md:text-xl text-[var(--lab-text-muted)] leading-[1.8] mb-6 font-light">
-            {children}
-        </p>
-    );
-}
-
-function P({ children }: { children: React.ReactNode }) {
-    return (
-        <p className="text-[15px] md:text-base text-[var(--lab-text-muted)] leading-[1.9] mb-5 last:mb-0">
-            {children}
-        </p>
-    );
-}
-
-function Highlight({ children }: { children: React.ReactNode }) {
-    return <strong className="text-amber-400 font-semibold">{children}</strong>;
-}
-
-function Callout({
-    icon: Icon = Lightbulb,
-    title,
-    children,
-}: {
-    icon?: React.ComponentType<{ className?: string }>;
-    title?: string;
-    children: React.ReactNode;
-}) {
-    return (
-        <motion.aside
-            initial={{ opacity: 0, x: -8 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.4 }}
-            className="relative my-8 rounded-xl border border-amber-500/20 bg-amber-500/[0.04] p-5 md:p-6 overflow-hidden"
-        >
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.06] to-transparent pointer-events-none" />
-            <div className="relative flex gap-4">
-                <div className="shrink-0 mt-0.5">
-                    <Icon className="w-4.5 h-4.5 text-amber-400" />
-                </div>
-                <div className="min-w-0">
-                    {title && (
-                        <p className="text-xs font-bold uppercase tracking-[0.15em] text-amber-400 mb-2">
-                            {title}
-                        </p>
-                    )}
-                    <div className="text-sm text-[var(--lab-text-muted)] leading-relaxed [&>p]:mb-2 [&>p:last-child]:mb-0">
-                        {children}
-                    </div>
-                </div>
-            </div>
-        </motion.aside>
-    );
-}
-
-function PullQuote({ children }: { children: React.ReactNode }) {
-    return (
-        <motion.blockquote
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true, margin: "-40px" }}
-            className="my-10 md:my-12 pl-6 border-l-2 border-amber-400/40"
-        >
-            <p className="text-lg md:text-xl text-[var(--lab-text-muted)] font-light italic leading-relaxed">
-                {children}
-            </p>
-        </motion.blockquote>
-    );
-}
-
-function SectionBreak() {
-    return (
-        <div className="flex items-center justify-center gap-3 my-16 md:my-20">
-            <div className="h-px w-12 bg-gradient-to-r from-transparent to-[var(--lab-border)]" />
-            <div className="w-1.5 h-1.5 rounded-full bg-[var(--lab-border)]" />
-            <div className="h-px w-12 bg-gradient-to-l from-transparent to-[var(--lab-border)]" />
-        </div>
-    );
-}
+/* ─── Accent-bound wrappers ─── */
+const NA: NarrativeAccent = "amber";
+const SectionLabel = (p: { number: string; label: string }) => <_SectionLabel accent={NA} {...p} />;
+const Highlight = ({ color, ...p }: { children: React.ReactNode; color?: HighlightColor; tooltip?: string }) => <_Highlight color={color ?? NA} {...p} />;
+const Callout = ({ accent, ...p }: Parameters<typeof _Callout>[0]) => <_Callout accent={accent ?? NA} {...p} />;
+const PullQuote = ({ children }: { children: React.ReactNode }) => <_PullQuote accent={NA}>{children}</_PullQuote>;
 
 function ExpandableSection({
     title,
@@ -218,13 +122,7 @@ function FigureWrapper({
     children: React.ReactNode;
 }) {
     return (
-        <motion.figure
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.5 }}
-            className="my-12 md:my-16 -mx-4 sm:mx-0"
-        >
+        <FadeInView as="figure" className="my-12 md:my-16 -mx-4 sm:mx-0">
             <div className="rounded-2xl border border-[var(--lab-border)] bg-[var(--lab-card)] overflow-hidden">
                 <div className="flex items-center gap-3 px-5 py-3 border-b border-[var(--lab-border)] bg-[var(--lab-card)]">
                     <div className="flex gap-1.5">
@@ -243,7 +141,7 @@ function FigureWrapper({
                     {hint}
                 </figcaption>
             )}
-        </motion.figure>
+        </FadeInView>
     );
 }
 
@@ -411,29 +309,34 @@ export function NgramNarrative({
     const { t } = useI18n();
     const router = useRouter();
     const { setMode } = useLabMode();
+    const { hasStoredProgress, storedSection, clearProgress } = useProgressTracker("ngram");
 
     return (
         <article className="max-w-[920px] mx-auto px-6 pt-8 pb-24">
             <ContinueToast
-                pageId="ngram"
                 accent="amber"
+                hasStoredProgress={hasStoredProgress}
+                storedSection={storedSection}
+                clearProgress={clearProgress}
                 sectionNames={{
-                    "ngram-01": "More Context",
-                    "ngram-02": "Counting With Context",
-                    "ngram-03": "Better Predictions",
-                    "ngram-04": "Price of Memory",
-                    "ngram-05": "The Deeper Problem",
-                    "ngram-06": "End of Counting",
+                    "ngram-01": t("ngramNarrative.sectionNames.s01"),
+                    "ngram-02": t("ngramNarrative.sectionNames.s02"),
+                    "ngram-03": t("ngramNarrative.sectionNames.s03"),
+                    "ngram-04": t("ngramNarrative.sectionNames.s04"),
+                    "ngram-05": t("ngramNarrative.sectionNames.s05"),
+                    "ngram-06": t("ngramNarrative.sectionNames.s06"),
+                    "ngram-07": t("ngramNarrative.sectionNames.s07"),
                 }}
             />
             <SectionProgressBar
                 sections={[
-                    { id: "ngram-01", label: "01", name: "More Context" },
-                    { id: "ngram-02", label: "02", name: "Counting With Context" },
-                    { id: "ngram-03", label: "03", name: "Better Predictions" },
-                    { id: "ngram-04", label: "04", name: "Price of Memory" },
-                    { id: "ngram-05", label: "05", name: "The Deeper Problem" },
-                    { id: "ngram-06", label: "06", name: "End of Counting" },
+                    { id: "ngram-01", label: "01", name: t("ngramNarrative.sectionNames.s01") },
+                    { id: "ngram-02", label: "02", name: t("ngramNarrative.sectionNames.s02") },
+                    { id: "ngram-03", label: "03", name: t("ngramNarrative.sectionNames.s03") },
+                    { id: "ngram-04", label: "04", name: t("ngramNarrative.sectionNames.s04") },
+                    { id: "ngram-05", label: "05", name: t("ngramNarrative.sectionNames.s05") },
+                    { id: "ngram-06", label: "06", name: t("ngramNarrative.sectionNames.s06") },
+                    { id: "ngram-07", label: "07", name: t("ngramNarrative.sectionNames.s07") },
                 ]}
                 accent="amber"
             />
@@ -462,7 +365,7 @@ export function NgramNarrative({
                     </p>
 
                     <p className="text-[11px] font-mono text-[var(--lab-text-subtle)] mb-8">
-                        ~15 min read · 8 interactive demos
+                        {t("ngramNarrative.readTime")}
                     </p>
 
                     <div className="flex justify-center mb-14">
@@ -479,12 +382,25 @@ export function NgramNarrative({
                 </motion.div>
             </header>
 
-            {/* ─────────── §1 · THE FIX: MORE CONTEXT ─────────── */}
+            {/* ─────────── §1 · THE FIX: MORE CONTEXT (visualizer-first) ─────────── */}
             <Section id="ngram-01">
                 <SectionLabel number="01" label={t("ngramNarrative.moreContext.label")} />
                 <SectionAnchor id="ngram-01"><Heading>{t("ngramNarrative.moreContext.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("ngramNarrative.moreContext.lead")}</Lead>
+
+                <p className="text-center text-sm italic text-amber-300/60 font-light my-4">
+                    {t("ngramNarrative.moreContext.tryPrompt")}
+                </p>
+
+                <FigureWrapper
+                    label={t("ngramNarrative.figures.contextWindow.label")}
+                    hint={t("ngramNarrative.contextWindow.caption")}
+                >
+                    <ContextWindowVisualizer />
+                </FigureWrapper>
+
+                <P>{t("ngramNarrative.moreContext.confidenceBridge")}</P>
 
                 <P>
                     {t("ngramNarrative.moreContext.p1")}{" "}
@@ -494,13 +410,6 @@ export function NgramNarrative({
 
                 <P>{t("ngramNarrative.moreContext.p2")}</P>
                 <P>{t("ngramNarrative.moreContext.p3")}</P>
-
-                <FigureWrapper
-                    label={t("ngramNarrative.figures.contextWindow.label")}
-                    hint={t("ngramNarrative.contextWindow.caption")}
-                >
-                    <ContextWindowVisualizer />
-                </FigureWrapper>
 
                 <Callout title={t("ngramNarrative.moreContext.calloutTitle")}>
                     <p>{t("ngramNarrative.moreContext.calloutText")}</p>
@@ -524,26 +433,30 @@ export function NgramNarrative({
 
                 <P>{t("ngramNarrative.howItWorks.p2")}</P>
 
-                <FigureWrapper
-                    label={t("ngramNarrative.figures.transitionExamples.label")}
-                    hint={t("ngramNarrative.figures.transitionExamples.hint")}
-                >
-                    <NgramMiniTransitionTable n={contextSize} />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("ngramNarrative.figures.transitionExamples.label")}
+                        hint={t("ngramNarrative.figures.transitionExamples.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><NgramMiniTransitionTable n={contextSize} /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <P>{t("ngramNarrative.howItWorks.bridge")}</P>
 
-                <FigureWrapper
-                    label={t("ngramNarrative.figures.countingComparison.label")}
-                    hint={t("ngramNarrative.figures.countingComparison.hint")}
-                >
-                    <CountingComparisonWidget />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("ngramNarrative.figures.countingComparison.label")}
+                        hint={t("ngramNarrative.figures.countingComparison.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><CountingComparisonWidget /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── §3 · THE PREDICTION GETS BETTER ─────────── */}
+            {/* ─────────── §3 · THE PREDICTION GETS BETTER (merged §3.5) ─────────── */}
             <Section id="ngram-03">
                 <SectionLabel number="03" label={t("ngramNarrative.improvement.label")} />
                 <SectionAnchor id="ngram-03"><Heading>{t("ngramNarrative.improvement.title")}</Heading></SectionAnchor>
@@ -552,74 +465,128 @@ export function NgramNarrative({
 
                 <P>{t("ngramNarrative.improvement.example")}</P>
 
-                <FigureWrapper
-                    label={t("ngramNarrative.figures.confidenceImprovement.label")}
-                    hint={t("ngramNarrative.figures.confidenceImprovement.hint")}
-                >
-                    <ConcreteImprovementExample />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("ngramNarrative.figures.confidenceImprovement.label")}
+                        hint={t("ngramNarrative.figures.confidenceImprovement.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><ConcreteImprovementExample /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
-                <FigureWrapper
-                    label={t("ngramNarrative.figures.generationBattle.label")}
-                    hint={t("ngramNarrative.figures.generationBattle.hint")}
-                >
-                    <NgramGenerationBattle
-                        seeds={["the "]}
-                        nValues={[1, 2, 3, 4]}
-                        maxTokens={80}
-                        temperature={0.8}
-                        autoGenerate
-                    />
-                </FigureWrapper>
-            </Section>
+                <P>{t("ngramNarrative.improvement.battleBridge")}</P>
 
-            {/* ─────────── §3.5 · WHY NOT N=100? ─────────── */}
-            <Section>
-                <Heading>{t("ngramNarrative.whyNotMore.title")}</Heading>
-                <Lead>{t("ngramNarrative.whyNotMore.lead")}</Lead>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("ngramNarrative.figures.generationBattle.label")}
+                        hint={t("ngramNarrative.figures.generationBattle.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}>
+                            <NgramGenerationBattle
+                                seeds={["the "]}
+                                nValues={[1, 2, 3, 4]}
+                                maxTokens={80}
+                                temperature={0.8}
+                                autoGenerate
+                            />
+                        </Suspense>
+                    </FigureWrapper>
+                </LazySection>
+
+                <ExpandableSection title={t("ngramNarrative.improvement.expandableGenTitle")} defaultOpen={false}>
+                    <LazySection>
+                        <FigureWrapper
+                            label={t("ngramNarrative.interactiveGenerator.figureLabel")}
+                            hint={t("ngramNarrative.interactiveGenerator.figureHint")}
+                        >
+                            <Suspense fallback={<SectionSkeleton />}><NgramInteractiveGenerator /></Suspense>
+                        </FigureWrapper>
+                    </LazySection>
+                </ExpandableSection>
+
+                {/* Former §3.5 — "Why Not N=100?" — merged as concluding challenge */}
+                <PullQuote>{t("ngramNarrative.whyNotMore.title")}</PullQuote>
+                <P>{t("ngramNarrative.whyNotMore.lead")}</P>
                 <P>{t("ngramNarrative.whyNotMore.p1")}</P>
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── §4 · THE PRICE OF MEMORY ─────────── */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                className="text-center py-8"
+            >
+                <p className="text-lg text-amber-300/60 font-light italic max-w-lg mx-auto">
+                    {t("ngramNarrative.celebration.text")}
+                </p>
+            </motion.div>
+
+            {/* ─────────── §4 · THE EXPLOSION (first half of old §4) ─────────── */}
             <Section id="ngram-04">
-                <SectionLabel number="04" label={t("ngramNarrative.complexity.label")} />
-                <SectionAnchor id="ngram-04"><Heading>{t("ngramNarrative.complexity.title")}</Heading></SectionAnchor>
+                <SectionLabel number="04" label={t("ngramNarrative.explosion.label")} />
+                <SectionAnchor id="ngram-04"><Heading>{t("ngramNarrative.explosion.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("ngramNarrative.complexity.lead")}</Lead>
 
                 <P>{t("ngramNarrative.complexity.p1")}</P>
 
-                <FigureWrapper
-                    label={t("ngramNarrative.figures.exponentialGrowth.label")}
-                    hint={t("ngramNarrative.figures.exponentialGrowth.hint")}
-                >
-                    <ExponentialGrowthAnimator />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("ngramNarrative.figures.exponentialGrowth.label")}
+                        hint={t("ngramNarrative.figures.exponentialGrowth.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><ExponentialGrowthAnimator /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
-                <P>{t("ngramNarrative.complexity.p2")}</P>
+                <P>{t("ngramNarrative.explosion.concreteBridge")}</P>
 
-                <FigureWrapper
-                    label={t("ngramNarrative.figures.sparsityHeatmap.label")}
-                    hint={t("ngramNarrative.figures.sparsityHeatmap.hint")}
-                >
-                    <SparsityHeatmap />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("ngramNarrative.growingTables.label")}
+                        hint={t("ngramNarrative.growingTables.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><GrowingTablesComparison vocabSize={vocabSize} /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
-                <div className="my-10">
-                    <NgramFiveGramScale vocabSize={vocabSize} />
-                </div>
+                <LazySection>
+                    <div className="my-10">
+                        <Suspense fallback={<SectionSkeleton />}><NgramFiveGramScale vocabSize={vocabSize} /></Suspense>
+                    </div>
+                </LazySection>
 
                 <Callout icon={AlertTriangle} title={t("ngramNarrative.complexity.vocabCalloutTitle")}>
                     <p>{t("ngramNarrative.complexity.vocabCalloutText")}</p>
                 </Callout>
+            </Section>
 
-                <P>{t("ngramNarrative.tokenization.intro")}</P>
+            <SectionBreak />
+
+            {/* ─────────── §5 · THE EMPTY TABLE (second half of old §4) ─────────── */}
+            <Section id="ngram-05">
+                <SectionLabel number="05" label={t("ngramNarrative.emptyTable.label")} />
+                <SectionAnchor id="ngram-05"><Heading>{t("ngramNarrative.emptyTable.title")}</Heading></SectionAnchor>
+
+                <Lead>{t("ngramNarrative.emptyTable.lead")}</Lead>
+
+                <P>{t("ngramNarrative.emptyTable.bridge")}</P>
+
+                <LazySection>
+                    <FigureWrapper
+                        label={t("ngramNarrative.figures.sparsityHeatmap.label")}
+                        hint={t("ngramNarrative.figures.sparsityHeatmap.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><SparsityHeatmap /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <ExpandableSection title={t("ngramNarrative.tokenization.subsectionTitle")}>
+                    <P>{t("ngramNarrative.tokenization.intro")}</P>
 
-                    <div className="grid md:grid-cols-2 gap-6 mb-8">
+                    <div className="grid md:grid-cols-2 gap-6 my-8">
                         <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-6">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
@@ -653,12 +620,14 @@ export function NgramNarrative({
 
                     <P>{t("ngramNarrative.tokenization.explosionIntro")}</P>
 
-                    <FigureWrapper
-                        label={t("ngramNarrative.tokenization.tableLabel")}
-                        hint={t("ngramNarrative.tokenization.tableHint")}
-                    >
-                        <CombinatoricExplosionTable vocabSize={50000} />
-                    </FigureWrapper>
+                    <LazySection>
+                        <FigureWrapper
+                            label={t("ngramNarrative.tokenization.tableLabel")}
+                            hint={t("ngramNarrative.tokenization.tableHint")}
+                        >
+                            <Suspense fallback={<SectionSkeleton />}><CombinatoricExplosionTable vocabSize={50000} /></Suspense>
+                        </FigureWrapper>
+                    </LazySection>
 
                     <P>
                         {t("ngramNarrative.tokenization.languageP1")}{" "}
@@ -674,10 +643,10 @@ export function NgramNarrative({
 
             <SectionBreak />
 
-            {/* ─────────── §5 · THE DEEPER PROBLEM ─────────── */}
-            <Section id="ngram-05">
-                <SectionLabel number="05" label={t("ngramNarrative.deeperProblem.label")} />
-                <SectionAnchor id="ngram-05"><Heading>{t("ngramNarrative.deeperProblem.title")}</Heading></SectionAnchor>
+            {/* ─────────── §6 · THE DEEPER PROBLEM ─────────── */}
+            <Section id="ngram-06">
+                <SectionLabel number="06" label={t("ngramNarrative.deeperProblem.label")} />
+                <SectionAnchor id="ngram-06"><Heading>{t("ngramNarrative.deeperProblem.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("ngramNarrative.deeperProblem.lead")}</Lead>
 
@@ -685,44 +654,63 @@ export function NgramNarrative({
                 <P>{t("ngramNarrative.deeperProblem.p2")}</P>
                 <P>{t("ngramNarrative.deeperProblem.p3")}</P>
 
-                <FigureWrapper
-                    label={t("ngramNarrative.figures.generalizationFailure.label")}
-                    hint={t("ngramNarrative.figures.generalizationFailure.hint")}
-                >
-                    <GeneralizationFailureDemo />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("ngramNarrative.figures.generalizationFailure.label")}
+                        hint={t("ngramNarrative.figures.generalizationFailure.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><GeneralizationFailureDemo /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
-                {/* V2: Infinite Table Thought Experiment — interactive slider */}
-                <FigureWrapper
-                    label={t("ngramNarrative.figures.infiniteTable.label")}
-                    hint={t("ngramNarrative.figures.infiniteTable.hint")}
-                >
-                    <InfiniteTableThoughtExperiment />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("ngramNarrative.figures.infiniteTable.label")}
+                        hint={t("ngramNarrative.figures.infiniteTable.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><InfiniteTableThoughtExperiment /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
-                {/* V3: Typo / Novel Word Breaker — interactive input */}
-                <FigureWrapper
-                    label={t("ngramNarrative.figures.typoBreaker.label")}
-                    hint={t("ngramNarrative.figures.typoBreaker.hint")}
-                >
-                    <TypoWordBreaker />
-                </FigureWrapper>
+                <P>{t("ngramNarrative.deeperProblem.demoBridge")}</P>
+
+                <ExpandableSection title={t("ngramNarrative.deeperProblem.typoSectionTitle")}>
+                    <LazySection>
+                        <FigureWrapper
+                            label={t("ngramNarrative.figures.typoBreaker.label")}
+                            hint={t("ngramNarrative.figures.typoBreaker.hint")}
+                        >
+                            <Suspense fallback={<SectionSkeleton />}><TypoWordBreaker /></Suspense>
+                        </FigureWrapper>
+                    </LazySection>
+                </ExpandableSection>
+
+                <ExpandableSection title={t("ngramNarrative.deeperProblem.similaritySectionTitle")}>
+                    <LazySection>
+                        <FigureWrapper
+                            label={t("ngramNarrative.similarityBlindSpot.figureLabel")}
+                            hint={t("ngramNarrative.similarityBlindSpot.figureHint")}
+                        >
+                            <Suspense fallback={<SectionSkeleton />}><SimilarityBlindSpot /></Suspense>
+                        </FigureWrapper>
+                    </LazySection>
+                </ExpandableSection>
 
                 <Callout icon={AlertTriangle} title={t("ngramNarrative.deeperProblem.calloutTitle")}>
                     <p>{t("ngramNarrative.deeperProblem.calloutText")}</p>
                 </Callout>
 
                 <KeyTakeaway accent="amber">
-                    N-grams can&apos;t generalize: if a sequence wasn&apos;t in the <Term word="training">training data</Term>, the <Term word="model">model</Term> assigns it zero probability. They memorize, they don&apos;t understand.
+                    {t("ngramNarrative.keyTakeaways.deeperProblem")}
                 </KeyTakeaway>
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── §6 · THE END OF COUNTING ─────────── */}
-            <Section id="ngram-06">
-                <SectionLabel number="06" label={t("ngramNarrative.endOfCounting.label")} />
-                <SectionAnchor id="ngram-06"><Heading>{t("ngramNarrative.endOfCounting.title")}</Heading></SectionAnchor>
+            {/* ─────────── §7 · THE END OF COUNTING ─────────── */}
+            <Section id="ngram-07">
+                <SectionLabel number="07" label={t("ngramNarrative.endOfCounting.label")} />
+                <SectionAnchor id="ngram-07"><Heading>{t("ngramNarrative.endOfCounting.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("ngramNarrative.endOfCounting.lead")}</Lead>
 
@@ -730,32 +718,47 @@ export function NgramNarrative({
                 <P>{t("ngramNarrative.endOfCounting.p2")}</P>
                 <P>{t("ngramNarrative.endOfCounting.p3")}</P>
 
-                <FigureWrapper
-                    label={t("ngramNarrative.figures.statisticalEra.label")}
-                    hint={t("ngramNarrative.figures.statisticalEra.hint")}
-                >
-                    <StatisticalEraTimeline />
-                </FigureWrapper>
+                {/* "What you now know" consolidation */}
+                <P>{t("ngramNarrative.endOfCounting.consolidation")}</P>
+                <div className="space-y-2 my-6 pl-4 border-l-2 border-amber-500/20">
+                    {(["knows1", "knows2", "knows3", "knows4"] as const).map((key, i) => (
+                        <FadeInView
+                            as="p"
+                            key={key}
+                            delay={i * 0.1}
+                            className="text-sm text-[var(--lab-text-muted)] leading-relaxed"
+                        >
+                            <span className="text-amber-400 mr-2">✓</span>
+                            {t(`ngramNarrative.endOfCounting.${key}`)}
+                        </FadeInView>
+                    ))}
+                </div>
+
+                <P>{t("ngramNarrative.endOfCounting.bridge")}</P>
+
+                <LazySection>
+                    <FigureWrapper
+                        label={t("ngramNarrative.figures.statisticalEra.label")}
+                        hint={t("ngramNarrative.figures.statisticalEra.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><StatisticalEraTimeline /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <PullQuote>{t("ngramNarrative.endOfCounting.quote")}</PullQuote>
 
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true }}
-                    className="text-center text-sm text-amber-300/50 italic font-light mt-2"
-                >
+                <FadeInView as="p" className="text-center text-sm text-amber-300/50 italic font-light mt-2">
                     {t("ngramNarrative.endOfCounting.hookLine")}
-                </motion.p>
+                </FadeInView>
 
                 <KeyTakeaway accent="amber">
-                    Counting-based models hit a wall: exponential memory, zero generalization, no understanding of similarity. The next leap requires <Term word="model">models</Term> that <em>learn</em> patterns instead of memorizing them.
+                    {t("ngramNarrative.keyTakeaways.endOfCounting")}
                 </KeyTakeaway>
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── CTA ─────────── */}
+            {/* ─────────── CTA (asymmetric — primary = next chapter) ─────────── */}
             <Section>
                 <div className="text-center mb-10">
                     <h2 className="text-2xl md:text-3xl font-bold text-[var(--lab-text)] tracking-tight mb-3">
@@ -763,60 +766,57 @@ export function NgramNarrative({
                     </h2>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setMode("free")}
-                        className="group relative rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-950/20 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-colors hover:border-amber-500/40 overflow-hidden"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                        <div className="relative">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="p-2 rounded-xl bg-amber-500/15">
-                                    <Beaker className="w-5 h-5 text-amber-300" />
-                                </div>
-                                <span className="text-lg font-bold text-[var(--lab-text)]">
-                                    {t("ngramNarrative.cta.labButton")}
-                                </span>
-                            </div>
-                            <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed">
-                                {t("ngramNarrative.cta.labDesc")}
-                            </p>
-                        </div>
-                    </motion.button>
-
+                <div className="space-y-4">
+                    {/* Primary CTA — next chapter */}
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => router.push("/lab/neural-networks")}
-                        className="group relative rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-950/20 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-colors hover:border-rose-500/40 overflow-hidden"
+                        className="group relative w-full rounded-2xl border border-rose-500/25 bg-gradient-to-br from-rose-950/30 to-[var(--lab-viz-bg)]/80 p-8 text-left transition-colors hover:border-rose-500/50 overflow-hidden shadow-[0_0_40px_-12px_rgba(244,63,94,0.15)]"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-rose-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                        <div className="relative">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="p-2 rounded-xl bg-rose-500/15">
-                                    <BrainCircuit className="w-5 h-5 text-rose-300" />
-                                </div>
-                                <span className="text-lg font-bold text-[var(--lab-text)]">
+                        <div className="absolute inset-0 bg-gradient-to-br from-rose-500/[0.08] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                        <div className="relative flex items-center gap-5">
+                            <div className="p-3 rounded-2xl bg-rose-500/15 shrink-0">
+                                <BrainCircuit className="w-7 h-7 text-rose-300" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <span className="text-xl font-bold text-[var(--lab-text)] tracking-tight block mb-1">
                                     {t("ngramNarrative.cta.neuralButton")}
                                 </span>
+                                <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed">
+                                    {t("ngramNarrative.cta.neuralDesc")}
+                                </p>
                             </div>
-                            <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed">
-                                {t("ngramNarrative.cta.neuralDesc")}
-                            </p>
+                            <ArrowRight className="w-5 h-5 text-rose-400/50 shrink-0 group-hover:text-rose-400 transition-colors" />
+                        </div>
+                    </motion.button>
+
+                    {/* Secondary CTA — free lab */}
+                    <motion.button
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        onClick={() => setMode("free")}
+                        className="group relative w-full rounded-xl border border-white/[0.08] bg-white/[0.02] p-5 text-left transition-colors hover:border-amber-500/25 overflow-hidden"
+                    >
+                        <div className="relative flex items-center gap-4">
+                            <div className="p-2 rounded-xl bg-amber-500/10 shrink-0">
+                                <Beaker className="w-4 h-4 text-amber-300/70" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <span className="text-sm font-bold text-[var(--lab-text-muted)]">
+                                    {t("ngramNarrative.cta.labButton")}
+                                </span>
+                                <span className="text-xs text-[var(--lab-text-subtle)] ml-2">
+                                    {t("ngramNarrative.cta.labDesc")}
+                                </span>
+                            </div>
                         </div>
                     </motion.button>
                 </div>
             </Section>
 
             {/* ───────────────── FOOTER ───────────────── */}
-            <motion.footer
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className="mt-8 pt-12 border-t border-[var(--lab-border)] text-center"
-            >
+            <FadeInView as="footer" className="mt-8 pt-12 border-t border-[var(--lab-border)] text-center">
                 <p className="text-sm text-[var(--lab-text-subtle)] italic max-w-md mx-auto leading-relaxed mb-10">
                     {t("ngramNarrative.footer.text")}
                 </p>
@@ -824,7 +824,7 @@ export function NgramNarrative({
                     <FlaskConical className="h-3 w-3" />
                     {t("ngramNarrative.footer.brand")}
                 </div>
-            </motion.footer>
+            </FadeInView>
         </article>
     );
 }

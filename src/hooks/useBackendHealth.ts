@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type BackendStatus = "connecting" | "online" | "offline";
 
@@ -54,6 +54,8 @@ export function useBackendHealth() {
         checkHealth();
     }, [checkHealth]);
 
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
     // Initial check + retry loop
     useEffect(() => {
         mountedRef.current = true;
@@ -64,22 +66,26 @@ export function useBackendHealth() {
             if (mountedRef.current) setShowBanner(true);
         }, SHOW_BANNER_DELAY_MS);
 
-        const interval = setInterval(() => {
+        intervalRef.current = setInterval(() => {
             if (mountedRef.current) checkHealth();
         }, RETRY_INTERVAL_MS);
 
         return () => {
             mountedRef.current = false;
-            clearInterval(interval);
+            if (intervalRef.current) clearInterval(intervalRef.current);
             if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current);
             if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
         };
     }, [checkHealth]);
 
-    // Hide banner once online
+    // Stop polling + hide banner once online
     useEffect(() => {
         if (status === "online") {
             setShowBanner(false);
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
         }
     }, [status]);
 

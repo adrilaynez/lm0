@@ -1,34 +1,35 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
+
+import { AnimatePresence, motion } from "framer-motion";
 import {
     ArrowLeft,
+    Check,
+    ChevronUp,
     FlaskConical,
     Loader2,
-    WifiOff,
-    RefreshCw,
-    User,
-    Check,
-    Sun,
     Moon,
-    ChevronUp,
+    RefreshCw,
+    Sun,
+    WifiOff,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { LanguageToggle } from "@/components/ui/language-toggle";
-import { useI18n } from "@/i18n/context";
-import { LabModeProvider } from "@/context/LabModeContext";
-import { useBackendHealth } from "@/hooks/useBackendHealth";
-import { useUser } from "@/context/UserContext";
+
+import FeedbackButton from "@/components/lab/FeedbackButton";
+import { KeyboardShortcutsPanel } from "@/components/lab/KeyboardShortcutsPanel";
 import { ReadingProgressBar } from "@/components/lab/ReadingProgressBar";
+import { Badge } from "@/components/ui/badge";
+import { LanguageToggle } from "@/components/ui/language-toggle";
+import { ScrollProvider, useScrollY } from "@/context/ScrollContext";
+import { useUser } from "@/context/UserContext";
+import { useBackendHealth } from "@/hooks/useBackendHealth";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useLabTheme } from "@/hooks/useLabTheme";
 import { useProgressTracker } from "@/hooks/useProgressTracker";
-import FeedbackButton from "@/components/lab/FeedbackButton";
-import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { KeyboardShortcutsPanel } from "@/components/lab/KeyboardShortcutsPanel";
+import { useI18n } from "@/i18n/context";
+import { cn } from "@/lib/utils";
 
 /* ─── Avatar + Name Popover ─── */
 
@@ -124,6 +125,14 @@ function AvatarPopover() {
 /* ─── LabShell ─── */
 
 export function LabShell({ children }: { children: React.ReactNode }) {
+    return (
+        <ScrollProvider>
+            <LabShellInner>{children}</LabShellInner>
+        </ScrollProvider>
+    );
+}
+
+function LabShellInner({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const { t } = useI18n();
     const { status, showBanner, retry } = useBackendHealth();
@@ -132,12 +141,8 @@ export function LabShell({ children }: { children: React.ReactNode }) {
     const pageId = pathname?.replace("/lab/", "").replace(/\//g, "-") || "lab";
     const { currentSection } = useProgressTracker(pageId);
 
-    const [showBackToTop, setShowBackToTop] = useState(false);
-    useEffect(() => {
-        const onScroll = () => setShowBackToTop(window.scrollY > 600);
-        window.addEventListener("scroll", onScroll, { passive: true });
-        return () => window.removeEventListener("scroll", onScroll);
-    }, []);
+    const scrollY = useScrollY();
+    const showBackToTop = scrollY > 600;
     const scrollToTop = useCallback(() => window.scrollTo({ top: 0, behavior: "smooth" }), []);
 
     const [showShortcuts, setShowShortcuts] = useState(false);

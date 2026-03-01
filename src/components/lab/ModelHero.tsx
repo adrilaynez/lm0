@@ -1,10 +1,12 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { memo } from "react";
-import { useI18n } from "@/i18n/context";
-import { ModeToggle } from "@/components/lab/ModeToggle";
+
+import { motion } from "framer-motion";
 import { ArrowDown, type LucideIcon } from "lucide-react";
+
+import { ModeToggle } from "@/components/lab/ModeToggle";
+import { useI18n } from "@/i18n/context";
 
 export interface StatItem {
     label: string;

@@ -39,3 +39,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Development artifacts
+*.patch
+*.txt
+en_stash.ts
+en_867.ts
+fix-lines.js
+fix.py
+journey-test.js
+verify-ui.js
+update-i18n.js
+homepage.png
+step1-home-v2.png
+step1-home.png
+step2-notes-page.png
+step3-article-read.png
+step5-back-home.png

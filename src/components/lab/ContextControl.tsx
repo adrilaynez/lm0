@@ -1,11 +1,12 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
+import { AnimatePresence,motion } from "framer-motion";
 import { Layers } from "lucide-react";
-import { useI18n } from "@/i18n/context";
+
+import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { useLabMode } from "@/context/LabModeContext";
+import { useI18n } from "@/i18n/context";
 
 const NGRAM_NAME_KEYS: Record<number, string> = {
     1: "models.ngram.controls.bigram",

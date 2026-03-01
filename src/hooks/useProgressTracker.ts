@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import { getScrollState } from "@/context/ScrollContext";
 
 export interface StoredProgress {
     lastSection: string;
@@ -10,7 +12,6 @@ export interface StoredProgress {
 
 export interface UseProgressTrackerReturn {
     currentSection: string;
-    scrollPct: number;
     hasStoredProgress: boolean;
     storedSection: string;
     clearProgress: () => void;
@@ -23,13 +24,11 @@ export function useProgressTracker(pageId: string): UseProgressTrackerReturn {
     const storageKey = `lm-lab-progress-${pageId}`;
 
     const [currentSection, setCurrentSection] = useState("");
-    const [scrollPct, setScrollPct] = useState(0);
     const [storedSection, setStoredSection] = useState("");
     const [hasStoredProgress, setHasStoredProgress] = useState(false);
 
     const writeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const currentSectionRef = useRef("");
-    const scrollPctRef = useRef(0);
 
     // Load stored progress on mount
     useEffect(() => {
@@ -47,13 +46,14 @@ export function useProgressTracker(pageId: string): UseProgressTrackerReturn {
         }
     }, [storageKey]);
 
+    // Read scrollPct imperatively at write time — no reactive dependency
     const scheduleWrite = useCallback(() => {
         if (writeTimerRef.current) clearTimeout(writeTimerRef.current);
         writeTimerRef.current = setTimeout(() => {
             if (!currentSectionRef.current) return;
             const payload: StoredProgress = {
                 lastSection: currentSectionRef.current,
-                scrollPct: scrollPctRef.current,
+                scrollPct: Math.round(getScrollState().scrollPct),
                 timestamp: Date.now(),
             };
             try {
@@ -87,21 +87,6 @@ export function useProgressTracker(pageId: string): UseProgressTrackerReturn {
         return () => observer.disconnect();
     }, [scheduleWrite]);
 
-    // Scroll percentage tracking
-    useEffect(() => {
-        const onScroll = () => {
-            const scrolled = window.scrollY;
-            const total = document.documentElement.scrollHeight - window.innerHeight;
-            const pct = total > 0 ? Math.round((scrolled / total) * 100) : 0;
-            scrollPctRef.current = pct;
-            setScrollPct(pct);
-            scheduleWrite();
-        };
-
-        window.addEventListener("scroll", onScroll, { passive: true });
-        return () => window.removeEventListener("scroll", onScroll);
-    }, [scheduleWrite]);
-
     const clearProgress = useCallback(() => {
         try {
             localStorage.removeItem(storageKey);
@@ -112,5 +97,5 @@ export function useProgressTracker(pageId: string): UseProgressTrackerReturn {
         setStoredSection("");
     }, [storageKey]);
 
-    return { currentSection, scrollPct, hasStoredProgress, storedSection, clearProgress };
+    return { currentSection, hasStoredProgress, storedSection, clearProgress };
 }

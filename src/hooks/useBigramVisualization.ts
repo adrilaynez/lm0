@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import type { VisualizeResponse } from "@/types/lmLab";
+import { useCallback,useState } from "react";
+
 import { visualizeBigram } from "@/lib/lmLabClient";
+import type { VisualizeResponse } from "@/types/lmLab";
 
 export function useBigramVisualization() {
     const [data, setData] = useState<VisualizeResponse | null>(null);

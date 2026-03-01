@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import type { GenerateResponse } from "@/types/lmLab";
+import { useCallback,useState } from "react";
+
 import { generateNgram } from "@/lib/lmLabClient";
+import type { GenerateResponse } from "@/types/lmLab";
 
 export function useNgramGeneration(contextSize: number) {
     const [data, setData] = useState<GenerateResponse | null>(null);

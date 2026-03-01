@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useI18n } from "@/i18n/context";
+import { useCallback, useEffect,useRef, useState } from "react";
+
+import { AnimatePresence,motion } from "framer-motion";
+
 import { Slider } from "@/components/ui/slider";
+import { useI18n } from "@/i18n/context";
 
 /*
   Interactive learning rate demo.

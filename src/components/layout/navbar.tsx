@@ -2,10 +2,11 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
+
 // import { buttonVariants } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageToggle } from "@/components/ui/language-toggle"
+import { cn } from "@/lib/utils"
 
 const navItems = [
     { name: "Home", href: "/" },

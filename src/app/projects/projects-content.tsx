@@ -1,43 +1,21 @@
 "use client";
 
-import { ProjectCard } from "@/components/project-card";
+import Link from "next/link";
 import { motion } from "framer-motion";
+import {
+    ArrowRight,
+    Boxes,
+    Brain, FlaskConical, Sparkles
+} from "lucide-react";
+
+import { FadeInView } from "@/components/lab/FadeInView";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import Link from "next/link";
-import {
-    Brain,
-    FlaskConical,
-    Boxes,
-    Sparkles,
-    ArrowRight,
-    ExternalLink,
-    Github, Code2, Layers, Cpu, Database, Activity, Monitor, Network, Binary, Terminal
-} from "lucide-react";
 import { useI18n } from "@/i18n/context";
 
-const projects = [
-    {
-        title: "projects.experiments.items.distriKv.title",
-        description: "projects.experiments.items.distriKv.desc",
-        tags: ["Go", "gRPC", "Raft", "Distributed Systems"],
-        githubUrl: "#",
-    },
-    {
-        title: "projects.experiments.items.neuroVis.title",
-        description: "projects.experiments.items.neuroVis.desc",
-        tags: ["TypeScript", "WebGL", "Three.js", "React"],
-        githubUrl: "#",
-        demoUrl: "#",
-    },
-    {
-        title: "projects.experiments.items.autoAgent.title",
-        description: "projects.experiments.items.autoAgent.desc",
-        tags: ["Python", "LangChain", "Docker"],
-        githubUrl: "#",
-    },
-];
+const projects: never[] = [];
 
 export function ProjectsContent() {
     const { t } = useI18n();
@@ -86,12 +64,7 @@ export function ProjectsContent() {
                         <div className="h-px bg-border flex-1"></div>
                     </div>
 
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5 }}
-                    >
+                    <FadeInView>
                         <Card className="relative overflow-hidden border-emerald-500/20 bg-gradient-to-br from-black via-emerald-950/20 to-black group hover:border-emerald-500/30 transition-all duration-700">
                             {/* Animated background grid */}
                             <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(16,185,129,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(16,185,129,0.03)_1px,transparent_1px)] bg-[size:32px_32px] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -208,32 +181,23 @@ export function ProjectsContent() {
                                 </div>
                             </div>
                         </Card>
-                    </motion.div>
+                    </FadeInView>
                 </div>
 
-                {/* Other Projects Grid */}
+                {/* Coming Soon Section */}
                 <section>
-                    <motion.h2
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        className="text-2xl font-bold tracking-tight mb-8 border-l-4 border-primary pl-4"
-                    >
-                        {t("projects.experiments.title")}
-                    </motion.h2>
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {projects.map((project, i) => (
-                            <motion.div
-                                key={project.title}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: i * 0.1 }}
-                            >
-                                <ProjectCard {...project} title={t(project.title)} description={t(project.description)} />
-                            </motion.div>
-                        ))}
-                    </div>
+                    <FadeInView className="text-center py-16">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-xs font-mono uppercase tracking-widest text-primary mb-6">
+                            <Sparkles className="h-3 w-3" />
+                            {t("projects.experiments.comingSoon")}
+                        </div>
+                        <h2 className="text-2xl font-bold tracking-tight mb-4 text-muted-foreground">
+                            {t("projects.experiments.title")}
+                        </h2>
+                        <p className="text-muted-foreground/60 max-w-md mx-auto text-sm">
+                            {t("projects.experiments.comingSoonDesc")}
+                        </p>
+                    </FadeInView>
                 </section>
 
             </section>

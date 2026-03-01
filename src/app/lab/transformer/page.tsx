@@ -1,10 +1,11 @@
 "use client";
 
-import { LabShell } from "@/components/lab/LabShell";
 import { motion } from "framer-motion";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Cpu, Lock } from "lucide-react";
+
+import { LabShell } from "@/components/lab/LabShell";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 export default function TransformerPage() {
     return (

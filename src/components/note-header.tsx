@@ -1,7 +1,9 @@
 "use client"
 
 import Link from "next/link"
+
 import { ArrowLeft } from "lucide-react"
+
 import { useI18n } from "@/i18n/context"
 
 interface NoteHeaderProps {

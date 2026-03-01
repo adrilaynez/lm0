@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+
 import { motion, useReducedMotion } from "framer-motion";
+
 import { FAMILY_STYLES, type VisualizerFamily } from "./visualizer-theme";
 
 /* ─────────────────────────────────────────────

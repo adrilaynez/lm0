@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { memo,useCallback, useMemo, useState } from "react";
+
 import { Loader2 } from "lucide-react";
+
 import { useI18n } from "@/i18n/context";
 import type { MLPEmbeddingResponse } from "@/types/lmLab";
 
@@ -127,7 +129,7 @@ function dist(a: Token, b: Token) {
     return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 }
 
-export function EmbeddingSpaceVisualizer({
+export const EmbeddingSpaceVisualizer = memo(function EmbeddingSpaceVisualizer({
     embedding,
     embeddingLoading,
     embeddingError,
@@ -304,4 +306,4 @@ export function EmbeddingSpaceVisualizer({
             </p>
         </div>
     );
-}
+});

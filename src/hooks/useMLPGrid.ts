@@ -1,19 +1,20 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef,useState } from "react";
+
+import {
+    fetchMLPEmbedding,
+    fetchMLPGrid,
+    fetchMLPTimeline,
+    generateMLP,
+} from "@/lib/lmLabClient";
 import type {
+    MLPEmbeddingResponse,
+    MLPGenerateResponse,
     MLPGridConfig,
     MLPGridResponse,
     MLPTimelineResponse,
-    MLPEmbeddingResponse,
-    MLPGenerateResponse,
 } from "@/types/lmLab";
-import {
-    fetchMLPGrid,
-    fetchMLPTimeline,
-    fetchMLPEmbedding,
-    generateMLP,
-} from "@/lib/lmLabClient";
 
 export interface UseMLPGridReturn {
     /* ── Grid data ── */

@@ -1,19 +1,18 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
+import { BlockMath, InlineMath } from "react-katex";
+
 import {
-    Cpu,
-    Zap,
     AlertTriangle,
     CheckCircle2,
-    Layers,
-    Type
+    Cpu,
+    Layers
 } from "lucide-react";
-import type { ArchitectureViz } from "@/types/lmLab";
-import { BlockMath, InlineMath } from "react-katex";
-import "katex/dist/katex.min.css";
+
+import { FadeInView } from "@/components/lab/FadeInView";
+import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n/context";
+import type { ArchitectureViz } from "@/types/lmLab";
 
 interface ArchitectureDeepDiveProps {
     data: ArchitectureViz | null;
@@ -124,12 +123,7 @@ export function ArchitectureDeepDive({ data }: ArchitectureDeepDiveProps) {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
 
                     {/* Column 1: Mechanism */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="space-y-6"
-                    >
+                    <FadeInView className="space-y-6">
                         <h3 className="text-sm font-mono uppercase tracking-widest text-indigo-400 border-b border-indigo-500/20 pb-2 mb-4">
                             {t("models.bigram.architecture.mechanism")}
                         </h3>
@@ -148,16 +142,10 @@ export function ArchitectureDeepDive({ data }: ArchitectureDeepDiveProps) {
                                 </div>
                             </div>
                         ))}
-                    </motion.div>
+                    </FadeInView>
 
                     {/* Column 2: Analysis */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.1 }}
-                        className="space-y-8"
-                    >
+                    <FadeInView delay={0.1} className="space-y-8">
                         {/* Strengths */}
                         <div>
                             <h3 className="text-sm font-mono uppercase tracking-widest text-emerald-400 border-b border-emerald-500/20 pb-2 mb-4">
@@ -187,16 +175,10 @@ export function ArchitectureDeepDive({ data }: ArchitectureDeepDiveProps) {
                                 ))}
                             </ul>
                         </div>
-                    </motion.div>
+                    </FadeInView>
 
                     {/* Column 3: Model Card */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.2 }}
-                        className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 h-fit"
-                    >
+                    <FadeInView delay={0.2} className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 h-fit">
                         <div className="flex items-center gap-3 mb-6">
                             <Layers className="text-white/40" />
                             <h3 className="text-lg font-bold text-white">{t("models.bigram.architecture.modelCard.title")}</h3>
@@ -236,7 +218,7 @@ export function ArchitectureDeepDive({ data }: ArchitectureDeepDiveProps) {
                                 </p>
                             </div>
                         </div>
-                    </motion.div>
+                    </FadeInView>
 
                 </div>
             </div>

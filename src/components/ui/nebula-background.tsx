@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, memo } from "react";
+import React, { memo, useEffect, useRef } from "react";
 
 interface NebulaProps {
     className?: string;
@@ -86,12 +86,29 @@ export const NebulaBackground: React.FC<NebulaProps> = memo(({
             animationFrameId = requestAnimationFrame(animate);
         };
 
+        let running = true;
+
+        const onVisibility = () => {
+            if (document.hidden) {
+                running = false;
+                cancelAnimationFrame(animationFrameId);
+            } else {
+                if (!running) {
+                    running = true;
+                    animationFrameId = requestAnimationFrame(animate);
+                }
+            }
+        };
+
         window.addEventListener("resize", resizeCanvas);
+        document.addEventListener("visibilitychange", onVisibility);
         resizeCanvas();
         animate();
 
         return () => {
+            running = false;
             window.removeEventListener("resize", resizeCanvas);
+            document.removeEventListener("visibilitychange", onVisibility);
             cancelAnimationFrame(animationFrameId);
         };
     }, [baseColor, particleCount]);

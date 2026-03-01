@@ -1,14 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card } from "@/components/ui/card";
+
+import { AnimatePresence,motion } from "framer-motion";
+import { Cpu, Dices,Info, Zap } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Zap, Cpu, Info, Dices } from "lucide-react";
-import type { Prediction } from "@/types/lmLab";
 import { useI18n } from "@/i18n/context";
+import type { Prediction } from "@/types/lmLab";
 
 interface InferenceConsoleProps {
     onAnalyze: (text: string, topK: number) => void;

@@ -1,3 +1,5 @@
+import "katex/dist/katex.min.css";
+
 import { LabModeProvider } from "@/context/LabModeContext";
 import { UserProvider } from "@/context/UserContext";
 

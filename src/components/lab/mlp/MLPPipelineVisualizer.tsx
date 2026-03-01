@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Loader2, ArrowRight } from "lucide-react";
+import { useRef,useState } from "react";
+
+import { ArrowRight,Loader2 } from "lucide-react";
+
 import { fetchMLPInternals } from "@/lib/lmLabClient";
-import type { MLPInternalsResponse, MLPGridConfig } from "@/types/lmLab";
+import type { MLPGridConfig,MLPInternalsResponse } from "@/types/lmLab";
 
 /*
   MLPPipelineVisualizer

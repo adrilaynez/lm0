@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+
 import { Lightbulb } from "lucide-react";
 
 interface KeyTakeawayProps {

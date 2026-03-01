@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef } from "react";
-import { useNeuralNet, ACTIVATION_LABELS, ACTIVATION_SHORT, type ActivationFn } from "@/hooks/useNeuralNet";
-import { useI18n } from "@/i18n/context";
+import { useCallback, useMemo, useRef,useState } from "react";
+
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ACTIVATION_LABELS, ACTIVATION_SHORT, type ActivationFn,useNeuralNet } from "@/hooks/useNeuralNet";
+import { useI18n } from "@/i18n/context";
 import { cn } from "@/lib/utils";
 
 type Tab = "perceptron" | "activation" | "gradients" | "training";

@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useCallback,useEffect, useMemo, useState } from "react";
+
+import { Activity, AlertTriangle, ChevronDown, ChevronUp,Cpu, GitCompareArrows, Layers, Loader2, Sparkles, TrendingDown } from "lucide-react";
+
 import { useI18n } from "@/i18n/context";
-import { Layers, TrendingDown, Sparkles, Loader2, AlertTriangle, GitCompareArrows, Cpu, Activity, ChevronDown, ChevronUp } from "lucide-react";
-import type { MLPGridConfig, MLPTimelineResponse, MLPGenerateResponse } from "@/types/lmLab";
-import { EmbeddingDriftAnimator } from "./EmbeddingDriftAnimator";
+import type { MLPGenerateResponse,MLPGridConfig, MLPTimelineResponse } from "@/types/lmLab";
+
 import { CrossConfigScatterPlot } from "./CrossConfigScatterPlot";
-import { NearestNeighborExplorer } from "./NearestNeighborExplorer";
+import { EmbeddingDriftAnimator } from "./EmbeddingDriftAnimator";
 import { GeneralizationGapHeatmap } from "./GeneralizationGapHeatmap";
-import { GradientHealthHeatmap, ActivationSaturationHeatmap } from "./SnapshotDiagnostics";
+import { NearestNeighborExplorer } from "./NearestNeighborExplorer";
+import { ActivationSaturationHeatmap,GradientHealthHeatmap } from "./SnapshotDiagnostics";
 
 /* ─────────────────────────────────────────────
    MLPHyperparameterExplorer — v2

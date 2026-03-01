@@ -1,5 +1,6 @@
+import { AlertTriangle, CheckCircle,Info, Terminal } from "lucide-react"
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Terminal, Info, AlertTriangle, CheckCircle } from "lucide-react"
 
 interface CalloutProps {
     icon?: string

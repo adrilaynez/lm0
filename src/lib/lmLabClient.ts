@@ -1,16 +1,16 @@
 import type {
-    VisualizeResponse,
-    GenerateResponse,
-    StepwiseResponse,
-    NGramInferenceResponse,
     DatasetLookupResponse,
-    MLPGridResponse,
-    MLPTimelineResponse,
-    MLPEmbeddingResponse,
+    GenerateResponse,
     MLPEmbeddingQualityResponse,
+    MLPEmbeddingResponse,
     MLPGenerateResponse,
-    MLPPredictResponse,
+    MLPGridResponse,
     MLPInternalsResponse,
+    MLPPredictResponse,
+    MLPTimelineResponse,
+    NGramInferenceResponse,
+    StepwiseResponse,
+    VisualizeResponse,
 } from "@/types/lmLab";
 
 const BASE_URL =
@@ -391,4 +391,74 @@ export function fetchMLPInternals(
         "/api/v1/mlp-grid/internals",
         { embedding_dim, hidden_size, learning_rate, text, top_k }
     );
+}
+
+// ─── Legacy API compatibility layer ──────────────────────────────────────────
+
+export interface Model {
+    id: string;
+    name: string;
+    type: "bigram" | "ngram" | "mlp" | "transformer";
+    description: string;
+    status: "ready" | "loading" | "error";
+    metadata?: Record<string, any>;
+}
+
+interface ModelsListResponse {
+    models: Array<{
+        id: string;
+        name: string;
+        description: string;
+        type: string;
+        complexity: string;
+        available: boolean;
+    }>;
+    total: number;
+}
+
+/**
+ * Get list of available models from the backend.
+ * Falls back to mock data if backend is unavailable.
+ */
+export async function getModels(): Promise<Model[]> {
+    try {
+        const response = await requestGet<ModelsListResponse>("/api/v1/models");
+        return response.models.map(m => ({
+            id: m.id,
+            name: m.name,
+            type: m.type as Model["type"],
+            description: m.description,
+            status: m.available ? "ready" : "loading",
+            metadata: { complexity: m.complexity }
+        }));
+    } catch (err) {
+        console.warn("Using fallback models (backend not available)");
+        return [
+            { id: "bigram", name: "Bigram Model", type: "bigram", description: "First-order analysis and transition matrices.", status: "ready" },
+            { id: "ngram", name: "N-Gram Model", type: "ngram", description: "Variable context study and combinatorial explosion.", status: "ready" },
+            { id: "mlp", name: "MLP Neural", type: "mlp", description: "Dense representations and multi-layer perceptrons.", status: "loading" },
+        ];
+    }
+}
+
+/**
+ * Generic visualize function that routes to bigram or ngram based on modelType.
+ */
+export async function visualize(modelType: string, text: string, contextSize: number = 1): Promise<any> {
+    if (modelType === 'bigram') {
+        return visualizeBigram(text, 10);
+    } else {
+        return visualizeNgram(text, contextSize, 10);
+    }
+}
+
+/**
+ * Generic generate function that routes based on modelId.
+ */
+export async function generate(modelId: string, prompt: string, numTokens: number = 50, temperature: number = 1.0): Promise<any> {
+    if (modelId === 'bigram') {
+        return generateBigram(prompt.slice(-1) || 'a', numTokens, temperature);
+    } else {
+        return generateNgram(prompt.slice(-1) || 'a', numTokens, temperature, 3);
+    }
 }

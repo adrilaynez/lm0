@@ -1,7 +1,11 @@
 "use client"
 
 import Link from "next/link"
+
+import { ExternalLink,Github } from "lucide-react"
+
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
     Card,
     CardContent,
@@ -10,8 +14,6 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Github, ExternalLink } from "lucide-react"
 import { useI18n } from "@/i18n/context"
 
 interface ProjectCardProps {

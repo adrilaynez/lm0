@@ -62,6 +62,7 @@ export interface VisualizeResponse {
 export interface GenerateResponse {
     model_id: string;
     generated_text: string;
+    generated_only: string;  // Only newly generated tokens (excludes start_char)
     length: number;
     temperature: number;
     start_char: string;

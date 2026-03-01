@@ -1,23 +1,25 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useEffect,useMemo, useState } from "react";
+
+import { Info } from "lucide-react";
+
+import { BigramMatrixBuilder } from "@/components/lab/BigramMatrixBuilder";
+import { TransitionMatrix } from "@/components/lab/TransitionMatrix";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { TransitionMatrix } from "@/components/lab/TransitionMatrix";
-import { BigramMatrixBuilder } from "@/components/lab/BigramMatrixBuilder";
-import type { TransitionMatrixViz, TrainingViz } from "@/types/lmLab";
-import { useI18n } from "@/i18n/context";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useI18n } from "@/i18n/context";
+import { cn } from "@/lib/utils";
+import type { TrainingViz,TransitionMatrixViz } from "@/types/lmLab";
 
 type DiagramMode = "story" | "lab";
 type ProbabilityMethod = "normalize" | "softmax";

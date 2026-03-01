@@ -1,18 +1,22 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
+
+import { FlaskConical } from "lucide-react";
+
+import { FadeInView } from "@/components/lab/FadeInView";
+
+import { ErrorBoundary } from "@/components/lab/ErrorBoundary";
 import { LabShell } from "@/components/lab/LabShell";
+import type { MLPHyperparameterExplorerProps } from "@/components/lab/mlp/MLPHyperparameterExplorer";
+import type { MLPNarrativeProps } from "@/components/lab/MLPNarrative";
 import { ModelHero } from "@/components/lab/ModelHero";
 import { SectionDivider } from "@/components/lab/SectionDivider";
-import { motion } from "framer-motion";
-import { FlaskConical } from "lucide-react";
 import { useLabMode } from "@/context/LabModeContext";
-import { useI18n } from "@/i18n/context";
-import { useMLPGrid } from "@/hooks/useMLPGrid";
 import type { UseMLPGridReturn } from "@/hooks/useMLPGrid";
-import type { MLPNarrativeProps } from "@/components/lab/MLPNarrative";
-import type { MLPHyperparameterExplorerProps } from "@/components/lab/mlp/MLPHyperparameterExplorer";
+import { useMLPGrid } from "@/hooks/useMLPGrid";
+import { useI18n } from "@/i18n/context";
 
 const MLPNarrative = dynamic<MLPNarrativeProps>(
     () => import("@/components/lab/MLPNarrative").then((m) => ({ default: m.MLPNarrative })),
@@ -54,13 +58,7 @@ function MlpFreeLab({ mlpGrid }: { mlpGrid: UseMLPGridReturn }) {
             />
 
             {/* ── EXPLORER ── */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.6 }}
-                className="max-w-5xl mx-auto px-6 mb-28"
-            >
+            <FadeInView margin="-60px" className="max-w-5xl mx-auto px-6 mb-28">
                 <MLPHyperparameterExplorer
                     configs={mlpGrid.configs}
                     selectedConfig={mlpGrid.selectedConfig}
@@ -74,15 +72,10 @@ function MlpFreeLab({ mlpGrid }: { mlpGrid: UseMLPGridReturn }) {
                     gridLoading={mlpGrid.gridLoading}
                     gridError={mlpGrid.gridError}
                 />
-            </motion.div>
+            </FadeInView>
 
             {/* ── FOOTER ── */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className="mt-32 border-t border-white/[0.05] pt-12 flex flex-col items-center gap-3"
-            >
+            <FadeInView className="mt-32 border-t border-white/[0.05] pt-12 flex flex-col items-center gap-3">
                 <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-white/20">
                     <FlaskConical className="h-3 w-3" />
                     <span>LM-Lab · {t("models.mlp.hero.badge")}</span>
@@ -90,7 +83,7 @@ function MlpFreeLab({ mlpGrid }: { mlpGrid: UseMLPGridReturn }) {
                 <p className="text-[10px] text-white/15 font-mono">
                     {t("models.mlp.page.switchToEducational")}
                 </p>
-            </motion.div>
+            </FadeInView>
         </div>
     );
 }
@@ -123,7 +116,9 @@ function MlpPageContent() {
                 /* ═══════════════════════════════════════════
                    EDUCATIONAL MODE — Narrative blog layout
                    ═══════════════════════════════════════════ */
-                <MLPNarrative mlpGrid={mlpGrid} />
+                <ErrorBoundary fallbackMessage="The MLP narrative encountered an error">
+                    <MLPNarrative mlpGrid={mlpGrid} />
+                </ErrorBoundary>
             ) : (
                 /* ═══════════════════════════════════════════
                    FREE LAB MODE — Full interactive lab

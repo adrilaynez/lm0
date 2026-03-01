@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+
 import { useI18n } from "@/i18n/context";
 import type { MLPTimelineResponse, MLPTimelineSnapshot } from "@/types/lmLab";
 

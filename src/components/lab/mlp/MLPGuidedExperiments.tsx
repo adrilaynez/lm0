@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { FlaskConical, ChevronDown } from "lucide-react";
+
+import { AnimatePresence,motion } from "framer-motion";
+import { ChevronDown,FlaskConical } from "lucide-react";
+
 import { useI18n } from "@/i18n/context";
 
 export function MLPGuidedExperiments() {

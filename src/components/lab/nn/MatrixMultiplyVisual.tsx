@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { useI18n } from "@/i18n/context";
-import { NN_COLORS } from "./visualizer-theme";
 import { BlockMath } from "react-katex";
-import "katex/dist/katex.min.css";
+
+import { motion } from "framer-motion";
+
+import { useI18n } from "@/i18n/context";
+
+import { NN_COLORS } from "./visualizer-theme";
 
 /*
   Extensive matrix multiplication visualization for a math-oriented audience.
@@ -157,8 +159,8 @@ export function MatrixMultiplyVisual() {
                 <button
                     onClick={() => setShowStacking(!showStacking)}
                     className={`w-full px-4 py-2 rounded-lg text-[11px] font-mono font-bold border transition-all ${showStacking
-                            ? "bg-violet-500/10 border-violet-500/30 text-violet-400"
-                            : "bg-white/[0.04] border-white/[0.08] text-white/50 hover:text-white/80"
+                        ? "bg-violet-500/10 border-violet-500/30 text-violet-400"
+                        : "bg-white/[0.04] border-white/[0.08] text-white/50 hover:text-white/80"
                         }`}
                 >
                     {showStacking ? "▾" : "▸"} {t("neuralNetworkNarrative.matrixMultiply.stackTitle")}

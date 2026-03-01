@@ -1,9 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Card } from "@/components/ui/card";
+import { Activity, BarChart3, Database, Hash, Layers } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
-import { Activity, Database, Hash, BarChart3, Layers } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import type { NGramTrainingInfo } from "@/types/lmLab";
 
 interface NgramTrainingInsightsProps {

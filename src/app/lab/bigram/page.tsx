@@ -1,23 +1,25 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+
+import { ArrowRight, FlaskConical } from "lucide-react";
+
+import { FadeInView } from "@/components/lab/FadeInView";
+
+import { DatasetExplorerModal } from "@/components/lab/DatasetExplorerModal";
+import { ErrorBoundary } from "@/components/lab/ErrorBoundary";
+import { HistoricalContextPanel } from "@/components/lab/HistoricalContextPanel";
+import { LabSectionHeader } from "@/components/lab/LabSectionHeader";
 import { LabShell } from "@/components/lab/LabShell";
 import { ModelHero } from "@/components/lab/ModelHero";
 import { SectionDivider } from "@/components/lab/SectionDivider";
-import { HistoricalContextPanel } from "@/components/lab/HistoricalContextPanel";
-import { DatasetExplorerModal } from "@/components/lab/DatasetExplorerModal";
-import { LabSectionHeader } from "@/components/lab/LabSectionHeader";
-import dynamic from "next/dynamic";
-
-import { useBigramVisualization } from "@/hooks/useBigramVisualization";
+import { useLabMode } from "@/context/LabModeContext";
 import { useBigramGeneration } from "@/hooks/useBigramGeneration";
 import { useBigramStepwise } from "@/hooks/useBigramStepwise";
-import { motion } from "framer-motion";
-import { FlaskConical, Brain, Zap, BookOpen, Layers, ArrowRight } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useBigramVisualization } from "@/hooks/useBigramVisualization";
 import { useI18n } from "@/i18n/context";
-import { useLabMode } from "@/context/LabModeContext";
-import Link from "next/link";
-import { TrainingInsights } from "@/components/lab/TrainingInsights";
 
 const BigramNarrative = dynamic(() =>
     import("@/components/lab/BigramNarrative").then((m) => m.BigramNarrative)
@@ -63,6 +65,7 @@ function BigramPageContent() {
         if (!viz.data && !viz.loading) {
             viz.analyze("hello", 10);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Run once on mount
 
     const handleCellClick = useCallback((rowLabel: string, colLabel: string) => {
@@ -83,21 +86,23 @@ function BigramPageContent() {
                 /* ═══════════════════════════════════════════
                    EDUCATIONAL MODE — Narrative blog layout
                    ═══════════════════════════════════════════ */
-                <BigramNarrative
-                    matrixData={viz.data?.visualization.transition_matrix ?? null}
-                    trainingData={viz.data?.visualization.training ?? null}
-                    onCellClick={handleCellClick}
-                    onAnalyze={viz.analyze}
-                    predictions={viz.data?.predictions ?? null}
-                    inferenceMs={viz.data?.metadata.inference_time_ms}
-                    device={viz.data?.metadata.device}
-                    vizLoading={viz.loading}
-                    vizError={viz.error}
-                    onGenerate={gen.generate}
-                    generatedText={gen.data?.generated_text ?? null}
-                    genLoading={gen.loading}
-                    genError={gen.error}
-                />
+                <ErrorBoundary fallbackMessage="The bigram narrative encountered an error">
+                    <BigramNarrative
+                        matrixData={viz.data?.visualization.transition_matrix ?? null}
+                        trainingData={viz.data?.visualization.training ?? null}
+                        onCellClick={handleCellClick}
+                        onAnalyze={viz.analyze}
+                        predictions={viz.data?.predictions ?? null}
+                        inferenceMs={viz.data?.metadata.inference_time_ms}
+                        device={viz.data?.metadata.device}
+                        vizLoading={viz.loading}
+                        vizError={viz.error}
+                        onGenerate={gen.generate}
+                        generatedText={gen.data?.generated_text ?? null}
+                        genLoading={gen.loading}
+                        genError={gen.error}
+                    />
+                </ErrorBoundary>
             ) : (
                 /* ═══════════════════════════════════════════
                    FREE LAB MODE — Full interactive playground
@@ -114,20 +119,16 @@ function BigramPageContent() {
                         description={t("models.bigram.sections.visualization.description")}
                     />
 
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-60px" }}
-                        transition={{ duration: 0.6 }}
-                        className="max-w-4xl mx-auto px-6 mb-28"
-                    >
-                        <BigramDiagramExperience
-                            mode="lab"
-                            matrixData={viz.data?.visualization.transition_matrix ?? null}
-                            trainingData={viz.data?.visualization.training ?? null}
-                            onCellClick={handleCellClick}
-                        />
-                    </motion.div>
+                    <FadeInView margin="-60px" className="max-w-4xl mx-auto px-6 mb-28">
+                        <ErrorBoundary fallbackMessage="The bigram diagram visualization encountered an error">
+                            <BigramDiagramExperience
+                                mode="lab"
+                                matrixData={viz.data?.visualization.transition_matrix ?? null}
+                                trainingData={viz.data?.visualization.training ?? null}
+                                onCellClick={handleCellClick}
+                            />
+                        </ErrorBoundary>
+                    </FadeInView>
 
                     {/* ─── 02 · INFERENCE & GENERATION ─── */}
                     <SectionDivider
@@ -139,13 +140,7 @@ function BigramPageContent() {
                     <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start mb-28">
                         {/* Left: Probability + Stepwise */}
                         <div className="space-y-16">
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: "-60px" }}
-                                transition={{ duration: 0.6 }}
-                                className="space-y-4"
-                            >
+                            <FadeInView margin="-60px" className="space-y-4">
                                 <LabSectionHeader
                                     number="2.1"
                                     title={t("models.bigram.inference.probDist")}
@@ -160,15 +155,9 @@ function BigramPageContent() {
                                     loading={viz.loading}
                                     error={viz.error}
                                 />
-                            </motion.div>
+                            </FadeInView>
 
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: "-60px" }}
-                                transition={{ duration: 0.6, delay: 0.1 }}
-                                className="space-y-4"
-                            >
+                            <FadeInView margin="-60px" delay={0.1} className="space-y-4">
                                 <LabSectionHeader
                                     number="2.2"
                                     title={t("models.bigram.stepwise.mainTitle")}
@@ -182,17 +171,11 @@ function BigramPageContent() {
                                     loading={step.loading}
                                     error={step.error}
                                 />
-                            </motion.div>
+                            </FadeInView>
                         </div>
 
                         {/* Right: Generation */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, margin: "-60px" }}
-                            transition={{ duration: 0.6, delay: 0.15 }}
-                            className="space-y-4"
-                        >
+                        <FadeInView margin="-60px" delay={0.15} className="space-y-4">
                             <LabSectionHeader
                                 number="2.3"
                                 title={t("models.bigram.generation.mainTitle")}
@@ -205,7 +188,7 @@ function BigramPageContent() {
                                 loading={gen.loading}
                                 error={gen.error}
                             />
-                        </motion.div>
+                        </FadeInView>
                     </div>
 
                     {/* ─── 03 · ARCHITECTURE ─── */}
@@ -214,29 +197,17 @@ function BigramPageContent() {
                         title={t("models.bigram.sections.architecture.title")}
                         description={t("models.bigram.sections.architecture.description")}
                     />
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-60px" }}
-                        transition={{ duration: 0.6 }}
-                        className="mb-28"
-                    >
+                    <FadeInView margin="-60px" className="mb-28">
                         <ArchitectureDeepDive
                             data={viz.data?.visualization.architecture ?? null}
                         />
-                    </motion.div>
+                    </FadeInView>
 
 
 
                     {/* ─── HISTORICAL CONTEXT ─── */}
                     {viz.data?.historical_context && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, margin: "-60px" }}
-                            transition={{ duration: 0.6 }}
-                            className="max-w-5xl mx-auto px-6 mt-28"
-                        >
+                        <FadeInView margin="-60px" className="max-w-5xl mx-auto px-6 mt-28">
                             <HistoricalContextPanel
                                 data={{
                                     description: t("models.bigram.historicalContext.description"),
@@ -248,16 +219,11 @@ function BigramPageContent() {
                                 }}
                                 collapsible
                             />
-                        </motion.div>
+                        </FadeInView>
                     )}
 
                     {/* ─── FOOTER ─── */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        viewport={{ once: true }}
-                        className="mt-32 border-t border-white/[0.05] pt-12 flex flex-col items-center gap-6"
-                    >
+                    <FadeInView className="mt-32 border-t border-white/[0.05] pt-12 flex flex-col items-center gap-6">
                         <p className="text-xs text-white/30 max-w-sm text-center leading-relaxed">
                             {t("bigramNarrative.cliffhanger.hookLine")}
                         </p>
@@ -272,7 +238,7 @@ function BigramPageContent() {
                             <FlaskConical className="h-3 w-3" />
                             <span>LM-Lab · {t("models.bigram.hero.scientificInstrument")}</span>
                         </div>
-                    </motion.div>
+                    </FadeInView>
                 </div>
             )}
 

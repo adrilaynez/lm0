@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+import { useScrollY } from "@/context/ScrollContext";
 
 export type SectionProgressItem = {
     id: string;
@@ -24,19 +26,30 @@ export function SectionProgressBar({
     sections: SectionProgressItem[];
     accent?: ProgressAccent;
 }) {
+    const ids = useMemo(() => sections.map((s) => s.id), [sections]);
+    const sectionElementsRef = useRef<(HTMLElement | null)[]>([]);
+    const rafRef = useRef<number | null>(null);
     const [activeIdx, setActiveIdx] = useState(0);
 
-    const ids = useMemo(() => sections.map((s) => s.id), [sections]);
+    const scrollY = useScrollY();
 
+    // Cache section elements when ids change
     useEffect(() => {
-        const onScroll = () => {
-            // Pick the section whose top is closest to the top third of viewport
+        if (typeof window === "undefined") return;
+        sectionElementsRef.current = ids.map(id => document.getElementById(id));
+    }, [ids]);
+
+    // Update active section with rAF guard
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const update = () => {
             const targetY = window.innerHeight * 0.28;
             let bestIdx = 0;
             let bestDist = Number.POSITIVE_INFINITY;
 
-            for (let i = 0; i < ids.length; i++) {
-                const el = document.getElementById(ids[i]);
+            for (let i = 0; i < sectionElementsRef.current.length; i++) {
+                const el = sectionElementsRef.current[i];
                 if (!el) continue;
                 const rect = el.getBoundingClientRect();
                 const dist = Math.abs(rect.top - targetY);
@@ -46,16 +59,19 @@ export function SectionProgressBar({
                 }
             }
             setActiveIdx(bestIdx);
+            rafRef.current = null;
         };
 
-        onScroll();
-        window.addEventListener("scroll", onScroll, { passive: true });
-        window.addEventListener("resize", onScroll);
+        if (rafRef.current === null) {
+            rafRef.current = requestAnimationFrame(update);
+        }
+
         return () => {
-            window.removeEventListener("scroll", onScroll);
-            window.removeEventListener("resize", onScroll);
+            if (rafRef.current !== null) {
+                cancelAnimationFrame(rafRef.current);
+            }
         };
-    }, [ids]);
+    }, [scrollY]);
 
     return (
         <div className="sticky top-4 z-40 flex justify-center mb-6 pointer-events-none">

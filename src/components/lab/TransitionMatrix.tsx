@@ -1,14 +1,16 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback, useMemo, memo } from "react";
-import { ZoomIn, ZoomOut, Maximize2, Minimize2, Info, Grid3x3, Search, Layers } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { AnimatePresence, motion } from "framer-motion";
+import { Info, Maximize2, Minimize2, Search, ZoomIn, ZoomOut } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { useI18n } from "@/i18n/context";
-import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import type { TransitionMatrixViz } from "@/types/lmLab";
 
 interface TransitionMatrixProps {
@@ -331,9 +333,30 @@ export const TransitionMatrix = memo(function TransitionMatrix({
                 </Card>
             )}
 
+            {/* Color legend */}
+            {!isSliceView && data && (
+                <div className="flex items-center justify-center gap-4 py-2">
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: accent === "cyan" ? "rgba(6,182,212,0.15)" : accent === "amber" ? "rgba(245,158,11,0.15)" : "rgba(16,185,129,0.15)" }} />
+                            <span className="text-[9px] font-mono text-white/25 uppercase tracking-wider">{t("models.bigram.matrix.legendRare")}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            {[0.15, 0.3, 0.5, 0.7, 0.9].map((a) => (
+                                <div key={a} className="w-3 h-3 rounded-sm" style={{ backgroundColor: accent === "cyan" ? `rgba(6,182,212,${a})` : accent === "amber" ? `rgba(245,158,11,${a})` : `rgba(16,185,129,${a})` }} />
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: accent === "cyan" ? "rgba(6,182,212,0.9)" : accent === "amber" ? "rgba(245,158,11,0.9)" : "rgba(16,185,129,0.9)" }} />
+                            <span className="text-[9px] font-mono text-white/25 uppercase tracking-wider">{t("models.bigram.matrix.legendCommon")}</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className={cn(
-                "relative overflow-hidden bg-black/40 rounded-xl border border-white/5",
-                isFullscreen ? "flex-1 min-h-0" : "max-h-[560px]"
+                "relative overflow-hidden bg-black/40 rounded-xl border border-white/[0.08]",
+                isFullscreen ? "flex-1 min-h-0" : ""
             )}>
                 {isSliceView && sliceTableRows.length > 0 ? (
                     <div className="p-4 overflow-auto max-h-[420px] custom-scrollbar">
@@ -373,12 +396,12 @@ export const TransitionMatrix = memo(function TransitionMatrix({
                             </tbody>
                         </table>
                     </div>
-                ) : (
+                ) : data ? (
                     <div
                         ref={containerRef}
                         className={cn(
                             "w-full overflow-auto flex items-start justify-center p-4 custom-scrollbar",
-                            isFullscreen ? "h-full" : "h-[560px]"
+                            isFullscreen ? "h-full" : "max-h-[70vh]"
                         )}
                     >
                         <canvas
@@ -392,6 +415,18 @@ export const TransitionMatrix = memo(function TransitionMatrix({
                             onClick={handleClick}
                             className={cn("cursor-crosshair shadow-2xl", onCellClick ? "cursor-pointer" : "")}
                         />
+                    </div>
+                ) : (
+                    /* Loading skeleton */
+                    <div className="p-6 space-y-3">
+                        <div className="flex items-center justify-center gap-2 mb-4">
+                            <motion.div animate={{ opacity: [0.3, 0.6, 0.3] }} transition={{ duration: 1.5, repeat: Infinity }} className="text-xs font-mono text-white/30">
+                                {t("models.bigram.matrix.loading")}
+                            </motion.div>
+                        </div>
+                        <div className="aspect-square max-w-[400px] mx-auto rounded-lg bg-white/[0.02] border border-white/[0.06] relative overflow-hidden">
+                            <motion.div animate={{ x: ["-100%", "100%"] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent" />
+                        </div>
                     </div>
                 )}
 

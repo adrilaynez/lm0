@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Keyboard } from "lucide-react";
+
+import { AnimatePresence,motion } from "framer-motion";
+import { Keyboard,X } from "lucide-react";
 
 interface KeyboardShortcutsPanelProps {
     open: boolean;

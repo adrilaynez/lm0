@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { useCallback, useEffect,useRef, useState } from "react";
+
+import { motion, useReducedMotion } from "framer-motion";
+
 import { useI18n } from "@/i18n/context";
+
 import { NN_COLORS } from "./visualizer-theme";
 
 /*

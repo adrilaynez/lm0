@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useI18n } from "@/i18n/context";
+import { useCallback, useEffect, useMemo,useState } from "react";
+
 import { Loader2 } from "lucide-react";
+
+import { useI18n } from "@/i18n/context";
 import { fetchMLPTimeline, generateMLP } from "@/lib/lmLabClient";
-import type { MLPGridConfig, MLPTimelineResponse, MLPGenerateResponse } from "@/types/lmLab";
+import type { MLPGenerateResponse,MLPGridConfig, MLPTimelineResponse } from "@/types/lmLab";
+
 import { EmbeddingDriftAnimator } from "./EmbeddingDriftAnimator";
 
 /*

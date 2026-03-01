@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
+import { AnimatePresence,motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
+
 import { useI18n } from "@/i18n/context";
 
 const BIGRAMS: Record<string, { char: string; prob: number; color: string }[]> = {

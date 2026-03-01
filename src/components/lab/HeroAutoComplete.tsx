@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { memo, useState } from "react";
+
+import { AnimatePresence, motion } from "framer-motion";
+
 import { useI18n } from "@/i18n/context";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +39,7 @@ const BIGRAMS: Record<string, { char: string; prob: number }[]> = {
 
 const FALLBACK = [{ char: "e", prob: 0.27 }, { char: "t", prob: 0.19 }, { char: "a", prob: 0.14 }];
 
-export function HeroAutoComplete() {
+export const HeroAutoComplete = memo(function HeroAutoComplete() {
     const { t } = useI18n();
     const [input, setInput] = useState("");
     const [focused, setFocused] = useState(false);
@@ -133,4 +135,4 @@ export function HeroAutoComplete() {
             </AnimatePresence>
         </div>
     );
-}
+});

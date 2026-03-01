@@ -1,5 +1,6 @@
 import 'katex/dist/katex.min.css';
-import { InlineMath, BlockMath } from 'react-katex';
+
+import { BlockMath,InlineMath } from 'react-katex';
 
 export const MathBlock = ({ formula }: { formula: string }) => {
     return (

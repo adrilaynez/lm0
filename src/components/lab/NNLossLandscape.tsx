@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+
 import type { TrainingStep } from "./NNTrainingDemo";
 
 /* ─── Layout ─── */

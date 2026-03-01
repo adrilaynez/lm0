@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import type { GenerateResponse } from "@/types/lmLab";
+import { useCallback,useState } from "react";
+
 import { generateBigram } from "@/lib/lmLabClient";
+import type { GenerateResponse } from "@/types/lmLab";
 
 export function useBigramGeneration() {
     const [data, setData] = useState<GenerateResponse | null>(null);

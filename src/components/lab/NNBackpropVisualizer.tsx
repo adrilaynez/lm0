@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useCallback,useMemo, useState } from "react";
+
 import { useI18n } from "@/i18n/context";
 
 const PK = "models.neuralNetworks.sections.playground";

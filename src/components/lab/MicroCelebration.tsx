@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useCallback,useState } from "react";
 
 const COLORS = ["#34d399", "#f59e0b", "#f472b6", "#818cf8", "#22d3ee"];
 

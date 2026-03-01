@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback,useEffect, useRef, useState } from "react";
 
 /**
  * Shows a hint after the user has been idle (no scroll/click/key)

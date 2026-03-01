@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Activity, Database, Hash, Layers } from "lucide-react";
+
 import type { NGramDiagnostics } from "@/types/lmLab";
 
 interface NgramDiagnosticsProps {

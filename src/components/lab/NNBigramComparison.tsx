@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useCallback,useMemo, useState } from "react";
+
 import { useI18n } from "@/i18n/context";
+
 import { NN_COLORS } from "./nn/visualizer-theme";
 
 const CHARS = ["a", "b", "c", "d", "e"];

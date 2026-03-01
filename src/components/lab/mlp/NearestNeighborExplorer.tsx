@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect,useState } from "react";
+
 import { Loader2 } from "lucide-react";
+
 import { useI18n } from "@/i18n/context";
 import { fetchMLPEmbeddingQuality } from "@/lib/lmLabClient";
 import type { MLPEmbeddingQualityResponse } from "@/types/lmLab";

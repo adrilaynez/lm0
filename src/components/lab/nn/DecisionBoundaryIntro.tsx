@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { memo,useCallback, useMemo, useState } from "react";
+
+import { AnimatePresence,motion } from "framer-motion";
+
 import { useI18n } from "@/i18n/context";
 
 /* ── data points ────────────────────────────────────────────── */
@@ -53,7 +55,7 @@ function toSvgY(v: number) {
 
 type Scenario = "linear" | "xor";
 
-export function DecisionBoundaryIntro() {
+export const DecisionBoundaryIntro = memo(function DecisionBoundaryIntro() {
     const { t } = useI18n();
     const [scenario, setScenario] = useState<Scenario>("linear");
 
@@ -300,4 +302,4 @@ export function DecisionBoundaryIntro() {
             </div>
         </div>
     );
-}
+});

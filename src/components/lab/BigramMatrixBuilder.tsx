@@ -1,297 +1,318 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { AnimatePresence, motion } from "framer-motion";
+import { FastForward, Pause, Play, RotateCcw } from "lucide-react";
+
 import { useI18n } from "@/i18n/context";
 
-const ALLOWED_VOCABULARY = "abcdefghijklmnopqrstuvwxyz ";
-const MAX_EDUCATIONAL_VOCAB = 12;
-const ANIMATION_DELAY_MS = 380;
+/* ─── Config ─── */
+const DEFAULT_TEXT = "the cat sat on the mat";
+const ALLOWED = new Set("abcdefghijklmnopqrstuvwxyz ".split(""));
+const MAX_VOCAB = 10;
+const SPEEDS = [600, 350, 150] as const;
+const SPEED_LABELS = ["1×", "2×", "4×"] as const;
 
-type BuildStep = {
-    from: string;
-    to: string;
-    row: number;
-    col: number;
-    position: number;
-};
+type Step = { from: string; to: string; row: number; col: number; pos: number };
 
-function createZeroMatrix(size: number): number[][] {
-    return Array.from({ length: size }, () => Array(size).fill(0));
+/* ─── Helpers ─── */
+function normalize(s: string) {
+    return s.toLowerCase().split("").filter(c => ALLOWED.has(c)).join("");
 }
 
-function normalizeToVocabulary(input: string): string {
-    const allowed = new Set(ALLOWED_VOCABULARY.split(""));
-    return input
-        .toLowerCase()
-        .split("")
-        .filter((char) => allowed.has(char))
-        .join("");
-}
-
-function buildEducationalVocabulary(text: string): string[] {
+function extractVocab(text: string): string[] {
     const seen = new Set<string>();
-    const chars: string[] = [];
-
-    for (const char of text) {
-        if (!seen.has(char)) {
-            seen.add(char);
-            chars.push(char);
-        }
-        if (chars.length >= MAX_EDUCATIONAL_VOCAB) {
-            break;
-        }
+    const out: string[] = [];
+    for (const c of text) {
+        if (!seen.has(c)) { seen.add(c); out.push(c); }
+        if (out.length >= MAX_VOCAB) break;
     }
-
-    return chars.length > 0 ? chars : ["a", "b", " "];
+    return out.length ? out : ["a", "b", " "];
 }
 
-function formatCharLabel(char: string): string {
-    return char === " " ? "␠" : char;
-}
+function label(c: string) { return c === " " ? "·" : c; }
 
+/* ─── Component ─── */
 export function BigramMatrixBuilder() {
     const { t } = useI18n();
-    const [inputText, setInputText] = useState("hello world");
-    const [normalizedText, setNormalizedText] = useState("hello world");
-    const [currentStepIndex, setCurrentStepIndex] = useState(-1);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [vocab, setVocab] = useState<string[]>(() =>
-        buildEducationalVocabulary("hello world")
-    );
 
-    const charToIndex = useMemo(
-        () => new Map(vocab.map((char, index) => [char, index])),
-        [vocab]
-    );
+    /* state */
+    const [inputText, setInputText] = useState(DEFAULT_TEXT);
+    const [text, setText] = useState(() => normalize(DEFAULT_TEXT));
+    const [vocab, setVocab] = useState(() => extractVocab(normalize(DEFAULT_TEXT)));
+    const [stepIdx, setStepIdx] = useState(-1);
+    const [playing, setPlaying] = useState(false);
+    const [speedIdx, setSpeedIdx] = useState(1);
+    const [editing, setEditing] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
 
-    const steps = useMemo<BuildStep[]>(() => {
-        const entries: BuildStep[] = [];
-        for (let i = 0; i < normalizedText.length - 1; i += 1) {
-            const from = normalizedText[i];
-            const to = normalizedText[i + 1];
-            const row = charToIndex.get(from) ?? -1;
-            const col = charToIndex.get(to) ?? -1;
+    const charMap = useMemo(() => new Map(vocab.map((c, i) => [c, i])), [vocab]);
 
-            if (row >= 0 && col >= 0) {
-                entries.push({ from, to, row, col, position: i });
-            }
+    const steps = useMemo<Step[]>(() => {
+        const out: Step[] = [];
+        for (let i = 0; i < text.length - 1; i++) {
+            const f = text[i], t2 = text[i + 1];
+            const r = charMap.get(f) ?? -1, c = charMap.get(t2) ?? -1;
+            if (r >= 0 && c >= 0) out.push({ from: f, to: t2, row: r, col: c, pos: i });
         }
-        return entries;
-    }, [charToIndex, normalizedText]);
+        return out;
+    }, [charMap, text]);
 
-    const activeStep =
-        currentStepIndex >= 0 && currentStepIndex < steps.length
-            ? steps[currentStepIndex]
-            : null;
+    const active = stepIdx >= 0 && stepIdx < steps.length ? steps[stepIdx] : null;
+    const done = stepIdx >= steps.length - 1 && steps.length > 0;
+    const started = stepIdx >= 0;
 
     const matrix = useMemo(() => {
-        const nextMatrix = createZeroMatrix(vocab.length);
-        const lastAppliedStep = Math.min(currentStepIndex, steps.length - 1);
-        for (let i = 0; i <= lastAppliedStep; i += 1) {
-            const step = steps[i];
-            if (step) {
-                nextMatrix[step.row][step.col] += 1;
-            }
+        const m = Array.from({ length: vocab.length }, () => Array(vocab.length).fill(0) as number[]);
+        for (let i = 0; i <= Math.min(stepIdx, steps.length - 1); i++) {
+            const s = steps[i];
+            if (s) m[s.row][s.col] += 1;
         }
-        return nextMatrix;
-    }, [currentStepIndex, steps, vocab.length]);
+        return m;
+    }, [stepIdx, steps, vocab.length]);
 
-    const handleBuild = useCallback(() => {
-        const normalized = normalizeToVocabulary(inputText);
-        const nextVocab = buildEducationalVocabulary(normalized);
-        setNormalizedText(normalized);
-        setVocab(nextVocab);
-        setCurrentStepIndex(-1);
-        setIsPlaying(false);
+    const maxCount = useMemo(() => {
+        let mx = 1;
+        for (const r of matrix) for (const v of r) if (v > mx) mx = v;
+        return mx;
+    }, [matrix]);
+
+    /* handlers */
+    const applyText = useCallback(() => {
+        const n = normalize(inputText);
+        setText(n);
+        setVocab(extractVocab(n));
+        setStepIdx(-1);
+        setPlaying(false);
+        setEditing(false);
     }, [inputText]);
 
-    const applyNextStep = useCallback(() => {
-        setCurrentStepIndex((prevIndex) => {
-            const nextIndex = prevIndex + 1;
-            if (nextIndex >= steps.length) {
-                setIsPlaying(false);
-                return prevIndex;
-            }
-            return nextIndex;
-        });
+    const start = useCallback(() => {
+        if (steps.length === 0) return;
+        setStepIdx(0);
+        setPlaying(true);
     }, [steps]);
 
-    const handleResetProgress = useCallback(() => {
-        setCurrentStepIndex(-1);
-        setIsPlaying(false);
+    const reset = useCallback(() => {
+        setStepIdx(-1);
+        setPlaying(false);
     }, []);
 
-    const handleInstantComplete = useCallback(() => {
-        if (steps.length === 0 || currentStepIndex >= steps.length - 1) {
-            return;
-        }
-        setCurrentStepIndex(steps.length - 1);
-        setIsPlaying(false);
-    }, [currentStepIndex, steps]);
+    const skipToEnd = useCallback(() => {
+        if (steps.length === 0) return;
+        setStepIdx(steps.length - 1);
+        setPlaying(false);
+    }, [steps]);
 
-    const skippedCharacters = useMemo(() => {
-        const uniqueChars = new Set(normalizedText.split(""));
-        return Math.max(0, uniqueChars.size - vocab.length);
-    }, [normalizedText, vocab.length]);
-
+    /* autoplay timer */
     useEffect(() => {
-        if (!isPlaying) {
-            return;
-        }
-        if (steps.length === 0 || currentStepIndex >= steps.length - 1) {
-            setIsPlaying(false);
-            return;
-        }
-
-        const timer = window.setTimeout(() => {
-            applyNextStep();
-        }, ANIMATION_DELAY_MS);
-
-        return () => window.clearTimeout(timer);
-    }, [applyNextStep, currentStepIndex, isPlaying, steps.length]);
+        if (!playing || done) { setPlaying(false); return; }
+        const timer = setTimeout(() => setStepIdx(i => Math.min(i + 1, steps.length - 1)), SPEEDS[speedIdx]);
+        return () => clearTimeout(timer);
+    }, [playing, stepIdx, done, steps.length, speedIdx]);
 
     return (
-        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.03] p-4 md:p-6">
-            <p className="text-center text-[15px] md:text-base text-white/55 leading-relaxed max-w-2xl mx-auto">
-                {t("bigramBuilder.description")}
-            </p>
-
-            <div className="mt-6 max-w-2xl mx-auto">
-                <textarea
-                    value={inputText}
-                    onChange={(event) => setInputText(event.target.value)}
-                    rows={4}
-                    className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/85 outline-none focus:border-emerald-500/40 focus:ring-1 focus:ring-emerald-500/30 resize-y"
-                    placeholder={t("bigramBuilder.placeholder")}
-                />
-                <p className="text-center text-xs text-white/35 mt-2">
-                    {t("bigramBuilder.hint")}
-                </p>
-                <div className="mt-4 flex flex-wrap justify-center gap-2">
-                    <button
-                        type="button"
-                        onClick={handleBuild}
-                        className="px-4 py-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 text-xs font-mono uppercase tracking-wider hover:bg-emerald-500/15 transition-colors cursor-pointer"
-                    >
-                        {t("bigramBuilder.buttons.build")}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={applyNextStep}
-                        disabled={steps.length === 0 || currentStepIndex >= steps.length - 1}
-                        className="px-4 py-2 rounded-lg border border-indigo-500/35 bg-indigo-500/10 text-indigo-300 text-xs font-mono uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed hover:bg-indigo-500/15 transition-colors cursor-pointer"
-                    >
-                        {t("bigramBuilder.buttons.next")}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setIsPlaying((prev) => !prev)}
-                        disabled={steps.length === 0 || currentStepIndex >= steps.length - 1}
-                        className="px-4 py-2 rounded-lg border border-amber-500/35 bg-amber-500/10 text-amber-300 text-xs font-mono uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed hover:bg-amber-500/15 transition-colors cursor-pointer"
-                    >
-                        {isPlaying ? t("bigramBuilder.buttons.pause") : t("bigramBuilder.buttons.autoPlay")}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleInstantComplete}
-                        disabled={steps.length === 0 || currentStepIndex >= steps.length - 1}
-                        className="px-4 py-2 rounded-lg border border-cyan-500/35 bg-cyan-500/10 text-cyan-300 text-xs font-mono uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed hover:bg-cyan-500/15 transition-colors cursor-pointer"
-                    >
-                        {t("bigramBuilder.buttons.instant")}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleResetProgress}
-                        disabled={steps.length === 0}
-                        className="px-4 py-2 rounded-lg border border-white/20 bg-white/[0.04] text-white/60 text-xs font-mono uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white/[0.08] transition-colors cursor-pointer"
-                    >
-                        {t("bigramBuilder.buttons.reset")}
-                    </button>
-                </div>
-            </div>
-
-            <div className="mt-6 text-center">
-                <p className="text-[11px] font-mono uppercase tracking-widest text-white/35">
-                    {t("bigramBuilder.vocab")} ({vocab.length}/{MAX_EDUCATIONAL_VOCAB}):{" "}
-                    {vocab.map(formatCharLabel).join(" ")}
-                </p>
-                <p className="text-sm text-white/45 mt-2">
-                    {t("bigramBuilder.normalized")}{" "}
-                    <span className="font-mono text-white/70">
-                        {normalizedText.length > 0 ? normalizedText : t("bigramBuilder.empty")}
-                    </span>
-                </p>
-                {skippedCharacters > 0 && (
-                    <p className="text-xs text-amber-300/70 mt-2">
-                        {t("bigramBuilder.skipped").replace("{max}", MAX_EDUCATIONAL_VOCAB.toString()).replace("{count}", skippedCharacters.toString())}
-                    </p>
-                )}
-            </div>
-
-            <div className="mt-4 text-center text-sm text-white/55">
-                {activeStep ? (
-                    <p>
-                        {t("bigramBuilder.step1")} {currentStepIndex + 1} / {steps.length}:{" "}
-                        <span className="font-mono text-emerald-300">
-                            {formatCharLabel(activeStep.from)}
-                        </span>{" "}
-                        →{" "}
-                        <span className="font-mono text-emerald-300">
-                            {formatCharLabel(activeStep.to)}
-                        </span>{" "}
-                        {t("bigramBuilder.step2")}
-                        <span className="font-mono text-indigo-300">
-                            {formatCharLabel(activeStep.from)}
-                        </span>
-                        ,{" "}
-                        <span className="font-mono text-indigo-300">
-                            {formatCharLabel(activeStep.to)}
-                        </span>
-                        {t("bigramBuilder.step3")}
-                    </p>
+        <div className="space-y-5">
+            {/* ── Text display with highlighted pair ── */}
+            <div className="rounded-xl border border-white/[0.06] bg-black/30 p-4 sm:p-5">
+                {!editing ? (
+                    <>
+                        <div className="flex flex-wrap gap-[2px] justify-center leading-loose mb-3">
+                            {Array.from(text).map((ch, i) => {
+                                const isCurrent = active?.pos === i;
+                                const isNext = active ? active.pos + 1 === i : false;
+                                const isPast = started && active ? i < active.pos : false;
+                                return (
+                                    <span
+                                        key={i}
+                                        className={[
+                                            "inline-flex items-center justify-center w-7 h-8 rounded text-sm font-mono font-medium transition-all duration-200",
+                                            isCurrent ? "bg-emerald-500/25 text-emerald-200 ring-1 ring-emerald-500/40 scale-110" : "",
+                                            isNext ? "bg-teal-500/20 text-teal-200 ring-1 ring-teal-500/30 scale-105" : "",
+                                            !isCurrent && !isNext && isPast ? "text-white/25" : "",
+                                            !isCurrent && !isNext && !isPast && started ? "text-white/50" : "",
+                                            !started ? "text-white/60" : "",
+                                        ].join(" ")}
+                                    >
+                                        {label(ch)}
+                                    </span>
+                                );
+                            })}
+                        </div>
+                        <button
+                            onClick={() => { setEditing(true); setTimeout(() => inputRef.current?.focus(), 50); }}
+                            className="block mx-auto text-[10px] font-mono uppercase tracking-widest text-white/20 hover:text-white/40 transition-colors"
+                        >
+                            {t("bigramBuilder.editText")}
+                        </button>
+                    </>
                 ) : (
-                    <p>
-                        {t("bigramBuilder.pressBuild")}
-                    </p>
+                    <div className="space-y-3">
+                        <input
+                            ref={inputRef}
+                            value={inputText}
+                            onChange={e => setInputText(e.target.value)}
+                            onKeyDown={e => { if (e.key === "Enter") applyText(); }}
+                            className="w-full rounded-lg border border-emerald-500/30 bg-black/40 px-4 py-2.5 text-sm font-mono text-white/80 outline-none focus:ring-1 focus:ring-emerald-500/30"
+                            placeholder={t("bigramBuilder.placeholder")}
+                        />
+                        <div className="flex justify-center gap-2">
+                            <button
+                                onClick={applyText}
+                                className="px-4 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/25 transition-colors"
+                            >
+                                {t("bigramBuilder.apply")}
+                            </button>
+                            <button
+                                onClick={() => setEditing(false)}
+                                className="px-4 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-xs text-white/40 hover:text-white/60 transition-colors"
+                            >
+                                {t("bigramBuilder.cancel")}
+                            </button>
+                        </div>
+                    </div>
                 )}
             </div>
 
-            <div className="mt-6 overflow-auto rounded-xl border border-white/10 bg-black/20">
-                <table className="w-max min-w-full border-collapse text-[10px] font-mono">
-                    <thead className="sticky top-0 z-10 bg-[#11131a]">
+            {/* ── Current pair indicator ── */}
+            <AnimatePresence mode="wait">
+                {active && (
+                    <motion.div
+                        key={stepIdx}
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="flex items-center justify-center gap-3"
+                    >
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-white/25">
+                            {stepIdx + 1}/{steps.length}
+                        </span>
+                        <div className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-500/[0.08] border border-emerald-500/20">
+                            <span className="text-lg font-mono font-bold text-emerald-300">{label(active.from)}</span>
+                            <span className="text-white/30 text-sm">→</span>
+                            <span className="text-lg font-mono font-bold text-teal-300">{label(active.to)}</span>
+                            <span className="text-white/20 text-xs ml-1">+1</span>
+                        </div>
+                    </motion.div>
+                )}
+                {done && (
+                    <motion.p
+                        key="done"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-center text-xs font-semibold text-emerald-400/80"
+                    >
+                        {t("bigramBuilder.complete")}
+                    </motion.p>
+                )}
+            </AnimatePresence>
+
+            {/* ── Controls ── */}
+            <div className="flex items-center justify-center gap-2">
+                {!started ? (
+                    <button
+                        onClick={start}
+                        disabled={steps.length === 0}
+                        className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-sm font-semibold text-emerald-300 hover:bg-emerald-500/25 transition-colors disabled:opacity-30"
+                    >
+                        <Play className="w-4 h-4" />
+                        {t("bigramBuilder.start")}
+                    </button>
+                ) : (
+                    <>
+                        <button
+                            onClick={() => setPlaying(p => !p)}
+                            disabled={done}
+                            className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/50 hover:text-white/80 transition-colors disabled:opacity-25"
+                            title={playing ? "Pause" : "Play"}
+                        >
+                            {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                        </button>
+                        <button
+                            onClick={skipToEnd}
+                            disabled={done}
+                            className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/50 hover:text-white/80 transition-colors disabled:opacity-25"
+                            title="Skip to end"
+                        >
+                            <FastForward className="w-4 h-4" />
+                        </button>
+                        <div className="w-px h-6 bg-white/[0.08]" />
+                        <button
+                            onClick={() => setSpeedIdx(i => (i + 1) % SPEEDS.length)}
+                            className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.08] text-[10px] font-mono font-bold text-white/40 hover:text-white/60 transition-colors"
+                        >
+                            {SPEED_LABELS[speedIdx]}
+                        </button>
+                        <div className="w-px h-6 bg-white/[0.08]" />
+                        <button
+                            onClick={reset}
+                            className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/30 hover:text-white/60 transition-colors"
+                            title="Reset"
+                        >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                        </button>
+                    </>
+                )}
+            </div>
+
+            {/* ── Progress bar ── */}
+            {started && (
+                <div className="h-1 bg-white/[0.04] rounded-full overflow-hidden max-w-md mx-auto">
+                    <motion.div
+                        animate={{ width: `${steps.length > 0 ? ((stepIdx + 1) / steps.length) * 100 : 0}%` }}
+                        transition={{ duration: 0.2 }}
+                        className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400"
+                    />
+                </div>
+            )}
+
+            {/* ── Matrix ── */}
+            <div className="overflow-auto rounded-xl border border-white/[0.06] bg-black/30">
+                <table className="w-max min-w-full border-collapse font-mono text-xs">
+                    <thead className="sticky top-0 z-10">
                         <tr>
-                            <th className="px-2 py-2 text-white/60 border-b border-r border-white/10">
-                                {t("bigramBuilder.table.curnxt")}
+                            <th className="w-10 h-9 text-[9px] text-white/30 uppercase tracking-wider border-b border-r border-white/[0.06] bg-[var(--lab-viz-bg)]">
+                                ↓\→
                             </th>
-                            {vocab.map((colChar) => (
+                            {vocab.map((c) => (
                                 <th
-                                    key={`col-${colChar}`}
-                                    className="px-2 py-2 text-white/60 border-b border-r border-white/10"
+                                    key={c}
+                                    className={`w-10 h-9 text-center border-b border-r border-white/[0.06] bg-[var(--lab-viz-bg)] transition-colors duration-150 ${active && charMap.get(active.to) === charMap.get(c) ? "text-teal-300 font-bold" : "text-white/40"
+                                        }`}
                                 >
-                                    {formatCharLabel(colChar)}
+                                    {label(c)}
                                 </th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
-                        {matrix.map((row, rowIndex) => (
-                            <tr key={`row-${vocab[rowIndex]}`}>
-                                <th className="px-2 py-1.5 text-white/60 border-r border-b border-white/10 bg-[#11131a] sticky left-0">
-                                    {formatCharLabel(vocab[rowIndex])}
+                        {matrix.map((row, ri) => (
+                            <tr key={ri}>
+                                <th className={`w-10 h-9 text-center border-r border-b border-white/[0.06] bg-[var(--lab-viz-bg)] sticky left-0 z-[5] transition-colors duration-150 ${active?.row === ri ? "text-emerald-300 font-bold" : "text-white/40"
+                                    }`}>
+                                    {label(vocab[ri])}
                                 </th>
-                                {row.map((value, colIndex) => {
-                                    const isActiveCell =
-                                        activeStep?.row === rowIndex &&
-                                        activeStep?.col === colIndex;
+                                {row.map((val, ci) => {
+                                    const isActive = active?.row === ri && active?.col === ci;
+                                    const intensity = maxCount > 0 ? val / maxCount : 0;
                                     return (
                                         <td
-                                            key={`cell-${rowIndex}-${colIndex}`}
-                                            className={`px-2 py-1.5 text-center border-r border-b border-white/10 transition-colors ${isActiveCell
-                                                ? "bg-emerald-500/30 text-emerald-100 font-bold"
-                                                : "text-white/70"
+                                            key={ci}
+                                            className={`w-10 h-9 text-center border-r border-b border-white/[0.06] transition-all duration-200 ${isActive
+                                                    ? "text-emerald-100 font-bold"
+                                                    : val > 0 ? "text-white/70" : "text-white/10"
                                                 }`}
+                                            style={{
+                                                backgroundColor: isActive
+                                                    ? "rgba(16, 185, 129, 0.3)"
+                                                    : val > 0
+                                                        ? `rgba(16, 185, 129, ${Math.max(0.03, intensity * 0.3)})`
+                                                        : "transparent",
+                                                boxShadow: isActive ? "inset 0 0 0 1.5px rgba(16, 185, 129, 0.5)" : "none",
+                                            }}
                                         >
-                                            {value}
+                                            {val || "·"}
                                         </td>
                                     );
                                 })}

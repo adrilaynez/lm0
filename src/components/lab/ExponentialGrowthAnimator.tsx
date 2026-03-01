@@ -1,8 +1,11 @@
 "use client";
 
-import { motion, AnimatePresence, useInView } from "framer-motion";
-import { useRef, useState, useEffect, useCallback } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
+
+import { AnimatePresence, motion, useInView } from "framer-motion";
 import { RotateCcw } from "lucide-react";
+
+import { useI18n } from "@/i18n/context";
 
 const STEPS = [
     { n: 1, formatted: "96", label: "N=1", size: 3.2 },
@@ -12,7 +15,8 @@ const STEPS = [
     { n: 5, formatted: "8,153,726,976", label: "N=5", size: 5.2 },
 ];
 
-export function ExponentialGrowthAnimator() {
+export const ExponentialGrowthAnimator = memo(function ExponentialGrowthAnimator() {
+    const { t } = useI18n();
     const ref = useRef<HTMLDivElement>(null);
     const isInView = useInView(ref, { once: true, margin: "-100px" });
     const [currentStep, setCurrentStep] = useState(0);
@@ -57,15 +61,15 @@ export function ExponentialGrowthAnimator() {
                     >
                         <span
                             className={`font-mono font-black tracking-tight leading-none transition-colors ${isLast
-                                    ? "text-red-400 drop-shadow-[0_0_28px_rgba(248,113,113,0.65)]"
-                                    : "text-amber-300"
+                                ? "text-red-400 drop-shadow-[0_0_28px_rgba(248,113,113,0.65)]"
+                                : "text-amber-300"
                                 }`}
                             style={{ fontSize: `${step.size}rem` }}
                         >
                             {step.formatted}
                         </span>
                         <span className="text-[11px] font-mono text-white/25 uppercase tracking-widest">
-                            possible contexts
+                            {t("ngramNarrative.exponentialGrowth.possibleContexts")}
                         </span>
                         {isLast && (
                             <motion.span
@@ -73,7 +77,7 @@ export function ExponentialGrowthAnimator() {
                                 animate={{ opacity: 1 }}
                                 className="text-[10px] font-mono text-red-400/50 mt-1 uppercase tracking-widest"
                             >
-                                Most never seen in training
+                                {t("ngramNarrative.exponentialGrowth.neverSeen")}
                             </motion.span>
                         )}
                     </motion.div>
@@ -125,7 +129,7 @@ export function ExponentialGrowthAnimator() {
                         animate={{ opacity: 1 }}
                         className="text-[11px] text-white/25 font-mono"
                     >
-                        Each extra character ×96 — vocabulary size
+                        {t("ngramNarrative.exponentialGrowth.multiply")}
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -141,10 +145,10 @@ export function ExponentialGrowthAnimator() {
                         className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] text-white/35 hover:text-white/60 text-xs font-mono transition-colors"
                     >
                         <RotateCcw className="w-3 h-3" />
-                        Replay
+                        {t("ngramNarrative.exponentialGrowth.replay")}
                     </motion.button>
                 )}
             </AnimatePresence>
         </div>
     );
-}
+});

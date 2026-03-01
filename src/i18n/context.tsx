@@ -1,14 +1,19 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { en } from './en';
-import { es } from './es';
-import { Language, TranslationDictionary } from './types';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
-const dictionaries: Record<Language, TranslationDictionary> = {
-    en,
-    es,
+import { en } from './en';
+import type { Language, TranslationDictionary } from './types';
+
+// English is bundled statically (default / fallback).
+// Other languages are loaded on demand via dynamic import().
+const loadDictionary: Record<Language, () => Promise<TranslationDictionary>> = {
+    en: () => Promise.resolve(en),
+    es: () => import('./es').then(m => m.es),
 };
+
+// Cache loaded dictionaries so they are only fetched once per session
+const _loaded: Partial<Record<Language, TranslationDictionary>> = { en };
 
 // Recursive function to get value from nested key string
 function getNestedValue(obj: any, key: string): string | undefined {
@@ -38,10 +43,26 @@ const I18nContext = createContext<I18nContextType | undefined>(undefined);
 export function I18nProvider({ children }: { children: React.ReactNode }) {
     // Initialize from storage or default to 'en', but avoid hydration mismatch via useEffect
     const [language, setLanguageState] = useState<Language>('en');
+    const [dict, setDict] = useState<TranslationDictionary>(en);
 
     // Per-language lookup cache — persists across renders, cleared on language change is not needed
     // because we keep a separate map per language key.
     const lookupCaches = useRef<Partial<Record<Language, Map<string, string>>>>({});
+
+    // Load dictionary for current language
+    useEffect(() => {
+        let cancelled = false;
+        if (_loaded[language]) {
+            setDict(_loaded[language]!);
+        } else {
+            loadDictionary[language]().then((d) => {
+                if (cancelled) return;
+                _loaded[language] = d;
+                setDict(d);
+            });
+        }
+        return () => { cancelled = true; };
+    }, [language]);
 
     useEffect(() => {
         const saved = localStorage.getItem('lm-lab-language') as Language;
@@ -68,8 +89,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
         }
 
         let result =
-            getNestedValue(dictionaries[language], key) ??
-            getNestedValue(dictionaries.en, key) ??
+            getNestedValue(dict, key) ??
+            getNestedValue(en, key) ??
             key;
 
         if (params) {
@@ -82,7 +103,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
             lookupCaches.current[language]!.set(key, result);
         }
         return result;
-    }, [language]);
+    }, [language, dict]);
 
     // FIX: Memoize the context value so consumers only re-render when language actually changes,
     // not on every render of I18nProvider (which previously caused all 44+ consumers to re-render).

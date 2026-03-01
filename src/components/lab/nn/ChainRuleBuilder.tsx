@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { useI18n } from "@/i18n/context";
+import { useEffect, useRef,useState } from "react";
+
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+
 import { Slider } from "@/components/ui/slider";
+import { useI18n } from "@/i18n/context";
+
 import { NN_COLORS } from "./visualizer-theme";
 
 /*
@@ -97,7 +100,7 @@ export function ChainRuleBuilder() {
     }, [activeStep, animating]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // When x changes, reset animation
-    useEffect(() => { handleReset(); }, [x]); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => { handleReset(); }, [x]);  
 
     const isLit = (step: StepId) => activeStep >= step;
 

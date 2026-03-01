@@ -1,12 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
 import { motion } from "framer-motion";
+import { Activity, ArrowLeft, Database, Lock, Network, Server, ShieldCheck, Terminal, Zap } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Terminal, Database, Network, Lock, Activity, Server, ShieldCheck, Zap } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useState } from "react";
 
 // Mock Data Stream for Terminal
 const LOG_ENTRIES = [

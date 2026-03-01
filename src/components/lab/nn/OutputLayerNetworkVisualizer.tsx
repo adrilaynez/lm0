@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { memo,useEffect, useRef, useState } from "react";
+
+import { AnimatePresence,motion } from "framer-motion";
+
 import { useI18n } from "@/i18n/context";
 
 const CHARS = "abcdefghijklmnopqrstuvwxyz ".split("");
-
 /* Per-input logit tables — rough English bigram-like distributions */
 const LOGIT_TABLES: Record<string, Record<string, number>> = {
     t: { h: 2.4, o: 1.8, e: 1.5, i: 1.2, a: 0.9, r: 0.6, s: 0.4, " ": 0.2, u: 0.1, w: 0.0 },
@@ -65,7 +66,7 @@ interface Particle {
     delay: number;
 }
 
-export function OutputLayerNetworkVisualizer() {
+export const OutputLayerNetworkVisualizer = memo(function OutputLayerNetworkVisualizer() {
     const { t } = useI18n();
     const [selectedInput, setSelectedInput] = useState("t");
     const [logits, setLogits] = useState<Record<string, number>>({});
@@ -299,4 +300,4 @@ export function OutputLayerNetworkVisualizer() {
             </div>
         </div>
     );
-}
+});

@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { lmApi, Model } from "@/lib/api";
-import { Brain, Sparkles, Activity, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
+
+import { motion } from "framer-motion";
+import { Activity, Brain, ChevronRight, Loader2,Sparkles } from "lucide-react";
+
+import { getModels, type Model } from "@/lib/lmLabClient";
 
 export default function ModelSelector() {
     const [models, setModels] = useState<Model[]>([]);
@@ -13,7 +15,7 @@ export default function ModelSelector() {
     useEffect(() => {
         async function fetchModels() {
             try {
-                const data = await lmApi.getModels();
+                const data = await getModels();
                 setModels(data);
             } catch (err) {
                 console.error("Error fetching models", err);

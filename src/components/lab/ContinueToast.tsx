@@ -1,28 +1,29 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useEffect, useState } from "react";
+
+import { AnimatePresence, motion } from "framer-motion";
 import { BookOpen, X } from "lucide-react";
-import { useProgressTracker } from "@/hooks/useProgressTracker";
 
 interface ContinueToastProps {
-    pageId: string;
     /** Human-readable section names keyed by section id */
     sectionNames: Record<string, string>;
     accent?: "rose" | "emerald" | "amber" | "violet";
+    hasStoredProgress: boolean;
+    storedSection: string;
+    clearProgress: () => void;
 }
 
 const AUTO_DISMISS_MS = 10_000;
 
 const ACCENT = {
-    rose:    { border: "border-rose-500/25",    bg: "bg-rose-500/[0.08]",    icon: "text-rose-400",    btn: "bg-rose-500/15 hover:bg-rose-500/25 border-rose-500/25 text-rose-300" },
+    rose: { border: "border-rose-500/25", bg: "bg-rose-500/[0.08]", icon: "text-rose-400", btn: "bg-rose-500/15 hover:bg-rose-500/25 border-rose-500/25 text-rose-300" },
     emerald: { border: "border-emerald-500/25", bg: "bg-emerald-500/[0.08]", icon: "text-emerald-400", btn: "bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/25 text-emerald-300" },
-    amber:   { border: "border-amber-500/25",   bg: "bg-amber-500/[0.08]",   icon: "text-amber-400",   btn: "bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/25 text-amber-300" },
-    violet:  { border: "border-violet-500/25",  bg: "bg-violet-500/[0.08]",  icon: "text-violet-400",  btn: "bg-violet-500/15 hover:bg-violet-500/25 border-violet-500/25 text-violet-300" },
+    amber: { border: "border-amber-500/25", bg: "bg-amber-500/[0.08]", icon: "text-amber-400", btn: "bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/25 text-amber-300" },
+    violet: { border: "border-violet-500/25", bg: "bg-violet-500/[0.08]", icon: "text-violet-400", btn: "bg-violet-500/15 hover:bg-violet-500/25 border-violet-500/25 text-violet-300" },
 };
 
-export function ContinueToast({ pageId, sectionNames, accent = "rose" }: ContinueToastProps) {
-    const { hasStoredProgress, storedSection, clearProgress } = useProgressTracker(pageId);
+export function ContinueToast({ sectionNames, accent = "rose", hasStoredProgress, storedSection, clearProgress }: ContinueToastProps) {
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {

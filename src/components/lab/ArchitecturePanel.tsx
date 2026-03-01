@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
+import { AnimatePresence,motion } from "framer-motion";
 import {
+    AlertTriangle,
     Boxes,
     ChevronDown,
     ChevronUp,
     Lightbulb,
-    AlertTriangle,
     Rocket,
 } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import type { ArchitectureViz } from "@/types/lmLab";
 
 interface ArchitecturePanelProps {

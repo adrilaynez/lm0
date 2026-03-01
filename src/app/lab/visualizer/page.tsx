@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { lmApi } from "@/lib/api";
-import { motion, AnimatePresence } from "framer-motion";
-import { Play, Send, LayoutGrid, Type, Terminal, Cpu, Info, ChevronLeft, HelpCircle, Activity, Zap, Layers, BookOpen, Brain, ArrowRight } from "lucide-react";
-import Link from "next/link";
-
+import {useState } from "react";
 import { Suspense } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+
+import { AnimatePresence,motion } from "framer-motion";
+import { ArrowRight, Brain, ChevronLeft, Cpu, Info, LayoutGrid, Play, Terminal, Type } from "lucide-react";
+
+import { generate,visualize } from "@/lib/lmLabClient";
 
 function VisualizerContent() {
     const searchParams = useSearchParams();
@@ -22,7 +23,7 @@ function VisualizerContent() {
     const handleAnalyze = async () => {
         setIsAnalyzing(true);
         try {
-            const data = await lmApi.visualize(modelType, inputText);
+            const data = await visualize(modelType, inputText);
             setHeatmap(data);
         } catch (err) {
             console.error(err);
@@ -40,7 +41,7 @@ function VisualizerContent() {
         setGeneratedText("");
         try {
             // Intentamos llamar al endpoint real
-            const response = await lmApi.generate(modelType, inputText, 100);
+            const response = await generate(modelType, inputText, 100);
             const fullText = response.text || "Output simulado: El modelo está proyectando tokens activamente a través de su matriz de probabilidad.";
 
             // Typewriter Effect para lucirse

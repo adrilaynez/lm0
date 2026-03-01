@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import type { StepwiseResponse } from "@/types/lmLab";
+import { useCallback,useState } from "react";
+
 import { predictStepwise } from "@/lib/lmLabClient";
+import type { StepwiseResponse } from "@/types/lmLab";
 
 export function useBigramStepwise() {
     const [data, setData] = useState<StepwiseResponse | null>(null);

@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
+
 import { motion } from "framer-motion";
+
 import { useI18n } from "@/i18n/context";
 
 const VOCAB = ["t", "h", "e", "a", " "];
@@ -27,7 +29,13 @@ function cellColor(prob: number): string {
     return "bg-white/[0.03] text-white/20";
 }
 
-export function TinyMatrixExample() {
+// Simulated raw counts (probabilities × a plausible row total)
+const ROW_TOTALS = [4200, 3800, 5100, 2900, 6200];
+const RAW_COUNTS: number[][] = MATRIX.map((row, ri) =>
+    row.map((prob) => Math.round(prob * ROW_TOTALS[ri]))
+);
+
+export const TinyMatrixExample = memo(function TinyMatrixExample({ showCounts = false }: { showCounts?: boolean }) {
     const { t } = useI18n();
     const [hovered, setHovered] = useState<{ row: number; col: number } | null>(null);
 
@@ -43,7 +51,10 @@ export function TinyMatrixExample() {
                     hovRow={hovRow}
                     hovCol={hovCol}
                     hovProb={hovProb}
+                    hovCount={hovered ? RAW_COUNTS[hovered.row][hovered.col] : null}
+                    showCounts={showCounts}
                     fallback={t("bigramNarrative.mechanics.tinyMatrixHover")}
+                    t={t}
                 />
             </div>
 
@@ -93,13 +104,12 @@ export function TinyMatrixExample() {
                                                 onMouseLeave={() => setHovered(null)}
                                                 whileHover={{ scale: 1.15 }}
                                                 transition={{ duration: 0.12 }}
-                                                className={`w-14 h-12 rounded-lg font-mono text-sm font-bold transition-all duration-150 border ${
-                                                    isActive
-                                                        ? `${cellColor(prob)} ring-2 ring-emerald-400 ring-offset-1 ring-offset-black border-transparent`
-                                                        : `${cellColor(prob)} border-white/[0.06] ${isHovRow || isHovCol ? "brightness-125" : ""}`
-                                                }`}
+                                                className={`w-14 h-12 rounded-lg font-mono text-sm font-bold transition-all duration-150 border ${isActive
+                                                    ? `${cellColor(prob)} ring-2 ring-emerald-400 ring-offset-1 ring-offset-black border-transparent`
+                                                    : `${cellColor(prob)} border-white/[0.06] ${isHovRow || isHovCol ? "brightness-125" : ""}`
+                                                    }`}
                                             >
-                                                {Math.round(prob * 100)}%
+                                                {showCounts ? RAW_COUNTS[ri][ci] : `${Math.round(prob * 100)}%`}
                                             </motion.button>
                                         );
                                     })}
@@ -127,15 +137,18 @@ export function TinyMatrixExample() {
             </div>
         </div>
     );
-}
+});
 
 function AnimatedTooltip({
-    hovRow, hovCol, hovProb, fallback,
+    hovRow, hovCol, hovProb, fallback, t, showCounts, hovCount,
 }: {
     hovRow: string | null;
     hovCol: string | null;
     hovProb: number | null;
     fallback: string;
+    t: (key: string) => string;
+    showCounts?: boolean;
+    hovCount?: number | null;
 }) {
     if (hovRow === null || hovCol === null || hovProb === null) {
         return <p className="text-xs text-white/20 italic">{fallback}</p>;
@@ -145,6 +158,12 @@ function AnimatedTooltip({
     const displayCol = hovCol === " " ? "·" : `'${hovCol}'`;
     const pct = Math.round(hovProb * 100);
 
+    const templateKey = showCounts
+        ? "bigramNarrative.mechanics.tinyMatrixCountTooltip"
+        : "bigramNarrative.mechanics.tinyMatrixTooltip";
+    const parts = t(templateKey)
+        .split(/(\{row\}|\{col\}|\{pct\}|\{count\})/);
+
     return (
         <motion.p
             key={`${hovRow}-${hovCol}`}
@@ -153,13 +172,13 @@ function AnimatedTooltip({
             transition={{ duration: 0.15 }}
             className="text-sm text-white/70 text-center"
         >
-            After{" "}
-            <span className="font-mono font-bold text-emerald-400">{displayRow}</span>
-            {", "}
-            <span className="font-mono font-bold text-white">{displayCol}</span>
-            {" appears "}
-            <span className="font-mono font-bold text-emerald-400">{pct}%</span>
-            {" of the time"}
+            {parts.map((part, i) => {
+                if (part === "{row}") return <span key={i} className="font-mono font-bold text-emerald-400">{displayRow}</span>;
+                if (part === "{col}") return <span key={i} className="font-mono font-bold text-white">{displayCol}</span>;
+                if (part === "{pct}") return <span key={i} className="font-mono font-bold text-emerald-400">{pct}%</span>;
+                if (part === "{count}") return <span key={i} className="font-mono font-bold text-emerald-400">{hovCount ?? 0}</span>;
+                return <span key={i}>{part}</span>;
+            })}
         </motion.p>
     );
 }

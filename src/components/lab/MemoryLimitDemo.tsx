@@ -1,141 +1,120 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Lock } from "lucide-react";
+import { memo, useState } from "react";
+
+import { AnimatePresence, motion } from "framer-motion";
+import { Eye, EyeOff } from "lucide-react";
+
 import { useI18n } from "@/i18n/context";
 
-const SENTENCE = "the cat sat on the mat";
-const PIVOT = 8; // predicting SENTENCE[PIVOT] = 's' in "sat"
-const CONTEXT_OPTIONS = [1, 2, 3, 5] as const;
-type CtxSize = (typeof CONTEXT_OPTIONS)[number];
+/* ─── Data ─── */
+const PREFIXES = ["th", "sh", "wh"] as const;
 
-// Bigram predictions after " " (space) — deliberately generic
 const PREDICTIONS: { char: string; prob: number }[] = [
-    { char: "t", prob: 0.18 },
+    { char: "e", prob: 0.31 },
     { char: "a", prob: 0.14 },
-    { char: "s", prob: 0.10 },
-    { char: "i", prob: 0.09 },
+    { char: "i", prob: 0.11 },
+    { char: "o", prob: 0.09 },
 ];
-const TARGET = SENTENCE[PIVOT]; // "s"
 
-export function MemoryLimitDemo() {
+/* ─── Component ─── */
+export const MemoryLimitDemo = memo(function MemoryLimitDemo() {
     const { t } = useI18n();
-    const [ctxIdx, setCtxIdx] = useState(0);
-    const ctxSize: CtxSize = CONTEXT_OPTIONS[ctxIdx];
-    const isLocked = ctxIdx > 0;
-    const contextStart = PIVOT - ctxSize;
-    const chars = Array.from(SENTENCE);
+    const [selected, setSelected] = useState(0);
+    const [revealed, setRevealed] = useState(false);
+
+    const prefix = PREFIXES[selected];
+    const invisible = prefix[0];
+    const visible = prefix[1];
 
     return (
-        <div className="space-y-6 py-2">
-
-            {/* Sentence with highlighted context window */}
-            <div className="flex flex-wrap gap-1 justify-center items-center">
-                {chars.map((ch, i) => {
-                    const inContext = i >= contextStart && i < PIVOT;
-                    const isTarget = i === PIVOT;
-                    const isDimmed = i < contextStart || i > PIVOT;
-                    return (
-                        <motion.div
-                            key={i}
-                            layout
-                            animate={{
-                                opacity: isDimmed ? 0.22 : 1,
-                                scale: isTarget ? 1.05 : 1,
-                            }}
-                            transition={{ type: "spring", stiffness: 350, damping: 28 }}
-                            className={[
-                                "flex items-center justify-center rounded text-sm font-mono font-medium",
-                                ch === " " && !isTarget ? "w-2 h-8" : "w-7 h-8",
-                                inContext ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300" : "",
-                                isTarget ? "bg-white/10 border border-white/20 text-white/40 w-7 h-9" : "",
-                                isDimmed && !inContext ? "text-white/25" : "",
-                            ].join(" ")}
-                        >
-                            {isTarget ? "?" : (ch === " " ? (inContext ? "·" : "") : ch)}
-                        </motion.div>
-                    );
-                })}
-            </div>
-
-            {/* Context label */}
-            <p className="text-center text-[11px] font-mono text-white/25">
-                {isLocked
-                    ? <>{t("bigramWidgets.memoryLimit.context")} <span className="text-emerald-400">{ctxSize} {t("bigramWidgets.memoryLimit.chars")}</span> — {t("bigramWidgets.memoryLimit.locked")}</>
-                    : <>{t("bigramWidgets.memoryLimit.modelSees")} <span className="text-emerald-300 font-semibold">"{SENTENCE[PIVOT - 1]}"</span> · {t("bigramWidgets.memoryLimit.guessingNext")}</>}
-            </p>
-
-            {/* Prediction / locked area */}
-            <AnimatePresence mode="wait">
-                {isLocked ? (
-                    <motion.div
-                        key="locked"
-                        initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                        className="flex flex-col items-center gap-2.5 py-7 rounded-xl border border-white/[0.06] bg-white/[0.02]"
-                    >
-                        <Lock className="w-4 h-4 text-white/20" />
-                        <p className="text-xs font-mono text-white/25">
-                            {t("bigramWidgets.memoryLimit.lockedNote").replace("{size}", ctxSize.toString())}
-                        </p>
-                        <a href="/lab/ngram" className="text-[11px] font-semibold text-emerald-400/60 hover:text-emerald-400 transition-colors">
-                            {t("bigramWidgets.memoryLimit.ngramLink")}
-                        </a>
-                    </motion.div>
-                ) : (
-                    <motion.div
-                        key="preds"
-                        initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                        className="space-y-2.5 px-1"
-                    >
-                        <p className="text-[9px] font-mono uppercase tracking-[0.2em] text-white/20 mb-3">
-                            {t("bigramWidgets.memoryLimit.topPredictions")}
-                        </p>
-                        {PREDICTIONS.map(({ char, prob }, i) => (
-                            <div key={char} className="flex items-center gap-3">
-                                <span className="w-5 text-center font-mono text-sm font-semibold text-white/60">
-                                    {char === " " ? "·" : char}
-                                </span>
-                                <div className="flex-1 h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
-                                    <motion.div
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${prob * 100}%` }}
-                                        transition={{ delay: i * 0.07, duration: 0.5, ease: "easeOut" }}
-                                        className={`h-full rounded-full ${char === TARGET ? "bg-emerald-400" : "bg-white/20"}`}
-                                    />
-                                </div>
-                                <span className="w-8 text-right font-mono text-[11px] text-white/35">
-                                    {Math.round(prob * 100)}%
-                                </span>
-                            </div>
-                        ))}
-                        <p className="text-[10px] font-mono text-white/20 pt-1">
-                            {t("bigramWidgets.memoryLimit.correctAnswer")
-                                .replace("{target}", TARGET)
-                                .replace("{rank}", (PREDICTIONS.findIndex(p => p.char === TARGET) + 1).toString())}
-                        </p>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Context size tabs */}
-            <div className="flex gap-2 justify-center">
-                {CONTEXT_OPTIONS.map((size, idx) => (
+        <div className="space-y-5 py-2">
+            {/* Prefix selector */}
+            <div className="flex gap-3 justify-center">
+                {PREFIXES.map((p, i) => (
                     <button
-                        key={size}
-                        onClick={() => setCtxIdx(idx)}
+                        key={p}
+                        onClick={() => { setSelected(i); setRevealed(false); }}
                         className={[
-                            "flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-all",
-                            ctxIdx === idx
-                                ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400"
-                                : "bg-white/[0.03] border border-white/[0.06] text-white/30 hover:text-white/50",
+                            "px-5 py-2.5 rounded-xl font-mono text-lg font-bold border transition-all",
+                            selected === i
+                                ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300 shadow-[0_0_16px_-4px_rgba(16,185,129,0.3)]"
+                                : "bg-white/[0.03] border-white/[0.08] text-white/35 hover:text-white/55 hover:border-white/[0.15]",
                         ].join(" ")}
                     >
-                        {idx > 0 && <Lock className="w-2.5 h-2.5 shrink-0" />}
-                        {size}
+                        {p}_
                     </button>
                 ))}
             </div>
+
+            {/* What the model sees */}
+            <div className="flex items-center justify-center gap-4">
+                <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 px-3 py-2 rounded-lg bg-red-500/[0.06] border border-red-500/20">
+                        <EyeOff className="w-3.5 h-3.5 text-red-400/50" />
+                        <span className="font-mono text-lg font-bold text-red-400/40 line-through">{invisible}</span>
+                    </div>
+                    <div className="flex items-center gap-1 px-3 py-2 rounded-lg bg-emerald-500/[0.08] border border-emerald-500/25">
+                        <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="font-mono text-lg font-bold text-emerald-300">{visible}</span>
+                    </div>
+                </div>
+                <span className="text-white/20 text-sm">→</span>
+                <span className="font-mono text-lg text-white/30">?</span>
+            </div>
+
+            <p className="text-center text-[11px] font-mono text-white/25">
+                {t("bigramWidgets.memoryLimit.modelSees")} <span className="text-emerald-300 font-semibold">&quot;{visible}&quot;</span> — <span className="text-red-400/50">&quot;{invisible}&quot;</span> {t("bigramWidgets.memoryLimit.invisible")}
+            </p>
+
+            {/* Predictions — identical for all */}
+            <div className="space-y-2 px-2">
+                <p className="text-[9px] font-mono uppercase tracking-[0.2em] text-white/20 mb-3">
+                    {t("bigramWidgets.memoryLimit.topPredictions")}
+                </p>
+                {PREDICTIONS.map(({ char, prob }, i) => (
+                    <div key={char} className="flex items-center gap-3">
+                        <span className="w-5 text-center font-mono text-sm font-semibold text-white/60">{char}</span>
+                        <div className="flex-1 h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
+                            <motion.div
+                                key={`${selected}-${char}`}
+                                initial={{ width: 0 }}
+                                animate={{ width: `${prob * 100}%` }}
+                                transition={{ delay: i * 0.06, duration: 0.4, ease: "easeOut" }}
+                                className="h-full rounded-full bg-emerald-400/70"
+                            />
+                        </div>
+                        <span className="w-10 text-right font-mono text-[11px] text-white/35">{Math.round(prob * 100)}%</span>
+                    </div>
+                ))}
+            </div>
+
+            {/* Reveal button */}
+            {!revealed ? (
+                <div className="text-center">
+                    <button
+                        onClick={() => setRevealed(true)}
+                        className="text-xs font-semibold text-emerald-400/60 hover:text-emerald-400 transition-colors"
+                    >
+                        {t("bigramWidgets.memoryLimit.tryOthers")}
+                    </button>
+                </div>
+            ) : (
+                <AnimatePresence>
+                    <motion.div
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="rounded-xl border border-red-500/15 bg-red-500/[0.04] p-4 text-center space-y-2"
+                    >
+                        <p className="text-sm font-semibold text-red-300/80">
+                            {t("bigramWidgets.memoryLimit.allIdentical")}
+                        </p>
+                        <p className="text-xs text-white/40 leading-relaxed max-w-sm mx-auto">
+                            {t("bigramWidgets.memoryLimit.explanation")}
+                        </p>
+                    </motion.div>
+                </AnimatePresence>
+            )}
         </div>
     );
-}
+});

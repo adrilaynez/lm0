@@ -1,12 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { memo, useEffect, useRef, useState } from "react";
+
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertCircle, Check, Copy, Sparkles } from "lucide-react";
+
 import { useI18n } from "@/i18n/context";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles, Copy, Check, AlertCircle } from "lucide-react";
+
+/* ─── Temperature presets ─── */
+const TEMP_PRESETS = [
+    { key: "focused", value: 0.3 },
+    { key: "balanced", value: 0.8 },
+    { key: "creative", value: 1.5 },
+    { key: "chaotic", value: 2.5 },
+] as const;
+
+/* ─── Quick start characters ─── */
+const QUICK_CHARS = ["t", "a", "e", "s", " "];
+
+function displayChar(c: string) {
+    return c === " " ? "·" : c;
+}
 
 interface GenerationPlaygroundProps {
     onGenerate: (
@@ -19,17 +33,40 @@ interface GenerationPlaygroundProps {
     error: string | null;
 }
 
-export function GenerationPlayground({
+export const GenerationPlayground = memo(function GenerationPlayground({
     onGenerate,
     generatedText,
     loading,
     error,
 }: GenerationPlaygroundProps) {
     const { t } = useI18n();
-    const [startChar, setStartChar] = useState("a");
-    const [numTokens, setNumTokens] = useState(50);
+    const [startChar, setStartChar] = useState("t");
+    const [numTokens, setNumTokens] = useState(60);
     const [temperature, setTemperature] = useState(0.8);
     const [copied, setCopied] = useState(false);
+    const [revealCount, setRevealCount] = useState(0);
+    const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    /* ── Character-by-character reveal animation ── */
+    useEffect(() => {
+        if (!generatedText || loading) {
+            setRevealCount(0);
+            return;
+        }
+        setRevealCount(0);
+        let count = 0;
+        const tick = () => {
+            count++;
+            setRevealCount(count);
+            if (count < generatedText.length) {
+                revealTimerRef.current = setTimeout(tick, 18);
+            }
+        };
+        revealTimerRef.current = setTimeout(tick, 100);
+        return () => {
+            if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+        };
+    }, [generatedText, loading]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,93 +80,108 @@ export function GenerationPlayground({
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const activePreset = TEMP_PRESETS.find((p) => p.value === temperature);
+
     return (
-        <Card className="bg-black/40 border-white/[0.06] backdrop-blur-sm" id="playground">
-            {/* Header */}
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-white/[0.06] bg-white/[0.02]">
-                <Sparkles className="h-4 w-4 text-pink-400" />
-                <span className="font-mono text-xs uppercase tracking-widest text-white/60">
-                    {t("models.bigram.generation.title")}
-                </span>
-
-                {/* Educational Tooltip */}
-                <div className="group relative ml-1">
-                    <div className="flex items-center justify-center w-4 h-4 rounded-full bg-white/5 border border-white/10 cursor-help hover:bg-white/10 transition-colors">
-                        <span className="text-[10px] font-bold text-white/40 group-hover:text-white/60">?</span>
-                    </div>
-                    <div className="absolute left-0 bottom-full mb-3 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 border border-white/10 p-4 rounded-2xl z-50 w-72 text-[11px] text-slate-400 pointer-events-none shadow-2xl leading-relaxed animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <p className="font-bold text-white mb-2 uppercase tracking-widest text-[10px]">{t("models.bigram.generation.tooltip.title")}</p>
-                        <div className="space-y-2">
-                            <p><strong className="text-pink-400">{t("models.bigram.generation.tooltip.sampling")}</strong> {t("models.bigram.generation.tooltip.samplingDesc")}</p>
-                            <p><strong className="text-amber-400">{t("models.bigram.generation.tooltip.temp")}</strong> {t("models.bigram.generation.tooltip.tempDesc")}</p>
-                            <div className="mt-3 pt-3 border-t border-white/5 text-[10px] italic">
-                                {t("models.bigram.generation.tooltip.note")}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-5 space-y-4">
-                {/* Start Char */}
-                <div className="space-y-2">
-                    <label className="text-[11px] font-mono uppercase tracking-widest text-white/40">
+        <div className="space-y-5" id="playground">
+            {/* Controls row */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Start character row */}
+                <div>
+                    <p className="text-[9px] font-mono uppercase tracking-widest text-white/20 mb-2">
                         {t("models.bigram.generation.form.startChar")}
-                    </label>
-                    <input
-                        type="text"
-                        value={startChar}
-                        onChange={(e) => setStartChar(e.target.value.slice(0, 1))}
-                        maxLength={1}
-                        className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-white/20 font-mono focus:outline-none focus:ring-1 focus:ring-pink-500/50 transition-all"
-                    />
-                </div>
-
-                {/* Num Tokens */}
-                <div className="space-y-2">
-                    <div className="flex justify-between">
-                        <label className="text-[11px] font-mono uppercase tracking-widest text-white/40">
-                            {t("models.bigram.generation.form.numTokens")}
-                        </label>
-                        <span className="text-xs font-mono text-pink-400">
-                            {numTokens}
-                        </span>
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <div className="flex gap-1.5">
+                            {QUICK_CHARS.map((ch) => (
+                                <button
+                                    key={ch}
+                                    type="button"
+                                    onClick={() => setStartChar(ch)}
+                                    className={`w-9 h-9 rounded-lg font-mono text-sm font-bold border transition-all ${startChar === ch
+                                        ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400"
+                                        : "bg-white/[0.03] border-white/[0.08] text-white/40 hover:bg-white/[0.06]"
+                                        }`}
+                                >
+                                    {displayChar(ch)}
+                                </button>
+                            ))}
+                        </div>
+                        <span className="text-white/15 text-xs">{t("models.bigram.generation.form.or")}</span>
+                        <input
+                            type="text"
+                            value={startChar}
+                            onChange={(e) => setStartChar(e.target.value.slice(0, 1))}
+                            maxLength={1}
+                            className="w-11 h-9 bg-white/[0.04] border border-white/[0.08] rounded-lg text-center text-sm text-white font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all"
+                        />
                     </div>
-                    <input
-                        type="range"
-                        min={10}
-                        max={200}
-                        value={numTokens}
-                        onChange={(e) => setNumTokens(Number(e.target.value))}
-                        className="w-full accent-pink-500 h-1"
-                    />
                 </div>
 
-                {/* Temperature */}
-                <div className="space-y-2">
-                    <div className="flex justify-between">
-                        <label className="text-[11px] font-mono uppercase tracking-widest text-white/40">
-                            {t("models.bigram.generation.form.temp")}
-                        </label>
-                        <span className="text-xs font-mono text-pink-400">
-                            {temperature.toFixed(2)}
-                        </span>
+                {/* Length + Temperature side by side */}
+                <div className="grid grid-cols-2 gap-4">
+                    {/* Length */}
+                    <div>
+                        <div className="flex justify-between mb-1.5">
+                            <span className="text-[9px] font-mono uppercase tracking-widest text-white/20">
+                                {t("models.bigram.generation.form.numTokens")}
+                            </span>
+                            <span className="text-[10px] font-mono text-emerald-400">{numTokens}</span>
+                        </div>
+                        <input
+                            type="range"
+                            min={10}
+                            max={200}
+                            value={numTokens}
+                            onChange={(e) => setNumTokens(Number(e.target.value))}
+                            className="w-full accent-emerald-500 h-1"
+                        />
                     </div>
-                    <input
-                        type="range"
-                        min={0.1}
-                        max={2.0}
-                        step={0.05}
-                        value={temperature}
-                        onChange={(e) => setTemperature(Number(e.target.value))}
-                        className="w-full accent-pink-500 h-1"
-                    />
+
+                    {/* Temperature */}
+                    <div>
+                        <div className="flex justify-between mb-1.5">
+                            <span className="text-[9px] font-mono uppercase tracking-widest text-white/20">
+                                {t("models.bigram.generation.form.temp")}
+                            </span>
+                            <span className="text-[10px] font-mono text-emerald-400">{temperature.toFixed(1)}</span>
+                        </div>
+                        <input
+                            type="range"
+                            min={0.1}
+                            max={3.0}
+                            step={0.1}
+                            value={temperature}
+                            onChange={(e) => setTemperature(Number(e.target.value))}
+                            className="w-full accent-emerald-500 h-1"
+                        />
+                    </div>
                 </div>
 
-                <Button
+                {/* Temperature presets */}
+                <div className="flex gap-1.5">
+                    {TEMP_PRESETS.map((preset) => (
+                        <button
+                            key={preset.key}
+                            type="button"
+                            onClick={() => setTemperature(preset.value)}
+                            className={`flex-1 py-1.5 rounded-lg text-[10px] font-mono border transition-all ${activePreset?.key === preset.key
+                                ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
+                                : "bg-white/[0.02] border-white/[0.06] text-white/30 hover:text-white/50 hover:bg-white/[0.04]"
+                                }`}
+                        >
+                            {t(`models.bigram.generation.form.presets.${preset.key}`)}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Generate button */}
+                <motion.button
                     type="submit"
                     disabled={loading || !startChar}
-                    className="w-full bg-pink-600 hover:bg-pink-500 text-white font-mono text-xs uppercase tracking-widest h-10 transition-all disabled:opacity-40"
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className="w-full py-3 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 font-mono text-xs font-bold uppercase tracking-wider hover:bg-emerald-500/25 transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                     {loading ? (
                         <motion.span
@@ -140,31 +192,55 @@ export function GenerationPlayground({
                         </motion.span>
                     ) : (
                         <>
-                            <Sparkles className="h-3.5 w-3.5 mr-2" /> {t("models.bigram.generation.form.generate")}
+                            <Sparkles className="h-3.5 w-3.5" />
+                            {t("models.bigram.generation.form.generate")}
                         </>
                     )}
-                </Button>
+                </motion.button>
             </form>
 
-            {/* Output */}
-            <div className="px-5 pb-5 space-y-3">
-                {error && (
-                    <div className="flex items-center gap-2 text-red-400 text-xs bg-red-500/10 rounded-lg px-3 py-2 border border-red-500/20">
-                        <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                        {error}
-                    </div>
-                )}
+            {/* Error */}
+            {error && (
+                <div className="flex items-center gap-2 text-red-400 text-xs bg-red-500/10 rounded-lg px-3 py-2 border border-red-500/20">
+                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                    {error}
+                </div>
+            )}
 
-                {loading && <Skeleton className="h-24 bg-white/[0.04] rounded-lg" />}
+            {/* Loading skeleton */}
+            {loading && (
+                <motion.div
+                    animate={{ opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                    className="h-24 bg-white/[0.03] rounded-xl border border-white/[0.06]"
+                />
+            )}
 
+            {/* Output with character reveal */}
+            <AnimatePresence>
                 {generatedText && !loading && (
-                    <div className="relative group">
-                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-4 font-mono text-sm text-white/80 leading-relaxed whitespace-pre-wrap break-all">
-                            {generatedText}
+                    <motion.div
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="relative group"
+                    >
+                        <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-5 font-mono text-sm leading-relaxed whitespace-pre-wrap break-all min-h-[80px]">
+                            <span className="text-emerald-400/80">{generatedText.slice(0, revealCount)}</span>
+                            {revealCount < generatedText.length && (
+                                <motion.span
+                                    animate={{ opacity: [1, 0] }}
+                                    transition={{ duration: 0.5, repeat: Infinity }}
+                                    className="inline-block w-[2px] h-4 bg-emerald-400 align-text-bottom ml-px"
+                                />
+                            )}
+                            <span className="text-white/10">{generatedText.slice(revealCount)}</span>
                         </div>
+
+                        {/* Copy button */}
                         <button
                             onClick={handleCopy}
-                            className="absolute top-2 right-2 p-2 rounded-md bg-white/[0.04] border border-white/[0.08] text-white/40 hover:text-white/80 hover:bg-white/[0.08] transition-all opacity-0 group-hover:opacity-100"
+                            className="absolute top-3 right-3 p-2 rounded-lg bg-white/[0.04] border border-white/[0.08] text-white/30 hover:text-white/70 hover:bg-white/[0.08] transition-all opacity-0 group-hover:opacity-100"
                             aria-label="Copy to clipboard"
                         >
                             {copied ? (
@@ -173,9 +249,16 @@ export function GenerationPlayground({
                                 <Copy className="h-3.5 w-3.5" />
                             )}
                         </button>
-                    </div>
+
+                        {/* Character count */}
+                        <div className="mt-2 text-right">
+                            <span className="text-[9px] font-mono text-white/15">
+                                {generatedText.length} {t("models.bigram.generation.form.chars")}
+                            </span>
+                        </div>
+                    </motion.div>
                 )}
-            </div>
-        </Card>
+            </AnimatePresence>
+        </div>
     );
-}
+});

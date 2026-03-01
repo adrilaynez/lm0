@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
+
 import { useI18n } from "@/i18n/context";
 
 interface NgramComparisonDashboardProps {

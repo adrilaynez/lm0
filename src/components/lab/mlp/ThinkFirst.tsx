@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { HelpCircle, ChevronDown } from "lucide-react";
+
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown, HelpCircle } from "lucide-react";
+
+import { FadeInView } from "@/components/lab/FadeInView";
 
 interface ThinkFirstProps {
     question: string;
@@ -13,12 +16,7 @@ export function ThinkFirst({ question, reveal }: ThinkFirstProps) {
     const [isRevealed, setIsRevealed] = useState(false);
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            className="my-8 rounded-xl border-2 border-dashed border-violet-500/30 bg-violet-950/10 p-5"
-        >
+        <FadeInView margin="-40px" className="my-8 rounded-xl border-2 border-dashed border-violet-500/30 bg-violet-950/10 p-5">
             <div className="flex items-start gap-3">
                 <HelpCircle className="w-5 h-5 text-violet-400 shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
@@ -61,6 +59,6 @@ export function ThinkFirst({ question, reveal }: ThinkFirstProps) {
                     </AnimatePresence>
                 </div>
             </div>
-        </motion.div>
+        </FadeInView>
     );
 }

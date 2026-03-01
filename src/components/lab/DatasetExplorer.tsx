@@ -1,7 +1,8 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { Search, Database, FileText, X } from "lucide-react";
+import {motion } from "framer-motion";
+import { Database, FileText, Search, X } from "lucide-react";
+
 import type { DatasetLookupResponse } from "@/types/lmLab";
 
 interface DatasetExplorerProps {

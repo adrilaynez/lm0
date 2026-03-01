@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+
 import { BookOpen, ChevronDown } from "lucide-react";
+
 import type { HistoricalContext } from "@/types/lmLab";
 
 interface HistoricalContextPanelProps {

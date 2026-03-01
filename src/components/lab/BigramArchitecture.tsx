@@ -1,8 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Card } from "@/components/ui/card";
 import { ArrowRight, Braces, Grid3x3, RefreshCw, Shuffle } from "lucide-react";
+
+import { FadeInView } from "@/components/lab/FadeInView";
 import { useI18n } from "@/i18n/context";
 
 export function BigramArchitecture() {
@@ -67,11 +67,8 @@ export function BigramArchitecture() {
 
 function ArchitectureNode({ label, sublabel, icon: Icon, color, delay }: any) {
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay, duration: 0.5 }}
+        <FadeInView
+            delay={delay}
             className="flex flex-col items-center text-center p-4 rounded-xl bg-white/[0.05] border border-white/10 min-w-[120px]"
         >
             <div className={`mb-3 p-3 rounded-full bg-white/5 ${color}`}>
@@ -81,20 +78,17 @@ function ArchitectureNode({ label, sublabel, icon: Icon, color, delay }: any) {
             <div className="text-white/40 text-[10px] uppercase tracking-wider font-mono">
                 {sublabel}
             </div>
-        </motion.div>
+        </FadeInView>
     );
 }
 
 function FlowArrow({ delay }: { delay: number }) {
     return (
-        <motion.div
-            initial={{ opacity: 0, scaleX: 0 }}
-            whileInView={{ opacity: 1, scaleX: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay, duration: 0.5 }}
+        <FadeInView
+            delay={delay}
             className="hidden md:flex justify-center text-white/20"
         >
             <ArrowRight className="w-6 h-6" />
-        </motion.div>
+        </FadeInView>
     );
 }

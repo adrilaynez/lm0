@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { memo,useCallback, useMemo, useState } from "react";
+
+import { AnimatePresence,motion } from "framer-motion";
+
 import { useI18n } from "@/i18n/context";
 
 /* ── types ─────────────────────────────────────────────────── */
@@ -70,7 +72,7 @@ function outputPositions(count: number): { x: number; y: number }[] {
 
 /* ── component ──────────────────────────────────────────────── */
 
-export function ParallelNeuronsDemo() {
+export const ParallelNeuronsDemo = memo(function ParallelNeuronsDemo() {
     const { t } = useI18n();
     const [neuronCount, setNeuronCount] = useState(1);
     const [x1, setX1] = useState(0.8);
@@ -364,4 +366,4 @@ export function ParallelNeuronsDemo() {
             </div>
         </div>
     );
-}
+});

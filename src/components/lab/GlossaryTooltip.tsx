@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useCallback,useEffect, useRef, useState } from "react";
+
 import { glossary } from "@/content/glossary";
 import { useI18n } from "@/i18n/context";
 

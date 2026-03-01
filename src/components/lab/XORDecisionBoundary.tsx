@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect,useState } from "react";
 
 const PL = 40;   // plot left
 const PT = 40;   // plot top

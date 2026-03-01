@@ -1,4 +1,5 @@
 import { getAllNotes } from "@/lib/mdx"
+
 import { NotesContent } from "./notes-content";
 
 export const metadata = {

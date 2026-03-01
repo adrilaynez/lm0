@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import type { StepwiseResponse } from "@/types/lmLab";
+import { useCallback,useState } from "react";
+
 import { ngramStepwise } from "@/lib/lmLabClient";
+import type { StepwiseResponse } from "@/types/lmLab";
 
 export function useNgramStepwise(contextSize: number) {
     const [data, setData] = useState<StepwiseResponse | null>(null);

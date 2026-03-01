@@ -1,272 +1,94 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, FlaskConical, ArrowDown, Lightbulb, AlertTriangle, Beaker, Layers, ChevronDown, History } from "lucide-react";
-import { ModeToggle } from "@/components/lab/ModeToggle";
-import { useI18n } from "@/i18n/context";
+import { lazy, Suspense, useCallback, useState } from "react";
+import { BlockMath } from "react-katex";
 import { useRouter } from "next/navigation";
-import { useLabMode } from "@/context/LabModeContext";
-import { NNPerceptronDiagram } from "@/components/lab/NNPerceptronDiagram";
-import { NNActivationExplorer } from "@/components/lab/NNActivationExplorer";
-import { NNTrainingDemo } from "@/components/lab/NNTrainingDemo";
-import type { TrainingStep } from "@/components/lab/NNTrainingDemo";
-import { NNLossLandscape } from "@/components/lab/NNLossLandscape";
-import { NNBigramComparison } from "@/components/lab/NNBigramComparison";
-import { OverfittingComparisonDiagram } from "@/components/lab/OverfittingComparisonDiagram";
-import { TrainValLossCurveVisualizer } from "@/components/lab/TrainValLossCurveVisualizer";
-import { OperationExplorer } from "@/components/lab/nn/OperationExplorer";
-import { WeightSliderDemo } from "@/components/lab/nn/WeightSliderDemo";
-import { BiasDemo } from "@/components/lab/nn/BiasDemo";
-import { LinearStackingDemo } from "@/components/lab/nn/LinearStackingDemo";
-import { ParallelNeuronsDemo } from "@/components/lab/nn/ParallelNeuronsDemo";
-import { DecisionBoundaryIntro } from "@/components/lab/nn/DecisionBoundaryIntro";
-import { PredictionErrorDemo } from "@/components/lab/nn/PredictionErrorDemo";
-import { DerivativeIntuitionDemo } from "@/components/lab/nn/DerivativeIntuitionDemo";
-import { ChainRuleBuilder } from "@/components/lab/nn/ChainRuleBuilder";
-import { LossWeightParabolaVisualizer } from "@/components/lab/nn/LossWeightParabolaVisualizer";
-import { LossFormulaMotivation } from "@/components/lab/nn/LossFormulaMotivation";
-import { NeuronGradientCalculator } from "@/components/lab/nn/NeuronGradientCalculator";
-import { NudgeWeightDemo } from "@/components/lab/nn/NudgeWeightDemo";
-import { RepeatedTrainingDemo } from "@/components/lab/nn/RepeatedTrainingDemo";
-import { TrainingWithTextDemo } from "@/components/lab/nn/TrainingWithTextDemo";
-import { OutputLayerNetworkVisualizer } from "@/components/lab/nn/OutputLayerNetworkVisualizer";
-import { SoftmaxTransformDemo } from "@/components/lab/nn/SoftmaxTransformDemo";
-import { LearningRateDemo } from "@/components/lab/nn/LearningRateDemo";
-import { LROvershootVisualizer } from "@/components/lab/nn/LROvershootVisualizer";
-import { LetterToNumberDemo } from "@/components/lab/nn/LetterToNumberDemo";
-import { ToyAlphabetPredictor } from "@/components/lab/nn/ToyAlphabetPredictor";
-import { BeatTheMachineChallenge } from "@/components/lab/nn/BeatTheMachineChallenge";
-import { ContextLimitationDemo } from "@/components/lab/nn/ContextLimitationDemo";
-import { Challenge } from "@/components/lab/nn/Challenge";
-import { WeightTrajectoryDemo } from "@/components/lab/nn/WeightTrajectoryDemo";
-import { VisualizerFrame } from "@/components/lab/nn/VisualizerFrame";
-import { XORSolverDemo } from "@/components/lab/nn/XORSolverDemo";
-import { DivergenceDemo } from "@/components/lab/nn/DivergenceDemo";
-import { MatrixMultiplyVisual } from "@/components/lab/nn/MatrixMultiplyVisual";
-import { TrainValSplitVisualizer } from "@/components/lab/nn/TrainValSplitVisualizer";
-import { LossDerivativeVisualizer } from "@/components/lab/nn/LossDerivativeVisualizer";
-import { WeightImpactVisualizer } from "@/components/lab/nn/WeightImpactVisualizer";
-import { FlatGradientVisualizer } from "@/components/lab/nn/FlatGradientVisualizer";
-import { BackpropZeroDemo } from "@/components/lab/nn/BackpropZeroDemo";
-import { BiologicalVsArtificialDiagram } from "@/components/lab/nn/BiologicalVsArtificialDiagram";
-import { BatchSizeComparisonVisualizer } from "@/components/lab/nn/BatchSizeComparisonVisualizer";
-import { ActivationDerivativeVisualizer } from "@/components/lab/nn/ActivationDerivativeVisualizer";
-import { DeadNeuronDemo } from "@/components/lab/nn/DeadNeuronDemo";
-import { ToyVowelTeaser } from "@/components/lab/nn/ToyVowelTeaser";
-import { StepEpochBatchCounter } from "@/components/lab/nn/StepEpochBatchCounter";
-import { GradientNoiseVisualizer } from "@/components/lab/nn/GradientNoiseVisualizer";
-import { OverfittingPlayground } from "@/components/lab/nn/OverfittingPlayground";
-import { HiddenSection } from "@/components/lab/nn/VisualizerFrame";
-import { Highlight } from "@/components/lab/Highlight";
-import { SectionProgressBar } from "@/components/lab/SectionProgressBar";
+
+import { AnimatePresence, motion } from "framer-motion";
+import { AlertTriangle, ArrowDown, Beaker, BookOpen, ChevronDown, FlaskConical, History, Layers, Lightbulb } from "lucide-react";
+
 import { ContinueToast } from "@/components/lab/ContinueToast";
+import { FadeInView } from "@/components/lab/FadeInView";
 import { Term } from "@/components/lab/GlossaryTooltip";
 import { KeyTakeaway } from "@/components/lab/KeyTakeaway";
+import { LazySection, SectionSkeleton } from "@/components/lab/LazySection";
+import { ModeToggle } from "@/components/lab/ModeToggle";
+import { Challenge } from "@/components/lab/nn/Challenge";
+import { VisualizerFrame } from "@/components/lab/nn/VisualizerFrame";
+import { HiddenSection } from "@/components/lab/nn/VisualizerFrame";
 import { SectionAnchor } from "@/components/lab/SectionAnchor";
+import { SectionProgressBar } from "@/components/lab/SectionProgressBar";
+import { useLabMode } from "@/context/LabModeContext";
+import { useProgressTracker } from "@/hooks/useProgressTracker";
+import { useI18n } from "@/i18n/context";
 
-import { BlockMath } from "react-katex";
-import "katex/dist/katex.min.css";
+/* ─── Lazy-loaded interactive visualizers ─── */
+const ActivationDerivativeVisualizer = lazy(() => import("@/components/lab/nn/ActivationDerivativeVisualizer").then(m => ({ default: m.ActivationDerivativeVisualizer })));
+const BackpropZeroDemo = lazy(() => import("@/components/lab/nn/BackpropZeroDemo").then(m => ({ default: m.BackpropZeroDemo })));
+const BatchSizeComparisonVisualizer = lazy(() => import("@/components/lab/nn/BatchSizeComparisonVisualizer").then(m => ({ default: m.BatchSizeComparisonVisualizer })));
+const BeatTheMachineChallenge = lazy(() => import("@/components/lab/nn/BeatTheMachineChallenge").then(m => ({ default: m.BeatTheMachineChallenge })));
+const BiasDemo = lazy(() => import("@/components/lab/nn/BiasDemo").then(m => ({ default: m.BiasDemo })));
+const BiologicalVsArtificialDiagram = lazy(() => import("@/components/lab/nn/BiologicalVsArtificialDiagram").then(m => ({ default: m.BiologicalVsArtificialDiagram })));
+const ChainRuleBuilder = lazy(() => import("@/components/lab/nn/ChainRuleBuilder").then(m => ({ default: m.ChainRuleBuilder })));
+const ContextLimitationDemo = lazy(() => import("@/components/lab/nn/ContextLimitationDemo").then(m => ({ default: m.ContextLimitationDemo })));
+const DeadNeuronDemo = lazy(() => import("@/components/lab/nn/DeadNeuronDemo").then(m => ({ default: m.DeadNeuronDemo })));
+const DecisionBoundaryIntro = lazy(() => import("@/components/lab/nn/DecisionBoundaryIntro").then(m => ({ default: m.DecisionBoundaryIntro })));
+const DerivativeIntuitionDemo = lazy(() => import("@/components/lab/nn/DerivativeIntuitionDemo").then(m => ({ default: m.DerivativeIntuitionDemo })));
+const DivergenceDemo = lazy(() => import("@/components/lab/nn/DivergenceDemo").then(m => ({ default: m.DivergenceDemo })));
+const FlatGradientVisualizer = lazy(() => import("@/components/lab/nn/FlatGradientVisualizer").then(m => ({ default: m.FlatGradientVisualizer })));
+const GradientNoiseVisualizer = lazy(() => import("@/components/lab/nn/GradientNoiseVisualizer").then(m => ({ default: m.GradientNoiseVisualizer })));
+const LearningRateDemo = lazy(() => import("@/components/lab/nn/LearningRateDemo").then(m => ({ default: m.LearningRateDemo })));
+const LetterToNumberDemo = lazy(() => import("@/components/lab/nn/LetterToNumberDemo").then(m => ({ default: m.LetterToNumberDemo })));
+const LinearStackingDemo = lazy(() => import("@/components/lab/nn/LinearStackingDemo").then(m => ({ default: m.LinearStackingDemo })));
+const LossDerivativeVisualizer = lazy(() => import("@/components/lab/nn/LossDerivativeVisualizer").then(m => ({ default: m.LossDerivativeVisualizer })));
+const LossFormulaMotivation = lazy(() => import("@/components/lab/nn/LossFormulaMotivation").then(m => ({ default: m.LossFormulaMotivation })));
+const LossWeightParabolaVisualizer = lazy(() => import("@/components/lab/nn/LossWeightParabolaVisualizer").then(m => ({ default: m.LossWeightParabolaVisualizer })));
+const LROvershootVisualizer = lazy(() => import("@/components/lab/nn/LROvershootVisualizer").then(m => ({ default: m.LROvershootVisualizer })));
+const MatrixMultiplyVisual = lazy(() => import("@/components/lab/nn/MatrixMultiplyVisual").then(m => ({ default: m.MatrixMultiplyVisual })));
+const NeuronGradientCalculator = lazy(() => import("@/components/lab/nn/NeuronGradientCalculator").then(m => ({ default: m.NeuronGradientCalculator })));
+const NudgeWeightDemo = lazy(() => import("@/components/lab/nn/NudgeWeightDemo").then(m => ({ default: m.NudgeWeightDemo })));
+const OperationExplorer = lazy(() => import("@/components/lab/nn/OperationExplorer").then(m => ({ default: m.OperationExplorer })));
+const OutputLayerNetworkVisualizer = lazy(() => import("@/components/lab/nn/OutputLayerNetworkVisualizer").then(m => ({ default: m.OutputLayerNetworkVisualizer })));
+const OverfittingPlayground = lazy(() => import("@/components/lab/nn/OverfittingPlayground").then(m => ({ default: m.OverfittingPlayground })));
+const ParallelNeuronsDemo = lazy(() => import("@/components/lab/nn/ParallelNeuronsDemo").then(m => ({ default: m.ParallelNeuronsDemo })));
+const PredictionErrorDemo = lazy(() => import("@/components/lab/nn/PredictionErrorDemo").then(m => ({ default: m.PredictionErrorDemo })));
+const RepeatedTrainingDemo = lazy(() => import("@/components/lab/nn/RepeatedTrainingDemo").then(m => ({ default: m.RepeatedTrainingDemo })));
+const SoftmaxTransformDemo = lazy(() => import("@/components/lab/nn/SoftmaxTransformDemo").then(m => ({ default: m.SoftmaxTransformDemo })));
+const StepEpochBatchCounter = lazy(() => import("@/components/lab/nn/StepEpochBatchCounter").then(m => ({ default: m.StepEpochBatchCounter })));
+const ToyAlphabetPredictor = lazy(() => import("@/components/lab/nn/ToyAlphabetPredictor").then(m => ({ default: m.ToyAlphabetPredictor })));
+const ToyVowelTeaser = lazy(() => import("@/components/lab/nn/ToyVowelTeaser").then(m => ({ default: m.ToyVowelTeaser })));
+const TrainingWithTextDemo = lazy(() => import("@/components/lab/nn/TrainingWithTextDemo").then(m => ({ default: m.TrainingWithTextDemo })));
+const TrainValSplitVisualizer = lazy(() => import("@/components/lab/nn/TrainValSplitVisualizer").then(m => ({ default: m.TrainValSplitVisualizer })));
+const WeightImpactVisualizer = lazy(() => import("@/components/lab/nn/WeightImpactVisualizer").then(m => ({ default: m.WeightImpactVisualizer })));
+const WeightSliderDemo = lazy(() => import("@/components/lab/nn/WeightSliderDemo").then(m => ({ default: m.WeightSliderDemo })));
+const WeightTrajectoryDemo = lazy(() => import("@/components/lab/nn/WeightTrajectoryDemo").then(m => ({ default: m.WeightTrajectoryDemo })));
+const XORSolverDemo = lazy(() => import("@/components/lab/nn/XORSolverDemo").then(m => ({ default: m.XORSolverDemo })));
+const NNActivationExplorer = lazy(() => import("@/components/lab/NNActivationExplorer").then(m => ({ default: m.NNActivationExplorer })));
+const NNBigramComparison = lazy(() => import("@/components/lab/NNBigramComparison").then(m => ({ default: m.NNBigramComparison })));
+const NNLossLandscape = lazy(() => import("@/components/lab/NNLossLandscape").then(m => ({ default: m.NNLossLandscape })));
+const NNPerceptronDiagram = lazy(() => import("@/components/lab/NNPerceptronDiagram").then(m => ({ default: m.NNPerceptronDiagram })));
+import type { TrainingStep } from "@/components/lab/NNTrainingDemo";
+const NNTrainingDemo = lazy(() => import("@/components/lab/NNTrainingDemo").then(m => ({ default: m.NNTrainingDemo })));
+const OverfittingComparisonDiagram = lazy(() => import("@/components/lab/OverfittingComparisonDiagram").then(m => ({ default: m.OverfittingComparisonDiagram })));
+const TrainValLossCurveVisualizer = lazy(() => import("@/components/lab/TrainValLossCurveVisualizer").then(m => ({ default: m.TrainValLossCurveVisualizer })));
 
-/* ─────────────────────────────────────────────
-   Primitive building blocks
-   ───────────────────────────────────────────── */
+import {
+    Callout,
+    FigureWrapper,
+    FormulaBlock as _FormulaBlock,
+    Heading as _Heading,
+    Highlight,
+    Lead, type NarrativeAccent,
+    P, PullQuote as _PullQuote,
+    Section, SectionBreak, SectionLabel as _SectionLabel,
+} from "./narrative-primitives";
 
-function Section({ id, children }: { id: string; children: React.ReactNode }) {
-    return (
-        <motion.section
-            id={id}
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6 }}
-            className="mb-20 md:mb-28"
-        >
-            {children}
-        </motion.section>
-    );
-}
-
-function SectionLabel({ number, label }: { number: string; label: string }) {
-    return (
-        <div className="flex items-center gap-3 mb-8">
-            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-rose-500/20 to-pink-500/10 border border-rose-500/25 text-[11px] font-mono font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-400 to-pink-300" style={{ WebkitBackgroundClip: 'text', backgroundImage: 'linear-gradient(135deg, #fb7185, #f9a8d4)' }}>
-                {number}
-            </span>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[var(--lab-text-subtle)]">
-                {label}
-            </span>
-            <div className="flex-1 h-px bg-gradient-to-r from-[var(--lab-border)] to-transparent" />
-        </div>
-    );
-}
-
-function Heading({ children }: { children: React.ReactNode }) {
-    return (
-        <h2 className="text-2xl md:text-[2rem] font-extrabold text-[var(--lab-text)] tracking-tight mb-6 leading-tight">
-            {children}
-        </h2>
-    );
-}
-
-function Lead({ children }: { children: React.ReactNode }) {
-    return (
-        <p className="text-lg md:text-xl text-[var(--lab-text-muted)] leading-[1.8] mb-6 font-light">
-            {children}
-        </p>
-    );
-}
-
-function P({ children }: { children: React.ReactNode }) {
-    return (
-        <p className="text-[15px] md:text-base text-[var(--lab-text-muted)] leading-[1.9] mb-5 last:mb-0">
-            {children}
-        </p>
-    );
-}
-
-function Callout({
-    icon: Icon = Lightbulb,
-    accent = "rose",
-    title,
-    children,
-}: {
-    icon?: React.ComponentType<{ className?: string }>;
-    accent?: "rose" | "amber" | "indigo" | "emerald";
-    title?: string;
-    children: React.ReactNode;
-}) {
-    const accentMap = {
-        rose: {
-            border: "border-rose-500/20",
-            bg: "bg-rose-500/[0.04]",
-            icon: "text-rose-400",
-            title: "text-rose-400",
-            glow: "from-rose-500/[0.06]",
-        },
-        amber: {
-            border: "border-amber-500/20",
-            bg: "bg-amber-500/[0.04]",
-            icon: "text-amber-400",
-            title: "text-amber-400",
-            glow: "from-amber-500/[0.06]",
-        },
-        indigo: {
-            border: "border-indigo-500/20",
-            bg: "bg-indigo-500/[0.04]",
-            icon: "text-indigo-400",
-            title: "text-indigo-400",
-            glow: "from-indigo-500/[0.06]",
-        },
-        emerald: {
-            border: "border-emerald-500/20",
-            bg: "bg-emerald-500/[0.04]",
-            icon: "text-emerald-400",
-            title: "text-emerald-400",
-            glow: "from-emerald-500/[0.06]",
-        },
-    };
-    const a = accentMap[accent];
-
-    return (
-        <motion.aside
-            initial={{ opacity: 0, x: -12 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.4 }}
-            className={`relative my-8 rounded-xl border ${a.border} ${a.bg} p-5 md:p-6 overflow-hidden`}
-        >
-            <div className={`absolute inset-0 bg-gradient-to-br ${a.glow} to-transparent pointer-events-none`} />
-            <div className="relative flex gap-4">
-                <div className="shrink-0 mt-0.5">
-                    <Icon className={`w-4.5 h-4.5 ${a.icon}`} />
-                </div>
-                <div className="min-w-0">
-                    {title && (
-                        <p className={`text-xs font-bold uppercase tracking-[0.15em] ${a.title} mb-2`}>
-                            {title}
-                        </p>
-                    )}
-                    <div className="text-sm text-[var(--lab-text-muted)] leading-relaxed [&>p]:mb-2 [&>p:last-child]:mb-0">
-                        {children}
-                    </div>
-                </div>
-            </div>
-        </motion.aside>
-    );
-}
-
-function FormulaBlock({ formula, caption }: { formula: string; caption: string }) {
-    return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: "-40px" }}
-            className="my-10 text-center"
-        >
-            <div className="flex items-center justify-center mb-10">
-                <div className="inline-block px-8 py-4 rounded-2xl bg-rose-500/[0.04] border border-rose-500/[0.15] backdrop-blur-sm shadow-[0_0_40px_-15px_rgba(244,63,94,0.15)]">
-                    <BlockMath math={formula} />
-                </div>
-            </div>
-            <p className="text-center text-sm md:text-base text-[var(--lab-text-muted)] italic font-light max-w-2xl mx-auto">
-                {caption}
-            </p>
-        </motion.div>
-    );
-}
-
-function PullQuote({ children }: { children: React.ReactNode }) {
-    return (
-        <motion.blockquote
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true, margin: "-40px" }}
-            className="my-10 md:my-12 pl-6 border-l-2 border-rose-500/30"
-        >
-            <p className="text-lg md:text-xl text-[var(--lab-text-muted)] font-light italic leading-relaxed">
-                {children}
-            </p>
-        </motion.blockquote>
-    );
-}
-
-const FIGURE_ACCENTS = {
-    default: { border: "border-[var(--lab-border)]", bg: "bg-[var(--lab-card)]", bar: "border-[var(--lab-border)] bg-[var(--lab-card)]", text: "text-[var(--lab-text-subtle)]" },
-    amber: { border: "border-amber-500/[0.12]", bg: "bg-gradient-to-br from-amber-500/[0.02] to-transparent", bar: "border-amber-500/[0.08] bg-amber-500/[0.02]", text: "text-amber-400/50" },
-    emerald: { border: "border-emerald-500/[0.1]", bg: "bg-[radial-gradient(ellipse_at_top,rgba(52,211,153,0.02),transparent)]", bar: "border-emerald-500/[0.08] bg-emerald-500/[0.02]", text: "text-emerald-400/50" },
-    rose: { border: "border-rose-500/[0.12]", bg: "bg-gradient-to-br from-rose-500/[0.03] to-transparent", bar: "border-rose-500/[0.08] bg-rose-500/[0.02]", text: "text-rose-400/50" },
-    violet: { border: "border-violet-500/[0.12]", bg: "bg-gradient-to-br from-violet-500/[0.03] to-transparent", bar: "border-violet-500/[0.08] bg-violet-500/[0.02]", text: "text-violet-400/50" },
-    indigo: { border: "border-indigo-500/[0.1]", bg: "bg-gradient-to-br from-indigo-500/[0.02] to-transparent", bar: "border-indigo-500/[0.08] bg-indigo-500/[0.02]", text: "text-indigo-400/50" },
-} as const;
-
-type FigureAccent = keyof typeof FIGURE_ACCENTS;
-
-function FigureWrapper({ label, hint, accent = "default", children }: { label: string; hint: string; accent?: FigureAccent; children: React.ReactNode }) {
-    const a = FIGURE_ACCENTS[accent];
-    return (
-        <div className={`my-8 -mx-2 sm:mx-0 rounded-2xl border ${a.border} ${a.bg} overflow-hidden`}>
-            <div className={`flex items-center justify-between gap-3 px-4 py-2.5 border-b ${a.bar}`}>
-                <span className={`text-[10px] font-mono uppercase tracking-widest ${a.text}`}>{label}</span>
-            </div>
-            <div className="p-4 bg-[var(--lab-viz-bg)]">{children}</div>
-            {hint && (
-                <p className="px-4 pb-3 text-[11px] text-[var(--lab-text-subtle)] italic">{hint}</p>
-            )}
-        </div>
-    );
-}
-
-
-function SectionBreak() {
-    return (
-        <div className="flex items-center justify-center gap-3 my-16 md:my-20">
-            <div className="h-px w-12 bg-gradient-to-r from-transparent to-[var(--lab-border)]" />
-            <div className="w-1.5 h-1.5 rounded-full bg-[var(--lab-border)]" />
-            <div className="h-px w-12 bg-gradient-to-l from-transparent to-[var(--lab-border)]" />
-        </div>
-    );
-}
+/* ─── Accent-bound wrappers ─── */
+const NA: NarrativeAccent = "rose";
+const SectionLabel = (p: { number: string; label: string }) => <_SectionLabel accent={NA} variant="gradient" {...p} />;
+const Heading = ({ children }: { children: React.ReactNode }) => <_Heading className="font-extrabold">{children}</_Heading>;
+const FormulaBlock = (p: { formula: string; caption: string }) => <_FormulaBlock accent={NA} {...p} />;
+const PullQuote = ({ children }: { children: React.ReactNode }) => <_PullQuote accent={NA}>{children}</_PullQuote>;
 
 /* ─────────────────────────────────────────────
    Collapsible History Sidebar
@@ -284,12 +106,7 @@ function HistorySidebar({ t }: { t: (key: string) => string }) {
     ];
 
     return (
-        <motion.aside
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            className="my-12 rounded-2xl border border-rose-500/20 overflow-hidden relative"
-        >
+        <FadeInView as="aside" margin="-40px" className="my-12 rounded-2xl border border-rose-500/20 overflow-hidden relative">
             <button
                 onClick={() => setOpen(!open)}
                 className="w-full flex items-center gap-4 px-6 py-5 text-left group transition-all duration-300 relative bg-gradient-to-br from-rose-500/[0.08] via-pink-500/[0.04] to-rose-500/[0.06] hover:from-rose-500/[0.12] hover:via-pink-500/[0.06] hover:to-rose-500/[0.08]"
@@ -444,7 +261,7 @@ function HistorySidebar({ t }: { t: (key: string) => string }) {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </motion.aside>
+        </FadeInView>
     );
 }
 
@@ -456,6 +273,7 @@ export function NeuralNetworkNarrative() {
     const { t } = useI18n();
     const router = useRouter();
     const { mode, setMode } = useLabMode();
+    const { hasStoredProgress, storedSection, clearProgress } = useProgressTracker("neural-networks");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [landscapeHistory, setLandscapeHistory] = useState<TrainingStep[]>([]);
     const [landscapeTarget, setLandscapeTarget] = useState(0.8);
@@ -467,8 +285,10 @@ export function NeuralNetworkNarrative() {
     return (
         <article className="max-w-4xl mx-auto px-6 pb-28">
             <ContinueToast
-                pageId="neural-networks"
                 accent="rose"
+                hasStoredProgress={hasStoredProgress}
+                storedSection={storedSection}
+                clearProgress={clearProgress}
                 sectionNames={{
                     "nn-01": t("neuralNetworkNarrative.sections.discovery.label"),
                     "nn-02": t("models.neuralNetworks.sections.artificialNeuron.label"),
@@ -613,12 +433,14 @@ export function NeuralNetworkNarrative() {
                     {t("neuralNetworkNarrative.discovery.predict1")}
                 </p>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.discovery.fig1Label")}
-                    hint={t("neuralNetworkNarrative.discovery.fig1Hint")}
-                >
-                    <OperationExplorer />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.discovery.fig1Label")}
+                        hint={t("neuralNetworkNarrative.discovery.fig1Hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><OperationExplorer /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.discovery.p2")}</P>
 
@@ -626,13 +448,15 @@ export function NeuralNetworkNarrative() {
                     {t("neuralNetworkNarrative.discovery.predict2")}
                 </p>
 
-                <VisualizerFrame
-                    family="neuron"
-                    label={t("neuralNetworkNarrative.discovery.fig2Label")}
-                    hint={t("neuralNetworkNarrative.discovery.fig2Hint")}
-                >
-                    <WeightSliderDemo />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="neuron"
+                        label={t("neuralNetworkNarrative.discovery.fig2Label")}
+                        hint={t("neuralNetworkNarrative.discovery.fig2Hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><WeightSliderDemo /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.discovery.p3")}</P>
 
@@ -648,12 +472,14 @@ export function NeuralNetworkNarrative() {
                     {t("neuralNetworkNarrative.discovery.predict3")}
                 </p>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.discovery.fig3Label")}
-                    hint={t("neuralNetworkNarrative.discovery.fig3Hint")}
-                >
-                    <BiasDemo />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.discovery.fig3Label")}
+                        hint={t("neuralNetworkNarrative.discovery.fig3Hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><BiasDemo /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <Callout accent="rose" title={t("neuralNetworkNarrative.discovery.calloutTitle")}>
                     <p>{t("neuralNetworkNarrative.discovery.calloutText")}</p>
@@ -684,13 +510,15 @@ export function NeuralNetworkNarrative() {
                     {t("neuralNetworkNarrative.artificialNeuron.predict4")}
                 </p>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.artificialNeuron.perceptronLabel")}
-                    hint={t("neuralNetworkNarrative.artificialNeuron.perceptronHint")}
-                    accent="rose"
-                >
-                    <NNPerceptronDiagram />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.artificialNeuron.perceptronLabel")}
+                        hint={t("neuralNetworkNarrative.artificialNeuron.perceptronHint")}
+                        accent="rose"
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><NNPerceptronDiagram /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 {/* Biological vs Artificial Neuron — side-by-side SVG diagrams */}
                 <HiddenSection
@@ -702,7 +530,7 @@ export function NeuralNetworkNarrative() {
                     <p className="text-sm text-white/40 leading-relaxed mb-4">
                         {t("neuralNetworkNarrative.bioVsArtificial.intro")}
                     </p>
-                    <BiologicalVsArtificialDiagram />
+                    <Suspense fallback={<SectionSkeleton />}><BiologicalVsArtificialDiagram /></Suspense>
                     <p className="text-xs text-white/30 italic border-t border-white/[0.06] pt-3 mt-4">
                         {t("neuralNetworkNarrative.artificialNeuron.biological.caveat")}
                     </p>
@@ -748,12 +576,14 @@ export function NeuralNetworkNarrative() {
                 {/* Phase A: Parallel neurons — width */}
                 <P>{t("neuralNetworkNarrative.nonLinearity.parallelIntro")}</P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.parallelNeurons.title")}
-                    hint={t("neuralNetworkNarrative.parallelNeurons.hint")}
-                >
-                    <ParallelNeuronsDemo />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.parallelNeurons.title")}
+                        hint={t("neuralNetworkNarrative.parallelNeurons.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><ParallelNeuronsDemo /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.nonLinearity.parallelOutro")}</P>
 
@@ -764,12 +594,14 @@ export function NeuralNetworkNarrative() {
                 {/* Phase B: Decision boundaries */}
                 <P>{t("neuralNetworkNarrative.nonLinearity.boundaryIntro")}</P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.decisionBoundary.title")}
-                    hint={t("neuralNetworkNarrative.decisionBoundary.hint")}
-                >
-                    <DecisionBoundaryIntro />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.decisionBoundary.title")}
+                        hint={t("neuralNetworkNarrative.decisionBoundary.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><DecisionBoundaryIntro /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.nonLinearity.boundaryOutro")}</P>
 
@@ -802,13 +634,15 @@ export function NeuralNetworkNarrative() {
 
                 <P>{t("neuralNetworkNarrative.nonLinearity.stackingIntro")}</P>
 
-                <VisualizerFrame
-                    family="function"
-                    label={t("neuralNetworkNarrative.nonLinearity.stackingLabel")}
-                    hint={t("neuralNetworkNarrative.nonLinearity.stackingHint")}
-                >
-                    <LinearStackingDemo />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="function"
+                        label={t("neuralNetworkNarrative.nonLinearity.stackingLabel")}
+                        hint={t("neuralNetworkNarrative.nonLinearity.stackingHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><LinearStackingDemo /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.nonLinearity.stackingOutro")}</P>
 
@@ -837,13 +671,15 @@ export function NeuralNetworkNarrative() {
                 {/* Phase E: Activation functions — the fix */}
                 <P>{t("neuralNetworkNarrative.nonLinearity.activationIntro")}</P>
 
-                <VisualizerFrame
-                    family="function"
-                    label={t("neuralNetworkNarrative.nonLinearity.activationLabel")}
-                    hint={t("neuralNetworkNarrative.nonLinearity.activationHint")}
-                >
-                    <NNActivationExplorer />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="function"
+                        label={t("neuralNetworkNarrative.nonLinearity.activationLabel")}
+                        hint={t("neuralNetworkNarrative.nonLinearity.activationHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><NNActivationExplorer /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 <P>
                     {t("neuralNetworkNarrative.nonLinearity.p3")}{" "}
@@ -854,13 +690,15 @@ export function NeuralNetworkNarrative() {
                 {/* XOR Solver Demo — activation + 2 neurons solves XOR (idea #6.5) */}
                 <P>{t("neuralNetworkNarrative.nonLinearity.xorSolverIntro")}</P>
 
-                <VisualizerFrame
-                    family="neuron"
-                    label={t("neuralNetworkNarrative.xorSolver.title")}
-                    hint={t("neuralNetworkNarrative.xorSolver.hint")}
-                >
-                    <XORSolverDemo />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="neuron"
+                        label={t("neuralNetworkNarrative.xorSolver.title")}
+                        hint={t("neuralNetworkNarrative.xorSolver.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><XORSolverDemo /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.nonLinearity.xorSolverOutro")}</P>
 
@@ -869,13 +707,15 @@ export function NeuralNetworkNarrative() {
                 </Callout>
 
                 {/* Toy Vowel Teaser — visual promise for §07 */}
-                <VisualizerFrame
-                    family="neuron"
-                    label={t("neuralNetworkNarrative.vowelTeaser.title")}
-                    hint={t("neuralNetworkNarrative.vowelTeaser.hint")}
-                >
-                    <ToyVowelTeaser />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="neuron"
+                        label={t("neuralNetworkNarrative.vowelTeaser.title")}
+                        hint={t("neuralNetworkNarrative.vowelTeaser.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><ToyVowelTeaser /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
             </Section>
 
             <SectionBreak />
@@ -894,12 +734,14 @@ export function NeuralNetworkNarrative() {
                 <P>{t("neuralNetworkNarrative.howItLearns.phaseA.p1")}</P>
                 <P>{t("neuralNetworkNarrative.howItLearns.phaseA.p2")}</P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.howItLearns.predictionError.title")}
-                    hint={t("neuralNetworkNarrative.howItLearns.phaseA.hint")}
-                >
-                    <PredictionErrorDemo />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.howItLearns.predictionError.title")}
+                        hint={t("neuralNetworkNarrative.howItLearns.phaseA.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><PredictionErrorDemo /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 {/* ★ PEAK 3 */}
                 <p className="text-center text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-violet-200 to-indigo-300 my-10 italic">
@@ -909,36 +751,42 @@ export function NeuralNetworkNarrative() {
                 {/* Phase B: Nudge — what if we change a weight? */}
                 <P>{t("neuralNetworkNarrative.howItLearns.phaseB.intro")}</P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.howItLearns.nudge.title")}
-                    hint={t("neuralNetworkNarrative.howItLearns.phaseB.nudgeHint")}
-                >
-                    <NudgeWeightDemo />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.howItLearns.nudge.title")}
+                        hint={t("neuralNetworkNarrative.howItLearns.phaseB.nudgeHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><NudgeWeightDemo /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.howItLearns.phaseB.discovery")}</P>
 
                 {/* Phase C: The Derivative — measuring sensitivity */}
                 <P>{t("neuralNetworkNarrative.howItLearns.phaseC.intro")}</P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.howItLearns.derivative.title")}
-                    hint={t("neuralNetworkNarrative.howItLearns.phaseC.derivativeHint")}
-                >
-                    <DerivativeIntuitionDemo />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.howItLearns.derivative.title")}
+                        hint={t("neuralNetworkNarrative.howItLearns.phaseC.derivativeHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><DerivativeIntuitionDemo /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.howItLearns.phaseC.nameIt")}</P>
 
                 {/* Phase D: Chain Rule — chained operations */}
                 <P>{t("neuralNetworkNarrative.howItLearns.phaseD.intro")}</P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.howItLearns.chainRule.title")}
-                    hint={t("neuralNetworkNarrative.howItLearns.phaseD.chainHint")}
-                >
-                    <ChainRuleBuilder />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.howItLearns.chainRule.title")}
+                        hint={t("neuralNetworkNarrative.howItLearns.phaseD.chainHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><ChainRuleBuilder /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.howItLearns.phaseD.nameIt")}</P>
 
@@ -969,7 +817,7 @@ export function NeuralNetworkNarrative() {
                     title={t("neuralNetworkNarrative.howItLearns.lossMotive.title")}
                     description={t("neuralNetworkNarrative.howItLearns.phaseF.lossHint")}
                 >
-                    <LossFormulaMotivation />
+                    <Suspense fallback={<SectionSkeleton />}><LossFormulaMotivation /></Suspense>
                 </HiddenSection>
 
                 <P>{t("neuralNetworkNarrative.howItLearns.phaseF.named")}</P>
@@ -977,48 +825,56 @@ export function NeuralNetworkNarrative() {
                 {/* Weight Impact — neuron-based diagram showing how Δw → Δloss */}
                 <P>{t("neuralNetworkNarrative.weightImpact.introText")}</P>
 
-                <VisualizerFrame
-                    family="neuron"
-                    label={t("neuralNetworkNarrative.weightImpact.title")}
-                    hint={t("neuralNetworkNarrative.weightImpact.hint")}
-                >
-                    <WeightImpactVisualizer />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="neuron"
+                        label={t("neuralNetworkNarrative.weightImpact.title")}
+                        hint={t("neuralNetworkNarrative.weightImpact.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><WeightImpactVisualizer /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.weightImpact.bridge")}</P>
 
                 {/* Loss Derivative — now shown as a graph after user understands the concept */}
                 <P>{t("neuralNetworkNarrative.lossDerivative.introText")}</P>
 
-                <VisualizerFrame
-                    family="function"
-                    label={t("neuralNetworkNarrative.lossDerivative.title")}
-                    hint={t("neuralNetworkNarrative.lossDerivative.hint")}
-                >
-                    <LossDerivativeVisualizer />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="function"
+                        label={t("neuralNetworkNarrative.lossDerivative.title")}
+                        hint={t("neuralNetworkNarrative.lossDerivative.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><LossDerivativeVisualizer /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 {/* Phase E SECOND: Direction — now makes sense: minimize the loss you just defined */}
                 <P>{t("neuralNetworkNarrative.howItLearns.phaseE.intro")}</P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.howItLearns.parabola.title")}
-                    hint={t("neuralNetworkNarrative.howItLearns.parabola.hint")}
-                >
-                    <LossWeightParabolaVisualizer />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.howItLearns.parabola.title")}
+                        hint={t("neuralNetworkNarrative.howItLearns.parabola.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><LossWeightParabolaVisualizer /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.howItLearns.phaseE.rule")}</P>
 
                 {/* Phase G: One Training Step */}
                 <P>{t("neuralNetworkNarrative.howItLearns.phaseG.intro")}</P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.howItLearns.neuronCalc.title")}
-                    hint={t("neuralNetworkNarrative.howItLearns.phaseG.calcHint")}
-                >
-                    <NeuronGradientCalculator />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.howItLearns.neuronCalc.title")}
+                        hint={t("neuralNetworkNarrative.howItLearns.phaseG.calcHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><NeuronGradientCalculator /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 {/* Gradient explanation (idea #14) */}
                 <P>{t("neuralNetworkNarrative.howItLearns.gradientMeaning")}</P>
@@ -1057,23 +913,27 @@ export function NeuralNetworkNarrative() {
                 {/* Divergence Demo — what happens without learning rate (idea #16) */}
                 <P>{t("neuralNetworkNarrative.training.divergenceIntro")}</P>
 
-                <VisualizerFrame
-                    family="dashboard"
-                    label={t("neuralNetworkNarrative.divergence.title")}
-                    hint={t("neuralNetworkNarrative.divergence.hint")}
-                >
-                    <DivergenceDemo />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="dashboard"
+                        label={t("neuralNetworkNarrative.divergence.title")}
+                        hint={t("neuralNetworkNarrative.divergence.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><DivergenceDemo /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 {/* Phase H: Repeated training */}
                 <P>{t("neuralNetworkNarrative.training.repeatedIntro")}</P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.howItLearns.repeated.title")}
-                    hint={t("neuralNetworkNarrative.howItLearns.phaseH.repeatHint")}
-                >
-                    <RepeatedTrainingDemo />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.howItLearns.repeated.title")}
+                        hint={t("neuralNetworkNarrative.howItLearns.phaseH.repeatHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><RepeatedTrainingDemo /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 {/* Rephrased challenge (idea #15) */}
                 <Challenge
@@ -1090,12 +950,14 @@ export function NeuralNetworkNarrative() {
                 {/* Phase I: Learning Rate */}
                 <P>{t("neuralNetworkNarrative.training.lrIntro")}</P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.howItLearns.phaseI.lrLabel")}
-                    hint={t("neuralNetworkNarrative.howItLearns.phaseI.lrHint")}
-                >
-                    <LearningRateDemo />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.howItLearns.phaseI.lrLabel")}
+                        hint={t("neuralNetworkNarrative.howItLearns.phaseI.lrHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><LearningRateDemo /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <Challenge
                     question={t("neuralNetworkNarrative.training.lrChallenge.question")}
@@ -1106,13 +968,15 @@ export function NeuralNetworkNarrative() {
                 {/* LR Overshoot — see the ball bounce on the loss bowl */}
                 <P>{t("neuralNetworkNarrative.training.overshootIntro")}</P>
 
-                <VisualizerFrame
-                    family="dashboard"
-                    label={t("neuralNetworkNarrative.lrOvershoot.title")}
-                    hint={t("neuralNetworkNarrative.lrOvershoot.hint")}
-                >
-                    <LROvershootVisualizer />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="dashboard"
+                        label={t("neuralNetworkNarrative.lrOvershoot.title")}
+                        hint={t("neuralNetworkNarrative.lrOvershoot.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><LROvershootVisualizer /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 {/* What If #3 */}
                 <HiddenSection
@@ -1129,12 +993,14 @@ export function NeuralNetworkNarrative() {
                 {/* Phase J: Weight Landscape */}
                 <P>{t("neuralNetworkNarrative.training.trajectoryIntro")}</P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.howItLearns.phaseJ.trajectoryLabel")}
-                    hint={t("neuralNetworkNarrative.howItLearns.phaseJ.trajectoryHint")}
-                >
-                    <WeightTrajectoryDemo />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.howItLearns.phaseJ.trajectoryLabel")}
+                        hint={t("neuralNetworkNarrative.howItLearns.phaseJ.trajectoryHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><WeightTrajectoryDemo /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 {/* Activation Derivative — advanced expandable (MOVED from §03, idea #7) */}
                 <HiddenSection
@@ -1148,7 +1014,7 @@ export function NeuralNetworkNarrative() {
                         label={t("neuralNetworkNarrative.activationDeriv.title")}
                         hint={t("neuralNetworkNarrative.activationDeriv.hint")}
                     >
-                        <ActivationDerivativeVisualizer />
+                        <Suspense fallback={<SectionSkeleton />}><ActivationDerivativeVisualizer /></Suspense>
                     </VisualizerFrame>
                 </HiddenSection>
 
@@ -1160,7 +1026,7 @@ export function NeuralNetworkNarrative() {
                     label={t("neuralNetworkNarrative.deadNeuron.title")}
                     hint={t("neuralNetworkNarrative.deadNeuron.hint")}
                 >
-                    <DeadNeuronDemo />
+                    <Suspense fallback={<SectionSkeleton />}><DeadNeuronDemo /></Suspense>
                 </VisualizerFrame>
 
                 {/* What If #2 — derivative = 0 (MOVED from §04, idea #11) — EXPANDED */}
@@ -1178,7 +1044,7 @@ export function NeuralNetworkNarrative() {
                         label={t("neuralNetworkNarrative.flatGradient.vizTitle")}
                         hint={t("neuralNetworkNarrative.flatGradient.vizHint")}
                     >
-                        <FlatGradientVisualizer />
+                        <Suspense fallback={<SectionSkeleton />}><FlatGradientVisualizer /></Suspense>
                     </VisualizerFrame>
 
                     <p className="text-sm text-white/40 leading-relaxed my-4">
@@ -1190,7 +1056,7 @@ export function NeuralNetworkNarrative() {
                         label={t("neuralNetworkNarrative.backpropZero.title")}
                         hint={t("neuralNetworkNarrative.backpropZero.hint")}
                     >
-                        <BackpropZeroDemo />
+                        <Suspense fallback={<SectionSkeleton />}><BackpropZeroDemo /></Suspense>
                     </VisualizerFrame>
 
                     <div className="mt-4 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
@@ -1264,13 +1130,15 @@ export function NeuralNetworkNarrative() {
                     </div>
                 </div>
 
-                <VisualizerFrame
-                    family="dashboard"
-                    label={t("neuralNetworkNarrative.stepEpochBatch.title")}
-                    hint={t("neuralNetworkNarrative.stepEpochBatch.hint")}
-                >
-                    <StepEpochBatchCounter />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="dashboard"
+                        label={t("neuralNetworkNarrative.stepEpochBatch.title")}
+                        hint={t("neuralNetworkNarrative.stepEpochBatch.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><StepEpochBatchCounter /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 {/* Batching section (previously unrendered) */}
                 <P>{t("neuralNetworkNarrative.howItLearns.batchingTransition")}</P>
@@ -1283,24 +1151,28 @@ export function NeuralNetworkNarrative() {
 
                 <P>{t("neuralNetworkNarrative.howItLearns.batching.conclusion")}</P>
 
-                <VisualizerFrame
-                    family="function"
-                    label={t("neuralNetworkNarrative.gradientNoise.title")}
-                    hint={t("neuralNetworkNarrative.gradientNoise.hint")}
-                >
-                    <GradientNoiseVisualizer />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="function"
+                        label={t("neuralNetworkNarrative.gradientNoise.title")}
+                        hint={t("neuralNetworkNarrative.gradientNoise.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><GradientNoiseVisualizer /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 {/* Batch size comparison — single example vs batch */}
                 <P>{t("neuralNetworkNarrative.batchComparison.introText")}</P>
 
-                <VisualizerFrame
-                    family="dashboard"
-                    label={t("neuralNetworkNarrative.batchComparison.title")}
-                    hint={t("neuralNetworkNarrative.batchComparison.hint")}
-                >
-                    <BatchSizeComparisonVisualizer />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="dashboard"
+                        label={t("neuralNetworkNarrative.batchComparison.title")}
+                        hint={t("neuralNetworkNarrative.batchComparison.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><BatchSizeComparisonVisualizer /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.batchComparison.outroText")}</P>
 
@@ -1309,13 +1181,15 @@ export function NeuralNetworkNarrative() {
 
                 <P>{t("neuralNetworkNarrative.training.liveP1")}</P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.training.liveDemoLabel")}
-                    hint={t("neuralNetworkNarrative.training.liveDemoHint")}
-                    accent="amber"
-                >
-                    <NNTrainingDemo onHistoryChange={handleTrainingHistory} />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.training.liveDemoLabel")}
+                        hint={t("neuralNetworkNarrative.training.liveDemoHint")}
+                        accent="amber"
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><NNTrainingDemo onHistoryChange={handleTrainingHistory} /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 {landscapeHistory.length > 3 &&
                     landscapeHistory[landscapeHistory.length - 1].loss > landscapeHistory[0].loss && (
@@ -1339,7 +1213,7 @@ export function NeuralNetworkNarrative() {
                 </p>
 
                 {landscapeHistory.length > 0 && (
-                    <NNLossLandscape history={landscapeHistory} target={landscapeTarget} />
+                    <Suspense fallback={<SectionSkeleton />}><NNLossLandscape history={landscapeHistory} target={landscapeTarget} /></Suspense>
                 )}
 
                 {/* Matrix Multiply HiddenSection (idea #19) */}
@@ -1349,7 +1223,7 @@ export function NeuralNetworkNarrative() {
                     title={t("neuralNetworkNarrative.matrixMultiply.title")}
                     description={t("neuralNetworkNarrative.matrixMultiply.desc")}
                 >
-                    <MatrixMultiplyVisual />
+                    <Suspense fallback={<SectionSkeleton />}><MatrixMultiplyVisual /></Suspense>
                 </HiddenSection>
 
                 {/* Multi-neuron teaser */}
@@ -1369,13 +1243,15 @@ export function NeuralNetworkNarrative() {
 
                 <Lead>{t("neuralNetworkNarrative.overfitting.lead")}</Lead>
 
-                <VisualizerFrame
-                    family="dashboard"
-                    label={t("neuralNetworkNarrative.overfittingPlay.title")}
-                    hint={t("neuralNetworkNarrative.overfittingPlay.hint")}
-                >
-                    <OverfittingPlayground />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="dashboard"
+                        label={t("neuralNetworkNarrative.overfittingPlay.title")}
+                        hint={t("neuralNetworkNarrative.overfittingPlay.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><OverfittingPlayground /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.overfitting.p1")}</P>
                 <P>{t("neuralNetworkNarrative.overfitting.p2")}</P>
@@ -1383,33 +1259,39 @@ export function NeuralNetworkNarrative() {
                 {/* Train/Val Split Visualizer (idea #24) */}
                 <P>{t("neuralNetworkNarrative.overfitting.p3")}</P>
 
-                <VisualizerFrame
-                    family="dashboard"
-                    label={t("neuralNetworkNarrative.trainValSplit.title")}
-                    hint={t("neuralNetworkNarrative.trainValSplit.hint")}
-                >
-                    <TrainValSplitVisualizer />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="dashboard"
+                        label={t("neuralNetworkNarrative.trainValSplit.title")}
+                        hint={t("neuralNetworkNarrative.trainValSplit.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><TrainValSplitVisualizer /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 <Callout icon={AlertTriangle} accent="amber" title={t("neuralNetworkNarrative.overfitting.callout1Title")}>
                     <p>{t("neuralNetworkNarrative.overfitting.callout1Text")}</p>
                 </Callout>
 
-                <VisualizerFrame
-                    family="comparison"
-                    label={t("neuralNetworkNarrative.overfitting.visual1Label")}
-                    hint={t("neuralNetworkNarrative.overfitting.visual1Hint")}
-                >
-                    <OverfittingComparisonDiagram />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="comparison"
+                        label={t("neuralNetworkNarrative.overfitting.visual1Label")}
+                        hint={t("neuralNetworkNarrative.overfitting.visual1Hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><OverfittingComparisonDiagram /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
-                <VisualizerFrame
-                    family="dashboard"
-                    label={t("neuralNetworkNarrative.overfitting.visual2Label")}
-                    hint={t("neuralNetworkNarrative.overfitting.visual2Hint")}
-                >
-                    <TrainValLossCurveVisualizer />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="dashboard"
+                        label={t("neuralNetworkNarrative.overfitting.visual2Label")}
+                        hint={t("neuralNetworkNarrative.overfitting.visual2Hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><TrainValLossCurveVisualizer /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.overfitting.p4")}</P>
                 <P>{t("neuralNetworkNarrative.overfitting.p5")}</P>
@@ -1510,25 +1392,29 @@ export function NeuralNetworkNarrative() {
                 {/* Vowel pattern explanation — now after "let's start tiny" */}
                 <P>{t("neuralNetworkNarrative.fromNumbers.vowelPatternIntro")}</P>
 
-                <VisualizerFrame
-                    family="neuron"
-                    label={t("neuralNetworkNarrative.toyPredictor.title")}
-                    hint={t("neuralNetworkNarrative.toyPredictor.hint")}
-                >
-                    <ToyAlphabetPredictor />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="neuron"
+                        label={t("neuralNetworkNarrative.toyPredictor.title")}
+                        hint={t("neuralNetworkNarrative.toyPredictor.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><ToyAlphabetPredictor /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.fromNumbers.toyOutro")}</P>
 
                 {/* 2. LetterToNumberDemo — relocated from §01, with encoding caveat */}
                 <P>{t("neuralNetworkNarrative.fromNumbers.encodingIntro")}</P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.discovery.letterDemo.title")}
-                    hint=""
-                >
-                    <LetterToNumberDemo />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.discovery.letterDemo.title")}
+                        hint=""
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><LetterToNumberDemo /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <Callout accent="amber" title={t("neuralNetworkNarrative.fromNumbers.encodingCaveat.title")}>
                     <p>{t("neuralNetworkNarrative.fromNumbers.encodingCaveat.text")}</p>
@@ -1541,46 +1427,54 @@ export function NeuralNetworkNarrative() {
                     {t("neuralNetworkNarrative.fromNumbers.trainingDataIntroEnd")}
                 </P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.training.textDemo.title")}
-                    hint={t("neuralNetworkNarrative.watchingItLearn.textDemoHint")}
-                >
-                    <TrainingWithTextDemo />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.training.textDemo.title")}
+                        hint={t("neuralNetworkNarrative.watchingItLearn.textDemoHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><TrainingWithTextDemo /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 {/* 4. OutputLayerNetworkVisualizer — keep */}
                 <P>{t("neuralNetworkNarrative.fromNumbers.p1")}</P>
 
-                <FigureWrapper
-                    label={t("neuralNetworkNarrative.fromNumbers.networkViz.label")}
-                    hint={t("neuralNetworkNarrative.fromNumbers.networkViz.hint")}
-                >
-                    <OutputLayerNetworkVisualizer />
-                </FigureWrapper>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.fromNumbers.networkViz.label")}
+                        hint={t("neuralNetworkNarrative.fromNumbers.networkViz.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><OutputLayerNetworkVisualizer /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.fromNumbers.p2")}</P>
 
                 {/* 5. SoftmaxTransformDemo — redesigned */}
-                <VisualizerFrame
-                    family="function"
-                    label={t("neuralNetworkNarrative.fromNumbers.softmax.title")}
-                    hint={t("neuralNetworkNarrative.fromNumbers.softmaxHint")}
-                >
-                    <SoftmaxTransformDemo />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="function"
+                        label={t("neuralNetworkNarrative.fromNumbers.softmax.title")}
+                        hint={t("neuralNetworkNarrative.fromNumbers.softmaxHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><SoftmaxTransformDemo /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.fromNumbers.p3")}</P>
 
                 <P>{t("neuralNetworkNarrative.fromNumbers.p4")}</P>
 
                 {/* 6. NNBigramComparison — enhanced ★ PEAK 6 */}
-                <VisualizerFrame
-                    family="comparison"
-                    label={t("neuralNetworkNarrative.fromNumbers.comparisonLabel")}
-                    hint={t("neuralNetworkNarrative.fromNumbers.comparisonHint")}
-                >
-                    <NNBigramComparison />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="comparison"
+                        label={t("neuralNetworkNarrative.fromNumbers.comparisonLabel")}
+                        hint={t("neuralNetworkNarrative.fromNumbers.comparisonHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><NNBigramComparison /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.fromNumbers.p5")}</P>
 
@@ -1596,13 +1490,15 @@ export function NeuralNetworkNarrative() {
                 {/* 7. BeatTheMachineChallenge */}
                 <P>{t("neuralNetworkNarrative.fromNumbers.challengeIntro")}</P>
 
-                <VisualizerFrame
-                    family="dashboard"
-                    label={t("neuralNetworkNarrative.beatMachine.title")}
-                    hint={t("neuralNetworkNarrative.beatMachine.hint")}
-                >
-                    <BeatTheMachineChallenge />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="dashboard"
+                        label={t("neuralNetworkNarrative.beatMachine.title")}
+                        hint={t("neuralNetworkNarrative.beatMachine.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><BeatTheMachineChallenge /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.fromNumbers.p6")}</P>
 
@@ -1633,13 +1529,15 @@ export function NeuralNetworkNarrative() {
                 {/* 9. ContextLimitationDemo → MLP bridge */}
                 <P>{t("neuralNetworkNarrative.fromNumbers.contextLimitIntro")}</P>
 
-                <VisualizerFrame
-                    family="function"
-                    label={t("neuralNetworkNarrative.contextLimit.title")}
-                    hint={t("neuralNetworkNarrative.contextLimit.hint")}
-                >
-                    <ContextLimitationDemo />
-                </VisualizerFrame>
+                <LazySection>
+                    <VisualizerFrame
+                        family="function"
+                        label={t("neuralNetworkNarrative.contextLimit.title")}
+                        hint={t("neuralNetworkNarrative.contextLimit.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><ContextLimitationDemo /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
 
                 <P>{t("neuralNetworkNarrative.fromNumbers.mlpBridge")}</P>
 
@@ -1726,12 +1624,7 @@ export function NeuralNetworkNarrative() {
             </Section>
 
             {/* ───────────────── CODA ───────────────── */}
-            <motion.footer
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className="mt-8 pt-12 border-t border-[var(--lab-border)] text-center"
-            >
+            <FadeInView as="footer" className="mt-8 pt-12 border-t border-[var(--lab-border)] text-center">
                 <p className="text-sm text-[var(--lab-text-subtle)] italic max-w-md mx-auto leading-relaxed mb-10">
                     {t("neuralNetworkNarrative.footer.text")}
                 </p>
@@ -1739,7 +1632,7 @@ export function NeuralNetworkNarrative() {
                     <FlaskConical className="h-3 w-3" />
                     {t("neuralNetworkNarrative.footer.brand")}
                 </div>
-            </motion.footer>
+            </FadeInView>
         </article >
     );
 }

@@ -1,23 +1,25 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useEffect, useMemo, useState } from "react";
+
+import { AnimatePresence,motion } from "framer-motion";
 import {
     AlertTriangle,
-    TrendingUp,
-    BookOpen,
-    Sparkles,
     ArrowRight,
+    BookOpen,
     Brain,
-    Zap,
-    Search,
     ChevronRight,
+    Search,
+    Sparkles,
+    TrendingUp,
+    Zap,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
-import { datasetLookup } from "@/lib/lmLabClient";
+
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { useLabMode } from "@/context/LabModeContext";
 import { useI18n } from "@/i18n/context";
+import { datasetLookup } from "@/lib/lmLabClient";
 
 const NGRAM_NAMES: Record<number, string> = {
     1: "Bigram",

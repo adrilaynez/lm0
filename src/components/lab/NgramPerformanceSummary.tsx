@@ -1,6 +1,7 @@
 "use client";
 
-import { Cpu, Zap, Database, Clock } from "lucide-react";
+import { Clock,Cpu, Database, Zap } from "lucide-react";
+
 import { useI18n } from "@/i18n/context";
 
 interface NgramPerformanceSummaryProps {

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { FadeInView } from "@/components/lab/FadeInView";
 import { cn } from "@/lib/utils";
 
 type Accent = "emerald" | "violet" | "amber" | "indigo" | "blue" | "rose";
@@ -62,13 +62,7 @@ export function LabSectionHeader({
     const a = ACCENT_MAP[accent];
 
     return (
-        <motion.div
-            initial={{ opacity: 0, x: -12 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.5 }}
-            className={cn("flex items-start gap-4 mb-2", className)}
-        >
+        <FadeInView margin="-40px" className={cn("flex items-start gap-4 mb-2", className)}>
             {/* Colored bar + number */}
             <div className="flex flex-col items-center gap-1.5 shrink-0 pt-0.5">
                 <span
@@ -99,6 +93,6 @@ export function LabSectionHeader({
                     </p>
                 )}
             </div>
-        </motion.div>
+        </FadeInView>
     );
 }

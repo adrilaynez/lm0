@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect,useState } from "react";
+
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
 
 export const InteractiveGraph = () => {
     const [points, setPoints] = useState<{ x: number; y: number; z: number; id: number }[]>([]);

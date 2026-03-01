@@ -1,11 +1,13 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
-import { Card } from "@/components/ui/card";
+import { useCallback,useEffect, useRef } from "react";
+
+import { Activity,TrendingDown } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
-import { TrendingDown, Activity } from "lucide-react";
-import type { TrainingViz } from "@/types/lmLab";
+import { Card } from "@/components/ui/card";
 import { useI18n } from "@/i18n/context";
+import type { TrainingViz } from "@/types/lmLab";
 
 const TI = "models.neuralNetworks.sections.playground.training";
 const VI = "models.neuralNetworks.sections.playground.visualization";

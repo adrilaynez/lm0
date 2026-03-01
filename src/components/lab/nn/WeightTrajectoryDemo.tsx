@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useCallback, useEffect,useRef, useState } from "react";
+
 import { useI18n } from "@/i18n/context";
 
 /*

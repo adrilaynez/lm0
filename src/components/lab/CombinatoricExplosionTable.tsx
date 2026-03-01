@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { FadeInView } from "@/components/lab/FadeInView";
 import { useI18n } from "@/i18n/context";
 
 interface CombinatoricExplosionTableProps {
@@ -77,12 +77,9 @@ export function CombinatoricExplosionTable({ vocabSize = 50000 }: CombinatoricEx
                     </div>
                 </div>
                 {rows.map((row, idx) => (
-                    <motion.div
+                    <FadeInView
                         key={row.n}
-                        initial={{ opacity: 0, y: 8 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: idx * 0.1, duration: 0.4 }}
+                        delay={idx * 0.1}
                         className={`grid grid-cols-4 gap-3 px-4 py-4 border-b border-white/[0.04] last:border-0 ${severityColors[row.severity]}`}
                     >
                         <div className={`text-sm font-bold ${severityTextColors[row.severity]}`}>
@@ -97,23 +94,18 @@ export function CombinatoricExplosionTable({ vocabSize = 50000 }: CombinatoricEx
                         <div className="text-xs font-mono text-white/40 text-right">
                             {formatScientific(row.combinations)}
                         </div>
-                    </motion.div>
+                    </FadeInView>
                 ))}
             </div>
 
-            <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-4"
-            >
+            <FadeInView className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-4">
                 <p className="text-xs text-white/40 leading-relaxed">
                     <span className="font-bold text-white/50">
                         {t("ngramNarrative.tokenization.noteLabel")}
                     </span>{" "}
                     {t("ngramNarrative.tokenization.noteText")}
                 </p>
-            </motion.div>
+            </FadeInView>
         </div>
     );
 }
