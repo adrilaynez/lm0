@@ -91,12 +91,6 @@ function BigramPageContent() {
                         matrixData={viz.data?.visualization.transition_matrix ?? null}
                         trainingData={viz.data?.visualization.training ?? null}
                         onCellClick={handleCellClick}
-                        onAnalyze={viz.analyze}
-                        predictions={viz.data?.predictions ?? null}
-                        inferenceMs={viz.data?.metadata.inference_time_ms}
-                        device={viz.data?.metadata.device}
-                        vizLoading={viz.loading}
-                        vizError={viz.error}
                         onGenerate={gen.generate}
                         generatedText={gen.data?.generated_text ?? null}
                         genLoading={gen.loading}

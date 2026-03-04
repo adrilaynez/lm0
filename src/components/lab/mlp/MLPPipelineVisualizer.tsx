@@ -1,11 +1,11 @@
 "use client";
 
-import { useRef,useState } from "react";
+import { useRef, useState } from "react";
 
-import { ArrowRight,Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 
 import { fetchMLPInternals } from "@/lib/lmLabClient";
-import type { MLPGridConfig,MLPInternalsResponse } from "@/types/lmLab";
+import type { MLPGridConfig, MLPInternalsResponse } from "@/types/lmLab";
 
 /*
   MLPPipelineVisualizer
@@ -330,7 +330,7 @@ export function MLPPipelineVisualizer({ selectedConfig }: Props) {
         }
     };
 
-    const canRun = !!selectedConfig && !!seed.trim() && !loading;
+    const canRun = !!selectedConfig && selectedConfig.embedding_dim > 0 && !!seed.trim() && !loading;
 
     return (
         <div className="rounded-xl border border-white/[0.06] bg-black/30 p-5 space-y-5">
@@ -367,6 +367,12 @@ export function MLPPipelineVisualizer({ selectedConfig }: Props) {
             {!selectedConfig && (
                 <p className="text-[10px] font-mono text-amber-400/50 italic">
                     Select a configuration in the Hyperparameter Explorer above to enable the pipeline.
+                </p>
+            )}
+
+            {selectedConfig?.embedding_dim === 0 && (
+                <p className="text-[10px] font-mono text-amber-400/50 italic">
+                    Pipeline requires embedding dimension &ge; 1. Please select a valid configuration in the explorer.
                 </p>
             )}
 

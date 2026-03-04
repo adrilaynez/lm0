@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { FastForward, Pause, Play, RotateCcw } from "lucide-react";
+import { FastForward, Pause, Play, RotateCcw, SkipForward } from "lucide-react";
 
 import { useI18n } from "@/i18n/context";
 
@@ -13,6 +13,8 @@ const ALLOWED = new Set("abcdefghijklmnopqrstuvwxyz ".split(""));
 const MAX_VOCAB = 10;
 const SPEEDS = [600, 350, 150] as const;
 const SPEED_LABELS = ["1×", "2×", "4×"] as const;
+const SLOW_FIRST_N = 10;
+const SLOW_MULTIPLIER = 2.2;
 
 type Step = { from: string; to: string; row: number; col: number; pos: number };
 
@@ -91,8 +93,14 @@ export function BigramMatrixBuilder() {
     const start = useCallback(() => {
         if (steps.length === 0) return;
         setStepIdx(0);
-        setPlaying(true);
+        setPlaying(false);
     }, [steps]);
+
+    const stepOnce = useCallback(() => {
+        if (steps.length === 0) return;
+        if (stepIdx < 0) { setStepIdx(0); return; }
+        if (stepIdx < steps.length - 1) setStepIdx(i => i + 1);
+    }, [steps, stepIdx]);
 
     const reset = useCallback(() => {
         setStepIdx(-1);
@@ -105,10 +113,12 @@ export function BigramMatrixBuilder() {
         setPlaying(false);
     }, [steps]);
 
-    /* autoplay timer */
+    /* autoplay timer — slow down first N pairs for discovery */
     useEffect(() => {
         if (!playing || done) { setPlaying(false); return; }
-        const timer = setTimeout(() => setStepIdx(i => Math.min(i + 1, steps.length - 1)), SPEEDS[speedIdx]);
+        const baseDelay = SPEEDS[speedIdx];
+        const delay = stepIdx < SLOW_FIRST_N ? Math.round(baseDelay * SLOW_MULTIPLIER) : baseDelay;
+        const timer = setTimeout(() => setStepIdx(i => Math.min(i + 1, steps.length - 1)), delay);
         return () => clearTimeout(timer);
     }, [playing, stepIdx, done, steps.length, speedIdx]);
 
@@ -222,6 +232,14 @@ export function BigramMatrixBuilder() {
                 ) : (
                     <>
                         <button
+                            onClick={stepOnce}
+                            disabled={done}
+                            className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/50 hover:text-white/80 transition-colors disabled:opacity-25"
+                            title="Step"
+                        >
+                            <SkipForward className="w-4 h-4" />
+                        </button>
+                        <button
                             onClick={() => setPlaying(p => !p)}
                             disabled={done}
                             className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white/50 hover:text-white/80 transition-colors disabled:opacity-25"
@@ -300,8 +318,8 @@ export function BigramMatrixBuilder() {
                                         <td
                                             key={ci}
                                             className={`w-10 h-9 text-center border-r border-b border-white/[0.06] transition-all duration-200 ${isActive
-                                                    ? "text-emerald-100 font-bold"
-                                                    : val > 0 ? "text-white/70" : "text-white/10"
+                                                ? "text-emerald-100 font-bold"
+                                                : val > 0 ? "text-white/70" : "text-white/10"
                                                 }`}
                                             style={{
                                                 backgroundColor: isActive

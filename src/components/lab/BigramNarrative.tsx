@@ -17,7 +17,7 @@ import { SectionProgressBar } from "@/components/lab/SectionProgressBar";
 import { useLabMode } from "@/context/LabModeContext";
 import { useProgressTracker } from "@/hooks/useProgressTracker";
 import { useI18n } from "@/i18n/context";
-import type { Prediction, TrainingViz, TransitionMatrixViz } from "@/types/lmLab";
+import type { TrainingViz, TransitionMatrixViz } from "@/types/lmLab";
 
 /* ─── Lazy-loaded interactive visualizers ─── */
 const BigramMatrixBuilder = lazy(() => import("@/components/lab/BigramMatrixBuilder").then(m => ({ default: m.BigramMatrixBuilder })));
@@ -25,12 +25,11 @@ const ContextBlindnessDemo = lazy(() => import("@/components/lab/ContextBlindnes
 const CorpusCountingIdea = lazy(() => import("@/components/lab/CorpusCountingIdea").then(m => ({ default: m.CorpusCountingIdea })));
 const GenerationPlayground = lazy(() => import("@/components/lab/GenerationPlayground").then(m => ({ default: m.GenerationPlayground })));
 const HeroAutoComplete = lazy(() => import("@/components/lab/HeroAutoComplete").then(m => ({ default: m.HeroAutoComplete })));
-const MemoryLimitDemo = lazy(() => import("@/components/lab/MemoryLimitDemo").then(m => ({ default: m.MemoryLimitDemo })));
+
 const NormalizationVisualizer = lazy(() => import("@/components/lab/NormalizationVisualizer").then(m => ({ default: m.NormalizationVisualizer })));
 const PairHighlighter = lazy(() => import("@/components/lab/PairHighlighter").then(m => ({ default: m.PairHighlighter })));
 const PredictionChallenge = lazy(() => import("@/components/lab/PredictionChallenge").then(m => ({ default: m.PredictionChallenge })));
 const PredictionQueryVisualizer = lazy(() => import("@/components/lab/PredictionQueryVisualizer").then(m => ({ default: m.PredictionQueryVisualizer })));
-const PredictionPipelineDemo = lazy(() => import("@/components/lab/PredictionPipelineDemo").then(m => ({ default: m.PredictionPipelineDemo })));
 const SamplingMechanismVisualizer = lazy(() => import("@/components/lab/SamplingMechanismVisualizer").then(m => ({ default: m.SamplingMechanismVisualizer })));
 const StorageProblemVisualizer = lazy(() => import("@/components/lab/StorageProblemVisualizer").then(m => ({ default: m.StorageProblemVisualizer })));
 const TinyMatrixExample = lazy(() => import("@/components/lab/TinyMatrixExample").then(m => ({ default: m.TinyMatrixExample })));
@@ -291,13 +290,6 @@ interface BigramNarrativeProps {
     trainingData?: TrainingViz | null;
     onCellClick: (row: string, col: string) => void;
 
-    onAnalyze: (text: string, topK: number) => void;
-    predictions: Prediction[] | null;
-    inferenceMs?: number;
-    device?: string;
-    vizLoading: boolean;
-    vizError: string | null;
-
     onGenerate: (startChar: string, numTokens: number, temperature: number) => void;
     generatedText: string | null;
     genLoading: boolean;
@@ -308,12 +300,6 @@ export function BigramNarrative({
     matrixData,
     trainingData,
     onCellClick,
-    onAnalyze,
-    predictions,
-    inferenceMs,
-    device,
-    vizLoading,
-    vizError,
     onGenerate,
     generatedText,
     genLoading,
@@ -466,6 +452,7 @@ export function BigramNarrative({
 
                 <ExpandableSection title={t("bigramNarrative.coreIdea.formalTitle")}>
                     <P>{t("bigramNarrative.coreIdea.formalP1")}</P>
+                    <P>{t("bigramNarrative.coreIdea.etymologyBridge")}</P>
                     <div className="my-6 p-4 rounded-xl bg-black/30 border border-emerald-500/15 text-center">
                         <p className="font-mono text-sm text-emerald-300 mb-2">P(cₙ | cₙ₋₁) = Count(cₙ₋₁, cₙ) / Count(cₙ₋₁)</p>
                         <p className="text-[10px] text-white/30 font-mono">{t("bigramNarrative.coreIdea.formulaCaption")}</p>
@@ -547,6 +534,8 @@ export function BigramNarrative({
                 </Callout>
 
                 <BigramHistorySidebar t={t} />
+
+                <P>{t("bigramNarrative.mechanics.sectionBridge")}</P>
             </Section>
 
             <SectionBreak />
@@ -588,34 +577,11 @@ export function BigramNarrative({
                     </FigureWrapper>
                 </LazySection>
 
-                <P>
-                    {t("bigramNarrative.normalization.p4")}
-                    <Highlight>{t("bigramNarrative.normalization.h2")}</Highlight>
-                    {t("bigramNarrative.normalization.p5")}
-                </P>
+                <P>{t("bigramNarrative.normalization.p3")}</P>
 
                 <KeyTakeaway accent="emerald">
                     {t("bigramNarrative.keyTakeaways.normalization")}
                 </KeyTakeaway>
-
-                <P>{t("bigramNarrative.probabilities.inferenceIntro")}</P>
-                <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.pipelineDemo.figureLabel")}
-                        hint={t("bigramNarrative.pipelineDemo.figureHint")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}>
-                            <PredictionPipelineDemo
-                                onAnalyze={onAnalyze}
-                                predictions={predictions}
-                                inferenceMs={inferenceMs}
-                                device={device}
-                                loading={vizLoading}
-                                error={vizError}
-                            />
-                        </Suspense>
-                    </FigureWrapper>
-                </LazySection>
             </Section>
 
             <SectionBreak />
@@ -641,6 +607,7 @@ export function BigramNarrative({
                 </LazySection>
 
                 <ExpandableSection title={t("bigramNarrative.sampling.softmaxTitle")}>
+                    <P>{t("bigramNarrative.sampling.softmaxIntuition")}</P>
                     <P>{t("bigramNarrative.sampling.softmaxP1")}</P>
                     <div className="my-6 p-4 rounded-xl bg-black/30 border border-emerald-500/15 text-center space-y-3">
                         <p className="font-mono text-sm text-emerald-300">softmax(zᵢ) = eᶻⁱ / Σⱼ eᶻʲ</p>
@@ -687,17 +654,6 @@ export function BigramNarrative({
                 <Lead>{t("bigramNarrative.cliffhanger.lead")}</Lead>
                 <P>{t("bigramNarrative.cliffhanger.celebrationBridge")}</P>
                 <P>{t("bigramNarrative.cliffhanger.p1")}</P>
-
-                <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.cliffhanger.memoryLabel")}
-                        hint={t("bigramNarrative.cliffhanger.memoryHint")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}><MemoryLimitDemo /></Suspense>
-                    </FigureWrapper>
-                </LazySection>
-
-                <P>{t("bigramNarrative.cliffhanger.bridgeP1")}</P>
 
                 <LazySection>
                     <FigureWrapper

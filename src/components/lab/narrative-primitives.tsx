@@ -63,7 +63,7 @@ const PULLQUOTE_BORDER: Record<NarrativeAccent, string> = {
 
 export function Section({ id, children }: { id?: string; children: React.ReactNode }) {
     return (
-        <FadeInView as="section" id={id} margin="-80px" className="mb-20 md:mb-28">
+        <FadeInView as="section" id={id} margin="-80px" className="mb-20 md:mb-28 scroll-mt-16">
             {children}
         </FadeInView>
     );

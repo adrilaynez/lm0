@@ -265,8 +265,11 @@ export interface MLPEmbeddingResponse {
 }
 
 export interface MLPEmbeddingQualityResponse {
-    config_id: string;
+    model_id: string;
+    config: Record<string, unknown>;
+    metrics: Record<string, unknown>;
     nearest_neighbors: Record<string, Array<{ token: string; similarity: number }>>;
+    snapshot_step: string;
 }
 
 export interface MLPGenerateResponse {

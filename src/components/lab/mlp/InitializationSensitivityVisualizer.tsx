@@ -1,46 +1,23 @@
 "use client";
 
-import { useMemo,useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+
+import { motion } from "framer-motion";
 
 import type { MLPTimelineResponse } from "@/types/lmLab";
 
 /* ─────────────────────────────────────────────
    InitializationSensitivityVisualizer
-   Shows how different weight initialization scales
-   affect training loss curves. Uses real timeline
-   data for the "kaiming" (well-scaled) curve when
-   available, with simulated curves for comparison.
+   Continuous sigma slider that morphs loss curves
+   smoothly. Zone-highlighted slider track.
+   Uses real timeline data for Kaiming curve when available.
    ───────────────────────────────────────────── */
 
 export interface InitializationSensitivityVisualizerProps {
     timeline: MLPTimelineResponse | null;
 }
 
-type InitMode = "too_small" | "kaiming" | "too_large";
-
-const MODES: { value: InitMode; label: string; color: string; stroke: string; desc: string }[] = [
-    {
-        value: "too_small",
-        label: "Too Small (σ=0.001)",
-        color: "text-rose-400",
-        stroke: "rgb(251,113,133)",
-        desc: "Gradients vanish — the network barely learns.",
-    },
-    {
-        value: "kaiming",
-        label: "Kaiming (σ=√(2/n))",
-        color: "text-emerald-400",
-        stroke: "rgb(52,211,153)",
-        desc: "Well-scaled initialization — stable, fast convergence.",
-    },
-    {
-        value: "too_large",
-        label: "Too Large (σ=5.0)",
-        color: "text-amber-400",
-        stroke: "rgb(251,146,60)",
-        desc: "Activations explode — loss is chaotic and may diverge.",
-    },
-];
+const STEPS = 50;
 
 function seededRng(seed: number) {
     let s = seed % 2147483647;
@@ -48,29 +25,54 @@ function seededRng(seed: number) {
     return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
 }
 
-function generateSimulatedCurve(mode: "too_small" | "too_large", realFinalLoss?: number): number[] {
-    const rng = seededRng(mode === "too_small" ? 42 : 999);
-    const steps = 50;
+/** Pre-generate anchor curves at key sigma values for interpolation. */
+function generateAnchorCurve(sigma: number, realKaimingCurve?: number[]): number[] {
+    if (sigma >= 0.1 && sigma <= 0.3 && realKaimingCurve && realKaimingCurve.length > 0) {
+        // Resample real data to STEPS points
+        return resample(realKaimingCurve, STEPS);
+    }
+
+    const rng = seededRng(Math.round(sigma * 10000));
     const curve: number[] = [];
     let loss: number;
 
-    if (mode === "too_small") {
-        const startLoss = realFinalLoss ? realFinalLoss + 0.5 : 4.5;
-        loss = startLoss;
-        for (let i = 0; i < steps; i++) {
-            loss -= 0.005 + rng() * 0.003;
-            loss = Math.max(startLoss - 0.4, loss + (rng() - 0.5) * 0.02);
+    if (sigma < 0.05) {
+        // Dead zone: flat/high, barely moves
+        loss = 3.3 + (0.05 - sigma) * 20;
+        for (let i = 0; i < STEPS; i++) {
+            loss -= 0.003 * sigma * 100 + rng() * 0.002;
+            loss = Math.max(loss, 3.0);
+            loss += (rng() - 0.5) * 0.01;
+            curve.push(loss);
+        }
+    } else if (sigma <= 0.4) {
+        // Sweet spot: nice convergence
+        loss = 3.3;
+        const rate = 0.05 + (0.3 - Math.abs(sigma - 0.2)) * 0.15;
+        const floor = 2.0 + Math.abs(sigma - 0.2) * 2;
+        for (let i = 0; i < STEPS; i++) {
+            loss -= rate * Math.exp(-i * 0.06) + rng() * 0.005;
+            loss = Math.max(floor, loss + (rng() - 0.5) * 0.02);
+            curve.push(loss);
+        }
+    } else if (sigma <= 1.5) {
+        // Transition: increasingly unstable
+        loss = 3.3;
+        const chaos = (sigma - 0.4) / 1.1;
+        for (let i = 0; i < STEPS; i++) {
+            loss -= 0.03 * (1 - chaos * 0.7) * Math.exp(-i * 0.04);
+            loss += (rng() - 0.5) * chaos * 1.5;
+            loss = Math.max(2.5, Math.min(8, loss));
             curve.push(loss);
         }
     } else {
-        loss = 4.5;
-        for (let i = 0; i < steps; i++) {
+        // Chaotic zone: wild oscillations
+        loss = 3.3;
+        for (let i = 0; i < STEPS; i++) {
             if (i < 5) {
-                loss += (rng() - 0.3) * 2;
-            } else if (i < 15) {
-                loss = 8 + (rng() - 0.5) * 4;
+                loss += (rng() - 0.3) * sigma * 0.8;
             } else {
-                loss = 5 + (rng() - 0.5) * 1.5 - (i - 15) * 0.03;
+                loss = 4 + sigma + (rng() - 0.5) * sigma * 1.5;
             }
             curve.push(Math.max(2.5, Math.min(12, loss)));
         }
@@ -78,125 +80,173 @@ function generateSimulatedCurve(mode: "too_small" | "too_large", realFinalLoss?:
     return curve;
 }
 
+function resample(arr: number[], targetLen: number): number[] {
+    if (arr.length === targetLen) return arr;
+    const result: number[] = [];
+    for (let i = 0; i < targetLen; i++) {
+        const t = (i / (targetLen - 1)) * (arr.length - 1);
+        const lo = Math.floor(t);
+        const hi = Math.min(lo + 1, arr.length - 1);
+        const frac = t - lo;
+        result.push(arr[lo] * (1 - frac) + arr[hi] * frac);
+    }
+    return result;
+}
+
+/** Interpolate between two curves element-wise. */
+function lerpCurves(a: number[], b: number[], t: number): number[] {
+    return a.map((v, i) => v * (1 - t) + (b[i] ?? v) * t);
+}
+
+type Zone = "dead" | "sweet" | "chaotic" | "transition";
+function getZone(sigma: number): { zone: Zone; label: string; color: string } {
+    if (sigma < 0.05) return { zone: "dead", label: "Dead Zone — Gradients vanish", color: "text-rose-400" };
+    if (sigma <= 0.35) return { zone: "sweet", label: "Sweet Spot — Stable convergence", color: "text-emerald-400" };
+    if (sigma <= 1.0) return { zone: "transition", label: "Unstable — Increasing chaos", color: "text-amber-400" };
+    return { zone: "chaotic", label: "Chaotic Zone — Activations explode", color: "text-rose-400" };
+}
+
+// Anchor sigma values for interpolation
+const ANCHORS = [0.001, 0.01, 0.03, 0.05, 0.1, 0.2, 0.3, 0.5, 0.8, 1.0, 2.0, 3.5, 5.0];
+
 const W = 380, H = 180, PAD = { l: 40, r: 12, t: 12, b: 24 };
 
 export function InitializationSensitivityVisualizer({ timeline }: InitializationSensitivityVisualizerProps) {
-    const [active, setActive] = useState<Set<InitMode>>(new Set(["too_small", "kaiming", "too_large"]));
+    // Logarithmic slider: 0..1 maps to 0.001..5.0
+    const [sliderVal, setSliderVal] = useState(0.38); // ~0.2 = Kaiming zone
 
-    const curves = useMemo(() => {
-        // Use real timeline data for the "kaiming" (well-scaled) curve when available
-        const realLoss = timeline?.metrics_log?.train_loss?.map((e) => e.value) ?? [];
-        const finalLoss = realLoss.length > 0 ? realLoss[realLoss.length - 1] : undefined;
+    const sigma = useMemo(() => {
+        // log scale: 0.001 to 5.0
+        return 0.001 * Math.pow(5000, sliderVal);
+    }, [sliderVal]);
 
-        const result: Record<InitMode, number[]> = {
-            too_small: generateSimulatedCurve("too_small", finalLoss),
-            kaiming: realLoss.length > 0 ? realLoss : generateSimulatedCurve("too_small"), // fallback won't happen if timeline loaded
-            too_large: generateSimulatedCurve("too_large", finalLoss),
-        };
-        return result;
+    // Pre-compute anchor curves
+    const anchorCurves = useMemo(() => {
+        const realLoss = timeline?.metrics_log?.train_loss?.map(e => e.value) ?? [];
+        return ANCHORS.map(s => ({
+            sigma: s,
+            curve: generateAnchorCurve(s, realLoss.length > 0 ? realLoss : undefined),
+        }));
     }, [timeline]);
 
-    // Compute global y-range across active curves
-    const allVals = useMemo(() => {
-        const vals: number[] = [];
-        for (const mode of active) vals.push(...curves[mode]);
-        return vals.length ? vals : [0, 5];
-    }, [active, curves]);
+    // Interpolate curve for current sigma
+    const curve = useMemo(() => {
+        // Find bracketing anchors
+        let lo = anchorCurves[0], hi = anchorCurves[0];
+        for (let i = 0; i < anchorCurves.length - 1; i++) {
+            if (sigma >= anchorCurves[i].sigma && sigma <= anchorCurves[i + 1].sigma) {
+                lo = anchorCurves[i];
+                hi = anchorCurves[i + 1];
+                break;
+            }
+            if (sigma > anchorCurves[i + 1].sigma) {
+                lo = anchorCurves[i + 1];
+                hi = anchorCurves[Math.min(i + 2, anchorCurves.length - 1)];
+            }
+        }
+        if (lo.sigma === hi.sigma) return lo.curve;
+        const t = (sigma - lo.sigma) / (hi.sigma - lo.sigma);
+        return lerpCurves(lo.curve, hi.curve, Math.max(0, Math.min(1, t)));
+    }, [sigma, anchorCurves]);
 
-    const yMin = Math.min(...allVals) * 0.9;
-    const yMax = Math.max(...allVals) * 1.05;
+    const zoneInfo = useMemo(() => getZone(sigma), [sigma]);
+
+    // Y range
+    const yMin = Math.min(...curve) * 0.9;
+    const yMax = Math.max(...curve) * 1.05;
     const yRange = yMax - yMin || 1;
 
-    function toX(i: number, len: number) {
-        return PAD.l + (i / (len - 1)) * (W - PAD.l - PAD.r);
-    }
-    function toY(v: number) {
-        return PAD.t + (1 - (v - yMin) / yRange) * (H - PAD.t - PAD.b);
-    }
+    const toX = useCallback((i: number) => PAD.l + (i / (STEPS - 1)) * (W - PAD.l - PAD.r), []);
+    const toY = useCallback((v: number) => PAD.t + (1 - (v - yMin) / yRange) * (H - PAD.t - PAD.b), [yMin, yRange]);
 
-    const toggle = (mode: InitMode) => {
-        setActive((prev) => {
-            const next = new Set(prev);
-            if (next.has(mode)) { if (next.size > 1) next.delete(mode); }
-            else next.add(mode);
-            return next;
-        });
-    };
+    const pts = curve.map((v, i) => `${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(" ");
 
     // Y-axis ticks
     const yTicks = useMemo(() => {
         const ticks: number[] = [];
-        const step = Math.ceil(yRange / 4);
+        const step = Math.max(1, Math.ceil(yRange / 4));
         for (let v = Math.ceil(yMin); v <= yMax; v += step) ticks.push(v);
         return ticks;
     }, [yMin, yMax, yRange]);
 
+    // Stroke color based on zone
+    const strokeColor = zoneInfo.zone === "sweet" ? "rgb(52,211,153)"
+        : zoneInfo.zone === "dead" ? "rgb(251,113,133)"
+            : zoneInfo.zone === "chaotic" ? "rgb(251,113,133)"
+                : "rgb(251,146,60)";
+
     return (
         <div className="space-y-4">
-            {/* Toggle buttons */}
-            <div className="flex flex-wrap gap-2">
-                {MODES.map((m) => {
-                    const isActive = active.has(m.value);
-                    return (
-                        <button
-                            key={m.value}
-                            onClick={() => toggle(m.value)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${isActive
-                                ? `${m.color} bg-white/[0.06] border border-white/20`
-                                : "text-white/25 bg-white/[0.02] border border-white/[0.06] hover:border-white/15"
-                                }`}
-                        >
-                            {m.label}
-                        </button>
-                    );
-                })}
+            {/* Sigma slider with zone coloring */}
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono text-white/40">Init Scale (σ)</span>
+                    <span className="text-sm font-mono font-bold text-white/70 tabular-nums">
+                        σ = {sigma < 0.01 ? sigma.toExponential(1) : sigma.toFixed(3)}
+                    </span>
+                </div>
+                {/* Zone-colored track */}
+                <div className="relative h-6 flex items-center">
+                    {/* Background track with zone colors */}
+                    <div className="absolute inset-x-0 h-2 rounded-full overflow-hidden flex">
+                        <div className="h-full bg-rose-500/30" style={{ width: "18%" }} />
+                        <div className="h-full bg-emerald-500/30" style={{ width: "22%" }} />
+                        <div className="h-full bg-amber-500/30" style={{ width: "30%" }} />
+                        <div className="h-full bg-rose-500/30" style={{ width: "30%" }} />
+                    </div>
+                    <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.005}
+                        value={sliderVal}
+                        onChange={e => setSliderVal(Number(e.target.value))}
+                        className="relative w-full h-6 appearance-none bg-transparent cursor-pointer z-10
+                            [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4
+                            [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2
+                            [&::-webkit-slider-thumb]:border-violet-500 [&::-webkit-slider-thumb]:shadow-lg"
+                    />
+                </div>
+                {/* Zone labels */}
+                <div className="flex text-[8px] font-mono text-white/20">
+                    <span className="w-[18%] text-center text-rose-400/50">Dead</span>
+                    <span className="w-[22%] text-center text-emerald-400/50">Sweet Spot</span>
+                    <span className="w-[30%] text-center text-amber-400/50">Unstable</span>
+                    <span className="w-[30%] text-center text-rose-400/50">Chaotic</span>
+                </div>
             </div>
+
+            {/* Zone label */}
+            <motion.div
+                key={zoneInfo.zone}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center"
+            >
+                <span className={`text-xs font-mono font-bold ${zoneInfo.color}`}>{zoneInfo.label}</span>
+            </motion.div>
 
             {/* SVG chart */}
             <div className="rounded-xl border border-white/[0.06] bg-black/30 overflow-hidden">
                 <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 220 }}>
-                    {/* Y-axis grid + labels */}
-                    {yTicks.map((v) => (
+                    {yTicks.map(v => (
                         <g key={v}>
                             <line x1={PAD.l} y1={toY(v)} x2={W - PAD.r} y2={toY(v)} stroke="rgba(255,255,255,0.04)" strokeWidth={1} />
                             <text x={PAD.l - 4} y={toY(v) + 3} textAnchor="end" fill="rgba(255,255,255,0.2)" fontSize={8} fontFamily="monospace">{v}</text>
                         </g>
                     ))}
-                    {/* Axis label */}
                     <text x={PAD.l - 4} y={PAD.t - 2} textAnchor="end" fill="rgba(255,255,255,0.15)" fontSize={7} fontFamily="monospace">Loss</text>
                     <text x={W / 2} y={H - 2} textAnchor="middle" fill="rgba(255,255,255,0.15)" fontSize={7} fontFamily="monospace">Training Step</text>
 
-                    {/* Curves */}
-                    {MODES.map((m) => {
-                        if (!active.has(m.value)) return null;
-                        const data = curves[m.value];
-                        const pts = data.map((v, i) => `${toX(i, data.length).toFixed(1)},${toY(v).toFixed(1)}`).join(" ");
-                        return (
-                            <polyline
-                                key={m.value}
-                                points={pts}
-                                fill="none"
-                                stroke={m.stroke}
-                                strokeWidth={2}
-                                strokeLinejoin="round"
-                                opacity={0.85}
-                            />
-                        );
-                    })}
+                    <polyline
+                        points={pts}
+                        fill="none"
+                        stroke={strokeColor}
+                        strokeWidth={2}
+                        strokeLinejoin="round"
+                        opacity={0.85}
+                    />
                 </svg>
-            </div>
-
-            {/* Descriptions */}
-            <div className="space-y-2">
-                {MODES.filter((m) => active.has(m.value)).map((m) => (
-                    <div key={m.value} className="flex items-start gap-2">
-                        <div className="w-2 h-2 rounded-full shrink-0 mt-1" style={{ backgroundColor: m.stroke }} />
-                        <p className="text-[11px] text-white/35 leading-relaxed">
-                            <span className={`font-bold ${m.color}`}>{m.label}:</span>{" "}
-                            {m.desc}
-                        </p>
-                    </div>
-                ))}
             </div>
         </div>
     );

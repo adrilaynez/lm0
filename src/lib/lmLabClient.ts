@@ -344,13 +344,17 @@ export function fetchMLPEmbedding(
     embedding_dim: number,
     hidden_size: number,
     learning_rate: number,
-    snapshot_step?: number
+    snapshot_step?: number,
+    use_timelapse?: boolean
 ): Promise<MLPEmbeddingResponse> {
     const params: Record<string, string | number | undefined> = {
         embedding_dim,
         hidden_size,
         learning_rate,
     };
+    if (use_timelapse) {
+        params.use_timelapse = "true";
+    }
     if (snapshot_step !== undefined) {
         params.snapshot_step = `step_${snapshot_step}`;
     }

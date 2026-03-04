@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback,useState } from "react";
+import React, { useCallback, useState } from "react";
 
 import { Link2 } from "lucide-react";
 
@@ -25,7 +25,7 @@ export function SectionAnchor({ id, children }: SectionAnchorProps) {
     }, [id]);
 
     return (
-        <div id={id} className="group relative scroll-mt-20">
+        <div id={`${id}-heading`} className="group relative scroll-mt-20">
             {children}
             <button
                 onClick={handleCopy}

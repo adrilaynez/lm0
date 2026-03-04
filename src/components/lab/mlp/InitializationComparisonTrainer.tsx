@@ -1,115 +1,173 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { motion } from "framer-motion";
 import { Play, RotateCcw } from "lucide-react";
 
 /*
-  InitializationComparisonTrainer
-  Side-by-side: random init vs Kaiming init — simulated loss curves showing
-  how proper initialization enables faster, more stable convergence.
+  InitializationComparisonTrainer — IMPROVED
+  3 columns: Too Small (σ=0.01), Random (σ=1.0), Kaiming (σ=√(2/N)).
+  Bigger 200px loss charts, generated text samples, clear color coding.
 */
 
-const STEPS = 50;
-function generateCurve(mode: "random" | "kaiming"): number[] {
+const STEPS = 60;
+
+interface InitConfig {
+    label: string;
+    sigma: string;
+    color: string;
+    borderColor: string;
+    bgColor: string;
+    textColor: string;
+    curve: number[];
+    sample: string;
+}
+
+function makeCurve(mode: "tiny" | "random" | "kaiming"): number[] {
     const curve: number[] = [];
-    let loss = mode === "random" ? 3.3 : 3.3;
+    let loss = 3.3;
     for (let i = 0; i < STEPS; i++) {
         if (mode === "kaiming") {
-            loss = loss * 0.94 + 0.02 * (Math.sin(i * 0.3) * 0.1);
-            loss = Math.max(1.85, loss);
+            loss = loss * 0.935 + 0.015 * Math.sin(i * 0.3);
+            loss = Math.max(1.88, loss);
+        } else if (mode === "random") {
+            if (i < 15) loss = loss * 0.997 + 0.005;
+            else if (i < 35) loss = loss * 0.975 + 0.04 * Math.sin(i * 0.4);
+            else loss = loss * 0.965;
+            loss = Math.max(2.28, loss);
         } else {
-            // Random init: slow start, plateau, then eventual slow descent
-            if (i < 15) loss = loss * 0.995 + 0.01; // barely moves
-            else if (i < 30) loss = loss * 0.97 + 0.05 * Math.sin(i * 0.5); // jerky
-            else loss = loss * 0.96;
-            loss = Math.max(2.25, loss);
+            // Too small: signal vanishes, barely learns
+            loss = loss * 0.999 - 0.001;
+            loss = Math.max(3.15, loss);
         }
         curve.push(loss);
     }
     return curve;
 }
 
-const KAIMING_CURVE = generateCurve("kaiming");
-const RANDOM_CURVE = generateCurve("random");
+const CONFIGS: InitConfig[] = [
+    {
+        label: "Too Small", sigma: "σ = 0.01", color: "#f97316",
+        borderColor: "border-orange-500/20", bgColor: "bg-orange-500/5", textColor: "text-orange-400",
+        curve: makeCurve("tiny"),
+        sample: "eeeeeeeeeeeeeeeeeeeeeeeeee",
+    },
+    {
+        label: "Random", sigma: "σ = 1.0", color: "#f43f5e",
+        borderColor: "border-rose-500/20", bgColor: "bg-rose-500/5", textColor: "text-rose-400",
+        curve: makeCurve("random"),
+        sample: "thend the wor tha saint of",
+    },
+    {
+        label: "Kaiming", sigma: "σ = √(2/N)", color: "#10b981",
+        borderColor: "border-emerald-500/20", bgColor: "bg-emerald-500/5", textColor: "text-emerald-400",
+        curve: makeCurve("kaiming"),
+        sample: "the king was in the court",
+    },
+];
+
+/* Mini SVG loss chart */
+function LossChart({ data, step, color }: { data: number[]; step: number; color: string }) {
+    const W = 220, H = 120, px = 28, py = 10;
+    const plotW = W - 2 * px, plotH = H - 2 * py;
+    const yMin = 1.5, yMax = 3.5;
+
+    const toX = (i: number) => px + (i / (STEPS - 1)) * plotW;
+    const toY = (v: number) => py + (1 - (Math.max(yMin, Math.min(yMax, v)) - yMin) / (yMax - yMin)) * plotH;
+
+    const visible = data.slice(0, step + 1);
+    const path = visible.map((v, i) => `${i === 0 ? "M" : "L"}${toX(i).toFixed(1)},${toY(v).toFixed(1)}`).join(" ");
+
+    return (
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+            {/* Grid */}
+            {[2.0, 2.5, 3.0].map(v => (
+                <g key={v}>
+                    <line x1={px} y1={toY(v)} x2={px + plotW} y2={toY(v)} stroke="white" strokeOpacity={0.04} />
+                    <text x={px - 3} y={toY(v) + 3} textAnchor="end" fontSize={7} fill="white" fillOpacity={0.12} fontFamily="monospace">{v.toFixed(1)}</text>
+                </g>
+            ))}
+            {/* Random baseline */}
+            <line x1={px} y1={toY(3.3)} x2={px + plotW} y2={toY(3.3)} stroke="white" strokeOpacity={0.1} strokeDasharray="3 3" />
+            <text x={px + plotW + 2} y={toY(3.3) + 3} fontSize={5} fill="white" fillOpacity={0.15} fontFamily="monospace">rand</text>
+            {/* Curve */}
+            {path && <path d={path} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" />}
+            {/* Current dot */}
+            {step > 0 && <circle cx={toX(step)} cy={toY(visible[step])} r={3} fill={color} />}
+        </svg>
+    );
+}
 
 export function InitializationComparisonTrainer() {
     const [step, setStep] = useState(0);
     const [playing, setPlaying] = useState(false);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const play = useCallback(() => {
         setPlaying(true);
         setStep(0);
         let s = 0;
-        const interval = setInterval(() => {
+        intervalRef.current = setInterval(() => {
             s++;
             if (s >= STEPS - 1) {
-                clearInterval(interval);
+                if (intervalRef.current) clearInterval(intervalRef.current);
                 setPlaying(false);
             }
             setStep(s);
-        }, 80);
+        }, 70);
     }, []);
 
     const reset = useCallback(() => {
+        if (intervalRef.current) clearInterval(intervalRef.current);
         setStep(0);
         setPlaying(false);
     }, []);
 
-    const W = 280;
-    const H = 120;
-    const pad = 25;
-
-    const toX = (i: number) => pad + (i / (STEPS - 1)) * (W - 2 * pad);
-    const toY = (v: number) => pad + ((3.5 - v) / (3.5 - 1.5)) * (H - 2 * pad);
-
-    const kaimingPath = KAIMING_CURVE.slice(0, step + 1).map((v, i) => `${i === 0 ? "M" : "L"}${toX(i)},${toY(v)}`).join(" ");
-    const randomPath = RANDOM_CURVE.slice(0, step + 1).map((v, i) => `${i === 0 ? "M" : "L"}${toX(i)},${toY(v)}`).join(" ");
+    const done = step >= STEPS - 1;
 
     return (
-        <div className="p-5 sm:p-6 space-y-4">
-            {/* Chart */}
-            <div className="flex justify-center">
-                <svg viewBox={`0 0 ${W} ${H}`} className="w-full max-w-md">
-                    {/* Grid lines */}
-                    {[1.5, 2.0, 2.5, 3.0, 3.5].map(v => (
-                        <g key={v}>
-                            <line x1={pad} y1={toY(v)} x2={W - pad} y2={toY(v)} stroke="rgba(255,255,255,0.04)" />
-                            <text x={pad - 3} y={toY(v) + 3} textAnchor="end" fill="rgba(255,255,255,0.12)" fontSize="7" fontFamily="monospace">{v.toFixed(1)}</text>
-                        </g>
-                    ))}
+        <div className="p-4 sm:p-5 space-y-4">
+            {/* 3-column grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {CONFIGS.map((cfg) => (
+                    <div key={cfg.label} className={`rounded-xl border p-3 flex flex-col gap-2 ${cfg.borderColor} ${cfg.bgColor}`}>
+                        {/* Header */}
+                        <div className="flex items-center gap-2">
+                            <span className="w-3 h-0.5 rounded" style={{ backgroundColor: cfg.color }} />
+                            <span className={`text-[10px] font-mono font-bold ${cfg.textColor}`}>{cfg.label}</span>
+                            <span className="text-[8px] font-mono text-white/20 ml-auto">{cfg.sigma}</span>
+                        </div>
 
-                    {/* Curves */}
-                    <path d={randomPath} fill="none" stroke="rgb(244,63,94)" strokeWidth="2" opacity="0.7" />
-                    <path d={kaimingPath} fill="none" stroke="rgb(16,185,129)" strokeWidth="2" />
+                        {/* Chart */}
+                        <div className="rounded-lg border border-white/[0.04] bg-white/[0.01] overflow-hidden">
+                            <LossChart data={cfg.curve} step={step} color={cfg.color} />
+                        </div>
 
-                    {/* Current points */}
-                    {step > 0 && (
-                        <>
-                            <circle cx={toX(step)} cy={toY(KAIMING_CURVE[step])} r="3" fill="rgb(16,185,129)" />
-                            <circle cx={toX(step)} cy={toY(RANDOM_CURVE[step])} r="3" fill="rgb(244,63,94)" />
-                        </>
-                    )}
-                </svg>
-            </div>
+                        {/* Loss value */}
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-[9px] font-mono text-white/20">Loss:</span>
+                            <motion.span
+                                key={step}
+                                className={`text-base font-mono font-bold ${cfg.textColor}`}
+                            >
+                                {cfg.curve[step].toFixed(2)}
+                            </motion.span>
+                        </div>
 
-            {/* Legend + values */}
-            <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg border border-rose-500/20 bg-rose-500/5 p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="w-3 h-0.5 bg-rose-500 rounded" />
-                        <span className="text-[9px] font-mono font-bold text-rose-400">Random Init (σ=0.5)</span>
+                        {/* Generated text (shown when done) */}
+                        {done && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className={`text-[9px] font-mono p-2 rounded border ${cfg.borderColor} ${cfg.bgColor} leading-relaxed`}
+                                style={{ color: `${cfg.color}99` }}
+                            >
+                                &ldquo;{cfg.sample}&rdquo;
+                            </motion.div>
+                        )}
                     </div>
-                    <p className="text-lg font-mono font-bold text-rose-400">{RANDOM_CURVE[step].toFixed(2)}</p>
-                </div>
-                <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="w-3 h-0.5 bg-emerald-500 rounded" />
-                        <span className="text-[9px] font-mono font-bold text-emerald-400">Kaiming Init</span>
-                    </div>
-                    <p className="text-lg font-mono font-bold text-emerald-400">{KAIMING_CURVE[step].toFixed(2)}</p>
-                </div>
+                ))}
             </div>
 
             {/* Controls */}

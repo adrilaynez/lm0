@@ -8,7 +8,8 @@ import { motion } from "framer-motion";
   DimensionalityScaleVisualizer
   Slider from context=1 to context=20. Shows input vector size and
   weight matrix size exploding with one-hot encoding.
-  Also shows the embedding alternative for comparison.
+  Focuses purely on the dimensionality explosion problem — embeddings
+  are introduced later in §02.
 */
 
 const V = 27; // character vocab size
@@ -25,11 +26,12 @@ interface MetricCardProps {
     sub: string;
     color: string;
     pct: number; // 0-100 for bar width
+    warn?: boolean;
 }
 
-function MetricCard({ label, value, sub, color, pct }: MetricCardProps) {
+function MetricCard({ label, value, sub, color, pct, warn }: MetricCardProps) {
     return (
-        <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-3 flex-1 min-w-[140px]">
+        <div className={`rounded-lg border bg-white/[0.02] p-3 flex-1 min-w-[140px] transition-colors ${warn ? "border-rose-500/30" : "border-white/[0.08]"}`}>
             <p className="text-[9px] font-mono uppercase tracking-widest mb-1" style={{ color }}>
                 {label}
             </p>
@@ -61,23 +63,17 @@ export function DimensionalityScaleVisualizer() {
     const metrics = useMemo(() => {
         const oneHotInput = contextSize * V;
         const oneHotW1 = oneHotInput * hiddenSize;
-        const embDim = 10;
-        const embInput = contextSize * embDim;
-        const embW1 = embInput * hiddenSize;
-        const embMatrix = V * embDim;
 
         return {
             oneHotInput,
             oneHotW1,
-            embInput,
-            embW1,
-            embMatrix,
-            embTotal: embW1 + embMatrix,
         };
     }, [contextSize]);
 
     // Max values for bars (at context=20)
     const maxOneHotW1 = 20 * V * hiddenSize;
+    const isExplosive = contextSize >= 8;
+    const isCritical = contextSize >= 15;
 
     return (
         <div className="p-4 sm:p-5 space-y-5">
@@ -108,8 +104,8 @@ export function DimensionalityScaleVisualizer() {
 
             {/* One-hot metrics */}
             <div>
-                <p className="text-[10px] font-mono uppercase tracking-widest text-rose-400/60 mb-2">
-                    One-Hot Encoding
+                <p className={`text-[10px] font-mono uppercase tracking-widest mb-2 transition-colors ${isCritical ? "text-rose-400" : "text-rose-400/60"}`}>
+                    One-Hot Encoding {isCritical ? "⚠️" : ""}
                 </p>
                 <div className="flex gap-3 flex-wrap">
                     <MetricCard
@@ -118,6 +114,7 @@ export function DimensionalityScaleVisualizer() {
                         sub={`${contextSize} × ${V}`}
                         color="#f43f5e"
                         pct={(metrics.oneHotInput / (20 * V)) * 100}
+                        warn={isExplosive}
                     />
                     <MetricCard
                         label="W₁ parameters"
@@ -125,72 +122,56 @@ export function DimensionalityScaleVisualizer() {
                         sub={`${fmt(metrics.oneHotInput)} × ${hiddenSize}`}
                         color="#f43f5e"
                         pct={(metrics.oneHotW1 / maxOneHotW1) * 100}
+                        warn={isExplosive}
                     />
                 </div>
             </div>
 
-            {/* Embedding metrics */}
-            <div>
-                <p className="text-[10px] font-mono uppercase tracking-widest text-emerald-400/60 mb-2">
-                    With Embeddings (D=10)
-                </p>
-                <div className="flex gap-3 flex-wrap">
-                    <MetricCard
-                        label="Input dims"
-                        value={fmt(metrics.embInput)}
-                        sub={`${contextSize} × 10`}
-                        color="#34d399"
-                        pct={(metrics.embInput / (20 * V)) * 100}
-                    />
-                    <MetricCard
-                        label="W₁ + E params"
-                        value={fmt(metrics.embTotal)}
-                        sub={`${fmt(metrics.embW1)} + ${fmt(metrics.embMatrix)}`}
-                        color="#34d399"
-                        pct={(metrics.embTotal / maxOneHotW1) * 100}
-                    />
-                </div>
-            </div>
-
-            {/* Ratio callout */}
-            <motion.div
-                key={contextSize}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center rounded-lg border border-violet-500/[0.15] bg-violet-500/[0.04] p-3"
-            >
-                <span className="text-[10px] font-mono text-white/30">One-hot W₁ is </span>
-                <span className="text-sm font-mono font-bold text-violet-300">
-                    {(metrics.oneHotW1 / metrics.embTotal).toFixed(1)}×
-                </span>
-                <span className="text-[10px] font-mono text-white/30"> larger than embedding approach</span>
-            </motion.div>
-
-            {/* Visual scale comparison */}
+            {/* Visual scale bar */}
             <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-mono text-rose-400/50 w-14 shrink-0">One-hot</span>
-                    <div className="flex-1 h-4 bg-white/[0.03] rounded overflow-hidden">
+                    <span className="text-[9px] font-mono text-rose-400/50 w-20 shrink-0">W₁ params</span>
+                    <div className="flex-1 h-5 bg-white/[0.03] rounded overflow-hidden">
                         <motion.div
-                            className="h-full bg-rose-500/30 rounded"
+                            className={`h-full rounded ${isCritical ? "bg-rose-500/50" : "bg-rose-500/30"}`}
                             animate={{ width: `${(metrics.oneHotW1 / maxOneHotW1) * 100}%` }}
                             transition={{ duration: 0.3 }}
                         />
                     </div>
                     <span className="text-[9px] font-mono text-white/25 w-12 text-right">{fmt(metrics.oneHotW1)}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-mono text-emerald-400/50 w-14 shrink-0">Embed</span>
-                    <div className="flex-1 h-4 bg-white/[0.03] rounded overflow-hidden">
-                        <motion.div
-                            className="h-full bg-emerald-500/30 rounded"
-                            animate={{ width: `${(metrics.embTotal / maxOneHotW1) * 100}%` }}
-                            transition={{ duration: 0.3 }}
-                        />
-                    </div>
-                    <span className="text-[9px] font-mono text-white/25 w-12 text-right">{fmt(metrics.embTotal)}</span>
-                </div>
             </div>
+
+            {/* Escalating warning callout */}
+            <motion.div
+                key={contextSize}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className={`text-center rounded-lg border p-3 transition-colors ${isCritical
+                        ? "border-rose-500/30 bg-rose-500/[0.06]"
+                        : isExplosive
+                            ? "border-amber-500/20 bg-amber-500/[0.04]"
+                            : "border-violet-500/[0.15] bg-violet-500/[0.04]"
+                    }`}
+            >
+                {isCritical ? (
+                    <p className="text-[11px] font-mono text-rose-300/80">
+                        🚨 <span className="font-bold">{fmt(metrics.oneHotW1)}</span> parameters just for the first layer!
+                        {" "}This approach clearly doesn&apos;t scale.
+                    </p>
+                ) : isExplosive ? (
+                    <p className="text-[11px] font-mono text-amber-300/70">
+                        ⚠️ Already <span className="font-bold">{fmt(metrics.oneHotW1)}</span> parameters — and we only have {V} characters.
+                        {" "}Imagine a real vocabulary of 50,000+ words…
+                    </p>
+                ) : (
+                    <p className="text-[11px] font-mono text-white/40">
+                        With context={contextSize}: <span className="font-bold text-violet-300">{metrics.oneHotInput}</span> input dimensions
+                        {" "}→ <span className="font-bold text-violet-300">{fmt(metrics.oneHotW1)}</span> W₁ parameters.
+                        {" "}Try sliding right…
+                    </p>
+                )}
+            </motion.div>
         </div>
     );
 }

@@ -9,14 +9,13 @@ import { useI18n } from "@/i18n/context";
 import { generateNgram } from "@/lib/lmLabClient";
 
 /* ─── Constants ─── */
-const N_OPTIONS = [2, 3, 4, 5] as const;
+const N_OPTIONS = [2, 3, 4] as const;
 const MAX_TOKENS = 120;
 
 const N_COLORS: Record<number, { ring: string; bg: string; text: string; glow: string }> = {
     2: { ring: "ring-orange-500/40", bg: "bg-orange-500/15", text: "text-orange-300", glow: "shadow-[0_0_12px_-3px_rgba(251,146,60,0.3)]" },
     3: { ring: "ring-amber-500/40", bg: "bg-amber-500/15", text: "text-amber-300", glow: "shadow-[0_0_12px_-3px_rgba(251,191,36,0.3)]" },
     4: { ring: "ring-emerald-500/40", bg: "bg-emerald-500/15", text: "text-emerald-300", glow: "shadow-[0_0_12px_-3px_rgba(52,211,153,0.3)]" },
-    5: { ring: "ring-teal-500/40", bg: "bg-teal-500/15", text: "text-teal-300", glow: "shadow-[0_0_12px_-3px_rgba(45,212,191,0.3)]" },
 };
 
 /* ─── Typewriter reveal ─── */

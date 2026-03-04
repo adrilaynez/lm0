@@ -30,7 +30,6 @@ const BeatTheMachineChallenge = lazy(() => import("@/components/lab/nn/BeatTheMa
 const BiasDemo = lazy(() => import("@/components/lab/nn/BiasDemo").then(m => ({ default: m.BiasDemo })));
 const BiologicalVsArtificialDiagram = lazy(() => import("@/components/lab/nn/BiologicalVsArtificialDiagram").then(m => ({ default: m.BiologicalVsArtificialDiagram })));
 const ChainRuleBuilder = lazy(() => import("@/components/lab/nn/ChainRuleBuilder").then(m => ({ default: m.ChainRuleBuilder })));
-const ContextLimitationDemo = lazy(() => import("@/components/lab/nn/ContextLimitationDemo").then(m => ({ default: m.ContextLimitationDemo })));
 const DeadNeuronDemo = lazy(() => import("@/components/lab/nn/DeadNeuronDemo").then(m => ({ default: m.DeadNeuronDemo })));
 const DecisionBoundaryIntro = lazy(() => import("@/components/lab/nn/DecisionBoundaryIntro").then(m => ({ default: m.DecisionBoundaryIntro })));
 const DerivativeIntuitionDemo = lazy(() => import("@/components/lab/nn/DerivativeIntuitionDemo").then(m => ({ default: m.DerivativeIntuitionDemo })));
@@ -64,6 +63,10 @@ const WeightSliderDemo = lazy(() => import("@/components/lab/nn/WeightSliderDemo
 const WeightTrajectoryDemo = lazy(() => import("@/components/lab/nn/WeightTrajectoryDemo").then(m => ({ default: m.WeightTrajectoryDemo })));
 const XORSolverDemo = lazy(() => import("@/components/lab/nn/XORSolverDemo").then(m => ({ default: m.XORSolverDemo })));
 const NNActivationExplorer = lazy(() => import("@/components/lab/NNActivationExplorer").then(m => ({ default: m.NNActivationExplorer })));
+const ModelOutputTeaser = lazy(() => import("@/components/lab/nn/ModelOutputTeaser").then(m => ({ default: m.ModelOutputTeaser })));
+const ContextWindowTeaser = lazy(() => import("@/components/lab/nn/ContextWindowTeaser").then(m => ({ default: m.ContextWindowTeaser })));
+const SquaredVsCrossEntropy = lazy(() => import("@/components/lab/mlp/SquaredVsCrossEntropy").then(m => ({ default: m.SquaredVsCrossEntropy })));
+const CrossEntropyVisualizer = lazy(() => import("@/components/lab/mlp/CrossEntropyVisualizer").then(m => ({ default: m.CrossEntropyVisualizer })));
 const NNBigramComparison = lazy(() => import("@/components/lab/NNBigramComparison").then(m => ({ default: m.NNBigramComparison })));
 const NNLossLandscape = lazy(() => import("@/components/lab/NNLossLandscape").then(m => ({ default: m.NNLossLandscape })));
 const NNPerceptronDiagram = lazy(() => import("@/components/lab/NNPerceptronDiagram").then(m => ({ default: m.NNPerceptronDiagram })));
@@ -298,6 +301,7 @@ export function NeuralNetworkNarrative() {
                     "nn-06": t("models.neuralNetworks.sections.trainingAtScale.label"),
                     "nn-07": t("models.neuralNetworks.sections.overfittingTrap.label"),
                     "nn-08": t("neuralNetworkNarrative.sections.fromNumbers.label"),
+                    "nn-09": t("neuralNetworkNarrative.sections.whatsNext.label"),
                 }}
             />
             <SectionProgressBar
@@ -310,6 +314,7 @@ export function NeuralNetworkNarrative() {
                     { id: "nn-06", label: t("models.neuralNetworks.sections.trainingAtScale.number"), name: t("models.neuralNetworks.sections.trainingAtScale.label") },
                     { id: "nn-07", label: t("models.neuralNetworks.sections.overfittingTrap.number"), name: t("models.neuralNetworks.sections.overfittingTrap.label") },
                     { id: "nn-08", label: t("neuralNetworkNarrative.sections.fromNumbers.number"), name: t("neuralNetworkNarrative.sections.fromNumbers.label") },
+                    { id: "nn-09", label: t("neuralNetworkNarrative.sections.whatsNext.number"), name: t("neuralNetworkNarrative.sections.whatsNext.label") },
                 ]}
                 accent="rose"
             />
@@ -1461,6 +1466,31 @@ export function NeuralNetworkNarrative() {
                     </VisualizerFrame>
                 </LazySection>
 
+                {/* 5b. Cross-entropy bridge — moved from MLP §04 */}
+                <P>{t("neuralNetworkNarrative.fromNumbers.crossEntropyBridge")}</P>
+
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.fromNumbers.figLabelCECompare")}
+                        hint={t("neuralNetworkNarrative.fromNumbers.figHintCECompare")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><SquaredVsCrossEntropy /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
+
+                <P>{t("neuralNetworkNarrative.fromNumbers.crossEntropyDeep")}</P>
+
+                <LazySection>
+                    <FigureWrapper
+                        label={t("neuralNetworkNarrative.fromNumbers.figLabelCE")}
+                        hint={t("neuralNetworkNarrative.fromNumbers.figHintCE")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><CrossEntropyVisualizer /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
+
+                <P>{t("neuralNetworkNarrative.fromNumbers.crossEntropyOutro")}</P>
+
                 <P>{t("neuralNetworkNarrative.fromNumbers.p3")}</P>
 
                 <P>{t("neuralNetworkNarrative.fromNumbers.p4")}</P>
@@ -1482,27 +1512,7 @@ export function NeuralNetworkNarrative() {
                     <p>{t("neuralNetworkNarrative.fromNumbers.whyCalloutText")}</p>
                 </Callout>
 
-                {/* ★ PEAK 6 */}
-                <p className="text-center text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-300 my-10 italic">
-                    {t("neuralNetworkNarrative.fromNumbers.peak6")}
-                </p>
-
-                {/* 7. BeatTheMachineChallenge */}
-                <P>{t("neuralNetworkNarrative.fromNumbers.challengeIntro")}</P>
-
-                <LazySection>
-                    <VisualizerFrame
-                        family="dashboard"
-                        label={t("neuralNetworkNarrative.beatMachine.title")}
-                        hint={t("neuralNetworkNarrative.beatMachine.hint")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}><BeatTheMachineChallenge /></Suspense>
-                    </VisualizerFrame>
-                </LazySection>
-
-                <P>{t("neuralNetworkNarrative.fromNumbers.p6")}</P>
-
-                {/* Softmax math HiddenSection (improvement G) */}
+                {/* Softmax math HiddenSection — optional dry content before emotional peak */}
                 <HiddenSection
                     category="math"
                     difficulty={2}
@@ -1526,24 +1536,127 @@ export function NeuralNetworkNarrative() {
                     </p>
                 </HiddenSection>
 
-                {/* 9. ContextLimitationDemo → MLP bridge */}
-                <P>{t("neuralNetworkNarrative.fromNumbers.contextLimitIntro")}</P>
+                {/* BeatTheMachineChallenge — emotional peak */}
+                <P>{t("neuralNetworkNarrative.fromNumbers.challengeIntro")}</P>
 
                 <LazySection>
                     <VisualizerFrame
-                        family="function"
-                        label={t("neuralNetworkNarrative.contextLimit.title")}
-                        hint={t("neuralNetworkNarrative.contextLimit.hint")}
+                        family="dashboard"
+                        label={t("neuralNetworkNarrative.beatMachine.title")}
+                        hint={t("neuralNetworkNarrative.beatMachine.hint")}
                     >
-                        <Suspense fallback={<SectionSkeleton />}><ContextLimitationDemo /></Suspense>
+                        <Suspense fallback={<SectionSkeleton />}><BeatTheMachineChallenge /></Suspense>
                     </VisualizerFrame>
                 </LazySection>
 
-                <P>{t("neuralNetworkNarrative.fromNumbers.mlpBridge")}</P>
+                <P>{t("neuralNetworkNarrative.fromNumbers.p6")}</P>
+
+                {/* ★ PEAK 6 — after the challenge for maximum impact */}
+                <p className="text-center text-lg md:text-xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-300 my-10 italic">
+                    {t("neuralNetworkNarrative.fromNumbers.peak6")}
+                </p>
 
                 <KeyTakeaway accent="rose">
                     A neural network with a single <Term word="layer">layer</Term> of weights can learn the same <Term word="bigram">bigram</Term> probabilities as counting — but with <Term word="softmax">softmax</Term> and <Term word="cross-entropy">cross-entropy loss</Term>, it&apos;s ready to scale to deeper architectures.
                 </KeyTakeaway>
+            </Section>
+
+            <SectionBreak />
+
+            {/* ─────────── 09 · HOW FAR CAN WE PUSH THIS? ─────────── */}
+            <Section id="nn-09">
+                <SectionLabel
+                    number={t("neuralNetworkNarrative.sections.whatsNext.number")}
+                    label={t("neuralNetworkNarrative.sections.whatsNext.label")}
+                />
+                <SectionAnchor id="nn-09"><Heading>{t("neuralNetworkNarrative.whatsNext.title")}</Heading></SectionAnchor>
+
+                <Lead>{t("neuralNetworkNarrative.whatsNext.lead")}</Lead>
+
+                {/* 1. Triumphant recap */}
+                <P>{t("neuralNetworkNarrative.whatsNext.pRecap")}</P>
+
+                <motion.p
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    className="text-center text-lg md:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-300 my-10 italic"
+                >
+                    {t("neuralNetworkNarrative.whatsNext.pRecapPeak")}
+                </motion.p>
+
+                {/* 2. Proof it works */}
+                <P>{t("neuralNetworkNarrative.whatsNext.pProof")}</P>
+
+                {/* 3. The big question */}
+                <P>{t("neuralNetworkNarrative.whatsNext.pBigQuestion")}</P>
+
+                {/* 3b. Context window teaser — what if we could see more? */}
+                <P>{t("neuralNetworkNarrative.whatsNext.pContextTeaser")}</P>
+
+                <LazySection>
+                    <VisualizerFrame
+                        family="function"
+                        label={t("neuralNetworkNarrative.whatsNext.figLabelContext")}
+                        hint={t("neuralNetworkNarrative.whatsNext.figHintContext")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><ContextWindowTeaser /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
+
+                {/* 4. Scaling tease */}
+                <P>{t("neuralNetworkNarrative.whatsNext.pScalingTease")}</P>
+
+                {/* 5. Model output teaser */}
+                <P>{t("neuralNetworkNarrative.whatsNext.pTeaserIntro")}</P>
+
+                <LazySection>
+                    <VisualizerFrame
+                        family="comparison"
+                        label={t("neuralNetworkNarrative.whatsNext.figLabelTeaser")}
+                        hint={t("neuralNetworkNarrative.whatsNext.figHintTeaser")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><ModelOutputTeaser /></Suspense>
+                    </VisualizerFrame>
+                </LazySection>
+
+                {/* 6. Three forward-looking questions */}
+                <P>{t("neuralNetworkNarrative.whatsNext.pQuestion")}</P>
+
+                <div className="space-y-3 my-6">
+                    {(["q1", "q2", "q3"] as const).map((key, i) => (
+                        <motion.div
+                            key={key}
+                            initial={{ opacity: 0, x: -8 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: i * 0.12 }}
+                            className="flex items-start gap-3 rounded-lg border border-violet-500/10 bg-violet-500/[0.03] p-3"
+                        >
+                            <span className="shrink-0 w-6 h-6 rounded-full bg-violet-500/20 flex items-center justify-center text-[10px] font-bold text-violet-400 mt-0.5">
+                                {i + 1}
+                            </span>
+                            <span className="text-sm text-[var(--lab-text-muted)] leading-relaxed italic">
+                                {t(`neuralNetworkNarrative.whatsNext.${key}`)}
+                            </span>
+                        </motion.div>
+                    ))}
+                </div>
+
+                {/* 7. Aspirational closing */}
+                <div className="my-10 py-8 border-t border-b border-violet-500/10 text-center space-y-4">
+                    <motion.p
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        className="text-lg md:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-300 via-amber-200 to-violet-300 italic"
+                    >
+                        {t("neuralNetworkNarrative.whatsNext.pClosing")}
+                    </motion.p>
+                    <p className="text-[11px] font-mono text-white/25">
+                        {t("neuralNetworkNarrative.whatsNext.pClosingSub")}
+                    </p>
+                </div>
             </Section>
 
             {/* ───────────────── CTA ───────────────── */}
@@ -1578,15 +1691,15 @@ export function NeuralNetworkNarrative() {
 
                 <div className="grid md:grid-cols-2 gap-6">
                     <motion.button
-                        whileHover={{ scale: 1.02 }}
+                        whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setMode("free")}
-                        className="group relative rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-950/20 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-colors hover:border-rose-500/40 overflow-hidden"
+                        className="group relative rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-950/20 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-all hover:border-rose-500/40 hover:shadow-[0_0_30px_-8px_rgba(244,63,94,0.15)] overflow-hidden"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-rose-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                         <div className="relative">
                             <div className="flex items-center gap-3 mb-3">
-                                <div className="p-2 rounded-xl bg-rose-500/15">
+                                <div className="p-2.5 rounded-xl bg-rose-500/15 group-hover:bg-rose-500/25 transition-colors">
                                     <Beaker className="w-5 h-5 text-rose-300" />
                                 </div>
                                 <span className="text-lg font-bold text-[var(--lab-text)]">
@@ -1600,16 +1713,19 @@ export function NeuralNetworkNarrative() {
                     </motion.button>
 
                     <motion.button
-                        whileHover={{ scale: 1.02 }}
+                        whileHover={{ scale: 1.02, y: -2 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => router.push("/lab/mlp")}
-                        className="group relative rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-950/20 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-colors hover:border-rose-500/40 overflow-hidden"
+                        className="group relative rounded-2xl border-2 border-violet-500/30 bg-gradient-to-br from-violet-950/30 via-rose-950/10 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-all hover:border-violet-500/50 hover:shadow-[0_0_40px_-8px_rgba(139,92,246,0.2)] overflow-hidden"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-rose-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.08] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                        <div className="absolute top-0 right-0 px-2.5 py-1 rounded-bl-lg bg-violet-500/15 text-[9px] font-mono font-bold text-violet-400/80 uppercase tracking-widest">
+                            Recommended
+                        </div>
                         <div className="relative">
                             <div className="flex items-center gap-3 mb-3">
-                                <div className="p-2 rounded-xl bg-rose-500/15">
-                                    <Layers className="w-5 h-5 text-rose-300" />
+                                <div className="p-2.5 rounded-xl bg-violet-500/15 group-hover:bg-violet-500/25 transition-colors">
+                                    <Layers className="w-5 h-5 text-violet-300" />
                                 </div>
                                 <span className="text-lg font-bold text-[var(--lab-text)]">
                                     {t("neuralNetworkNarrative.cta.mlpButton")}

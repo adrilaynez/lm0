@@ -325,7 +325,6 @@ export function NgramNarrative({
                     "ngram-04": t("ngramNarrative.sectionNames.s04"),
                     "ngram-05": t("ngramNarrative.sectionNames.s05"),
                     "ngram-06": t("ngramNarrative.sectionNames.s06"),
-                    "ngram-07": t("ngramNarrative.sectionNames.s07"),
                 }}
             />
             <SectionProgressBar
@@ -336,7 +335,6 @@ export function NgramNarrative({
                     { id: "ngram-04", label: "04", name: t("ngramNarrative.sectionNames.s04") },
                     { id: "ngram-05", label: "05", name: t("ngramNarrative.sectionNames.s05") },
                     { id: "ngram-06", label: "06", name: t("ngramNarrative.sectionNames.s06") },
-                    { id: "ngram-07", label: "07", name: t("ngramNarrative.sectionNames.s07") },
                 ]}
                 accent="amber"
             />
@@ -433,6 +431,8 @@ export function NgramNarrative({
 
                 <P>{t("ngramNarrative.howItWorks.p2")}</P>
 
+                <P>{t("ngramNarrative.howItWorks.discoveryPrompt")}</P>
+
                 <LazySection>
                     <FigureWrapper
                         label={t("ngramNarrative.figures.transitionExamples.label")}
@@ -441,6 +441,8 @@ export function NgramNarrative({
                         <Suspense fallback={<SectionSkeleton />}><NgramMiniTransitionTable n={contextSize} /></Suspense>
                     </FigureWrapper>
                 </LazySection>
+
+                <P>{t("ngramNarrative.howItWorks.tableInsight")}</P>
 
                 <P>{t("ngramNarrative.howItWorks.bridge")}</P>
 
@@ -474,6 +476,8 @@ export function NgramNarrative({
                     </FigureWrapper>
                 </LazySection>
 
+                <P>{t("ngramNarrative.improvement.improvementReflection")}</P>
+
                 <P>{t("ngramNarrative.improvement.battleBridge")}</P>
 
                 <LazySection>
@@ -493,21 +497,25 @@ export function NgramNarrative({
                     </FigureWrapper>
                 </LazySection>
 
-                <ExpandableSection title={t("ngramNarrative.improvement.expandableGenTitle")} defaultOpen={false}>
-                    <LazySection>
-                        <FigureWrapper
-                            label={t("ngramNarrative.interactiveGenerator.figureLabel")}
-                            hint={t("ngramNarrative.interactiveGenerator.figureHint")}
-                        >
-                            <Suspense fallback={<SectionSkeleton />}><NgramInteractiveGenerator /></Suspense>
-                        </FigureWrapper>
-                    </LazySection>
-                </ExpandableSection>
+                <P>{t("ngramNarrative.improvement.battleReflection")}</P>
 
-                {/* Former §3.5 — "Why Not N=100?" — merged as concluding challenge */}
-                <PullQuote>{t("ngramNarrative.whyNotMore.title")}</PullQuote>
-                <P>{t("ngramNarrative.whyNotMore.lead")}</P>
-                <P>{t("ngramNarrative.whyNotMore.p1")}</P>
+                <P>{t("ngramNarrative.improvement.generatorBridge")}</P>
+
+                <LazySection>
+                    <FigureWrapper
+                        label={t("ngramNarrative.interactiveGenerator.figureLabel")}
+                        hint={t("ngramNarrative.interactiveGenerator.figureHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><NgramInteractiveGenerator /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
+
+                {/* Former §3.5 — "Why Not N=100?" — as concluding callout */}
+                <Callout icon={AlertTriangle} title={t("ngramNarrative.whyNotMore.title")}>
+                    <p>{t("ngramNarrative.whyNotMore.lead")}</p>
+                    <p className="mt-2">{t("ngramNarrative.whyNotMore.p1")}</p>
+                    <p className="mt-2 text-amber-300/80 font-medium">{t("ngramNarrative.whyNotMore.calloutInsight")}</p>
+                </Callout>
             </Section>
 
             <SectionBreak />
@@ -523,12 +531,12 @@ export function NgramNarrative({
                 </p>
             </motion.div>
 
-            {/* ─────────── §4 · THE EXPLOSION (first half of old §4) ─────────── */}
+            {/* ─────────── §4 · THE PRICE OF MEMORY (merged explosion + sparsity + tokenization) ─────────── */}
             <Section id="ngram-04">
-                <SectionLabel number="04" label={t("ngramNarrative.explosion.label")} />
-                <SectionAnchor id="ngram-04"><Heading>{t("ngramNarrative.explosion.title")}</Heading></SectionAnchor>
+                <SectionLabel number="04" label={t("ngramNarrative.priceOfMemory.label")} />
+                <SectionAnchor id="ngram-04"><Heading>{t("ngramNarrative.priceOfMemory.title")}</Heading></SectionAnchor>
 
-                <Lead>{t("ngramNarrative.complexity.lead")}</Lead>
+                <Lead>{t("ngramNarrative.priceOfMemory.lead")}</Lead>
 
                 <P>{t("ngramNarrative.complexity.p1")}</P>
 
@@ -558,21 +566,8 @@ export function NgramNarrative({
                     </div>
                 </LazySection>
 
-                <Callout icon={AlertTriangle} title={t("ngramNarrative.complexity.vocabCalloutTitle")}>
-                    <p>{t("ngramNarrative.complexity.vocabCalloutText")}</p>
-                </Callout>
-            </Section>
-
-            <SectionBreak />
-
-            {/* ─────────── §5 · THE EMPTY TABLE (second half of old §4) ─────────── */}
-            <Section id="ngram-05">
-                <SectionLabel number="05" label={t("ngramNarrative.emptyTable.label")} />
-                <SectionAnchor id="ngram-05"><Heading>{t("ngramNarrative.emptyTable.title")}</Heading></SectionAnchor>
-
-                <Lead>{t("ngramNarrative.emptyTable.lead")}</Lead>
-
-                <P>{t("ngramNarrative.emptyTable.bridge")}</P>
+                {/* ── Sparsity: the table is mostly empty ── */}
+                <P>{t("ngramNarrative.priceOfMemory.sparsityBridge")}</P>
 
                 <LazySection>
                     <FigureWrapper
@@ -583,70 +578,85 @@ export function NgramNarrative({
                     </FigureWrapper>
                 </LazySection>
 
-                <ExpandableSection title={t("ngramNarrative.tokenization.subsectionTitle")}>
-                    <P>{t("ngramNarrative.tokenization.intro")}</P>
+                {/* ── Even infinite data can't help ── */}
+                <P>{t("ngramNarrative.priceOfMemory.infiniteDataBridge")}</P>
 
-                    <div className="grid md:grid-cols-2 gap-6 my-8">
-                        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-6">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                                <h4 className="text-base font-bold text-emerald-400">
-                                    {t("ngramNarrative.tokenization.charTitle")}
-                                </h4>
-                            </div>
-                            <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed mb-3">
-                                {t("ngramNarrative.tokenization.charDesc")}
-                            </p>
-                            <p className="text-xs text-emerald-400/60 font-mono">
-                                {t("ngramNarrative.tokenization.charExample")}
-                            </p>
-                        </div>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("ngramNarrative.figures.infiniteTable.label")}
+                        hint={t("ngramNarrative.figures.infiniteTable.hint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><InfiniteTableThoughtExperiment /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
-                        <div className="rounded-xl border border-rose-500/20 bg-rose-500/[0.04] p-6">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-2.5 h-2.5 rounded-full bg-rose-400" />
-                                <h4 className="text-base font-bold text-rose-400">
-                                    {t("ngramNarrative.tokenization.wordTitle")}
-                                </h4>
-                            </div>
-                            <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed mb-3">
-                                {t("ngramNarrative.tokenization.wordDesc")}
-                            </p>
-                            <p className="text-xs text-rose-400/60 font-mono">
-                                {t("ngramNarrative.tokenization.wordExample")}
-                            </p>
+                {/* ── Tokenization: it gets worse with words (now visible, not expandable) ── */}
+                <P>{t("ngramNarrative.priceOfMemory.tokenizationBridge")}</P>
+
+                <div className="grid md:grid-cols-2 gap-6 my-8">
+                    <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                            <h4 className="text-base font-bold text-emerald-400">
+                                {t("ngramNarrative.tokenization.charTitle")}
+                            </h4>
                         </div>
+                        <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed mb-3">
+                            {t("ngramNarrative.tokenization.charDesc")}
+                        </p>
+                        <p className="text-xs text-emerald-400/60 font-mono">
+                            {t("ngramNarrative.tokenization.charExample")}
+                        </p>
                     </div>
 
-                    <P>{t("ngramNarrative.tokenization.explosionIntro")}</P>
+                    <div className="rounded-xl border border-rose-500/20 bg-rose-500/[0.04] p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-2.5 h-2.5 rounded-full bg-rose-400" />
+                            <h4 className="text-base font-bold text-rose-400">
+                                {t("ngramNarrative.tokenization.wordTitle")}
+                            </h4>
+                        </div>
+                        <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed mb-3">
+                            {t("ngramNarrative.tokenization.wordDesc")}
+                        </p>
+                        <p className="text-xs text-rose-400/60 font-mono">
+                            {t("ngramNarrative.tokenization.wordExample")}
+                        </p>
+                    </div>
+                </div>
 
-                    <LazySection>
-                        <FigureWrapper
-                            label={t("ngramNarrative.tokenization.tableLabel")}
-                            hint={t("ngramNarrative.tokenization.tableHint")}
-                        >
-                            <Suspense fallback={<SectionSkeleton />}><CombinatoricExplosionTable vocabSize={50000} /></Suspense>
-                        </FigureWrapper>
-                    </LazySection>
+                <P>{t("ngramNarrative.tokenization.explosionIntro")}</P>
 
-                    <P>
-                        {t("ngramNarrative.tokenization.languageP1")}{" "}
-                        <Highlight>{t("ngramNarrative.tokenization.languageH1")}</Highlight>
-                        {t("ngramNarrative.tokenization.languageP2")}
-                    </P>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("ngramNarrative.tokenization.tableLabel")}
+                        hint={t("ngramNarrative.tokenization.tableHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><CombinatoricExplosionTable vocabSize={50000} /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
-                    <Callout title={t("ngramNarrative.tokenization.multilingualCalloutTitle")}>
-                        <p>{t("ngramNarrative.tokenization.multilingualCalloutText")}</p>
-                    </Callout>
-                </ExpandableSection>
+                <P>
+                    {t("ngramNarrative.tokenization.languageP1")}{" "}
+                    <Highlight>{t("ngramNarrative.tokenization.languageH1")}</Highlight>
+                    {t("ngramNarrative.tokenization.languageP2")}
+                </P>
+
+                <Callout title={t("ngramNarrative.tokenization.multilingualCalloutTitle")}>
+                    <p>{t("ngramNarrative.tokenization.multilingualCalloutText")}</p>
+                </Callout>
+
+                {/* ── Combined insight ── */}
+                <P>{t("ngramNarrative.priceOfMemory.combinedInsight")}</P>
+
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── §6 · THE DEEPER PROBLEM ─────────── */}
-            <Section id="ngram-06">
-                <SectionLabel number="06" label={t("ngramNarrative.deeperProblem.label")} />
-                <SectionAnchor id="ngram-06"><Heading>{t("ngramNarrative.deeperProblem.title")}</Heading></SectionAnchor>
+            {/* ─────────── §5 · THE DEEPER PROBLEM (old §6, renumbered) ─────────── */}
+            <Section id="ngram-05">
+                <SectionLabel number="05" label={t("ngramNarrative.deeperProblem.label")} />
+                <SectionAnchor id="ngram-05"><Heading>{t("ngramNarrative.deeperProblem.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("ngramNarrative.deeperProblem.lead")}</Lead>
 
@@ -663,38 +673,27 @@ export function NgramNarrative({
                     </FigureWrapper>
                 </LazySection>
 
+                <P>{t("ngramNarrative.deeperProblem.typoBridge")}</P>
+
                 <LazySection>
                     <FigureWrapper
-                        label={t("ngramNarrative.figures.infiniteTable.label")}
-                        hint={t("ngramNarrative.figures.infiniteTable.hint")}
+                        label={t("ngramNarrative.figures.typoBreaker.label")}
+                        hint={t("ngramNarrative.figures.typoBreaker.hint")}
                     >
-                        <Suspense fallback={<SectionSkeleton />}><InfiniteTableThoughtExperiment /></Suspense>
+                        <Suspense fallback={<SectionSkeleton />}><TypoWordBreaker /></Suspense>
                     </FigureWrapper>
                 </LazySection>
 
-                <P>{t("ngramNarrative.deeperProblem.demoBridge")}</P>
+                <P>{t("ngramNarrative.deeperProblem.similarityBridge")}</P>
 
-                <ExpandableSection title={t("ngramNarrative.deeperProblem.typoSectionTitle")}>
-                    <LazySection>
-                        <FigureWrapper
-                            label={t("ngramNarrative.figures.typoBreaker.label")}
-                            hint={t("ngramNarrative.figures.typoBreaker.hint")}
-                        >
-                            <Suspense fallback={<SectionSkeleton />}><TypoWordBreaker /></Suspense>
-                        </FigureWrapper>
-                    </LazySection>
-                </ExpandableSection>
-
-                <ExpandableSection title={t("ngramNarrative.deeperProblem.similaritySectionTitle")}>
-                    <LazySection>
-                        <FigureWrapper
-                            label={t("ngramNarrative.similarityBlindSpot.figureLabel")}
-                            hint={t("ngramNarrative.similarityBlindSpot.figureHint")}
-                        >
-                            <Suspense fallback={<SectionSkeleton />}><SimilarityBlindSpot /></Suspense>
-                        </FigureWrapper>
-                    </LazySection>
-                </ExpandableSection>
+                <LazySection>
+                    <FigureWrapper
+                        label={t("ngramNarrative.similarityBlindSpot.figureLabel")}
+                        hint={t("ngramNarrative.similarityBlindSpot.figureHint")}
+                    >
+                        <Suspense fallback={<SectionSkeleton />}><SimilarityBlindSpot /></Suspense>
+                    </FigureWrapper>
+                </LazySection>
 
                 <Callout icon={AlertTriangle} title={t("ngramNarrative.deeperProblem.calloutTitle")}>
                     <p>{t("ngramNarrative.deeperProblem.calloutText")}</p>
@@ -703,14 +702,16 @@ export function NgramNarrative({
                 <KeyTakeaway accent="amber">
                     {t("ngramNarrative.keyTakeaways.deeperProblem")}
                 </KeyTakeaway>
+
+                <P>{t("ngramNarrative.deeperProblem.sectionBridge")}</P>
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── §7 · THE END OF COUNTING ─────────── */}
-            <Section id="ngram-07">
-                <SectionLabel number="07" label={t("ngramNarrative.endOfCounting.label")} />
-                <SectionAnchor id="ngram-07"><Heading>{t("ngramNarrative.endOfCounting.title")}</Heading></SectionAnchor>
+            {/* ─────────── §6 · THE END OF COUNTING (old §7, renumbered) ─────────── */}
+            <Section id="ngram-06">
+                <SectionLabel number="06" label={t("ngramNarrative.endOfCounting.label")} />
+                <SectionAnchor id="ngram-06"><Heading>{t("ngramNarrative.endOfCounting.title")}</Heading></SectionAnchor>
 
                 <Lead>{t("ngramNarrative.endOfCounting.lead")}</Lead>
 
@@ -745,10 +746,25 @@ export function NgramNarrative({
                     </FigureWrapper>
                 </LazySection>
 
-                <PullQuote>{t("ngramNarrative.endOfCounting.quote")}</PullQuote>
+                {/* ── Cinematic transition moment ── */}
+                <FadeInView margin="-60px" className="my-12 md:my-16">
+                    <div className="relative rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-950/30 via-[var(--lab-viz-bg)] to-rose-950/20 p-8 md:p-12 overflow-hidden text-center">
+                        {/* Ambient glow */}
+                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(245,158,11,0.06)_0%,transparent_70%)] pointer-events-none" />
 
-                <FadeInView as="p" className="text-center text-sm text-amber-300/50 italic font-light mt-2">
-                    {t("ngramNarrative.endOfCounting.hookLine")}
+                        {/* Decorative line */}
+                        <div className="w-16 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent mx-auto mb-8" />
+
+                        <p className="relative text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight leading-snug bg-gradient-to-r from-amber-200 via-amber-300 to-rose-300 bg-clip-text text-transparent mb-6">
+                            {t("ngramNarrative.endOfCounting.quote")}
+                        </p>
+
+                        <div className="w-16 h-px bg-gradient-to-r from-transparent via-amber-400/40 to-transparent mx-auto mb-6" />
+
+                        <p className="relative text-sm md:text-base text-white/40 italic leading-relaxed max-w-xl mx-auto">
+                            {t("ngramNarrative.endOfCounting.hookLine")}
+                        </p>
+                    </div>
                 </FadeInView>
 
                 <KeyTakeaway accent="amber">

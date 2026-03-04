@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { FadeInView } from "@/components/lab/FadeInView";
 import {
@@ -21,6 +21,109 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/i18n/context";
 import { cn } from "@/lib/utils";
+
+/* ─── Mini prediction demo for the hero ─── */
+const DEMO_SEQUENCES = [
+    { typed: "th", predictions: [{ char: "e", pct: 72 }, { char: "a", pct: 11 }, { char: "i", pct: 8 }] },
+    { typed: "qu", predictions: [{ char: "i", pct: 48 }, { char: "e", pct: 31 }, { char: "a", pct: 12 }] },
+    { typed: "sh", predictions: [{ char: "e", pct: 39 }, { char: "o", pct: 22 }, { char: "a", pct: 18 }] },
+    { typed: "wh", predictions: [{ char: "a", pct: 34 }, { char: "e", pct: 28 }, { char: "i", pct: 20 }] },
+    { typed: "st", predictions: [{ char: "a", pct: 27 }, { char: "e", pct: 22 }, { char: "i", pct: 18 }] },
+];
+
+function MiniPredictionDemo() {
+    const [seqIdx, setSeqIdx] = useState(0);
+    const [phase, setPhase] = useState<"typing" | "predicting" | "pause">("typing");
+    const [charIdx, setCharIdx] = useState(0);
+
+    const seq = DEMO_SEQUENCES[seqIdx];
+
+    useEffect(() => {
+        if (phase === "typing") {
+            if (charIdx < seq.typed.length) {
+                const timer = setTimeout(() => setCharIdx(c => c + 1), 220);
+                return () => clearTimeout(timer);
+            } else {
+                const timer = setTimeout(() => setPhase("predicting"), 300);
+                return () => clearTimeout(timer);
+            }
+        }
+        if (phase === "predicting") {
+            const timer = setTimeout(() => setPhase("pause"), 2200);
+            return () => clearTimeout(timer);
+        }
+        if (phase === "pause") {
+            const timer = setTimeout(() => {
+                setSeqIdx(i => (i + 1) % DEMO_SEQUENCES.length);
+                setCharIdx(0);
+                setPhase("typing");
+            }, 800);
+            return () => clearTimeout(timer);
+        }
+    }, [phase, charIdx, seq.typed.length]);
+
+    return (
+        <div className="inline-flex flex-col items-center gap-3">
+            {/* Input display */}
+            <div className="flex items-center gap-1 px-5 py-3 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+                <span className="text-2xl sm:text-3xl font-mono font-bold tracking-wider text-white/80">
+                    {seq.typed.slice(0, charIdx)}
+                </span>
+                <motion.span
+                    animate={{ opacity: [1, 0] }}
+                    transition={{ duration: 0.6, repeat: Infinity, repeatType: "reverse" }}
+                    className="inline-block w-[2px] h-7 sm:h-8 bg-emerald-400 rounded-full"
+                />
+                {phase === "predicting" && (
+                    <AnimatePresence>
+                        <motion.span
+                            initial={{ opacity: 0, x: -4 }}
+                            animate={{ opacity: 0.5, x: 0 }}
+                            className="text-2xl sm:text-3xl font-mono font-bold text-emerald-400/50"
+                        >
+                            {seq.predictions[0].char}
+                        </motion.span>
+                    </AnimatePresence>
+                )}
+            </div>
+
+            {/* Prediction bars */}
+            <AnimatePresence mode="wait">
+                {phase === "predicting" && (
+                    <motion.div
+                        key={seqIdx}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.3 }}
+                        className="flex items-center gap-3"
+                    >
+                        {seq.predictions.map((p, i) => (
+                            <motion.div
+                                key={p.char}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: i * 0.08 }}
+                                className="flex items-center gap-1.5"
+                            >
+                                <span className="text-xs font-mono font-bold text-emerald-300/80">{p.char}</span>
+                                <div className="w-12 sm:w-16 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${p.pct}%` }}
+                                        transition={{ duration: 0.4, delay: i * 0.08 }}
+                                        className="h-full rounded-full bg-emerald-400/60"
+                                    />
+                                </div>
+                                <span className="text-[9px] font-mono text-white/25">{p.pct}%</span>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
 
 /* ─── Era color system ─── */
 const eraStyles = {
@@ -185,97 +288,108 @@ export default function LabLandingPage() {
 
             <div className="relative z-10">
                 {/* ════════════════════════════════════════════════════════════
-                   HERO: LM-Lab identity + hook question
+                   HERO: Single-column centered + micro-interaction
                    ════════════════════════════════════════════════════════════ */}
                 <section className="relative pt-16 pb-8 md:pt-24 md:pb-12 overflow-hidden">
-                    <div className="max-w-5xl mx-auto px-6">
-                        {/* Top row: Badge + Title */}
-                        <div className="text-center mb-12 md:mb-16">
-                            <motion.div
-                                initial={{ opacity: 0, y: 14 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.4 }}
-                            >
-                                <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/[0.06] text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-emerald-400/80 mb-8">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                    {t("lab.landing.hero.badge")}
-                                </span>
-                            </motion.div>
+                    <div className="max-w-3xl mx-auto px-6 text-center">
+                        {/* Badge */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 14 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4 }}
+                        >
+                            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/[0.06] text-[10px] font-mono font-bold uppercase tracking-[0.3em] text-emerald-400/80 mb-8">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                {t("lab.landing.hero.badge")}
+                            </span>
+                        </motion.div>
 
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.55, delay: 0.05 }}
-                            >
-                                <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.85]">
-                                    <span className="bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-transparent">
-                                        LM
-                                    </span>
-                                    <span className="bg-gradient-to-b from-emerald-300 via-emerald-400 to-teal-500 bg-clip-text text-transparent">
-                                        -Lab
-                                    </span>
-                                </h1>
-                            </motion.div>
-                        </div>
-
-                        {/* Editorial two-column layout */}
+                        {/* Title */}
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.15 }}
-                            className="grid md:grid-cols-2 gap-8 md:gap-12 mb-12"
+                            transition={{ duration: 0.55, delay: 0.05 }}
+                            className="mb-6"
                         >
-                            {/* Left column: subtitle + hook */}
-                            <div>
-                                <p className="text-xs font-mono font-bold uppercase tracking-[0.25em] text-emerald-400/60 mb-4">
-                                    {t("lab.landing.hero.subtitle")}
-                                </p>
-                                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white/90 leading-snug mb-4">
-                                    {t("lab.landing.hero.hookQuestion")}
-                                </h2>
-                                <p className="text-sm md:text-base text-white/30 italic leading-relaxed">
-                                    {t("lab.landing.hero.hookFollow")}
-                                </p>
-                            </div>
+                            <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.85]">
+                                <span className="bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-transparent">
+                                    LM
+                                </span>
+                                <span className="bg-gradient-to-b from-emerald-300 via-emerald-400 to-teal-500 bg-clip-text text-transparent">
+                                    -Lab
+                                </span>
+                            </h1>
+                        </motion.div>
 
-                            {/* Right column: narrative + CTA */}
-                            <div className="flex flex-col justify-between">
-                                <div className="space-y-4 mb-6">
-                                    <p className="text-sm text-white/40 leading-relaxed">
-                                        {t("lab.landing.hero.narrativeP1")}
-                                    </p>
-                                    <p className="text-sm text-white/30 leading-relaxed">
-                                        {t("lab.landing.hero.narrativeP2")}
-                                    </p>
-                                </div>
-                                <div>
-                                    <motion.div
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        className="inline-block"
-                                    >
-                                        <Link
-                                            href="/lab/bigram"
-                                            className={cn(
-                                                "inline-flex items-center gap-3 px-8 py-3.5 rounded-xl text-sm font-bold transition-all duration-300",
-                                                "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300",
-                                                "hover:bg-emerald-500/25 hover:border-emerald-400/50 hover:shadow-[0_0_40px_-10px_rgba(16,185,129,0.3)]"
-                                            )}
-                                        >
-                                            {t("lab.landing.hero.cta")}
-                                        </Link>
-                                    </motion.div>
-                                    <p className="mt-2.5 text-[10px] font-mono text-white/15 uppercase tracking-widest">
-                                        {t("lab.landing.hero.ctaSubtext")}
-                                    </p>
-                                </div>
-                            </div>
+                        {/* Hook question */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 16 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.55, delay: 0.12 }}
+                            className="mb-10"
+                        >
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white/90 leading-snug mb-3">
+                                {t("lab.landing.hero.hookQuestion")}
+                            </h2>
+                            <p className="text-sm md:text-base text-white/30 italic leading-relaxed max-w-xl mx-auto">
+                                {t("lab.landing.hero.hookFollow")}
+                            </p>
+                        </motion.div>
+
+                        {/* Mini prediction demo */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.5, delay: 0.22 }}
+                            className="mb-10 min-h-[88px] flex items-center justify-center"
+                        >
+                            <MiniPredictionDemo />
+                        </motion.div>
+
+                        {/* CTA */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.3 }}
+                            className="mb-6"
+                        >
+                            <motion.div
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="inline-block"
+                            >
+                                <Link
+                                    href="/lab/bigram"
+                                    className={cn(
+                                        "inline-flex items-center gap-3 px-8 py-3.5 rounded-xl text-sm font-bold transition-all duration-300",
+                                        "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300",
+                                        "hover:bg-emerald-500/25 hover:border-emerald-400/50 hover:shadow-[0_0_40px_-10px_rgba(16,185,129,0.3)]"
+                                    )}
+                                >
+                                    {t("lab.landing.hero.cta")}
+                                </Link>
+                            </motion.div>
+                            <p className="mt-2.5 text-[10px] font-mono text-white/15 uppercase tracking-widest">
+                                {t("lab.landing.hero.ctaSubtext")}
+                            </p>
                         </motion.div>
 
                         {/* Thin separator */}
                         <div className="h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent" />
                     </div>
                 </section>
+
+                {/* ─── Narrative block (below fold) ─── */}
+                <FadeInView margin="-60px" className="max-w-2xl mx-auto px-6 py-8 text-center">
+                    <div className="space-y-4 mb-4">
+                        <p className="text-sm text-white/40 leading-relaxed">
+                            {t("lab.landing.hero.narrativeP1")}
+                        </p>
+                        <p className="text-sm text-white/30 leading-relaxed">
+                            {t("lab.landing.hero.narrativeP2")}
+                        </p>
+                    </div>
+                </FadeInView>
 
                 {/* ─── Scroll indicator ─── */}
                 <motion.div

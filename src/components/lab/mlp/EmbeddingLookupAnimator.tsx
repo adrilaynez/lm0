@@ -1,261 +1,385 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, Play, RotateCcw } from "lucide-react";
 
 /*
-  EmbeddingLookupAnimator
-  Step-by-step animation: one-hot vector × Embedding matrix = embedding vector.
-  Shows this is equivalent to a table lookup.
+  EmbeddingLookupAnimator — Redesigned
+  A cinematic, auto-playing animation showing:
+  1. Pick a letter
+  2. Build one-hot vector (with visual scanner)
+  3. One-hot "scans" the embedding table, highlighting the matching row
+  4. The matching row "slides out" to become the embedding vector
+  
+  Key improvements: auto-play, visual flow arrows, row-highlight scanner,
+  the result physically "detaches" from the table, descriptive labels.
 */
 
-const VOCAB = ["a", "b", "c", "d", "e", "f", "g"];
+const VOCAB = ["a", "b", "c", "d", "e"];
 const V = VOCAB.length;
-const D = 3; // embedding dimension for demo
+const D = 3;
+const DIM_LABELS = ["freq", "vowel", "shape"];
 
-// Hand-crafted small embedding matrix for illustration
 const E_MATRIX: number[][] = [
-    [0.82, -0.31, 0.55],   // a
-    [-0.44, 0.67, -0.12],  // b
-    [-0.21, 0.88, 0.34],   // c
-    [0.15, -0.55, 0.91],   // d
-    [0.78, -0.22, 0.48],   // e
-    [-0.63, 0.11, -0.77],  // f
-    [-0.38, 0.45, 0.29],   // g
+    [0.82, 0.91, -0.31],  // a
+    [-0.44, 0.12, 0.67],   // b
+    [-0.21, 0.08, 0.88],   // c
+    [0.15, 0.05, -0.55],  // d
+    [0.78, 0.88, -0.22],  // e
 ];
 
-type Stage = "select" | "onehot" | "multiply" | "result";
-
-const STAGES: { id: Stage; label: string }[] = [
-    { id: "select", label: "1. Select token" },
-    { id: "onehot", label: "2. One-hot encode" },
-    { id: "multiply", label: "3. Matrix multiply" },
-    { id: "result", label: "4. Embedding vector" },
-];
+type Phase = "idle" | "onehot" | "scan" | "extract" | "done";
 
 export function EmbeddingLookupAnimator() {
     const [selectedIdx, setSelectedIdx] = useState(0);
-    const [stage, setStage] = useState<Stage>("select");
+    const [phase, setPhase] = useState<Phase>("idle");
+    const [scanRow, setScanRow] = useState(-1);
+    const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-    const oneHot = Array.from({ length: V }, (_, i) => i === selectedIdx ? 1 : 0);
     const embedding = E_MATRIX[selectedIdx];
 
-    const stageIdx = STAGES.findIndex(s => s.id === stage);
+    const clearTimers = useCallback(() => {
+        if (timerRef.current) clearTimeout(timerRef.current);
+    }, []);
 
-    const nextStage = () => {
-        const next = stageIdx + 1;
-        if (next < STAGES.length) {
-            setStage(STAGES[next].id);
-        }
-    };
+    useEffect(() => () => clearTimers(), [clearTimers]);
 
-    const prevStage = () => {
-        const prev = stageIdx - 1;
-        if (prev >= 0) {
-            setStage(STAGES[prev].id);
-        }
-    };
+    const play = useCallback(() => {
+        clearTimers();
+        setPhase("onehot");
+        setScanRow(-1);
 
-    const selectToken = (idx: number) => {
+        // After one-hot appears, start scanning
+        timerRef.current = setTimeout(() => {
+            setPhase("scan");
+            let row = 0;
+            const scanNext = () => {
+                setScanRow(row);
+                if (row === selectedIdx) {
+                    // Found it — pause then extract
+                    timerRef.current = setTimeout(() => {
+                        setPhase("extract");
+                        timerRef.current = setTimeout(() => setPhase("done"), 600);
+                    }, 500);
+                } else {
+                    row++;
+                    timerRef.current = setTimeout(scanNext, 200);
+                }
+            };
+            scanNext();
+        }, 600);
+    }, [selectedIdx, clearTimers]);
+
+    const reset = useCallback(() => {
+        clearTimers();
+        setPhase("idle");
+        setScanRow(-1);
+    }, [clearTimers]);
+
+    const selectAndReset = (idx: number) => {
+        clearTimers();
         setSelectedIdx(idx);
-        setStage("select");
+        setPhase("idle");
+        setScanRow(-1);
     };
+
+    const showOneHot = phase !== "idle";
+    const showMatrix = phase !== "idle";
+    const isScanning = phase === "scan";
+    const isExtracted = phase === "extract" || phase === "done";
+    const isDone = phase === "done";
 
     return (
-        <div className="p-4 sm:p-5 space-y-4">
-            {/* Stage indicator */}
-            <div className="flex gap-1 items-center justify-center">
-                {STAGES.map((s, i) => (
-                    <div key={s.id} className="flex items-center gap-1">
-                        <div
-                            className="px-2 py-1 rounded text-[9px] font-mono transition-colors"
+        <div className="p-4 sm:p-6 space-y-5">
+            {/* Token selector */}
+            <div className="flex items-center gap-3 justify-center">
+                <span className="text-[10px] font-mono text-white/30">Pick a letter:</span>
+                <div className="flex gap-1.5">
+                    {VOCAB.map((ch, i) => (
+                        <motion.button
+                            key={ch}
+                            onClick={() => selectAndReset(i)}
+                            whileHover={{ scale: 1.1, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="w-10 h-10 rounded-xl text-base font-mono font-bold transition-all"
                             style={{
-                                backgroundColor: i <= stageIdx ? "rgba(167,139,250,0.15)" : "rgba(255,255,255,0.03)",
-                                color: i <= stageIdx ? "#a78bfa" : "rgba(255,255,255,0.2)",
-                                fontWeight: i === stageIdx ? 700 : 400,
+                                backgroundColor: i === selectedIdx ? "#a78bfa20" : "rgba(255,255,255,0.03)",
+                                color: i === selectedIdx ? "#a78bfa" : "rgba(255,255,255,0.35)",
+                                borderWidth: 2,
+                                borderColor: i === selectedIdx ? "#a78bfa50" : "rgba(255,255,255,0.06)",
+                                boxShadow: i === selectedIdx ? "0 0 16px rgba(167,139,250,0.15)" : "none",
                             }}
                         >
-                            {s.label}
-                        </div>
-                        {i < STAGES.length - 1 && (
-                            <span className="text-white/10 text-[10px]">→</span>
+                            {ch}
+                        </motion.button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Main visualization */}
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] p-4 sm:p-5">
+                <div className="flex items-start justify-center gap-3 sm:gap-5 flex-wrap min-h-[200px]">
+                    {/* One-hot vector */}
+                    <AnimatePresence>
+                        {showOneHot && (
+                            <motion.div
+                                initial={{ opacity: 0, x: -30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                className="flex flex-col items-center"
+                            >
+                                <span className="text-[9px] font-mono text-white/25 mb-2">one-hot(&quot;{VOCAB[selectedIdx]}&quot;)</span>
+                                <div className="flex flex-col gap-0.5">
+                                    {VOCAB.map((ch, i) => {
+                                        const isOne = i === selectedIdx;
+                                        const isBeingScanned = isScanning && i === scanRow;
+                                        return (
+                                            <motion.div
+                                                key={i}
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{
+                                                    opacity: 1,
+                                                    x: 0,
+                                                    scale: isBeingScanned ? 1.1 : 1,
+                                                }}
+                                                transition={{ delay: i * 0.06 }}
+                                                className="flex items-center gap-1.5"
+                                            >
+                                                <span className="text-[8px] font-mono text-white/15 w-3">{ch}</span>
+                                                <div
+                                                    className="w-10 h-6 rounded flex items-center justify-center text-xs font-mono font-bold transition-all"
+                                                    style={{
+                                                        backgroundColor: isOne ? "#a78bfa30" : "rgba(255,255,255,0.03)",
+                                                        color: isOne ? "#a78bfa" : "rgba(255,255,255,0.12)",
+                                                        borderWidth: 1,
+                                                        borderColor: isBeingScanned ? "#a78bfa60" : isOne ? "#a78bfa30" : "rgba(255,255,255,0.04)",
+                                                        boxShadow: isBeingScanned ? "0 0 8px rgba(167,139,250,0.3)" : "none",
+                                                    }}
+                                                >
+                                                    {isOne ? "1" : "0"}
+                                                </div>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </div>
+                            </motion.div>
                         )}
-                    </div>
-                ))}
-            </div>
+                    </AnimatePresence>
 
-            {/* Token selector - always visible */}
-            <div className="flex items-center gap-2 justify-center">
-                <span className="text-[10px] font-mono text-white/30">Token:</span>
-                {VOCAB.map((ch, i) => (
-                    <button
-                        key={ch}
-                        onClick={() => selectToken(i)}
-                        className="w-8 h-8 rounded-lg text-sm font-mono font-bold transition-all"
-                        style={{
-                            backgroundColor: i === selectedIdx ? "#a78bfa25" : "rgba(255,255,255,0.03)",
-                            color: i === selectedIdx ? "#a78bfa" : "rgba(255,255,255,0.3)",
-                            borderWidth: 1,
-                            borderColor: i === selectedIdx ? "#a78bfa50" : "rgba(255,255,255,0.06)",
-                        }}
-                    >
-                        {ch}
-                    </button>
-                ))}
-            </div>
+                    {/* Arrow */}
+                    {showMatrix && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="flex flex-col items-center justify-center self-center"
+                        >
+                            <ArrowRight className="w-5 h-5 text-white/15" />
+                            <span className="text-[7px] font-mono text-white/15 mt-0.5">×</span>
+                        </motion.div>
+                    )}
 
-            {/* Visualization area */}
-            <div className="rounded-lg border border-white/[0.08] bg-white/[0.02] p-4 min-h-[180px] flex items-center justify-center gap-4 flex-wrap">
-                {/* One-hot vector */}
-                {(stage === "onehot" || stage === "multiply" || stage === "result") && (
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex flex-col items-center gap-1"
-                    >
-                        <span className="text-[9px] font-mono text-white/25 mb-1">one-hot</span>
-                        {oneHot.map((val, i) => (
+                    {/* Embedding matrix */}
+                    <AnimatePresence>
+                        {showMatrix && (
                             <motion.div
-                                key={i}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: i * 0.05 }}
-                                className="w-8 h-5 rounded-sm flex items-center justify-center text-[10px] font-mono"
-                                style={{
-                                    backgroundColor: val === 1 ? "#a78bfa25" : "rgba(255,255,255,0.03)",
-                                    color: val === 1 ? "#a78bfa" : "rgba(255,255,255,0.15)",
-                                    fontWeight: val === 1 ? 700 : 400,
-                                }}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0 }}
+                                className="flex flex-col items-center"
                             >
-                                {val}
+                                <span className="text-[9px] font-mono text-white/25 mb-2">Embedding Table E</span>
+                                {/* Dimension headers */}
+                                <div className="flex gap-0.5 mb-1 ml-6">
+                                    {DIM_LABELS.map(label => (
+                                        <div key={label} className="w-14 text-center text-[7px] font-mono text-white/15">
+                                            {label}
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex flex-col gap-0.5">
+                                    {E_MATRIX.map((row, i) => {
+                                        const isMatch = i === selectedIdx;
+                                        const isBeingScanned = isScanning && i === scanRow;
+                                        const wasScanned = isScanning && i < scanRow;
+                                        const isHighlighted = isMatch && (isExtracted || isDone);
+                                        return (
+                                            <motion.div
+                                                key={i}
+                                                className="flex items-center gap-1"
+                                                animate={{
+                                                    y: isHighlighted ? 4 : 0,
+                                                    scale: isBeingScanned && isMatch ? 1.05 : 1,
+                                                }}
+                                                transition={{ duration: 0.3 }}
+                                            >
+                                                <span className="text-[9px] font-mono w-4 text-right" style={{
+                                                    color: isMatch ? "#a78bfa" : "rgba(255,255,255,0.15)",
+                                                    fontWeight: isMatch ? 700 : 400,
+                                                }}>
+                                                    {VOCAB[i]}
+                                                </span>
+                                                <div className="flex gap-0.5">
+                                                    {row.map((val, j) => (
+                                                        <motion.div
+                                                            key={j}
+                                                            className="w-14 h-7 rounded flex items-center justify-center text-[10px] font-mono tabular-nums transition-all"
+                                                            style={{
+                                                                backgroundColor: isHighlighted
+                                                                    ? "#34d39920"
+                                                                    : isBeingScanned
+                                                                        ? (isMatch ? "#a78bfa25" : "rgba(255,255,255,0.06)")
+                                                                        : wasScanned
+                                                                            ? "rgba(255,255,255,0.01)"
+                                                                            : "rgba(255,255,255,0.03)",
+                                                                color: isHighlighted
+                                                                    ? "#34d399"
+                                                                    : isBeingScanned
+                                                                        ? (isMatch ? "#a78bfa" : "rgba(255,255,255,0.3)")
+                                                                        : wasScanned
+                                                                            ? "rgba(255,255,255,0.1)"
+                                                                            : "rgba(255,255,255,0.25)",
+                                                                fontWeight: isHighlighted || (isBeingScanned && isMatch) ? 700 : 400,
+                                                                borderWidth: 1,
+                                                                borderColor: isHighlighted
+                                                                    ? "#34d39940"
+                                                                    : isBeingScanned && isMatch
+                                                                        ? "#a78bfa50"
+                                                                        : "rgba(255,255,255,0.04)",
+                                                                boxShadow: isHighlighted ? "0 0 10px rgba(52,211,153,0.15)" : "none",
+                                                            }}
+                                                            animate={{
+                                                                scale: isHighlighted ? [1, 1.08, 1] : 1,
+                                                            }}
+                                                            transition={{ delay: j * 0.08, duration: 0.3 }}
+                                                        >
+                                                            {val >= 0 ? "+" : ""}{val.toFixed(2)}
+                                                        </motion.div>
+                                                    ))}
+                                                </div>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </div>
                             </motion.div>
-                        ))}
-                    </motion.div>
-                )}
+                        )}
+                    </AnimatePresence>
 
-                {/* × symbol */}
-                {(stage === "multiply" || stage === "result") && (
-                    <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-white/20 text-lg font-mono"
-                    >
-                        ×
-                    </motion.span>
-                )}
+                    {/* Arrow to result */}
+                    {isExtracted && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="flex flex-col items-center justify-center self-center"
+                        >
+                            <ArrowRight className="w-5 h-5 text-emerald-400/30" />
+                            <span className="text-[7px] font-mono text-emerald-400/20 mt-0.5">=</span>
+                        </motion.div>
+                    )}
 
-                {/* Embedding matrix */}
-                {(stage === "multiply" || stage === "result") && (
-                    <motion.div
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex flex-col items-center gap-1"
-                    >
-                        <span className="text-[9px] font-mono text-white/25 mb-1">E matrix ({V}×{D})</span>
-                        {E_MATRIX.map((row, i) => (
-                            <div key={i} className="flex gap-0.5">
-                                {row.map((val, j) => (
-                                    <motion.div
-                                        key={j}
-                                        className="w-11 h-5 rounded-sm flex items-center justify-center text-[9px] font-mono tabular-nums"
-                                        style={{
-                                            backgroundColor: i === selectedIdx
-                                                ? `rgba(167,139,250,${0.1 + Math.abs(val) * 0.2})`
-                                                : "rgba(255,255,255,0.02)",
-                                            color: i === selectedIdx ? "#a78bfa" : "rgba(255,255,255,0.15)",
-                                            fontWeight: i === selectedIdx ? 700 : 400,
-                                        }}
-                                        animate={{
-                                            scale: stage === "result" && i === selectedIdx ? [1, 1.1, 1] : 1,
-                                        }}
-                                        transition={{ delay: j * 0.1, duration: 0.3 }}
-                                    >
-                                        {val.toFixed(2)}
-                                    </motion.div>
-                                ))}
-                            </div>
-                        ))}
-                    </motion.div>
-                )}
-
-                {/* = symbol */}
-                {stage === "result" && (
-                    <motion.span
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-white/20 text-lg font-mono"
-                    >
-                        =
-                    </motion.span>
-                )}
-
-                {/* Result embedding */}
-                {stage === "result" && (
-                    <motion.div
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex flex-col items-center gap-1"
-                    >
-                        <span className="text-[9px] font-mono text-emerald-400/50 mb-1">embedding</span>
-                        {embedding.map((val, i) => (
+                    {/* Result embedding vector */}
+                    <AnimatePresence>
+                        {isDone && (
                             <motion.div
-                                key={i}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.2 + i * 0.1 }}
-                                className="w-14 h-5 rounded-sm flex items-center justify-center text-[10px] font-mono font-bold tabular-nums"
-                                style={{
-                                    backgroundColor: `rgba(52,211,153,${0.1 + Math.abs(val) * 0.15})`,
-                                    color: "#34d399",
-                                }}
+                                initial={{ opacity: 0, x: 20, scale: 0.9 }}
+                                animate={{ opacity: 1, x: 0, scale: 1 }}
+                                className="flex flex-col items-center"
                             >
-                                {val.toFixed(2)}
+                                <span className="text-[9px] font-mono text-emerald-400/50 mb-2">
+                                    embed(&quot;{VOCAB[selectedIdx]}&quot;)
+                                </span>
+                                <div className="flex flex-col gap-0.5">
+                                    {embedding.map((val, j) => (
+                                        <motion.div
+                                            key={j}
+                                            initial={{ opacity: 0, x: -10, scale: 0.8 }}
+                                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                                            transition={{ delay: 0.1 + j * 0.1, type: "spring", bounce: 0.4 }}
+                                            className="flex items-center gap-1.5"
+                                        >
+                                            <div
+                                                className="w-16 h-7 rounded flex items-center justify-center text-xs font-mono font-bold tabular-nums"
+                                                style={{
+                                                    background: `rgba(52,211,153,${0.08 + Math.abs(val) * 0.15})`,
+                                                    color: "#34d399",
+                                                    borderWidth: 1,
+                                                    borderColor: "#34d39940",
+                                                    boxShadow: "0 0 8px rgba(52,211,153,0.1)",
+                                                }}
+                                            >
+                                                {val >= 0 ? "+" : ""}{val.toFixed(2)}
+                                            </div>
+                                            <span className="text-[7px] font-mono text-white/15">{DIM_LABELS[j]}</span>
+                                        </motion.div>
+                                    ))}
+                                </div>
                             </motion.div>
-                        ))}
-                    </motion.div>
-                )}
+                        )}
+                    </AnimatePresence>
 
-                {/* Select stage message */}
-                {stage === "select" && (
-                    <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-sm text-white/30 italic text-center"
-                    >
-                        Selected &apos;{VOCAB[selectedIdx]}&apos; — click Next to see the one-hot encoding
-                    </motion.p>
-                )}
+                    {/* Idle state */}
+                    {phase === "idle" && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="flex flex-col items-center justify-center gap-3 py-8"
+                        >
+                            <p className="text-sm text-white/30 text-center font-mono">
+                                How does &quot;{VOCAB[selectedIdx]}&quot; become a vector of numbers?
+                            </p>
+                            <button
+                                onClick={play}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-mono font-bold
+                                    bg-violet-500/15 text-violet-300 border border-violet-500/30
+                                    hover:bg-violet-500/25 transition-all shadow-[0_0_20px_rgba(139,92,246,0.1)]"
+                            >
+                                <Play className="w-4 h-4" />
+                                Watch the lookup
+                            </button>
+                        </motion.div>
+                    )}
+                </div>
             </div>
 
-            {/* Navigation */}
+            {/* Bottom controls + insight */}
             <div className="flex items-center justify-between">
-                <button
-                    onClick={prevStage}
-                    disabled={stageIdx === 0}
-                    className="text-[10px] font-mono px-3 py-1.5 rounded border border-white/[0.08] text-white/30 hover:text-white/50 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-                >
-                    ← Back
-                </button>
-
-                {stage === "result" && (
-                    <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-[10px] text-emerald-400/50 font-mono"
+                {phase !== "idle" && (
+                    <button
+                        onClick={reset}
+                        className="flex items-center gap-1.5 text-[10px] font-mono px-3 py-1.5 rounded-lg border border-white/[0.08] text-white/30 hover:text-white/50 transition-colors"
                     >
-                        Row lookup = matrix multiply with one-hot!
+                        <RotateCcw className="w-3 h-3" />
+                        Reset
+                    </button>
+                )}
+                <div />
+                {isDone && (
+                    <motion.p
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-[11px] font-mono text-emerald-400/60"
+                    >
+                        Row {selectedIdx} of E → that&apos;s the embedding!
                     </motion.p>
                 )}
-
-                <button
-                    onClick={nextStage}
-                    disabled={stageIdx === STAGES.length - 1}
-                    className="text-[10px] font-mono px-3 py-1.5 rounded border border-violet-500/30 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-                >
-                    Next →
-                </button>
             </div>
+
+            {/* Insight box */}
+            {isDone && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="rounded-xl border border-emerald-500/15 bg-emerald-500/[0.04] p-4"
+                >
+                    <p className="text-xs text-white/50 leading-relaxed">
+                        <strong className="text-emerald-300/80">The one-hot vector picks one row from the table</strong> — the 1 at position {selectedIdx} selects
+                        row {selectedIdx}. Mathematically it&apos;s a matrix multiply, but in practice it&apos;s just a <em>table lookup</em>.
+                        Each row stores the learned features for that character.
+                    </p>
+                </motion.div>
+            )}
         </div>
     );
 }

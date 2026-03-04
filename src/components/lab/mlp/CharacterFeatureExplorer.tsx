@@ -1,219 +1,351 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, Check, Lightbulb, Sparkles } from "lucide-react";
 
 /*
-  CharacterFeatureExplorer
-  Interactive card-sorting game. User drags/clicks letters into groups.
-  The platform highlights shared features: "You just assigned coordinates!"
-  Builds the intuition that letters can be described by features.
+  CharacterFeatureExplorer — Redesigned
+  A guided 3-step character sorting game:
+  Step 1: "Which letters make sounds by themselves?" → discover vowels
+  Step 2: "Which consonants appear most often in English?" → common vs rare
+  Step 3: Reveal insight — you just assigned FEATURES to letters!
+  
+  Much more intuitive: questions guide the sorting, visual rewards on correct groupings,
+  animated transitions, and a clear progression toward the "aha" moment.
 */
 
-interface Group {
-    id: string;
-    label: string;
-    color: string;
-    hint: string;
-    members: string[];
-}
+const VOWELS = new Set(["a", "e", "i", "o", "u"]);
+const COMMON_CONSONANTS = new Set(["t", "n", "s", "r", "h", "l", "d", "c", "m", "p", "f", "g", "w", "b", "y"]);
+const RARE_CONSONANTS = new Set(["k", "v", "j", "x", "q", "z"]);
 
-const INITIAL_GROUPS: Group[] = [
-    { id: "vowels", label: "Group A", color: "#a78bfa", hint: "Vowels", members: [] },
-    { id: "common", label: "Group B", color: "#60a5fa", hint: "Common consonants", members: [] },
-    { id: "rare", label: "Group C", color: "#f59e0b", hint: "Rare consonants", members: [] },
-    { id: "special", label: "Group D", color: "#f43f5e", hint: "Punctuation & special", members: [] },
+type Step = 0 | 1 | 2 | 3;
+
+const STEP_INFO = [
+    {
+        title: "Step 1: Find the vowels",
+        question: "Which letters can make a sound by themselves? Try saying each one out loud.",
+        instruction: "Tap the letters you think are vowels",
+        groupLabel: "Vowels",
+        groupColor: "#a78bfa",
+        correctSet: VOWELS,
+    },
+    {
+        title: "Step 2: Common vs rare",
+        question: "Some consonants appear everywhere in English (like 't' and 'n'). Others are rare (like 'x' and 'z'). Can you spot the rare ones?",
+        instruction: "Tap the consonants that are RARE in English",
+        groupLabel: "Rare consonants",
+        groupColor: "#f59e0b",
+        correctSet: RARE_CONSONANTS,
+    },
 ];
 
-const ALL_CHARS = "abcdefghijklmnopqrstuvwxyz.".split("");
-
-const SUGGESTED_MAPPING: Record<string, string> = {
-    a: "vowels", e: "vowels", i: "vowels", o: "vowels", u: "vowels",
-    t: "common", n: "common", s: "common", r: "common", h: "common", l: "common", d: "common",
-    c: "common", m: "common", p: "common", f: "common", g: "common", w: "common", b: "common",
-    y: "common", k: "rare", v: "rare", j: "rare", x: "rare", q: "rare", z: "rare",
-    ".": "special",
-};
+const ALL_LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
 
 export function CharacterFeatureExplorer() {
-    const [groups, setGroups] = useState<Group[]>(INITIAL_GROUPS);
-    const [unassigned, setUnassigned] = useState<string[]>([...ALL_CHARS]);
-    const [selectedChar, setSelectedChar] = useState<string | null>(null);
-    const [showInsight, setShowInsight] = useState(false);
-    const [autoSorted, setAutoSorted] = useState(false);
+    const [step, setStep] = useState<Step>(0);
+    const [selected, setSelected] = useState<Set<string>>(new Set());
+    const [confirmed, setConfirmed] = useState(false);
+    const [score, setScore] = useState<{ correct: number; total: number } | null>(null);
+    const [showFinal, setShowFinal] = useState(false);
 
-    const assignToGroup = (groupId: string) => {
-        if (!selectedChar) return;
-        setGroups(prev => prev.map(g =>
-            g.id === groupId && !g.members.includes(selectedChar)
-                ? { ...g, members: [...g.members, selectedChar] }
-                : g
-        ));
-        setUnassigned(prev => prev.filter(c => c !== selectedChar));
-        setSelectedChar(null);
+    // For step 0: all letters. For step 1: only consonants (non-vowels).
+    const availableChars = useMemo(() => {
+        if (step === 0) return ALL_LETTERS;
+        if (step === 1) return ALL_LETTERS.filter(ch => !VOWELS.has(ch));
+        return [];
+    }, [step]);
+
+    const currentInfo = step < 2 ? STEP_INFO[step] : null;
+
+    const toggleChar = (ch: string) => {
+        if (confirmed) return;
+        setSelected(prev => {
+            const next = new Set(prev);
+            if (next.has(ch)) next.delete(ch);
+            else next.add(ch);
+            return next;
+        });
     };
 
-    const removeFromGroup = (groupId: string, char: string) => {
-        setGroups(prev => prev.map(g =>
-            g.id === groupId
-                ? { ...g, members: g.members.filter(c => c !== char) }
-                : g
-        ));
-        setUnassigned(prev => [...prev, char].sort());
+    const handleConfirm = () => {
+        if (!currentInfo) return;
+        const correct = [...selected].filter(ch => currentInfo.correctSet.has(ch)).length;
+        const total = currentInfo.correctSet.size;
+        setScore({ correct: correct, total });
+        setConfirmed(true);
     };
 
-    const autoSort = () => {
-        const newGroups = INITIAL_GROUPS.map(g => ({ ...g, members: [] as string[] }));
-        for (const ch of ALL_CHARS) {
-            const gid = SUGGESTED_MAPPING[ch] || "special";
-            const group = newGroups.find(g => g.id === gid);
-            if (group) group.members.push(ch);
+    const handleNext = () => {
+        if (step === 0) {
+            setStep(1);
+            setSelected(new Set());
+            setConfirmed(false);
+            setScore(null);
+        } else if (step === 1) {
+            setStep(2);
+            setConfirmed(false);
+            setScore(null);
+            setTimeout(() => setShowFinal(true), 300);
         }
-        setGroups(newGroups);
-        setUnassigned([]);
-        setAutoSorted(true);
-        setTimeout(() => setShowInsight(true), 600);
     };
 
-    const totalAssigned = groups.reduce((sum, g) => sum + g.members.length, 0);
+    const handleAutoComplete = () => {
+        if (!currentInfo) return;
+        const correct = new Set([...currentInfo.correctSet].filter(ch => availableChars.includes(ch)));
+        setSelected(correct);
+    };
 
-    return (
-        <div className="p-4 sm:p-5 space-y-4">
-            {/* Unassigned characters */}
-            <div>
-                <div className="flex items-center justify-between mb-2">
-                    <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest">
-                        Characters to sort ({unassigned.length} remaining)
-                    </p>
-                    {unassigned.length > 0 && (
-                        <button
-                            onClick={autoSort}
-                            className="text-[10px] font-mono text-violet-400/60 hover:text-violet-400 transition-colors"
+    // Determine char color/state
+    const getCharStyle = (ch: string) => {
+        const isSelected = selected.has(ch);
+        const isCorrect = currentInfo?.correctSet.has(ch);
+
+        if (confirmed && isSelected && isCorrect) {
+            return { bg: currentInfo!.groupColor + "30", border: currentInfo!.groupColor + "60", text: currentInfo!.groupColor, glow: true };
+        }
+        if (confirmed && isSelected && !isCorrect) {
+            return { bg: "rgba(239,68,68,0.15)", border: "rgba(239,68,68,0.4)", text: "#ef4444", glow: false };
+        }
+        if (confirmed && !isSelected && isCorrect) {
+            return { bg: "rgba(255,255,255,0.04)", border: currentInfo!.groupColor + "30", text: currentInfo!.groupColor + "80", glow: false };
+        }
+        if (isSelected) {
+            return { bg: (currentInfo?.groupColor || "#a78bfa") + "20", border: (currentInfo?.groupColor || "#a78bfa") + "50", text: currentInfo?.groupColor || "#a78bfa", glow: false };
+        }
+        return { bg: "rgba(255,255,255,0.03)", border: "rgba(255,255,255,0.08)", text: "rgba(255,255,255,0.4)", glow: false };
+    };
+
+    // Final summary view (step 2+)
+    if (step >= 2) {
+        const vowelList = ALL_LETTERS.filter(ch => VOWELS.has(ch));
+        const commonList = ALL_LETTERS.filter(ch => COMMON_CONSONANTS.has(ch));
+        const rareList = ALL_LETTERS.filter(ch => RARE_CONSONANTS.has(ch));
+
+        const groups = [
+            { label: "Vowels", chars: vowelList, color: "#a78bfa", feature: "1" },
+            { label: "Common consonants", chars: commonList, color: "#60a5fa", feature: "2" },
+            { label: "Rare consonants", chars: rareList, color: "#f59e0b", feature: "3" },
+        ];
+
+        return (
+            <div className="p-4 sm:p-6 space-y-5">
+                {/* Final sorted groups */}
+                <div className="space-y-3">
+                    {groups.map((g, gi) => (
+                        <motion.div
+                            key={g.label}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: gi * 0.15 }}
+                            className="rounded-xl border p-3 sm:p-4"
+                            style={{ borderColor: g.color + "25", background: g.color + "06" }}
                         >
-                            Auto-sort for me
-                        </button>
-                    )}
+                            <div className="flex items-center justify-between mb-2.5">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: g.color + "70" }} />
+                                    <span className="text-xs font-mono font-bold" style={{ color: g.color }}>{g.label}</span>
+                                </div>
+                                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full" style={{ background: g.color + "15", color: g.color + "90" }}>
+                                    Feature = {g.feature}
+                                </span>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                                {g.chars.map((ch, ci) => (
+                                    <motion.span
+                                        key={ch}
+                                        initial={{ scale: 0, rotate: -10 }}
+                                        animate={{ scale: 1, rotate: 0 }}
+                                        transition={{ delay: gi * 0.15 + ci * 0.03 }}
+                                        className="w-8 h-8 rounded-lg text-xs font-mono font-bold flex items-center justify-center"
+                                        style={{ background: g.color + "20", color: g.color }}
+                                    >
+                                        {ch}
+                                    </motion.span>
+                                ))}
+                            </div>
+                        </motion.div>
+                    ))}
                 </div>
-                <div className="flex flex-wrap gap-1.5 min-h-[36px]">
-                    {unassigned.map(ch => (
+
+                {/* The "aha" moment */}
+                <AnimatePresence>
+                    {showFinal && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            transition={{ delay: 0.5, type: "spring", bounce: 0.3 }}
+                            className="rounded-xl border border-violet-500/20 bg-gradient-to-br from-violet-500/[0.08] to-transparent p-5"
+                        >
+                            <div className="flex items-center gap-2 mb-3">
+                                <Sparkles className="w-4 h-4 text-violet-400" />
+                                <span className="text-xs font-mono font-bold text-violet-400 uppercase tracking-widest">The key insight</span>
+                            </div>
+                            <p className="text-sm text-white/70 leading-relaxed mb-3">
+                                You just gave every letter a <strong className="text-white/90">number based on its group</strong>.
+                                Vowels = 1, common consonants = 2, rare consonants = 3.
+                            </p>
+                            <p className="text-sm text-white/70 leading-relaxed mb-3">
+                                But one number isn&apos;t enough. Letters have <em>many</em> features — frequency, whether they&apos;re voiced,
+                                where your tongue goes. What if each letter had <strong className="text-white/90">multiple numbers</strong>, one per feature?
+                            </p>
+                            <div className="rounded-lg bg-black/30 p-3 font-mono text-xs space-y-1.5">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-violet-400 w-6">a:</span>
+                                    <span className="text-white/50">[</span>
+                                    <span className="text-amber-400">1.0</span>
+                                    <span className="text-white/20">,</span>
+                                    <span className="text-blue-400">0.8</span>
+                                    <span className="text-white/20">,</span>
+                                    <span className="text-green-400">0.2</span>
+                                    <span className="text-white/50">]</span>
+                                    <span className="text-white/20 text-[9px] ml-auto">vowel · common · low pitch</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-violet-400 w-6">t:</span>
+                                    <span className="text-white/50">[</span>
+                                    <span className="text-amber-400">0.0</span>
+                                    <span className="text-white/20">,</span>
+                                    <span className="text-blue-400">0.9</span>
+                                    <span className="text-white/20">,</span>
+                                    <span className="text-green-400">0.7</span>
+                                    <span className="text-white/50">]</span>
+                                    <span className="text-white/20 text-[9px] ml-auto">consonant · very common · sharp</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-violet-400 w-6">z:</span>
+                                    <span className="text-white/50">[</span>
+                                    <span className="text-amber-400">0.0</span>
+                                    <span className="text-white/20">,</span>
+                                    <span className="text-blue-400">0.1</span>
+                                    <span className="text-white/20">,</span>
+                                    <span className="text-green-400">0.6</span>
+                                    <span className="text-white/50">]</span>
+                                    <span className="text-white/20 text-[9px] ml-auto">consonant · rare · buzzy</span>
+                                </div>
+                            </div>
+                            <p className="text-xs text-white/40 mt-3 leading-relaxed">
+                                What if the network could learn these numbers <em>by itself</em> — discovering features <strong className="text-violet-300/80">we never told it about</strong>?
+                                That&apos;s exactly what we&apos;ll build next.
+                            </p>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+        );
+    }
+
+    // Interactive sorting step
+    return (
+        <div className="p-4 sm:p-6 space-y-4">
+            {/* Step header */}
+            <div className="flex items-center gap-3 mb-1">
+                <div className="flex gap-1">
+                    {[0, 1].map(s => (
+                        <div
+                            key={s}
+                            className="w-8 h-1 rounded-full transition-colors"
+                            style={{ backgroundColor: s <= step ? (STEP_INFO[s]?.groupColor || "#a78bfa") : "rgba(255,255,255,0.08)" }}
+                        />
+                    ))}
+                </div>
+                <span className="text-[10px] font-mono text-white/30">Step {step + 1} of 2</span>
+            </div>
+
+            {/* Question */}
+            {currentInfo && (
+                <div className="space-y-1.5">
+                    <h4 className="text-sm font-bold text-white/80">{currentInfo.title}</h4>
+                    <p className="text-xs text-white/50 leading-relaxed">{currentInfo.question}</p>
+                    <p className="text-[10px] font-mono text-white/30 flex items-center gap-1.5">
+                        <Lightbulb className="w-3 h-3" />
+                        {currentInfo.instruction}
+                    </p>
+                </div>
+            )}
+
+            {/* Character grid */}
+            <div className="flex flex-wrap gap-2 justify-center py-2">
+                {availableChars.map((ch, i) => {
+                    const style = getCharStyle(ch);
+                    return (
                         <motion.button
                             key={ch}
                             layout
-                            onClick={() => setSelectedChar(selectedChar === ch ? null : ch)}
-                            className="w-7 h-7 rounded text-xs font-mono font-bold transition-all"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.02 }}
+                            onClick={() => toggleChar(ch)}
+                            disabled={confirmed}
+                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg text-sm font-mono font-bold transition-all flex items-center justify-center"
                             style={{
-                                backgroundColor: selectedChar === ch ? "rgba(167,139,250,0.3)" : "rgba(255,255,255,0.04)",
-                                color: selectedChar === ch ? "#a78bfa" : "rgba(255,255,255,0.4)",
-                                borderWidth: 1,
-                                borderColor: selectedChar === ch ? "rgba(167,139,250,0.5)" : "rgba(255,255,255,0.08)",
+                                backgroundColor: style.bg,
+                                borderWidth: 2,
+                                borderColor: style.border,
+                                color: style.text,
+                                boxShadow: style.glow ? `0 0 12px ${currentInfo?.groupColor}30` : "none",
                             }}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.95 }}
+                            whileHover={!confirmed ? { scale: 1.12, y: -2 } : {}}
+                            whileTap={!confirmed ? { scale: 0.92 } : {}}
                         >
-                            {ch === "." ? "·" : ch}
+                            {ch}
                         </motion.button>
-                    ))}
-                    {unassigned.length === 0 && !autoSorted && (
-                        <p className="text-[10px] text-white/20 italic self-center">All characters assigned!</p>
-                    )}
-                </div>
-                {selectedChar && (
-                    <p className="text-[10px] text-violet-400/60 mt-1.5">
-                        Click a group below to place &apos;{selectedChar}&apos;
-                    </p>
-                )}
+                    );
+                })}
             </div>
 
-            {/* Groups */}
-            <div className="grid grid-cols-2 gap-3">
-                {groups.map(group => (
-                    <motion.button
-                        key={group.id}
-                        onClick={() => assignToGroup(group.id)}
-                        disabled={!selectedChar}
-                        className="rounded-lg border p-3 text-left transition-all min-h-[80px]"
-                        style={{
-                            borderColor: selectedChar ? group.color + "40" : "rgba(255,255,255,0.06)",
-                            backgroundColor: selectedChar ? group.color + "08" : "rgba(255,255,255,0.02)",
-                            cursor: selectedChar ? "pointer" : "default",
-                        }}
-                        whileHover={selectedChar ? { scale: 1.02 } : {}}
-                    >
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: group.color + "60" }} />
-                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest" style={{ color: group.color }}>
-                                {group.label}
-                            </span>
-                            {showInsight && (
-                                <span className="text-[9px] font-mono text-white/20">
-                                    ({group.hint})
-                                </span>
-                            )}
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                            {group.members.map(ch => (
-                                <motion.span
-                                    key={ch}
-                                    layout
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className="inline-flex items-center justify-center w-6 h-6 rounded text-[11px] font-mono font-bold cursor-pointer hover:opacity-60"
-                                    style={{
-                                        backgroundColor: group.color + "25",
-                                        color: group.color,
-                                    }}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        removeFromGroup(group.id, ch);
-                                    }}
-                                    title={`Remove '${ch}' from group`}
-                                >
-                                    {ch === "." ? "·" : ch}
-                                </motion.span>
-                            ))}
-                        </div>
-                    </motion.button>
-                ))}
-            </div>
-
-            {/* Progress */}
-            <div className="flex items-center gap-2">
-                <div className="flex-1 h-1.5 rounded-full bg-white/[0.05] overflow-hidden">
-                    <motion.div
-                        className="h-full rounded-full bg-violet-500/40"
-                        animate={{ width: `${(totalAssigned / ALL_CHARS.length) * 100}%` }}
-                    />
-                </div>
-                <span className="text-[9px] font-mono text-white/25">{totalAssigned}/{ALL_CHARS.length}</span>
-            </div>
-
-            {/* Insight reveal */}
-            {(totalAssigned >= ALL_CHARS.length * 0.7 || showInsight) && (
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="rounded-lg border border-violet-500/[0.2] bg-violet-500/[0.05] p-4"
-                >
-                    <p className="text-[10px] font-mono text-violet-400/70 uppercase tracking-widest mb-1">
-                        Insight
-                    </p>
-                    <p className="text-sm text-white/60 leading-relaxed">
-                        By sorting characters into groups, you just assigned each letter a <strong className="text-white/80">categorical feature</strong>.
-                        Group A (vowels), Group B (common consonants), etc. — each group is like a dimension.
-                        What if instead of categories, you assigned <em>numbers</em>? Then each letter would become a point in space,
-                        and similar letters would be <strong className="text-white/80">close together</strong>.
-                    </p>
-                    {!showInsight && (
+            {/* Selection count & actions */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-mono text-white/30">
+                        {selected.size} selected
+                    </span>
+                    {!confirmed && selected.size === 0 && (
                         <button
-                            onClick={() => setShowInsight(true)}
-                            className="text-[10px] font-mono text-violet-400/60 hover:text-violet-400 mt-2 transition-colors"
+                            onClick={handleAutoComplete}
+                            className="text-[10px] font-mono text-violet-400/40 hover:text-violet-400/70 transition-colors"
                         >
-                            Reveal group names →
+                            Show me →
                         </button>
                     )}
-                </motion.div>
-            )}
+                </div>
+
+                {!confirmed && selected.size > 0 && (
+                    <motion.button
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        onClick={handleConfirm}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold
+                            bg-violet-500/20 text-violet-300 border border-violet-500/30 hover:bg-violet-500/30 transition-all"
+                    >
+                        <Check className="w-3.5 h-3.5" />
+                        Check my answer
+                    </motion.button>
+                )}
+
+                {confirmed && (
+                    <motion.div
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex items-center gap-3"
+                    >
+                        {score && (
+                            <span className="text-xs font-mono" style={{ color: score.correct === score.total ? "#22c55e" : "#f59e0b" }}>
+                                {score.correct}/{score.total} correct
+                            </span>
+                        )}
+                        <button
+                            onClick={handleNext}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold
+                                bg-violet-500/20 text-violet-300 border border-violet-500/30 hover:bg-violet-500/30 transition-all"
+                        >
+                            {step === 1 ? "See the insight" : "Next step"}
+                            <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                    </motion.div>
+                )}
+            </div>
         </div>
     );
 }

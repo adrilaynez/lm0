@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo,useState } from "react";
+import { useMemo, useState } from "react";
 
 import { motion } from "framer-motion";
-import { AlertTriangle,Database } from "lucide-react";
+import { AlertTriangle, Database } from "lucide-react";
 
 import { useI18n } from "@/i18n/context";
 
@@ -112,9 +112,14 @@ export function InfiniteTableThoughtExperiment() {
                     <span className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">
                         {t("ngram.widgets.infiniteTable.trainingDataSize")}
                     </span>
-                    <span className="font-mono text-sm text-amber-300 font-bold">
-                        {t("ngram.widgets.infiniteTable.tokensLabel", { count: step.label })}
-                    </span>
+                    <div className="text-right">
+                        <span className="font-mono text-sm text-amber-300 font-bold">
+                            {t("ngram.widgets.infiniteTable.tokensLabel", { count: step.label })}
+                        </span>
+                        <span className="block text-[10px] text-white/30 mt-0.5">
+                            {t(`ngram.widgets.infiniteTable.scale.s${stepIdx}`)}
+                        </span>
+                    </div>
                 </div>
                 <input
                     type="range"

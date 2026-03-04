@@ -1,17 +1,17 @@
 "use client";
 
-import { useCallback,useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { Activity, AlertTriangle, ChevronDown, ChevronUp,Cpu, GitCompareArrows, Layers, Loader2, Sparkles, TrendingDown } from "lucide-react";
+import { Activity, AlertTriangle, ChevronDown, ChevronUp, Cpu, GitCompareArrows, Layers, Loader2, Sparkles, TrendingDown } from "lucide-react";
 
 import { useI18n } from "@/i18n/context";
-import type { MLPGenerateResponse,MLPGridConfig, MLPTimelineResponse } from "@/types/lmLab";
+import type { MLPGenerateResponse, MLPGridConfig, MLPTimelineResponse } from "@/types/lmLab";
 
 import { CrossConfigScatterPlot } from "./CrossConfigScatterPlot";
 import { EmbeddingDriftAnimator } from "./EmbeddingDriftAnimator";
 import { GeneralizationGapHeatmap } from "./GeneralizationGapHeatmap";
 import { NearestNeighborExplorer } from "./NearestNeighborExplorer";
-import { ActivationSaturationHeatmap,GradientHealthHeatmap } from "./SnapshotDiagnostics";
+import { ActivationSaturationHeatmap, GradientHealthHeatmap } from "./SnapshotDiagnostics";
 
 /* ─────────────────────────────────────────────
    MLPHyperparameterExplorer — v2
@@ -111,54 +111,6 @@ function Expandable({ title, defaultOpen = false, children }: { title: string; d
     );
 }
 
-// ── Onboarding Overlay ──────────────────────────────────
-
-function OnboardingOverlay({ onDismiss }: { onDismiss: () => void }) {
-    const { t } = useI18n();
-    const [step, setStep] = useState(0);
-    const steps = [
-        { key: "scatter", highlight: "scatter" },
-        { key: "sliders", highlight: "sliders" },
-        { key: "metrics", highlight: "metrics" },
-    ] as const;
-    const current = steps[step];
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onDismiss}>
-            <div className="relative max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
-                <div className="rounded-2xl border border-violet-500/30 bg-zinc-900/95 p-6 shadow-2xl">
-                    <div className="flex items-center gap-2 mb-4">
-                        <Sparkles className="w-4 h-4 text-violet-400" />
-                        <span className="text-xs font-mono font-bold uppercase tracking-widest text-violet-300">
-                            {t("models.mlp.explorer.onboarding.title")}
-                        </span>
-                    </div>
-                    <p className="text-sm text-white/70 leading-relaxed mb-4">
-                        {t(`models.mlp.explorer.onboarding.${current.key}.text`)}
-                    </p>
-                    <div className="flex items-center justify-between">
-                        <div className="flex gap-1.5">
-                            {steps.map((_, i) => (
-                                <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === step ? "bg-violet-400" : "bg-white/20"}`} />
-                            ))}
-                        </div>
-                        <div className="flex gap-2">
-                            {step < steps.length - 1 ? (
-                                <button onClick={() => setStep(step + 1)} className="px-3 py-1.5 rounded-lg bg-violet-500/20 hover:bg-violet-500/30 text-xs font-mono text-violet-300 transition-colors">
-                                    {t("models.mlp.explorer.onboarding.next")}
-                                </button>
-                            ) : (
-                                <button onClick={onDismiss} className="px-3 py-1.5 rounded-lg bg-violet-500 hover:bg-violet-600 text-xs font-mono text-white font-bold transition-colors">
-                                    {t("models.mlp.explorer.onboarding.gotIt")}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 // ── Anomaly / sanity flags ──────────────────────────────
 
@@ -506,24 +458,11 @@ export function MLPHyperparameterExplorer({
     isNarrativeMode = false,
 }: MLPHyperparameterExplorerProps) {
     const { t } = useI18n();
-    const safeConfigs = configs ?? [];
+    const safeConfigs = useMemo(() => (configs ?? []).filter(c => c.embedding_dim > 0), [configs]);
     const embDimOptions = useMemo(() => uniqueSorted(safeConfigs.map(c => c.embedding_dim)), [safeConfigs]);
     const hiddenSizeOptions = useMemo(() => uniqueSorted(safeConfigs.map(c => c.hidden_size)), [safeConfigs]);
     const lrOptions = useMemo(() => uniqueSorted(safeConfigs.map(c => c.learning_rate)), [safeConfigs]);
 
-    // Onboarding overlay state (narrative mode only)
-    const [showOnboarding, setShowOnboarding] = useState(() => {
-        if (!isNarrativeMode) return false;
-        if (typeof window === "undefined") return false;
-        return !localStorage.getItem("mlp-explorer-onboarding-seen");
-    });
-
-    const handleDismissOnboarding = useCallback(() => {
-        setShowOnboarding(false);
-        if (typeof window !== "undefined") {
-            localStorage.setItem("mlp-explorer-onboarding-seen", "true");
-        }
-    }, []);
 
     const [embDim, setEmbDim] = useState(selectedConfig?.embedding_dim ?? embDimOptions[0] ?? 8);
     const [hiddenSize, setHiddenSize] = useState(selectedConfig?.hidden_size ?? hiddenSizeOptions[0] ?? 128);
@@ -629,7 +568,6 @@ export function MLPHyperparameterExplorer({
 
     return (
         <>
-            {showOnboarding && <OnboardingOverlay onDismiss={handleDismissOnboarding} />}
             <div className="space-y-10">
 
                 {/* ══════════════════════════════════════════════════

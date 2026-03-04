@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef,useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
     fetchMLPEmbedding,
@@ -95,9 +95,17 @@ export function useMLPGrid(): UseMLPGridReturn {
                 }));
                 setConfigs(configs);
                 setDatasetInfo(res.dataset_info ?? null);
-                // Auto-select first config
+                // Auto-select config with the best validation loss (ignoring embedding_dim = 0 baseline)
                 if (configs.length > 0) {
-                    setSelectedConfig(configs[0]);
+                    const validConfigs = configs.filter(c => c.embedding_dim > 0);
+                    if (validConfigs.length > 0) {
+                        const bestConfig = validConfigs.reduce((best, current) =>
+                            (current.final_val_loss ?? current.final_loss) < (best.final_val_loss ?? best.final_loss) ? current : best
+                        );
+                        setSelectedConfig(bestConfig);
+                    } else {
+                        setSelectedConfig(configs[0]);
+                    }
                 }
             })
             .catch((err) => {
@@ -123,12 +131,13 @@ export function useMLPGrid(): UseMLPGridReturn {
     /* ── Select closest config by hyperparameters ── */
     const selectClosest = useCallback(
         (params: { embeddingDim?: number; hiddenSize?: number; learningRate?: number }) => {
-            if (configs.length === 0) return;
+            const eligible = configs.filter(c => c.embedding_dim > 0);
+            if (eligible.length === 0) return;
 
-            let best = configs[0];
+            let best = eligible[0];
             let bestDist = Infinity;
 
-            for (const c of configs) {
+            for (const c of eligible) {
                 let d = 0;
                 if (params.embeddingDim !== undefined) {
                     d += Math.abs(Math.log(c.embedding_dim + 1) - Math.log(params.embeddingDim + 1));

@@ -35,7 +35,11 @@ export function CompressionRatioCalculator() {
         const compressionRatio = oneHotTotal / embTotal;
         const dimsReduction = oneHotInputDim / embInputDim;
 
-        return { oneHotInputDim, oneHotTotal, embInputDim, embMatrixParams, embTotal, compressionRatio, dimsReduction };
+        // N-gram table size: V^contextSize entries, each with V probabilities
+        const ngramTableSize = Math.pow(vocabSize, contextSize) * vocabSize;
+        const ngramOverflow = contextSize > 5 || ngramTableSize > 1e10;
+
+        return { oneHotInputDim, oneHotTotal, embInputDim, embMatrixParams, embTotal, compressionRatio, dimsReduction, ngramTableSize, ngramOverflow };
     }, [vocabSize, contextSize, embDim]);
 
     const dims = [
@@ -70,7 +74,17 @@ export function CompressionRatioCalculator() {
             </div>
 
             {/* Comparison cards */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-2">
+                <div className="rounded-lg border border-amber-500/[0.15] bg-amber-500/[0.04] p-3">
+                    <p className="text-[9px] font-mono text-amber-400/60 uppercase tracking-widest mb-1">N-gram Table</p>
+                    {stats.ngramOverflow ? (
+                        <p className="text-sm font-mono font-bold text-amber-400 tabular-nums">Too large!</p>
+                    ) : (
+                        <p className="text-lg font-mono font-bold text-white tabular-nums">{fmt(stats.ngramTableSize)}</p>
+                    )}
+                    <p className="text-[9px] text-white/25 font-mono">entries</p>
+                    <p className="text-[9px] text-white/20 font-mono mt-1">V^N = {vocabSize}^{contextSize}</p>
+                </div>
                 <div className="rounded-lg border border-rose-500/[0.15] bg-rose-500/[0.04] p-3">
                     <p className="text-[9px] font-mono text-rose-400/60 uppercase tracking-widest mb-1">One-Hot</p>
                     <p className="text-lg font-mono font-bold text-white tabular-nums">{fmt(stats.oneHotTotal)}</p>
