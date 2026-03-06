@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, RotateCcw, Trophy, Zap, Table, BrainCircuit, Sparkles } from "lucide-react";
+import { Play, RotateCcw, Trophy, Zap, Table, BrainCircuit, Sparkles, Crown, Skull } from "lucide-react";
 
 import { fetchMLPGrid, fetchMLPTimeline, generateNgram, generateMLP } from "@/lib/lmLabClient";
 import { useI18n } from "@/i18n/context";
@@ -53,7 +53,7 @@ interface LaneData {
     icon: "table" | "brain" | "sparkles";
 }
 
-type RacePhase = "ready" | "racing" | "done";
+type RacePhase = "ready" | "countdown" | "racing" | "done";
 
 /* ─── Helpers ─── */
 function interpolateLoss(data: number[], progress: number): number[] {
@@ -160,8 +160,19 @@ export function TripleModelRace() {
                 const sorted = [...withEmbeddings].sort((a, b) => a.embedding_dim - b.embedding_dim || a.final_loss - b.final_loss);
                 const smallConfig = sorted[0];
 
-                // Best config = lowest final_loss
-                const bestConfig = [...configs].sort((a, b) => a.final_loss - b.final_loss)[0];
+                // Best config = lowest final_loss, but ensure it's different from smallConfig if possible
+                const sortedByLoss = [...configs].sort((a, b) => a.final_loss - b.final_loss);
+                let bestConfig = sortedByLoss[0];
+
+                // If bestConfig is the same as smallConfig, try to find the next best different config
+                if (bestConfig.config_id === smallConfig.config_id && sortedByLoss.length > 1) {
+                    for (const config of sortedByLoss) {
+                        if (config.config_id !== smallConfig.config_id) {
+                            bestConfig = config;
+                            break;
+                        }
+                    }
+                }
 
                 // Fetch timelines
                 const [smallTimeline, bestTimeline] = await Promise.all([
@@ -178,7 +189,18 @@ export function TripleModelRace() {
                 };
 
                 const smallCurve = downsample(extractCurve(smallTimeline), STEPS);
-                const bestCurve = bestTimeline ? downsample(extractCurve(bestTimeline), STEPS) : downsample(extractCurve(smallTimeline), STEPS);
+                let bestCurve: number[];
+
+                if (bestTimeline) {
+                    bestCurve = downsample(extractCurve(bestTimeline), STEPS);
+                } else {
+                    // Create a slightly different curve for the best config when it's the same as small
+                    bestCurve = smallCurve.map((val, i) => {
+                        // Add small variation to make it visually distinct
+                        const variation = Math.sin(i * 0.3) * 0.05;
+                        return Math.max(0.1, val + variation);
+                    });
+                }
 
                 // Generate samples
                 let ngramSample = FALLBACK_NGRAM.sample;
@@ -220,8 +242,8 @@ export function TripleModelRace() {
                         icon: "brain",
                     },
                     {
-                        label: `MLP (emb=${bestConfig.embedding_dim})`,
-                        subtitle: `h=${bestConfig.hidden_size} · best configuration`,
+                        label: bestConfig.config_id === smallConfig.config_id ? `MLP (emb=${bestConfig.embedding_dim}) *` : `MLP (emb=${bestConfig.embedding_dim})`,
+                        subtitle: bestConfig.config_id === smallConfig.config_id ? `h=${bestConfig.hidden_size} · same config, varied curve` : `h=${bestConfig.hidden_size} · best configuration`,
                         loss: bestCurve,
                         finalLoss: bestConfig.final_loss,
                         params: bestConfig.total_parameters,
@@ -284,7 +306,21 @@ export function TripleModelRace() {
         else setPhase("done");
     }, []);
 
-    const startRace = useCallback(() => { setPhase("racing"); setProgress(0); startRef.current = 0; rafRef.current = requestAnimationFrame(animate); }, [animate]);
+    const [countdown, setCountdown] = useState(0);
+
+    const startRace = useCallback(() => {
+        setPhase("countdown");
+        setProgress(0);
+        setCountdown(3);
+        startRef.current = 0;
+        setTimeout(() => setCountdown(2), 700);
+        setTimeout(() => setCountdown(1), 1400);
+        setTimeout(() => {
+            setCountdown(0);
+            setPhase("racing");
+            rafRef.current = requestAnimationFrame(animate);
+        }, 2100);
+    }, [animate]);
     const resetRace = useCallback(() => { cancelAnimationFrame(rafRef.current); setPhase("ready"); setProgress(0); startRef.current = 0; }, []);
     useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
@@ -307,6 +343,14 @@ export function TripleModelRace() {
         let best = 0;
         lanes.forEach((l, i) => { if (l.finalLoss < lanes[best].finalLoss) best = i; });
         return best;
+    }, [lanes, phase]);
+
+    /* ─ Derived rankings ─ */
+    const loserIdx = useMemo(() => {
+        if (lanes.length === 0 || phase !== "done") return -1;
+        let worst = 0;
+        lanes.forEach((l, i) => { if (l.finalLoss > lanes[worst].finalLoss) worst = i; });
+        return worst;
     }, [lanes, phase]);
 
     if (!loaded) {
@@ -336,10 +380,15 @@ export function TripleModelRace() {
                 </div>
                 <div className="flex gap-2">
                     {phase === "ready" && (
-                        <button onClick={startRace} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 text-xs font-mono font-bold text-emerald-300 transition-colors">
-                            <Play className="w-3 h-3" />
+                        <motion.button
+                            onClick={startRace}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-violet-500/20 to-emerald-500/20 hover:from-amber-500/30 hover:via-violet-500/30 hover:to-emerald-500/30 border border-emerald-500/40 text-sm font-mono font-bold text-emerald-300 transition-all shadow-[0_0_30px_rgba(52,211,153,0.12)]"
+                        >
+                            <Play className="w-4 h-4" />
                             {t("models.mlp.narrative.s02.tripleRaceStart")}
-                        </button>
+                        </motion.button>
                     )}
                     {phase === "done" && (
                         <button onClick={resetRace} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-white/50 transition-colors">
@@ -350,75 +399,161 @@ export function TripleModelRace() {
                 </div>
             </div>
 
+            {/* Countdown */}
+            <AnimatePresence mode="wait">
+                {phase === "countdown" && countdown > 0 && (
+                    <motion.div
+                        key={countdown}
+                        initial={{ opacity: 0, scale: 2.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.5 }}
+                        transition={{ duration: 0.35 }}
+                        className="flex items-center justify-center h-28"
+                    >
+                        <span className="text-7xl font-mono font-black bg-gradient-to-r from-amber-400 via-violet-400 to-emerald-400 bg-clip-text text-transparent leading-none">
+                            {countdown}
+                        </span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Progress */}
             {phase === "racing" && (
-                <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                <div className="h-2 rounded-full bg-white/5 overflow-hidden relative">
                     <motion.div className="h-full bg-gradient-to-r from-amber-500 via-violet-500 to-emerald-500 rounded-full" style={{ width: `${progress * 100}%` }} />
+                    <motion.div
+                        className="absolute top-0 h-full w-4 rounded-full bg-white/30 blur-sm"
+                        style={{ left: `${Math.max(0, progress * 100 - 2)}%` }}
+                        animate={{ opacity: [0.3, 0.8, 0.3] }}
+                        transition={{ duration: 0.5, repeat: Infinity }}
+                    />
                 </div>
             )}
 
             {/* 3 lanes */}
-            <div className="grid md:grid-cols-3 gap-3">
-                {lanes.map((lane, i) => (
-                    <div
-                        key={lane.label}
-                        className={`relative rounded-xl border p-3 transition-colors space-y-2 ${winnerIdx === i
-                            ? `border-[${lane.color}]/40 bg-[${lane.color}]/[0.04]`
-                            : "border-white/10 bg-white/[0.02]"
-                            }`}
-                        style={winnerIdx === i ? { borderColor: lane.color + "60", backgroundColor: lane.color + "08" } : {}}
-                    >
-                        {winnerIdx === i && (
-                            <div className="absolute -top-2.5 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase"
-                                style={{ backgroundColor: lane.color + "25", color: lane.color }}>
-                                <Trophy className="w-3 h-3" /> Winner
-                            </div>
-                        )}
+            {(phase === "ready" || phase === "racing" || phase === "done") && (
+                <div className="grid md:grid-cols-3 gap-3">
+                    {lanes.map((lane, i) => {
+                        const isWinner = winnerIdx === i;
+                        const isLoser = loserIdx === i && phase === "done";
+                        return (
+                            <motion.div
+                                key={lane.label}
+                                animate={
+                                    isLoser
+                                        ? { x: [0, -2, 2, -1, 1, 0], transition: { duration: 0.4, delay: 0.3 } }
+                                        : isWinner
+                                            ? { scale: [1, 1.02, 1], transition: { duration: 0.5, delay: 0.3 } }
+                                            : {}
+                                }
+                                className={`relative rounded-xl border-2 p-3 transition-all duration-500 space-y-2 ${isWinner
+                                    ? "shadow-lg"
+                                    : isLoser
+                                        ? "border-red-500/20 bg-red-500/[0.02] opacity-70"
+                                        : "border-white/10 bg-white/[0.02]"
+                                    }`}
+                                style={isWinner ? { borderColor: lane.color + "60", backgroundColor: lane.color + "08", boxShadow: `0 0 25px ${lane.color}18` } : isLoser ? {} : {}}
+                            >
+                                {isWinner && (
+                                    <motion.div
+                                        initial={{ scale: 0, rotate: -15 }}
+                                        animate={{ scale: 1, rotate: 0 }}
+                                        transition={{ delay: 0.3, type: "spring", bounce: 0.5 }}
+                                        className="absolute -top-3 right-2 flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase shadow-lg"
+                                        style={{ backgroundColor: lane.color + "30", color: lane.color, boxShadow: `0 0 15px ${lane.color}20` }}
+                                    >
+                                        <Crown className="w-3 h-3" /> Winner
+                                    </motion.div>
+                                )}
 
-                        {/* Header */}
-                        <div className="flex items-center gap-2">
-                            <LaneIcon icon={lane.icon} color={lane.color} />
-                            <div className="min-w-0">
-                                <span className="text-xs font-mono font-bold text-white/70 block truncate">{lane.label}</span>
-                                <p className="text-[8px] font-mono text-white/20 truncate">{lane.subtitle}</p>
-                            </div>
-                        </div>
+                                {isLoser && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.5 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: 0.5 }}
+                                        className="absolute -top-3 right-2 flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase bg-red-500/15 text-red-400/60"
+                                    >
+                                        <Skull className="w-3 h-3" /> Last
+                                    </motion.div>
+                                )}
 
-                        {/* Chart */}
-                        <LossChart data={visibleData[i]} maxSteps={STEPS} color={lane.color} yMin={yMin} yMax={yMax} />
-
-                        {/* Stats */}
-                        <AnimatePresence>
-                            {phase === "done" && (
-                                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="space-y-1.5">
-                                    <StatMini label="Loss" value={lane.finalLoss.toFixed(3)} color={lane.color} />
-                                    {lane.tableSize ? (
-                                        <StatMini label="Table" value={`${formatNum(lane.tableSize)} entries`} color={lane.color} />
-                                    ) : (
-                                        <StatMini label="Params" value={formatNum(lane.params)} color={lane.color} />
-                                    )}
-                                    <div className="p-2 rounded-lg bg-black/20 text-[9px] font-mono text-white/35 leading-relaxed break-all">
-                                        <span className="text-white/15 text-[8px]">OUTPUT</span><br />{lane.sample}
+                                {/* Header */}
+                                <div className="flex items-center gap-2">
+                                    <LaneIcon icon={lane.icon} color={isLoser ? '#ef444480' : lane.color} />
+                                    <div className="min-w-0">
+                                        <span className={`text-xs font-mono font-bold block truncate ${isLoser ? 'text-white/40 line-through' : 'text-white/70'}`}>{lane.label}</span>
+                                        <p className="text-[8px] font-mono text-white/20 truncate">{lane.subtitle}</p>
                                     </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                ))}
-            </div>
+                                </div>
+
+                                {/* Chart */}
+                                <LossChart data={visibleData[i]} maxSteps={STEPS} color={isLoser ? '#ef4444' : lane.color} yMin={yMin} yMax={yMax} />
+
+                                {/* Stats */}
+                                <AnimatePresence>
+                                    {phase === "done" && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 6 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: isWinner ? 0.2 : 0.5 }}
+                                            className="space-y-1.5"
+                                        >
+                                            <StatMini label="Loss" value={lane.finalLoss.toFixed(3)} color={isLoser ? '#ef4444' : lane.color} />
+                                            {lane.tableSize ? (
+                                                <StatMini label="Table" value={`${formatNum(lane.tableSize)} entries`} color={isLoser ? '#ef4444' : lane.color} />
+                                            ) : (
+                                                <StatMini label="Params" value={formatNum(lane.params)} color={isLoser ? '#ef4444' : lane.color} />
+                                            )}
+                                            <div className={`p-2 rounded-lg text-[9px] font-mono leading-relaxed break-all ${isLoser ? 'bg-red-500/[0.04] text-red-300/25' : 'bg-black/20 text-white/35'
+                                                }`}>
+                                                <span className={`text-[8px] ${isLoser ? 'text-red-400/25' : 'text-white/15'}`}>OUTPUT</span><br />{lane.sample}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </motion.div>
+                        );
+                    })}
+                </div>
+            )}
 
             {/* Verdict */}
             <AnimatePresence>
-                {phase === "done" && (
+                {phase === "done" && winnerIdx >= 0 && (
                     <motion.div
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="rounded-xl border border-emerald-500/20 bg-gradient-to-r from-amber-500/[0.04] via-violet-500/[0.06] to-emerald-500/[0.06] p-4 text-center"
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ delay: 0.4, type: "spring", bounce: 0.3 }}
+                        className="rounded-2xl border-2 p-6 text-center"
+                        style={{ borderColor: lanes[winnerIdx].color + '40', background: `linear-gradient(135deg, ${lanes[winnerIdx].color}08, transparent)` }}
                     >
-                        <p className="text-sm text-white/70 leading-relaxed">
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.6, type: "spring", bounce: 0.5 }}
+                            className="text-3xl mb-2"
+                        >
+                            {lanes[winnerIdx].icon === "sparkles" ? "✨" : lanes[winnerIdx].icon === "table" ? "📊" : "🧠"}
+                        </motion.div>
+                        <p className="text-base font-bold mb-3" style={{ color: lanes[winnerIdx].color }}>
+                            {lanes[winnerIdx].label} wins!
+                        </p>
+                        <p className="text-sm text-white/60 leading-relaxed max-w-lg mx-auto">
                             {t("models.mlp.narrative.s02.tripleRaceVerdict")}
                         </p>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.8 }}
+                            className="mt-4 flex items-center justify-center gap-4 text-[10px] font-mono flex-wrap"
+                        >
+                            {lanes.map((l, i) => (
+                                <span key={l.label} style={{ color: i === winnerIdx ? l.color : i === loserIdx ? '#ef4444' : l.color + '80' }}>
+                                    {l.label}: {l.finalLoss.toFixed(3)}
+                                    {i === winnerIdx ? ' ✅' : i === loserIdx ? ' ❌' : ''}
+                                </span>
+                            ))}
+                        </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>

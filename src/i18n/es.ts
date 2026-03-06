@@ -1136,27 +1136,49 @@ export const es: TranslationDictionary = {
                     eyebrow: "Capítulo 4 · Modelado Neural del Lenguaje 👾",
                     titlePrefix: "El Monstruo",
                     titleHighlight: "sin Ojos",
-                    description: "Construiste los bloques — neuronas, pesos, activaciones, retropropagación. Ahora ensamblémoslos en algo poderoso, profundo y fundamentalmente ciego. Conoce al Perceptrón Multicapa.",
-                    readTime: "~50 min de lectura · 60+ demos interactivos",
+                    description: "Construiste los bloques. Ahora ensamblemoslos en la arquitectura detrás de cada modelo de lenguaje moderno — y descubre por qué es poderoso y fundamentalmente ciego a la vez.",
+                    readTime: "~65 min de lectura · 60+ demos interactivos",
                 },
                 sections: {
                     s01: { number: "01", label: "El Monstruo" },
                     s02: { number: "02", label: "Enseñarle a Ver" },
-                    s03: { number: "03", label: "El Cerebro" },
-                    s04: { number: "04", label: "Más Grande" },
-                    s05: { number: "05", label: "Se Rompe" },
-                    s06: { number: "06", label: "Domando" },
-                    s07: { number: "07", label: "La Receta" },
-                    s08: { number: "08", label: "No Puede Ver" },
+                    s03: { number: "03", label: "Los Ojos" },
+                    s04: { number: "04", label: "El Cerebro" },
+                    s05: { number: "05", label: "Más Grande" },
+                    s06: { number: "06", label: "Se Rompe" },
+                    s07: { number: "07", label: "Domando" },
+                    s08: { number: "08", label: "La Receta" },
+                    s09: { number: "09", label: "No Puede Ver" },
                 },
                 s01: {
                     heading: "Conoce al Monstruo",
                     lead: "Construyamos algo. No otra neurona sola, no otra tabla de conteo — un Perceptrón Multicapa real. Capas de neuronas, apiladas en profundidad, procesando contexto. ¿Puede vencer al N-grama? Averigüémoslo.",
 
-                    pMonsterIntro: "En el capítulo anterior, construiste una sola neurona y la viste aprender. Ahora vamos a hacer algo peligroso: apilar docenas de ellas en capas y crear algo con poder real. Conoce tu nuevo modelo: el MLP — Perceptrón Multicapa. En cristiano: un montón de neuronas apiladas en capas. Lo llamamos 'el monstruo' — no porque sea peligroso, sino porque es emergente. Aprenderá cosas que no le enseñamos explícitamente. Fallará de formas que no predijimos. Y entender por qué falla es cómo lo mejoraremos. 👾",
-                    pMlpNameBreakdown: "El monstruo tiene tres partes. Una capa de entrada, por donde introduces los datos. Capas ocultas, donde ocurre la magia — puedes tener 1, 2, 20 o 50 capas con tantas neuronas como quieras. Y una capa de salida que te da la predicción. Cada neurona hace exactamente lo que construiste en el capítulo anterior: suma ponderada, sesgo, activación. Los mismos bloques, solo más de ellos, organizados para ver contexto.",
+                    pMotivationModern: "Cada sistema de IA del que has oído hablar — ChatGPT, Claude, Midjourney — está construido con los mismos bloques que aprendiste en el capítulo anterior: neuronas, pesos, activaciones, retropropagación. ¿La diferencia? Escala. Una sola neurona aprendió patrones básicos. ¿Qué pasa cuando apilas miles de ellas en capas, les das contexto y las dejas descubrir sus propias representaciones? Obtienes la arquitectura detrás de cada modelo de lenguaje moderno. Construyamos uno.",
+                    pMotivationGap: "Ahora mismo, nuestra neurona individual ve un carácter a la vez y no tiene noción de similitud entre letras. No puede entender el lenguaje. Para llegar allí, necesitamos tres cosas: la capacidad de ver múltiples caracteres a la vez (contexto), una forma de entender que 'a' y 'e' son similares (representaciones), y suficiente profundidad computacional para encontrar patrones complejos (capas). El Perceptrón Multicapa nos da las tres.",
+
+                    pPreviouslyOn: "En el capítulo anterior, hicimos tres preguntas: ¿Qué pasaría si alimentáramos la red con más de un carácter? ¿Y si apiláramos capas en profundidad? ¿Y si pudiera inventar sus propias representaciones? Este capítulo responde las tres — y descubre problemas que nunca imaginamos.",
+
+                    pMonsterIntro: "Vamos a apilar docenas de neuronas en capas para crear algo con poder real: el MLP — Perceptrón Multicapa. Lo llamamos 'el monstruo' porque es emergente — aprenderá cosas que no le enseñamos, y fallará de formas que no predijimos. 👾",
+                    pMlpNameBreakdown: "Tres partes. La capa de entrada recibe tus datos. Las capas ocultas (1, 2 o 50 — tú eliges) son donde las neuronas detectan patrones — cada una hace lo mismo que construiste en el capítulo anterior: suma ponderada + sesgo + activación. La capa de salida también es una capa de pesos — toma la salida de la capa oculta y produce una puntuación por cada carácter posible (27 puntuaciones en total). Esas puntuaciones se convierten en probabilidades vía softmax. Más neuronas, más capas, más contexto = más poder.",
                     archLabel: "Interactivo · ¿Qué ES un MLP?",
                     archHint: "Haz clic en cada capa para ver qué hace. Pulsa 'Ver flujo de datos' para ver cómo la entrada viaja por la red. Este es el monstruo que estamos construyendo.",
+
+                    // Neuron zoom panel translations
+                    neuronZoomTitle: "Neurona Oculta",
+                    neuronZoomWhatItDoes: "¿Qué hace esta neurona?",
+                    neuronZoomWhatItDoesText: "Cada neurona es un pequeño detector de patrones. Recibe señales de todas las entradas, las multiplica por sus pesos, las suma con un sesgo y aplica una función de activación.",
+                    neuronZoomFormula: "Fórmula matemática:",
+                    neuronZoomWeights: "Pesos (wᵢ)",
+                    neuronZoomWeightsText: "Cada entrada tiene un peso que determina cuánto influye en esta neurona. Los pesos se aprenden durante el entrenamiento.",
+                    neuronZoomBias: "Sesgo (b)",
+                    neuronZoomBiasText: "Una constante que desplaza el umbral de activación de la neurona. Ayuda a la neurona a decidir cuándo activarse.",
+                    neuronZoomExamplePattern: "Ejemplo de patrón que podría detectar:",
+                    neuronZoomPattern0: "Patrones de vocales - aprende a activarse cuando ve vocales como 'a', 'e', 'i', 'o', 'u'",
+                    neuronZoomPattern1: "Finales comunes - detecta patrones como 'ing', 'ed', 'ción'",
+                    neuronZoomPattern2: "Letras dobles - aprende a reconocer 'll', 'ee', 'ss', 'tt'",
+                    neuronZoomPattern3: "Inicios de palabras - se activa para comienzos comunes como 'th', 'wh', 'an'",
+                    neuronZoomPattern4: "Formas de letras - detecta patrones visuales en secuencias de caracteres",
 
                     pCanWeBeat: "Ahora, ¿podemos finalmente derrotar al poderoso N-grama? Primero, hay un problema. ¿Cómo le metemos letras a este monstruo? ¿Cómo convertimos una letra en números para hacer una predicción?",
                     pEncodingIntro: "Entran números, salen números — así que necesitamos convertir caracteres a números. Nuestra codificación anterior usaba a=0, b=1, z=25 — pero eso implica que 'z' es 25 veces mayor que 'a', lo cual no tiene sentido.",
@@ -1184,10 +1206,12 @@ export const es: TranslationDictionary = {
                     raceVerdictMlpWins: "¡El MLP gana! Incluso con codificación one-hot básica, las capas ocultas le permiten encontrar patrones que el conteo no detecta. Pero mira más de cerca — el margen es pequeño, y ambos modelos comparten los mismos puntos ciegos. El monstruo necesita mejores ojos.",
 
                     pShockReaction: "Espera. ESPERA. Nuestro MLP tiene 3 capas ocultas, miles de parámetros y aprendizaje real basado en gradientes. El N-grama es solo una tabla de conteo. ¿Y GANÓ?! ¿Cómo es posible?",
-                    pDualDiagnosis: "Dos problemas frenan a nuestro monstruo. Primero: es completamente ciego. La codificación one-hot trata cada carácter como igualmente diferente — la 'a' está tan lejos de la 'e' como de la 'z'. El monstruo recibe CERO información sobre similitud. Segundo: apilar más capas sin cuidado no ayuda — puede hacer las cosas PEORES. Un monstruo más profundo no es un monstruo más inteligente. Es uno inestable.",
-                    pTameFraming: "Necesitamos domar a esta criatura. Paso a paso: primero, darle ojos para que vea similitud. Luego, entender su cerebro. Después, hacerlo más profundo sin romperlo. Finalmente, llevarlo a sus límites absolutos. Empecemos por el problema más devastador: el monstruo es ciego.",
+                    pInvestigateBridge: "Investiguemos. ¿Cómo lee nuestro monstruo su entrada? Cuando le damos 'h', 'e', 'l' — ¿qué es lo que realmente VE? Midamos la distancia entre caracteres tal como el modelo los percibe:",
 
-                    pBlindness: "En codificación one-hot, la distancia entre CUALQUIER par de caracteres es exactamente la misma: √2. La letra 'a' está tan lejos de la 'e' como de la 'z' o '.'. El monstruo es completamente ciego a la similitud.",
+                    blindnessCalloutTitle: "El Monstruo Es Ciego",
+                    pBlindness: "Todos los caracteres están exactamente a la misma distancia: √2. La letra 'a' está tan lejos de la 'e' como de la 'z' o '.'. Vocales, consonantes, puntuación — todos extraños idénticos. El monstruo no tiene ningún concepto de similitud.",
+                    pNotOnlyProblem: "Y ese no es el único problema. Apilar más capas sin cuidado no ayuda — puede hacer las cosas PEORES. Un monstruo más profundo no es un monstruo más inteligente. Es uno inestable.",
+                    pTameFraming: "Necesitamos domar a esta criatura. Paso a paso: primero, darle ojos para que vea similitud. Luego, entender su cerebro. Después, hacerlo más profundo sin romperlo. Finalmente, llevarlo a sus límites absolutos. Empecemos por el problema más devastador: el monstruo es ciego.",
                     figLabel2: "Interactivo · El Problema de la Ceguera",
                     figHint2: "Haz clic en cualquier carácter y observa su distancia a todos los demás. En modo one-hot, cada distancia es idéntica. Alterna a 'útil' para ver cómo serían distancias significativas.",
 
@@ -1195,7 +1219,6 @@ export const es: TranslationDictionary = {
                     panelTrainPreview: "Recorre un ciclo completo: forward pass → pérdida → backprop → actualización",
 
                     pMonsterStatus: "👾 El monstruo ha nacido — ciego e indisciplinado. Dos batallas por delante: enseñarle a ver, y luego enseñarle a crecer sin romperse.",
-                    narratorMoment: "Construimos un monstruo con capas y aprendizaje — y apenas compite con una tabla de conteo. Dos problemas: es ciego a la similitud (one-hot trata cada carácter igual), y añadir profundidad sin cuidado lo rompe. Dos batallas por delante. Primero: darle ojos.",
                     takeaway: "El MLP — Perceptrón Multicapa — toma múltiples caracteres como vectores one-hot concatenados, los procesa a través de capas ocultas y genera probabilidades. Puede competir con modelos de conteo, pero dos problemas lo frenan: la codificación one-hot desperdicia dimensiones y no codifica similitud, y apilar capas sin cuidado causa inestabilidad. El monstruo necesita ojos y disciplina.",
                 },
                 s02: {
@@ -1216,7 +1239,7 @@ export const es: TranslationDictionary = {
                     p3End: ". Imagina una tabla con una fila por carácter y varias columnas — cada columna es una característica. La red empieza con números aleatorios y los ajusta durante el entrenamiento, descubriendo patrones que nunca le dijimos. Cada fila se convierte en la 'descripción' de ese carácter — una lista de números que la red descubrió por sí sola.",
                     figLabelTable: "Interactivo · La Tabla de Embeddings",
                     figHintTable: "Haz clic en cualquier carácter para buscar su fila en la matriz de embedding. Observa cómo las vocales tienen patrones similares.",
-                    panelFormulaTitle: "1. Para los Curiosos Matemáticos",
+                    panelFormulaTitle: "1. Para los Curiosos Matemáticos.",
                     panelFormulaPreview: "Ve la ecuación formal de la búsqueda de embeddings",
                     formulaCaption: "Para los curiosos matemáticos: la búsqueda de embedding — seleccionar la fila t de la matriz E da un vector denso de D dimensiones.",
                     figLabel3: "Interactivo · Animador de Búsqueda de Embeddings",
@@ -1231,7 +1254,6 @@ export const es: TranslationDictionary = {
                     figHint4: "Ajusta el tamaño del vocabulario, la ventana de contexto y la dimensión del embedding. Ve cómo los embeddings reducen drásticamente los parámetros comparado con one-hot.",
                     calloutTitle: "Acabas de inventar los embeddings",
                     calloutText: "Al pasar de ordenar letras en grupos → asignar características numéricas → dejar que la red aprenda esas características automáticamente, has reinventado una de las ideas más importantes del aprendizaje automático. Esto es exactamente lo que Yoshua Bengio propuso en 2003.",
-                    pLearnedMeaning: "Cuando decimos que la red 'aprende' estos números, queremos decir que la matriz de embeddings se ajusta por descenso de gradiente — exactamente como los pesos de nuestra red neuronal. Cada fila es la representación de un carácter, refinada paso a paso durante el entrenamiento.",
 
                     pCanWeTrainPerfect: "Le dimos ojos al monstruo — embeddings que ven similitud. Pero ¿podemos entrenar el modelo perfecto? Descubrámoslo. Abajo, tres modelos compiten cara a cara: el 4-grama (conteo puro), un MLP con embeddings pequeños, y un MLP con la mejor configuración de embeddings que hemos encontrado. Dale a empezar y observa cómo se despliegan sus curvas de pérdida.",
                     tripleRaceTitle: "Carrera Triple de Modelos",
@@ -1248,85 +1270,172 @@ export const es: TranslationDictionary = {
                     takeaway: "Los embeddings reemplazan los vectores one-hot desperdiciados con representaciones densas y aprendidas donde tokens similares obtienen vectores similares. Más dimensiones capturan estructura más fina — y la carrera triple lo demuestra: embeddings más grandes → menor pérdida → mejor texto. El monstruo ya tiene ojos.",
                 },
                 s03: {
-                    heading: "El Cerebro del Monstruo",
-                    lead: "El monstruo puede ver — los embeddings le dieron ojos. Pero ¿qué pasa entre ver y predecir? ¿Qué está HACIENDO realmente la capa oculta? Abramos el cráneo.",
+                    heading: "Dentro de los Ojos",
+                    lead: "El monstruo aprendió a ver — los embeddings le dieron ojos. Pero ¿CÓMO se convierten números aleatorios en un mapa significativo del lenguaje? ¿Y qué aprendieron exactamente? Miremos dentro.",
 
-                    p1: "Tracemos exactamente qué pasa cuando el monstruo procesa una entrada. Dado \"hel\", necesita predecir el siguiente carácter. Observa el forward pass completo — desde la búsqueda de embedding, pasando por la capa oculta, hasta la distribución de probabilidad softmax.",
-                    pForwardPassIntro: "Recorre el forward pass operación por operación. Observa cómo los vectores de embedding se concatenan, luego se transforman por los pesos y función de activación de la capa oculta, y finalmente se comprimen a través de softmax en probabilidades.",
-                    figLabelForwardPass: "Interactivo · El Forward Pass del Monstruo",
-                    figHintForwardPass: "Haz clic en 'Siguiente Paso' para recorrer el forward pass del MLP: embed → concatenar → capa oculta → softmax. Observa cómo los caracteres crudos se convierten en predicciones.",
+                    pEyesIntro: "En §02, viste al monstruo ganar la vista. Pero nos saltamos la parte más fascinante: ¿CÓMO se organizan números aleatorios en un mapa de significado? La respuesta es la retropropagación — la misma señal de aprendizaje que ajusta los pesos también reforma los vectores de embedding. Cada paso de entrenamiento empuja el vector de cada carácter hacia posiciones que ayudan a predecir la siguiente letra.",
+                    figLabelBackpropEmb: "Interactivo · Cómo Aprenden los Embeddings",
+                    figHintBackpropEmb: "Avanza por las instantáneas de entrenamiento y observa el espacio de embeddings evolucionar. Haz clic en cualquier carácter para ver cómo cambia su vector. Observa cómo caracteres similares convergen por descenso de gradiente.",
+                    pEyesBridge: "Ese fue el principio de aprendizaje en acción. Ahora veamos lo real — embeddings de nuestro modelo entrenado evolucionando a lo largo de 50.000 pasos:",
 
-                    pPipelineIntro: "Ahora observa todo el pipeline funcionando junto — desde la búsqueda de embedding hasta la predicción del siguiente carácter. Cada componente ejecutándose como un sistema unificado.",
-                    figLabelPipeline: "Interactivo · Pipeline MLP Completo",
-                    figHintPipeline: "El pipeline completo del modelo de lenguaje MLP: búsqueda de embedding → concatenación → capas ocultas → softmax → predicción del siguiente carácter.",
-
-                    pWhyHiddenIntro: "OK, vemos el flujo de datos. Pero ¿qué está HACIENDO realmente la capa oculta? ¿Por qué la necesitamos? El problema es este: sin capas ocultas, una red neuronal solo puede aprender relaciones lineales. Solo puede dibujar líneas rectas. Algunos problemas necesitan curvas.",
-                    figLabelXOR: "Interactivo · Por Qué Importan las Capas Ocultas",
-                    figHintXOR: "Intenta separar A de B con una línea recta — imposible. Añade una capa oculta y la red dobla el espacio para resolverlo perfectamente.",
-
-                    pXORInsight: "Sin capas ocultas, la red solo puede dibujar líneas rectas a través de los datos. La capa oculta le permite DOBLAR el espacio — creando curvas, regiones y fronteras complejas que capturan patrones reales. Esta es la diferencia entre contar y pensar.",
-
-                    pNeuronExplorerIntro: "Cada neurona oculta de nuestro MLP entrenado se ha especializado. Durante el entrenamiento, diferentes neuronas aprendieron a detectar diferentes patrones — completamente por su cuenta. Haz clic en cualquier neurona abajo para ver a qué responde.",
-                    pHiddenLayerSecret: "La capa oculta permite a la red DOBLAR el espacio. Cada neurona calcula su propia suma ponderada + sesgo + tanh, creando un detector de características no lineal. Una neurona podría activarse ante pares vocal-consonante. Otra detecta letras dobles. Otra más reconoce terminaciones de palabras. Nada de esto está programado — todo se descubre durante el entrenamiento.",
-                    figLabelNeurons: "Interactivo · Qué Detecta Cada Neurona",
-                    figHintNeurons: "Haz clic en cualquier neurona oculta para ver los patrones de entrada que la activan más fuertemente (y menos). Cada neurona se ha especializado en un detector de características diferente.",
-
-                    pNeuronInsight: "Una neurona se activa ante pares de vocales. Otra detecta finales de palabras. Otra más reconoce clusters de consonantes. La red no sabía nada de estos conceptos — los descubrió porque ayudan a predecir el siguiente carácter. Esta es la magia de las representaciones aprendidas.",
-
-                    pTrigramBridge: "Este es el insight clave: sin capas ocultas, este cerebro es solo una tabla de conteo. Las capas ocultas son lo que lo hacen PENSAR, no solo contar. Demostrémoslo — misma entrada, dos cerebros completamente diferentes:",
-                    figLabelTrigram: "Interactivo · N-grama vs MLP: Misma Tarea, Cerebro Diferente",
-                    figHintTrigram: "Compara cómo un N-grama (búsqueda en tabla) y un MLP (cálculo matricial) manejan la misma entrada. El N-grama memoriza; el MLP generaliza.",
-
-                    pEmbEvolutionIntro: "La capa oculta transforma embeddings en predicciones. Pero ¿de dónde vinieron esos embeddings? Se APRENDIERON durante el entrenamiento — empezando del caos total y organizándose gradualmente en clusters significativos. Obsérvalo:",
                     figLabel1: "Interactivo · Timelapse de Entrenamiento de Embeddings",
                     figHint1: "Presiona play para ver embeddings 2D evolucionar de ruido aleatorio a clusters estructurados a lo largo de 50.000 pasos. Usa snapshots reales del modelo.",
 
-                    pPredictionIntro: "Has visto los clusters formarse. Ahora pon a prueba tu intuición: dados los embeddings existentes, ¿dónde crees que aterrizará un nuevo carácter?",
-                    figLabelPrediction: "Interactivo · Desafío de Predicción de Embeddings",
-                    figHintPrediction: "Adivina dónde aterrizará un carácter misterioso en el espacio de embeddings, luego revela la posición real. ¿Puedes predecir los clusters?",
+                    pCategoryIntro: "Los embeddings aprendieron estructura — pero ¿QUÉ estructura exactamente? Entrenamos cuatro modelos con diferentes tamaños de embedding: 2D, 10D, 32D y 128D. Compáralos abajo. A la red nunca se le dijo qué caracteres son vocales o consonantes — observa lo que descubre por su cuenta a medida que obtiene más dimensiones.",
+                    figLabelCategory: "Interactivo · Comparación de Categorías de Embeddings (4 Modelos)",
+                    figHintCategory: "Alterna entre embeddings de 2D, 10D, 32D y 128D. Observa cómo mejora la separación de clusters con más dimensiones. Color = categoría del carácter.",
+                    pCategoryInsight: "¿Lo notaste? Con solo 2 dimensiones, las categorías se confunden. A 10D, vocales, consonantes y puntuación forman clusters distintos. A 32D, incluso los sub-grupos emergen — las consonantes frecuentes se separan de las raras. La red descubrió CATEGORÍAS puramente de la tarea de predicción. Estas agrupaciones no estaban en los datos de entrenamiento — emergieron porque ayudan a predecir lo que viene después.",
 
-                    panelArithmeticTitle: "Profundización: Aritmética de Embeddings",
-                    panelArithmeticPreview: "¿Podemos hacer matemáticas reales con vectores aprendidos? Explora centroides y operaciones vectoriales.",
-                    pArithmeticBridge: "¿Podemos hacer algo más audaz — matemáticas reales con estos vectores aprendidos? Si las vocales realmente forman un grupo, su posición promedio (centroide) debería ser significativa.",
-                    p5: "Los centroides de grupo revelan cómo la red organiza los caracteres internamente — y las operaciones vectoriales muestran si las relaciones se codifican como direcciones consistentes.",
-                    figLabel5: "Interactivo · Aritmética de Embeddings",
-                    figHint5: "Explora centroides de grupo (vocales vs consonantes) y prueba aritmética vectorial: carácter A − carácter B + carácter C ≈ ?",
+                    pBottleneckIntro: "El analizador de categorías mostró que más dimensiones ayudan — pero ¿cuánto? Abajo, compara modelos reales entrenados con E=2 hasta E=128. Observa cómo la pérdida cae al aumentar las dimensiones, y luego se estabiliza cuando la red tiene suficiente espacio. Para 28 caracteres, hay un punto óptimo claro donde agregar más dimensiones deja de ayudar.",
+                    figLabelBottleneck: "Interactivo · Cuello de Botella de Dimensión de Embedding",
+                    figHintBottleneck: "Desliza por dimensiones de embedding E=2 a E=128. Observa la pérdida decrecer y luego estabilizarse. Ve cómo mejora la calidad del texto generado con cada paso.",
 
-                    pQualityBridge: "¿Importa realmente el número de dimensiones del embedding? ¿Qué pasaría si solo tuviéramos 2 dimensiones vs 32? La respuesta tiene consecuencias reales para el cerebro del monstruo — más dimensiones significa entrada más rica, pero también más parámetros que aprender.",
-                    p6: "Abajo, compara embeddings entrenados con 2, 10 y 32 dimensiones. Más dimensiones capturan estructura más fina — pero incluso 2 dimensiones muestran clustering notable.",
-                    figLabel6: "Interactivo · Comparación de Calidad de Embeddings",
-                    figHint6: "Proyecciones 2D lado a lado de embeddings entrenados con diferentes dimensiones. Más dimensiones → clusters más compactos y más estructura de sub-grupos.",
-
-                    panelDistanceTitle: "Profundización: Midiendo Distancia de Embeddings",
-                    panelDistancePreview: "Distancia Euclidiana vs similitud coseno — dos formas de medir cercanía en el espacio de embeddings.",
                     pDistanceConceptIntro: "Los caracteres viven como puntos en un espacio de coordenadas. ¿Cómo medimos si dos puntos están 'cerca'? La distancia Euclidiana mide la línea recta entre ellos. La similitud coseno mide el ángulo — dos caracteres pueden estar lejos pero 'apuntando en la misma dirección' desde el origen.",
-                    figLabelDistConcept: "Interactivo · Conceptos de Distancia",
-                    figHintDistConcept: "Arrastra dos puntos en espacio 2D. Observa la distancia Euclidiana y la similitud coseno actualizarse en tiempo real.",
                     p3: "Aplica estas métricas a embeddings reales aprendidos:",
                     p3H1: "distancia Euclidiana",
                     p3Mid: " y",
                     p3H2: "similitud coseno",
                     p3End: ". Los caracteres en contextos similares terminan con embeddings similares.",
-                    figLabel3: "Interactivo · Calculadora de Distancia de Embeddings",
-                    figHint3: "Elige dos caracteres y ve su distancia Euclidiana y similitud coseno en el espacio de embeddings aprendido.",
+
+                    panelDistanceTitle: "Pruébalo: Calculadora de Distancias",
+                    panelDistancePreview: "Calcula la distancia Euclidiana real y la similitud coseno entre dos embeddings de caracteres.",
+
+                    pPredictionIntro: "Has visto los clusters formarse. Ahora pon a prueba tu intuición: dados los embeddings existentes, ¿dónde crees que aterrizará un nuevo carácter?",
+                    figLabelPrediction: "Interactivo · Desafío de Predicción de Embeddings",
+                    figHintPrediction: "Adivina dónde aterrizará un carácter misterioso en el espacio de embeddings, luego revela la posición real. ¿Puedes predecir los clusters?",
+
+                    pAnalogyIntro: "Nuestros embeddings a nivel de carácter agrupan letras por tipo — las vocales se agrupan, las consonantes se agrupan. Pero ¿qué pasa cuando aplicas esta MISMA idea a palabras enteras en lugar de letras individuales? Modelos como Word2Vec y GPT hacen exactamente esto: asignan a cada palabra un vector de números, entrenado para que las palabras usadas en contextos similares tengan vectores similares.",
+                    pAnalogyIntro2: "El resultado es impresionante. En el espacio de embeddings de palabras, las direcciones codifican significado. La dirección de 'hombre' a 'rey' captura 'realeza.' Aplica esa misma dirección a 'mujer' y llegas cerca de 'reina.' Los sinónimos se agrupan. Los antónimos se sitúan cerca pero en lados opuestos de un eje de polaridad. Incluso las traducciones entre idiomas aterrizan en la misma región. El significado se convierte en geometría — y todo empieza con el mismo principio de embeddings que acabamos de explorar con caracteres.",
+                    figLabelAnalogy: "Ilustrativo · Analogías de Embeddings de Palabras",
+                    figHintAnalogy: "Selecciona un preset de analogía, luego pulsa 'Revelar' para ver la aritmética vectorial en acción. Cambia a la pestaña Vecindarios para ver cómo sinónimos, antónimos y familias de palabras se agrupan en el espacio de embeddings.",
+
+                    takeaway: "Los embeddings no son magia — se aprenden a través de la misma retropropagación que entrena el resto de la red. Cada paso de gradiente empuja los vectores de caracteres hacia posiciones que mejoran las predicciones. Más dimensiones capturan estructura más fina, y los clusters aprendidos revelan patrones lingüísticos genuinos: las vocales se agrupan, las consonantes se organizan por tipo. A escala de palabras, la misma idea permite analogías como rey − hombre + mujer ≈ reina. Los ojos del monstruo funcionan — ahora veamos qué hace su cerebro con lo que ve.",
+
+                    panelQualityTitle: "Profundización: Calidad de Embeddings Lado a Lado",
+                    panelQualityPreview: "Compara embeddings de 2D, 10D y 32D de los modelos del grid con métricas detalladas de clusters.",
+                    pQualityBridge: "¿Quieres ver más de cerca cómo las dimensiones del embedding afectan la calidad de los clusters? Abajo, compara tres modelos de nuestro grid de entrenamiento lado a lado — misma arquitectura, diferentes tamaños de embedding. Observa cómo la compactación de clusters y la estructura de sub-grupos mejoran con más dimensiones.",
+
+                    panelArithmeticTitle: "Profundización: Aritmética de Embeddings",
+                    panelArithmeticPreview: "¿Podemos hacer matemáticas reales con vectores aprendidos? Explora centroides y operaciones vectoriales.",
+                    pArithmeticBridge: "¿Podemos hacer algo más audaz — matemáticas reales con estos vectores aprendidos? Si las vocales realmente forman un grupo, su posición promedio (centroide) debería ser significativa.",
+                    p5: "Los centroides de grupo revelan cómo la red organiza los caracteres internamente — y las operaciones vectoriales muestran si las relaciones se codifican como direcciones consistentes.",
+
+                    // Claves mantenidas para referencias de §04 (forward pass, pipeline, neuronas, etc.)
+                    p1: "Tracemos exactamente qué pasa cuando el monstruo procesa una entrada. Dado \"hel\", necesita predecir el siguiente carácter. Observa el forward pass completo — desde la búsqueda de embedding, pasando por la capa oculta, hasta la distribución de probabilidad softmax.",
+                    pForwardPassIntro: "Recorre el forward pass operación por operación. Observa cómo los vectores de embedding se concatenan, luego se transforman por los pesos y función de activación de la capa oculta, y finalmente se comprimen a través de softmax en probabilidades.",
+                    figLabelForwardPass: "Interactivo · El Forward Pass del Monstruo",
+                    figHintForwardPass: "Haz clic en 'Siguiente Paso' para recorrer el forward pass del MLP: embed → concatenar → capa oculta → softmax. Observa cómo los caracteres crudos se convierten en predicciones.",
+                    pPipelineIntro: "Ahora observa todo el pipeline funcionando junto — desde la búsqueda de embedding hasta la predicción del siguiente carácter. Cada componente ejecutándose como un sistema unificado.",
+                    figLabelPipeline: "Interactivo · Pipeline MLP Completo",
+                    figHintPipeline: "El pipeline completo del modelo de lenguaje MLP: búsqueda de embedding → concatenación → capas ocultas → softmax → predicción del siguiente carácter.",
+                    pWhyHiddenIntro: "OK, vemos el flujo de datos. Pero ¿qué está HACIENDO realmente la capa oculta? ¿Por qué la necesitamos? El problema es este: sin capas ocultas, una red neuronal solo puede aprender relaciones lineales. Solo puede dibujar líneas rectas. Algunos problemas necesitan curvas.",
+                    figLabelXOR: "Interactivo · Por Qué Importan las Capas Ocultas",
+                    figHintXOR: "Intenta separar A de B con una línea recta — imposible. Añade una capa oculta y la red dobla el espacio para resolverlo perfectamente.",
+                    pBrainXorCallback: "Recuerda del capítulo de NN: sin capas ocultas, una red solo puede dibujar líneas rectas. Las capas ocultas doblan el espacio. Lo probaste con XOR.",
+                    pBrainXorPivot: "Pero aquí está la diferencia: en el capítulo de NN, las entradas eran números simples. Aquí, las entradas son EMBEDDINGS — vectores ricos que codifican el significado de caracteres. La capa oculta ya no solo dobla un espacio 2D. Transforma un espacio de embeddings de 30 dimensiones, creando detectores de características complejas que operan sobre SIGNIFICADO, no coordenadas crudas.",
+                    pBrainWithoutHidden: "¿Y sin capas ocultas? La red es solo una tabla de conteo con pasos extra. Demostrémoslo:",
+                    pNeuronExplorerIntro: "Cada neurona oculta de nuestro MLP entrenado se ha especializado. Durante el entrenamiento, diferentes neuronas aprendieron a detectar diferentes patrones — completamente por su cuenta. Haz clic en cualquier neurona abajo para ver a qué responde.",
+                    pHiddenLayerSecret: "La capa oculta permite a la red DOBLAR el espacio. Cada neurona calcula su propia suma ponderada + sesgo + tanh, creando un detector de características no lineal. Una neurona podría activarse ante pares vocal-consonante. Otra detecta letras dobles. Otra más reconoce terminaciones de palabras. Nada de esto está programado — todo se descubre durante el entrenamiento.",
+                    figLabelNeurons: "Interactivo · Qué Detecta Cada Neurona",
+                    figHintNeurons: "Haz clic en cualquier neurona oculta para ver los patrones de entrada que la activan más fuertemente (y menos). Cada neurona se ha especializado en un detector de características diferente.",
+                    pNeuronInsight: "Una neurona se activa ante pares de vocales. Otra detecta finales de palabras. Otra más reconoce clusters de consonantes. La red no sabía nada de estos conceptos — los descubrió porque ayudan a predecir el siguiente carácter. Esta es la magia de las representaciones aprendidas.",
+                    pTrigramBridge: "Este es el insight clave: sin capas ocultas, este cerebro es solo una tabla de conteo. Las capas ocultas son lo que lo hacen PENSAR, no solo contar. Demostrémoslo — misma entrada, dos cerebros completamente diferentes:",
+                    figLabelTrigram: "Interactivo · N-grama vs MLP: Misma Tarea, Cerebro Diferente",
+                    figHintTrigram: "Compara cómo un N-grama (búsqueda en tabla) y un MLP (cálculo matricial) manejan la misma entrada. El N-grama memoriza; el MLP generaliza.",
 
                     pChatGPTCheck1: "🤖 Checkpoint ChatGPT: Ahora entiendes embeddings, forward passes y capas ocultas. Estas tres ideas — representaciones aprendidas, transformaciones matriciales y activaciones no lineales — son la base de todo modelo de lenguaje, incluido con el que podrías estar chateando ahora mismo.",
                     chatGPTCheck1Sub: "De embeddings de caracteres a GPT-4, el bucle central es el mismo: embed → transformar → predecir. La escala cambia. Los principios no.",
                 },
                 s04: {
+                    heading: "Dentro del Cerebro",
+                    lead: "Los ojos funcionan — los embeddings capturan similitud y estructura. Entre ver y predecir, esos vectores cuidadosamente aprendidos fluyen hacia la capa oculta y se transforman en algo completamente nuevo. Es hora de abrir el cráneo y trazar el camino paso a paso.",
+
+                    pBrainIntro: "¿Qué pasa cuando el monstruo procesa \"hel\" y necesita predecir el siguiente carácter? Observa cada operación — desde la búsqueda de embedding, pasando por la capa oculta, hasta la distribución de probabilidad final.",
+                    pOutputExplanation: "¿Qué sale de la capa oculta? Cada neurona produce un número entre −1 y +1 (tanh). Con 128 neuronas, eso es un vector de 128 dimensiones — una representación comprimida de la entrada. Pero ¿cómo se convierte en una predicción? La capa de salida lo multiplica por una matriz de pesos de 128 × 27 para obtener 27 puntuaciones brutas (logits), y luego softmax las convierte en probabilidades. Veamos cada paso:",
+                    figLabelSoftmax: "Interactivo · De la Capa Oculta a la Predicción",
+                    figHintSoftmax: "Recorre el cálculo paso a paso: salidas de neuronas ocultas → multiplicar por W₂ → logits brutos → exponenciar → normalizar → probabilidades. Esto es lo que realmente hace softmax.",
+                    // ── Weight Tying (panel oculto) ──
+                    panelWeightTyingTitle: "Análisis: Weight Tying — ¿Son Dos Matrices Una?",
+                    panelWeightTyingPreview: "La matriz de embedding E y la matriz de salida W_out tienen la misma forma transpuesta. ¿Y si fueran la misma matriz?",
+                    pWeightTyingIntro: "Observa algo: la matriz de embedding E mapea caracteres → vectores (V×D), y la matriz de salida W_out mapea vectores → puntuaciones de caracteres (D×V). Una es la transpuesta de la otra. Weight tying fuerza W_out = Eᵀ, compartiendo los mismos parámetros para entrada y salida. ¿Ayuda?",
+                    figLabelWeightTying: "Experimento · Weight Tying: Atada vs Sin Atar",
+                    figHintWeightTying: "Cambia entre dos corpus (V=28 y V=96) para ver cómo el tamaño del vocabulario afecta el compromiso del weight tying. Compara conteos de parámetros y val loss.",
+
+                    pWhyHiddenLayers: "Sin capas ocultas, una red neuronal solo puede aprender mapeos simples entrada→salida — esencialmente una tabla de conteo con pesos. Memoriza 'después de \"th\", predice \"e\"' pero no puede generalizar. La capa oculta lo cambia todo: toma la entrada de embeddings de 30 dimensiones y la DOBLA a través de sumas ponderadas + tanh, creando nuevas características que la capa de salida puede combinar. No solo memoriza — descubre patrones.",
+                    pHiddenLayerProof: "Probémoslo. Misma entrada, misma tarea — pero un cerebro tiene capa oculta y el otro no. Observa cómo la red plana converge a una copia exacta de la tabla de conteo, mientras que el MLP aprende algo más profundo:",
+                    pBrainNeuronIntro: "Así que la capa oculta dobla el espacio. Pero ¿qué hace cada neurona individual? Durante el entrenamiento, diferentes neuronas aprendieron a detectar diferentes patrones — completamente por su cuenta. Haz clic en cualquier neurona abajo para ver a qué responde.",
+                    pBrainPolysemanticity: "¿Notaste algo extraño? La neurona #0 dispara para pares de vocales Y TAMBIÉN para ciertas secuencias de consonantes. La neurona #3 detecta límites de palabra Y TAMBIÉN patrones de frecuencia. Estas neuronas no tienen un solo trabajo limpio. Están haciendo múltiples cosas a la vez.",
+                    figLabelPolysemanticity: "Interactivo · Una Neurona, Múltiples Significados",
+                    figHintPolysemanticity: "Selecciona neuronas para ver qué patrones detectan. Nota la superposición — una neurona, múltiples roles.",
+                    pPolysemanticity2: "Podrías pensar: con 128 neuronas, deberíamos poder catalogar cada una. Neurona 1 = vocales. Neurona 2 = finales. Pero así no funciona. El monstruo no PIENSA en caracteres. Piensa en CARACTERÍSTICAS — patrones como 'probablemente seguido por una vocal.' Hay muchas más características útiles que neuronas. Así que la red hace algo ingenioso e inconveniente: mete múltiples características en cada neurona. Los investigadores llaman a esto polisemanticidad (poli = muchos, semántico = significado). Una neurona, muchos significados.",
+                    pAblationIntro: "Si la neurona #3 hace múltiples cosas, ¿qué pasa cuando la apagamos? Averigüémoslo.",
+                    figLabelAblation: "Interactivo · Explorador de Ablación de Neuronas",
+                    figHintAblation: "Activa/desactiva neuronas para ver qué se rompe. Desactiva la neurona #45 para el efecto más dramático.",
+                    pBlackBoxConnection: "Este es el famoso problema de la 'caja negra'. Incluso en nuestro pequeño monstruo con 128 neuronas y 27 caracteres, no podemos decir limpiamente qué hace cada neurona. Ahora imagina GPT-4: 96 capas, miles de millones de parámetros, millones de características metidas en neuronas que cada una sirve docenas de roles. Las capas ocultas en ChatGPT funcionan exactamente con el mismo principio — pero nadie en OpenAI puede señalar la neurona #847,293 y decir exactamente qué hace. Esta es la frontera de la investigación en seguridad de IA.",
+
+                    panelSAETitle: "Profundización: Autoencoders Dispersos",
+                    panelSAEPreview: "Una técnica revolucionaria para desenredar neuronas polisemánticas en características interpretables.",
+                    pSAEIntro: "La polisemanticidad es el problema central: una neurona hace muchas cosas, haciendo la interpretación casi imposible. Los Autoencoders Dispersos (SAEs) ofrecen una solución. En lugar de intentar entender qué hace cada neurona, los SAEs aprenden un conjunto más grande de 'características' — direcciones monosemánticas en el espacio de activación donde cada característica representa un concepto claro.",
+                    pSAEHow: "Un SAE se entrena sobre activaciones de neuronas para reconstruirlas usando una combinación dispersa de características aprendidas. Si una capa tiene 128 neuronas pero representa ~1000 patrones significativos, el SAE descubre esas 1000 características explícitamente. Cada característica se activa para un patrón específico: 'límite de palabra después de vocal' o 'consonante doble' — no ambos.",
+                    pSAEExample: "En 2024, Anthropic entrenó SAEs en Claude 3 Sonnet y encontró millones de características interpretables: una para el Golden Gate Bridge, una para vulnerabilidades de código, una para sarcasmo. Pudieron dirigir el comportamiento del modelo amplificando características específicas. Esta es la primera vez que investigadores pudieron identificar de manera confiable qué 'conceptos' individuales ha aprendido un modelo de lenguaje grande.",
+                    pSAELinkLabel: "Leer más:",
+                    pSAELinkDesc: "— el artículo que abrió el espacio de características de Claude y encontró conceptos interpretables a escala.",
+
+                    panelActMaxTitle: "Profundización: Maximización de Activación",
+                    panelActMaxPreview: "¿Qué entrada hace que una neurona dispare más fuerte? La optimización puede mostrarnos — pero los resultados son a menudo extraños.",
+                    pActMaxIntro: "Si quieres saber qué detecta una neurona, encuentra la entrada que la hace activarse más fuertemente. La maximización de activación hace exactamente eso: usa descenso de gradiente para optimizar una entrada (texto, imagen, etc.) para maximizar la salida de una neurona específica.",
+                    pActMaxHow: "Comienza con entrada aleatoria. Calcula la activación de la neurona. Toma el gradiente con respecto a la entrada (no los pesos). Actualiza la entrada para aumentar la activación. Repite hasta que la neurona dispare al máximo. La entrada resultante debería revelar qué patrón está 'buscando' la neurona.",
+                    pActMaxLimitation: "En la práctica, la maximización de activación a menudo produce entradas de aspecto adversarial: para modelos de visión, patrones de ruido psicodélico que no se parecen a imágenes naturales; para modelos de lenguaje, secuencias de tokens repetitivas o sin sentido. La neurona dispara fuertemente, pero la entrada no coincide con la intuición humana. Por eso técnicas como los SAEs (que encuentran direcciones lineales interpretables) son a menudo más útiles que la maximización de activación cruda.",
+
+                    takeaway: "La capa oculta transforma embeddings a través de pesos aprendidos y activaciones no lineales, creando detectores de características que operan sobre significado en lugar de coordenadas crudas. Sin capas ocultas, la red es solo una tabla de conteo. Con ellas, descubre patrones — pares de vocales, finales de palabra, clusters de consonantes — todo a través del entrenamiento. El cerebro funciona. Ahora: ¿podemos hacerlo más profundo?",
+                },
+                s05: {
                     heading: "¿Podemos Hacerlo Más Grande?",
                     lead: "El monstruo funciona. Una capa oculta, embeddings, entrenado con Shakespeare — genera texto. Pero el lenguaje es profundo: letras forman patrones, patrones forman sílabas, sílabas forman palabras. ¿Y si apilamos más capas? Seguramente más profundo = mejor... ¿no?",
 
-                    pHopeIntro: "El monstruo funciona. Una capa oculta captura patrones que una tabla de conteo nunca podría. Pero el lenguaje tiene capas de estructura: letras → sílabas → palabras → frases. ¿Y si nuestro monstruo tuviera capas también? Seguramente más profundo = mejor... ¿no? Añadamos capas y descubrámoslo.",
+                    pWhyDepthIntro: "Cada avance en IA del lenguaje vino de ir más profundo. GPT-1 usó 12 capas. GPT-3 usa 96. GPT-4 tiene más de 120. El lenguaje tiene capas de estructura — letras forman sílabas, sílabas forman palabras, palabras forman frases — y cada capa de red puede aprender un nivel de abstracción. Nuestro monstruo tiene solo una capa. ¿Qué pasa si le damos más?",
+                    figLabelMotivation: "El Argumento de la Profundidad",
+                    figHintMotivation: "Haz clic en cualquier modelo para ver detalles. Nota la tendencia: cada generación va más profunda. Nuestro monstruo tiene solo 1 capa.",
+                    pDepthMotivationBridge: "La evidencia es abrumadora: la profundidad es el ingrediente secreto. Así que intentémoslo. Tomaremos nuestro monstruo y apilaremos capas — de 1 hasta 20. Mismos datos, mismo optimizador, todo lo demás igual. Solo más capas. Veamos qué pasa.",
+
+                    panelShapeTitle: "En Profundidad: Forma de la Red",
+                    panelShapePreview: "Antes de añadir capas: ¿ancha y superficial, estrecha y profunda, o equilibrada?",
+                    pHopeIntro: "Antes de empezar a apilar, una pregunta rápida: ¿QUÉ forma deberíamos intentar? ¿Ancha con pocas capas? ¿Estrecha con muchas? ¿O equilibrada?",
+
+                    figLabelShape: "Interactivo · Comparación de Forma de Red",
+                    figHintShape: "Alterna entre ancha-superficial, estrecha-profunda y equilibrada. Ve el número de parámetros y el compromiso arquitectónico que crea cada forma.",
+                    pShapeBridge: "La forma equilibrada (3 × 128) es nuestro punto de partida — suficientes capas para encontrar patrones profundos, suficientes neuronas por capa para mantener información sin crear cuellos de botella. Ahora ejecutémoslas y veamos qué pasa.",
+
                     figLabelDepth: "Interactivo · Comparación Real de Profundidad",
                     figHintDepth: "Observa modelos con 1–4 capas ocultas entrenar lado a lado. Verde = bien, ámbar = luchando, rojo = roto. Nota: 2 capas supera a 1... pero ¿luego qué?",
 
-                    pCelebration: "¡Dos capas superan a una! El monstruo con 2 capas ocultas encuentra patrones más profundos — la pérdida baja, el texto mejora. Estamos en algo. Sigamos...",
-                    pShock: "Tres capas. La pérdida SUBIÓ. Cuatro capas. Aún peor. El monstruo con MÁS capacidad rinde PEOR. ¿Qué está pasando dentro?",
+                    pDepthLRBridge: "Hay una interacción oculta que la vista de profundidad única no muestra: la tasa de aprendizaje y la profundidad no son independientes. Una tasa de aprendizaje que funciona perfectamente para 2 capas puede destruir una red de 6 capas. Observa la cuadrícula completa de profundidad × LR:",
+                    figLabelDepthLR: "Interactivo · Mapa de Calor Profundidad × Tasa de Aprendizaje",
+                    figHintDepthLR: "Pasa el cursor sobre cualquier celda para ver el val_loss exacto o si esa combinación divergió. La esquina roja superior izquierda es la zona de peligro: LR alto + profundo = explosión.",
 
-                    pInvestigationIntro: "Investiguemos. ¿Recuerdas tanh del capítulo de redes neuronales? Cuando las entradas son muy grandes, tanh se satura en ±1 — y su derivada cae a cero. Eso es exactamente lo que está pasando en nuestras capas profundas.",
+                    pCelebration: "¿Más capas = más potencia, verdad? Vamos a probarlo. Entrenamos 10 redes idénticas — misma arquitectura, mismos datos, mismo optimizador (SGD lr=0.01), misma semilla — cambiando SOLO el número de capas. De 1 capa a 20.",
+                    pShock: "Los resultados son devastadores. UNA capa gana. El modelo más simple — solo 9K parámetros — supera a todas las alternativas más profundas. L1 obtiene 2.12, mientras que L6 con 92K parámetros apenas llega a 3.04. ¿L20 con 323K parámetros? Aún peor con 3.15. Más capas, más parámetros, PEORES resultados. El monstruo se debilita al crecer.",
+
+                    pWhatIsHappening: "¿QUÉ está pasando dentro de este monstruo?",
+                    pWhatIsHappeningSub: "Más capas deberían significar más potencia. En cambio, el monstruo está empeorando. No le demos la respuesta — investiguemos.",
+
+                    pDeadNeuronIntro: "Miremos dentro. Cuando inspeccionamos las neuronas de cada modelo, encontramos algo alarmante: muchas neuronas han dejado de funcionar por completo. Sus salidas están atascadas en ±1 (los límites de tanh), y sus derivadas son efectivamente cero. Estas neuronas NUNCA volverán a aprender — están permanentemente muertas.",
+                    figLabelDeadNeuron: "Interactivo · Neuronas Muertas por Profundidad",
+                    figHintDeadNeuron: "Selecciona una profundidad para ver cuántas neuronas están muertas en cada capa. Las neuronas muertas (tanh' ≈ 0) están congeladas para siempre — desperdician capacidad y bloquean el flujo de gradientes.",
+                    pDeadNeuronReveal: "Cuanto más profunda la red, más neuronas mueren. Una red de 20 capas tiene 88% de neuronas muertas — solo el 12% de su capacidad está realmente aprendiendo. Mientras tanto, L1 tiene cero neuronas muertas y la mejor loss. Pero ¿POR QUÉ mueren las neuronas en redes profundas? La respuesta es la saturación de tanh.",
+
+                    pInvestigationIntro: "¿Recuerdas tanh del capítulo de redes neuronales? Cuando las entradas son muy grandes, tanh se satura en ±1 — y su derivada cae a cero. Eso es exactamente lo que está pasando en nuestras capas profundas.",
                     figLabelTanh: "Interactivo · Saturación de Tanh",
                     figHintTanh: "Arrastra x para ver tanh(x) y su derivada. Cuando |x| > 2, la derivada se acerca a 0 — los gradientes a través de esta neurona mueren.",
+
+                    pPitfall4Metaphor: "Piensa en tanh como una banda elástica estirada entre dos paredes en −1 y +1. Una entrada pequeña la estira un poco y regresa fácilmente — esa fuerza elástica es el gradiente. Pero una vez que la estiras casi hasta la pared, está casi tensa: cualquier tirón adicional apenas la mueve. La entrada es grande, la salida está al límite, y casi no queda elasticidad para propagar la señal de error hacia atrás. Cada capa añade otra banda elástica en serie. Para la capa 4, la señal de error que intenta llegar a la capa 1 ha perdido toda su fuerza.",
+
+                    panelBattleTitle: "Inmersión: Batalla de Funciones de Activación",
+                    panelBattlePreview: "¿Y si cambiamos tanh por ReLU o GELU? ¿Cambiar la función de activación resuelve el problema de profundidad?",
+                    pActivationBattleBridge: "Si tanh es el culpable, ¿qué pasa si lo cambiamos? ReLU, GELU y sigmoid tienen propiedades de saturación diferentes. ¿Cambiar la función de activación resuelve el problema de profundidad?",
+                    figLabelBattle: "Interactivo · Batalla de Funciones de Activación",
+                    figHintBattle: "Activa/desactiva activaciones para comparar. Observa las curvas de pérdida en carrera. Gana el mejor val_loss.",
+                    pActivationBattleInsight: "ReLU y GELU superan a tanh — no se saturan tan agresivamente en el lado positivo. Sigmoid es peor que tanh (saturación doble en ambos extremos). Linear diverge completamente — sin no-linealidad no hay poder de representación. Pero incluso ReLU con 4+ capas sigue degradando. Cambiar la activación ayuda, pero no resuelve completamente el problema de profundidad.",
 
                     pHistogramBridge: "El histograma de activaciones lo hace concreto. En la capa 1, los valores están distribuidos saludablemente. Para la capa 3, la mayoría están empujados a ±1 — la zona de saturación donde",
                     pHistogramH1: "los gradientes son casi cero",
@@ -1334,103 +1443,119 @@ export const es: TranslationDictionary = {
                     figLabelHistogram: "Interactivo · Histogramas de Activación por Capa",
                     figHintHistogram: "Compara distribuciones de activación entre capas. Las capas más profundas muestran distribuciones bimodales acumulándose en ±1 — la zona muerta de tanh.",
 
-                    pDeadNeuronsBridge: "Pero se pone peor. Una neurona saturada no solo deja de aprender — bloquea la señal de gradiente para cada neurona detrás de ella. En una red profunda, esto se propaga en cascada: una capa muerta mata el gradiente para todas las capas anteriores.",
+                    pDeadNeuronsBridge: "Pero se pone peor. Una neurona muerta no solo deja de aprender — NUNCA se recupera. Una vez que tanh se satura, la derivada es cero, así que la actualización de pesos es cero, así que la neurona permanece saturada para siempre. Está permanentemente congelada. Y peor: bloquea la señal de gradiente para cada neurona detrás de ella. En una red profunda, esto se propaga en cascada: una capa muerta mata el gradiente para todas las capas anteriores.",
                     figLabelCascade: "Interactivo · Cascada de Capas Muertas",
                     figHintCascade: "Recorre la cascada: tanh se satura → la derivada cae a 0 → el gradiente muere → las neuronas anteriores pierden su señal de aprendizaje.",
 
+                    pNeverLearnsAgain: "Esta es la cruel verdad sobre las neuronas muertas: una vez que una neurona muere, está muerta PARA SIEMPRE. Derivada cero significa actualización de pesos cero. Actualización cero significa que los pesos nunca cambian. Los pesos no cambian significa que la salida sigue saturada. La salida saturada significa que la derivada sigue siendo cero. Es una espiral de muerte sin escapatoria.",
                     pEndBridge: "Neuronas saturadas. Capas muertas. Señales que se desvanecen. Podemos ver QUÉ se rompe cuando el monstruo va profundo. Pero ¿POR QUÉ? ¿Por qué añadir capas desencadena esta cascada? La respuesta está en cómo nació el monstruo: con pesos aleatorios que nadie verificó.",
                 },
-                s05: {
+                s06: {
                     heading: "Por Qué lo Profundo se Rompe",
                     lead: "Vemos QUÉ se rompe — neuronas saturadas, capas muertas, señales que se desvanecen. Pero ¿POR QUÉ añadir capas desencadena esta cascada? La respuesta empieza en el principio: cómo nació el monstruo.",
 
-                    pWorseThanRandom: "Esto es lo más devastador de una mala inicialización. Podrías pensar: 'En el peor caso, el modelo empieza confundido y aprende desde ahí.' Error. Un modelo mal inicializado puede ser PEOR que adivinar al azar — prediciendo con confianza las letras equivocadas. Y en una red profunda, puede que nunca se recupere.",
-                    figLabelWorse: "Interactivo · Peor que el Azar",
-                    figHintWorse: "Lado a lado: adivinar al azar vs mala inicialización. El modelo mal inicializado está confiadamente equivocado — su pérdida es MAYOR que no saber nada.",
+                    pInitialLossIntro: "Antes de diagnosticar la enfermedad, mira los síntomas. Aquí están las pérdidas iniciales — la primera predicción de cada modelo, antes de CUALQUIER entrenamiento. Lo que verás debería perturbarte.",
+                    figLabelInitLoss: "Interactivo · Catástrofe de Pérdida Inicial",
+                    figHintInitLoss: "Compara la val_loss inicial en el paso 0 entre los 10 modelos. La línea roja punteada es adivinar al azar (ln 27). Los modelos POR ENCIMA de esta línea son peores que no saber nada.",
 
-                    pGaussianIntro: "¿Qué significa realmente 'pesos aleatorios'? Significa números extraídos de una campana de Gauss centrada en cero. El ancho de esta campana (desviación estándar σ) controla la amplitud. Arrastra el deslizador para ver cómo se ven diferentes amplitudes — y nota cómo amplitudes mayores empujan más pesos a la zona muerta de tanh.",
+                    pWorseThanRandom: "¿Cómo puede un modelo ser peor que el azar? Adivinar al azar da 1/27 ≈ 3.7% a cada carácter — incluyendo el correcto. Pero una red mal inicializada no produce probabilidades uniformes. Sus pesos aleatorios hacen que softmax concentre la probabilidad en UNOS POCOS caracteres equivocados. No está confundido — está confiadamente equivocado. Prueba a ajustar la escala de inicialización abajo para verlo en acción.",
+                    figLabelWorse: "Interactivo · Predicción Peor que el Azar",
+                    figHintWorse: "Arrastra el deslizador σ para ver cómo la escala de inicialización afecta las probabilidades predichas. σ grande = confiado y equivocado = peor que el azar.",
+
+                    pGaussianIntro: "¿De dónde vienen estos pesos? Antes de entrenar, inicializamos los pesos como números aleatorios de una campana de Gauss centrada en cero. El ancho de esta campana — su desviación estándar σ — lo controla todo. Muy ancha, y los pesos caen en la zona muerta de tanh. Muy estrecha, y la señal es demasiado débil para propagarse.",
                     figLabelGaussian: "Interactivo · Explorador de Distribución de Pesos",
-                    figHintGaussian: "Arrastra el deslizador de desviación estándar. Observa cómo cambia la campana y cuántos pesos caen en la zona muerta de tanh (|w| > 2).",
+                    figHintGaussian: "Arrastra σ para ver cómo cambia la campana. Observa cuántos pesos caen en la zona muerta de tanh (|w| > 2) y qué significa para la salud de las neuronas.",
 
-                    pInitBad: "La amplitud correcta resulta ser todo. Muy grande, y las activaciones explotan — cada neurona se satura inmediatamente. Muy pequeña, y la señal se desvanece antes de llegar a la salida. Con muchas capas, una mala inicialización es irrecuperable.",
-                    p1: "Abajo, ve cómo tres escalas de inicialización diferentes producen resultados muy distintos. Solo una converge — la que tiene la amplitud correcta.",
+                    pInitBad: "La amplitud correcta resulta ser todo. Muy grande → activaciones explotan → cada neurona se satura al instante. Muy pequeña → señal se desvanece antes de llegar a la salida. Con muchas capas, una mala inicialización es irrecuperable.",
+                    p1: "Arrastra el deslizador abajo para ver cómo la escala de inicialización afecta la curva de pérdida. Hay una franja estrecha donde el entrenamiento funciona — si la pierdes, la red está rota desde el paso 0.",
                     figLabel1: "Interactivo · Sensibilidad a la Inicialización",
-                    figHint1: "Compara curvas de pérdida bajo tres escalas de inicialización: muy pequeña, Kaiming (correcta), y muy grande. Solo la escala adecuada permite convergencia.",
+                    figHint1: "Arrastra σ por cuatro zonas: muerta (muy pequeña), punto óptimo (Kaiming), inestable (muy grande) y caótica (excesiva). Cada zona tiene explicación detallada.",
 
-                    pGradientBridge: "Ahora sabemos QUÉ pasa con una mala inicialización. Pero ¿POR QUÉ es tan catastrófico? La respuesta está en cómo fluyen los gradientes durante el entrenamiento.",
-                    pBackpropExplain: "Durante el entrenamiento, la señal de error fluye hacia atrás por la red — eso es la retropropagación. En cada capa, el gradiente se multiplica por la derivada local de esa capa. ¿Recuerdas la zona muerta de tanh? Si una neurona está saturada, su derivada es casi cero. Multiplica por cero... y el gradiente muere.",
+                    pGradientBridge: "Ahora sabemos QUÉ hace la mala inicialización. Pero ¿POR QUÉ es tan catastrófico para redes profundas específicamente? La respuesta está en cómo aprende la red: retropropagación.",
+                    pBackpropExplain: "Durante el entrenamiento, la señal de error fluye hacia atrás desde la salida hasta la entrada. En cada capa, el gradiente se multiplica por dos cosas: tanh'(activación) y el peso. Si la neurona está saturada, tanh' ≈ 0 — el gradiente muere. Si el peso es muy grande, el gradiente explota. Elige un escenario abajo y avanza paso a paso por la cadena.",
                     figLabelBackprop: "Interactivo · Calculadora de Cadena de Retropropagación",
-                    figHintBackprop: "Establece un factor de gradiente por capa y traza la cadena de multiplicación hacia atrás. Ve cómo el gradiente se desvanece o explota a través de 4 capas.",
+                    figHintBackprop: "Elige desvanecimiento, estable o explosión. Avanza por 4 capas para ver multiplicaciones exactas tanh'(z) × W y el producto acumulado. Busca los indicadores KILLED.",
 
-                    pGradientFlowIntro: "Aquí están las magnitudes reales de gradiente fluyendo hacia atrás a través de una red real. Alterna entre regímenes para ver la diferencia dramática.",
+                    pGradientFlowIntro: "La calculadora de cadena muestra un camino. Ahora ve la imagen completa: magnitud del gradiente en CADA capa de una red. Pasa el cursor por cada capa para su diagnóstico.",
                     figLabel4: "Interactivo · Visualizador de Flujo de Gradientes",
-                    figHint4: "Alterna entre regímenes de gradientes que se desvanecen, estables y que explotan. Ve cómo cambia la magnitud del gradiente por capa durante la retropropagación.",
+                    figHint4: "Alterna entre regímenes de desvanecimiento, estable y explosión. Pasa el cursor por cualquier capa para su anotación. La tarjeta resumen explica qué significa cada régimen.",
 
-                    pHumanStory: "Durante casi 30 años — de 1986 a 2015 — los investigadores sabían que redes más profundas deberían ser mejores. No podían hacerlas funcionar. Los gradientes seguían desvaneciéndose. Equipos probaron inicialización cuidadosa, learning rates más pequeños, arquitecturas menos profundas. Nada funcionaba de forma fiable más allá de 5–6 capas. Entonces, en un año milagroso, tres equipos lo resolvieron independientemente.",
-                    pSolutionsBridge: "Tres problemas: mala inicialización, gradientes que se desvanecen y activaciones que se desvían. Tres soluciones — todas de 2015. Tres décadas de frustración terminaron en un solo año. Ahora conocemos al enemigo. Derrotémoslo.",
+                    pDiagnosisComplete: "El diagnóstico está completo. Tres problemas interconectados: (1) La inicialización aleatoria pone neuronas en la zona muerta de tanh → activaciones saturadas. (2) Activaciones saturadas tienen derivada ≈ 0 → gradientes que se desvanecen via regla de la cadena. (3) Gradientes que se desvanecen → capas tempranas no aprenden → la red desperdicia su capacidad. Cada capa añadida empeora los tres problemas. Por eso L1 superó a L20 — el monstruo más profundo estaba lisiado desde su nacimiento.",
+                    pSolutionsBridge: "Durante casi 30 años, los investigadores sabían que redes más profundas deberían ser mejores. No podían hacerlas funcionar. Entonces en 2015, tres equipos resolvieron independientemente los tres problemas. Veamos cómo domaron al monstruo.",
                 },
-                s06: {
+                s07: {
                     heading: "Domando al Monstruo",
                     lead: "Tres problemas: mala inicialización, gradientes que se desvanecen y activaciones que se desvían. Tres inventos de 2015 los resolvieron todos — y transformaron el aprendizaje profundo de un arte poco fiable a ingeniería confiable.",
 
                     pSolutionsIntro: "Cada solución apunta a un eslabón en la cadena de fallos que acabamos de trazar. Juntas, hacen que las redes profundas sean entrenables.",
 
-                    // ── Solución 1: Inicialización Kaiming (profunda) ──
-                    discoveryInit: "El monstruo nació con pesos aleatorios. Pero ¿CUÁLES aleatorios? Imagina: N entradas a una neurona, cada una multiplicada por un peso aleatorio y sumada. Si σ = 1, la suma tiene varianza N. Con 128 entradas, eso es √128 ≈ 11 veces demasiado grande. Cada neurona se satura al instante.",
-                    pKaimingDerivation: "La solución es elegante: hacer cada peso más pequeño por exactamente √(2/N). El 2 compensa que ReLU mata la mitad de los valores. El N compensa sumar N entradas. Resultado: la varianza se mantiene en 1.0 en cada capa, sin importar la profundidad. He et al. lo demostraron en enero de 2015.",
-                    pKaimingEffect: "Observa la diferencia abajo. Inicialización ingenua: la varianza explota exponencialmente. En la capa 6, las activaciones son decenas de veces demasiado grandes. Kaiming: estable en ~1.0 en todo momento. Misma red. Mismos datos. Diferente punto de partida.",
+                    // ── Solución 1: Inicialización Kaiming ──
+                    pKaimingProblem: "El monstruo nació con pesos aleatorios. Pero ¿CUÁLES aleatorios? Aquí está la trampa: una neurona con N entradas las suma todas, cada una multiplicada por un peso aleatorio. Si esos pesos se toman de σ = 1, la suma tiene varianza N. Con 128 entradas, eso es √128 ≈ 11 veces demasiado grande. La salida de la neurona es tan extrema que tanh se satura al instante — y una neurona saturada tiene gradiente ≈ 0. Muerta desde el principio. ¿La solución? Hacer cada peso más pequeño por exactamente √(2/N). Así la varianza se mantiene en ~1.0 en cada capa, sin importar la profundidad. He et al. lo demostraron en enero de 2015. Observa abajo:",
+                    figLabelVariance: "Interactivo · Explosión de Varianza",
+                    figHintVariance: "Paso a paso: observa cómo N entradas aleatorias se multiplican por pesos aleatorios, se suman y pasan por tanh. Compara Ingenua (σ=1) vs Kaiming (σ=√(2/N)).",
+
                     figLabelKaiming: "Interactivo · Varianza Por Capa",
                     figHintKaiming: "Alterna entre Ingenua (σ=1) y Kaiming (σ=√(2/N)). Arrastra el deslizador para cambiar N. Observa cómo las barras explotan o se mantienen verdes.",
 
+                    pSmallNetworkSurvival: "Pero espera — si la mala inicialización es tan mortal, ¿por qué nuestro monstruo de 1 capa funcionó bien antes? Porque con solo 1 capa, solo hay 1 oportunidad de que algo salga mal. La varianza se desvía un poco, pero la red puede corregirse durante el entrenamiento — los primeros 1.000 pasos son solo deshacer el mal comienzo. Con 10 capas, esos errores se acumulan en cada capa. En la capa 6, la varianza ha explotado exponencialmente. Más capas = más oportunidades de que el error de inicialización se propague. Por eso las redes profundas son tan sensibles a los pesos iniciales, mientras que las superficiales a menudo tienen suerte.",
+                    figLabelShallowDeep: "Interactivo · Superficial vs Profunda",
+                    figHintShallowDeep: "Compara curvas de entrenamiento para redes de 1, 4 y 20 capas — todas con mala inicialización. Observa por qué las superficiales sobreviven.",
+
                     pKaimingTraining: "El efecto en el entrenamiento es dramático. Abajo: tres inicializaciones compiten. Pesos demasiado pequeños (σ=0.01) producen una red muerta que apenas aprende. Aleatorios (σ=1) se saturan pronto y convergen lento. Kaiming empieza en la zona saludable y alcanza la menor pérdida.",
                     figLabelInitComp: "Interactivo · Comparación de Inicialización",
-                    figHintInitComp: "Carrera de tres columnas: Muy Pequeño vs Aleatorio vs Kaiming. Pulsa Entrenar para ver curvas de pérdida y muestras de texto lado a lado.",
+                    figHintInitComp: "Carrera de tres columnas: Muy Pequeño vs Aleatorio vs Kaiming. Pulsa Entrenar para ver neuronas muertas, magnitudes de gradiente y deriva de varianza en tiempo real.",
 
-                    // ── Solución 2: Normalización por Lotes (profunda) ──
-                    discoveryBN: "Kaiming le da al monstruo un comienzo saludable. Pero durante el entrenamiento, las activaciones se desvían — las medias se desplazan, las varianzas crecen, las neuronas se saturan. Imagina que calibraste tus instrumentos al inicio de un experimento, pero se descalibran mientras trabajas. Cada medición se vuelve poco fiable.",
-                    pBNProblemViz: "Míralo en acción: sin BatchNorm, las distribuciones de activación se desplazan y expanden a lo largo de los pasos de entrenamiento. La curva de campana saludable se aplana en caos.",
+                    // ── Solución 2: Normalización por Lotes (descubrimiento) ──
+                    pDriftProblem: "Kaiming le da al monstruo un comienzo saludable. Pero el entrenamiento es un viaje largo — miles de pasos donde cada peso cambia un poco. A medida que los pesos se mueven, las distribuciones de activación derivan: las medias se alejan del cero, las varianzas crecen o encogen impredeciblemente, y neuronas que empezaron sanas se saturan lentamente. Imagina calibrar un telescopio al atardecer, pero a medianoche la temperatura ha cambiado y todo está borroso. Mira lo que pasa con las distribuciones de activación durante el entrenamiento:",
                     figLabelDrift: "Interactivo · Deriva de Activaciones",
-                    figHintDrift: "Alterna entre 'Sin Batch Norm' y 'Con Batch Norm'. Observa cómo las distribuciones se desvían vs se mantienen estables.",
+                    figHintDrift: "Avanza por los pasos de entrenamiento: observa cómo la distribución se desplaza y se expande. La curva de campana saludable se aplana en caos.",
 
-                    pBNIdea: "¿Cuál es la solución más simple? Forzar los valores de vuelta al rango saludable. Después de cada capa, normaliza: resta la media, divide por la desviación estándar. Ahora las activaciones están siempre centradas en 0 con amplitud 1.",
+                    pBNQuestion: "Las activaciones están derivando. Kaiming arregló el punto de partida, pero ¿y el viaje? ¿Y si pudiéramos forzar las activaciones de vuelta a un rango saludable DESPUÉS de cada capa, en cada paso de entrenamiento? ¿Cuál es la solución más simple? Forzar los valores de vuelta a un rango saludable. Toma un lote de activaciones, calcula la media, réstala. Calcula la desviación estándar, divide por ella. Pruébalo abajo:",
+
+                    figLabelBNDiscovery: "Interactivo · Descubre BatchNorm",
+                    figHintBNDiscovery: "Recorre paso a paso el cálculo de BatchNorm en un mini-lote real: valores crudos → calcular μ y σ → centrar → normalizar → aplicar γ y β aprendidos.",
+
+                    pBNReveal: "Eso es exactamente lo que hace la Normalización por Lotes. Después de cada capa, normaliza: resta la media, divide por la desviación estándar. Ahora las activaciones están siempre centradas en 0 con amplitud 1 — sin importar lo que hagan los pesos. Es como recalibrar tus instrumentos entre cada medición.",
                     figLabelBNEffect: "Interactivo · Efecto de Batch Norm",
-                    figHintBNEffect: "Activa y desactiva BatchNorm para ver cómo estabiliza las distribuciones de activación entre capas.",
+                    figHintBNEffect: "Activa y desactiva BatchNorm. Observa los porcentajes de zona muerta, indicadores de salud por capa y las formas de distribución cambiar en tiempo real.",
 
+                    pBNRegularization: "Hay un bonus oculto: BatchNorm calcula estadísticas del mini-lote actual (32–128 ejemplos), así que cada lote da μ y σ ligeramente diferentes. La red ve versiones ligeramente ruidosas de los datos en cada paso — como aumento de datos incorporado. Esto reduce el sobreajuste. BatchNorm es secretamente un regularizador también, lo que significa que nuestros lotes ya no son independientes — comparten estadísticas de normalización. Este acoplamiento previene que la red memorice ejemplos individuales.",
+                    figLabelBNReg: "Interactivo · BatchNorm como Regularizador",
+                    figHintBNReg: "Misma entrada, diferentes lotes. Observa cómo cada mini-lote normaliza el mismo valor de forma diferente — creando ruido que previene la memorización. Prueba diferentes tamaños de lote.",
+
+                    // Fórmula BN + paso a paso → panel oculto
+                    panelBNFormulaTitle: "En Profundidad: La Fórmula de BatchNorm",
+                    panelBNFormulaPreview: "x̂ = (x − μ) / √(σ² + ε) — recórrela paso a paso con deslizadores interactivos.",
                     pBNFormula: "La fórmula: x̂ = (x − μ) / √(σ² + ε). μ es la media del lote actual, σ² es la varianza, y ε es un número diminuto que previene la división por cero. Recorrámosla paso a paso.",
                     figLabelBNSteps: "Interactivo · BatchNorm Paso a Paso",
                     figHintBNSteps: "Haz clic en 'Siguiente' para avanzar por los 5 pasos: valores crudos → calcular media → centrar → normalizar → aplicar γ y β aprendidos. Ajusta los deslizadores de γ y β al final.",
-
                     pGammaBeta: "Pero espera — si SIEMPRE forzamos media=0, ¿no estamos limitando lo que la red puede aprender? Solución inteligente: añadir dos parámetros aprendibles por característica. y = γ·x̂ + β. La red puede aprender a DESHACER la normalización si quiere. BatchNorm no limita la capacidad — solo proporciona un punto de partida estable en cada capa.",
+                    figLabelGammaBeta: "Interactivo · Escala y Desplazamiento Aprendibles",
+                    figHintGammaBeta: "Arrastra los deslizadores de γ (escala) y β (desplazamiento) para ver cómo la red puede remodelar la distribución normalizada. Prueba los presets para entender por qué cada patrón puede ser útil.",
 
-                    // Panel deep-dive BatchNorm (conceptos 5-9)
-                    panelBNDeepTitle: "En Profundidad: Detalles de BatchNorm",
-                    panelBNDeepContent: "BatchNorm tiene matices que importan en la práctica.",
-                    panelBNMiniBatch: "¿Recuerdas los mini-lotes del capítulo de redes neuronales? BatchNorm usa la misma idea. No calculamos μ y σ sobre todo el dataset — sería demasiado costoso. En su lugar, usamos el lote de entrenamiento actual (32–128 ejemplos). Cada lote da μ y σ ligeramente diferentes.",
-                    panelBNRegularization: "Esta aproximación tiene un bonus sorprendente: cada lote tiene estadísticas diferentes, así que la red ve versiones ligeramente distintas de los datos. Esto actúa como aumento de datos incorporado — reduciendo el sobreajuste. BatchNorm es secretamente un regularizador también.",
-                    panelBNInference: "Durante el entrenamiento, μ y σ vienen del lote. Pero durante la generación, NO hay lote — solo 1 ejemplo. Solución: durante el entrenamiento, mantener un promedio móvil de μ y σ. En tiempo de inferencia, usar estas estadísticas almacenadas.",
-                    panelBNProblems: "BatchNorm tiene problemas: depende del tamaño del lote, mezcla estadísticas de ejemplos no relacionados, y es incómodo para datos secuenciales. Karpathy lo critica abiertamente — añade complejidad y estado oculto que dificulta la depuración.",
-                    panelBNLayerNorm: "Solución moderna: Layer Normalization. En vez de normalizar a través del lote (vertical), normaliza dentro de cada ejemplo (horizontal). Cada token normaliza sus PROPIAS características. No depende del tamaño del lote. Funciona perfectamente con lote=1 durante la generación. Por eso TODOS los Transformers usan LayerNorm, no BatchNorm.",
-                    figLabelNormCompare: "Interactivo · BatchNorm vs LayerNorm",
-                    figHintNormCompare: "Pasa el ratón por la matriz para ver la diferencia. BatchNorm normaliza columnas (a través del lote). LayerNorm normaliza filas (dentro de cada ejemplo).",
+                    // Visualizador de arquitectura BN
+                    figLabelBNArch: "Interactivo · Paso Forward con BatchNorm",
+                    figHintBNArch: "Recorre el paso forward de un MLP CON capas de BatchNorm. Ve cómo BN normaliza valores después de cada transformación lineal, manteniendo activaciones saludables a través de 3 capas.",
 
-                    // ── Solución 3: Conexiones residuales (profunda) ──
-                    discoveryResidual: "Kaiming + BatchNorm mantienen las activaciones saludables. Pero las redes profundas aún pierden información. Cada capa transforma la señal, y algo se pierde en cada paso. ¿Y si cada capa no REEMPLAZARA la señal — solo la CORRIGIERA? Como editar un borrador: no reescribes desde cero, haces ajustes.",
-                    pResidualCore: "La idea central: y = x + F(x) en lugar de y = F(x). Cada capa no aprende la transformación completa — aprende una pequeña corrección. La señal original x siempre pasa intacta.",
-                    figLabelResGrad: "Interactivo · Autopista de Gradientes Residuales",
-                    figHintResGrad: "Alterna 'Con Salto' vs 'Sin Salto'. Haz clic en 'Mostrar Gradiente' para ver cómo la señal hacia atrás se divide: la autopista de salto siempre lleva gradiente = 1.",
+                    // ── Solución 3: Conexiones Residuales ──
+                    pResidualProblem: "Kaiming + BatchNorm mantienen las activaciones saludables. Pero las redes profundas aún tienen un problema fundamental: cada capa REEMPLAZA la señal completamente. Si una capa hace una mala transformación, la información original desaparece para siempre — no hay botón de deshacer. Piensa en el juego del teléfono: cada persona reemplaza el mensaje por completo, y después de 10 personas, el original es irreconocible. ¿Se te ocurre una solución? Explora abajo — prueba a activar 'mantener el original' y observa qué pasa:",
+                    figLabelResDiscovery: "Interactivo · Descubre las Conexiones Residuales",
+                    figHintResDiscovery: "Observa cómo una capa mala (Capa 4) destruye la señal. Luego activa 'mantener el original' para descubrir la idea de conexión residual. Cambia qué capa es mala para probar la resiliencia.",
 
-                    pGradientHighway: "∂y/∂x = 1 + F'(x). Ese '1' lo es todo. Incluso si F'(x) ≈ 0 (gradiente evanescente a través de la capa), el gradiente total es AL MENOS 1. La conexión de salto crea una autopista directa para que los gradientes fluyan hacia atrás.",
-                    figLabelHighway: "Interactivo · La Autopista de Bypass",
-                    figHintHighway: "Activa y desactiva las conexiones de salto. Observa cómo la fuerza de la señal se preserva (con) o se degrada (sin) a través de cada capa.",
+                    pResidualSolution: "Esa es la conexión residual: y = x + F(x). Cada capa añade una pequeña corrección en vez de reemplazar la señal. Incluso si una capa es terrible (F(x) ≈ 0), el original pasa intacto. He et al. publicaron esto en diciembre de 2015. Ahora veámoslo con números reales — haz clic en cualquier capa abajo para ver las matemáticas exactas:",
+                    figLabelHighway: "Interactivo · Corrección vs Reemplazo",
+                    figHintHighway: "Alterna y=f(x) (reemplazar) vs y=x+f(x) (corregir). Haz clic en cualquier capa para expandir y ver la entrada, salida f(x), corrección y calidad de señal.",
+
+                    pResidualGradientSimple: "La conexión de salto también resuelve un segundo problema: gradientes que se desvanecen. ¿Recuerdas cómo los gradientes mueren al viajar hacia atrás por las capas? Con una conexión de salto, siempre hay una autopista directa que evita todas las capas. Incluso si 3 de 4 neuronas en una capa están muertas, el gradiente sigue fluyendo por el salto. Recórrelo abajo — haz clic en 'Iniciar Backprop' y retrocede capa por capa:",
+                    figLabelResGrad: "Interactivo · Backprop Paso a Paso",
+                    figHintResGrad: "Alterna Con/Sin salto, luego haz clic en 'Iniciar Backprop' para retroceder capa por capa. Ve neuronas muertas, cálculos de gradiente por capa y gradiente acumulado.",
+
+                    figLabelResBNArch: "Interactivo · Arquitectura Completa: BN + Residual Forward Pass",
+                    figHintResBNArch: "Recorre el forward pass completo de un MLP de 3 capas con BatchNorm Y conexiones residuales. Observa cómo BN normaliza en cada capa mientras las conexiones de salto preservan la señal original. 15 pasos en total.",
 
                     pWhyDeepWorks: "Con residuales, puedes apilar 50, 100, incluso 1000 capas. Cada bloque aprende una pequeña corrección. Los gradientes siempre tienen un camino. Sin residuales — imposible. Con ellos — rutina. Por eso ResNet (2015), Transformers (2017) y todos los modelos profundos modernos los usan.",
                     figLabelResidualGrad: "Interactivo · Comparación de Gradientes Residuales",
                     figHintResidualGrad: "Lado a lado: y=f(x) vs y=x+f(x). Compara las magnitudes de gradiente en cada capa — los residuales mantienen los gradientes saludables.",
-
-                    // Panel deep-dive Residual
-                    panelResDeepTitle: "En Profundidad: Detalles de Residuales",
-                    panelResProjection: "Para sumar x + F(x), ambos deben tener las mismas dimensiones. Si F(x) cambia la dimensión (común en capas de atención), necesitas una proyección aprendida: y = Wₚ·x + F(x). La proyección Wₚ es simplemente otra matriz de pesos que mapea x a la forma correcta.",
-                    panelResWhyName: "El nombre 'residual' viene de las matemáticas: F(x) = y − x. La red aprende el residuo — la diferencia entre lo que entra y lo que debería salir. No la salida completa, solo la corrección.",
 
                     // ── Matriz de estabilidad ──
                     pStabilityGrid: "Juntemos la imagen completa. Abajo hay una matriz que muestra cada combinación de técnicas a diferentes profundidades. El patrón es llamativo: con 1 capa todo funciona, pero a medida que crece la profundidad, necesitas progresivamente más del kit de estabilidad para mantener vivo el entrenamiento.",
@@ -1441,7 +1566,7 @@ export const es: TranslationDictionary = {
                     calloutText: "Inicialización Kaiming (enero), Normalización por Lotes (febrero), Conexiones Residuales (diciembre). Las tres aparecieron el mismo año. Juntas, transformaron el aprendizaje profundo de un arte poco fiable a ingeniería confiable — permitiendo redes con más de 100 capas donde 5 era antes el límite.",
 
                     // ── Redención ──
-                    pRedemptionIntro: "¿Recuerdas el desastre de 4 capas del §04? ¿El modelo que solo producía sinsentido? Intentémoslo de nuevo — esta vez con las tres técnicas de estabilidad aplicadas. Misma profundidad. Mismos datos. Todo lo demás igual.",
+                    pRedemptionIntro: "¿Recuerdas el desastre de profundidad del §05? ¿Los modelos que solo producían sinsentido? Intentémoslo de nuevo — esta vez con las tres técnicas de estabilidad aplicadas. Misma profundidad. Mismos datos. Todo lo demás igual.",
                     figLabelRedemption: "Interactivo · Redención del Modelo Profundo",
                     figHintRedemption: "Antes/después: la misma configuración profunda sin y con técnicas de estabilidad. Observa cómo se revela el lado exitoso tras el fracaso.",
                     redemptionBefore: "Sin estabilidad",
@@ -1449,81 +1574,103 @@ export const es: TranslationDictionary = {
                     redemptionOutput: "Texto generado",
                     redemptionWaiting: "Aplicando Kaiming + BatchNorm + Residuales...",
                     pRedemptionResult: "La misma arquitectura. La misma profundidad. Pero con tres técnicas simples, el monstruo pasó de sinsentido a texto coherente. Este es el poder de entender POR QUÉ las cosas se rompen — una vez que conoces la causa, la solución es directa.",
+
+                    // ── Experimento de estabilidad a escala (panel oculto) ──
+                    panelScaleTitle: "En Profundidad: Experimento de Estabilidad a Escala",
+                    panelScalePreview: "¿Qué pasa con SGD puro? H=256 vs H=512, 4→20 capas. Los resultados son sorprendentes.",
+                    pScaleIntro: "Pero aquí hay un giro. ¿Qué pasa cuando escalamos a H=256 o H=512 neuronas y usamos SGD puro — sin Adam, sin momentum? Entrenamos 20 modelos en 5 profundidades (4→20 capas) con dos configuraciones: solo Kaiming vs. Kaiming + BN + Residual. Los resultados son… no los que esperarías.",
+                    figLabelScale: "Experimento de Estabilidad a Escala",
+                    figHintScale: "Alterna H=256 / H=512 para comparar. Cambia entre Pérdida Val, Pérdida Train y Gap. Pasa el ratón por las barras para detalles.",
+                    pScaleLesson: "Sorpresa: con SGD puro, solo Kaiming supera a BN + Residual en cada profundidad. BN añade ruido de batch que SGD no puede manejar eficientemente, y las proyecciones residuales añaden sobrecarga sin beneficio. ¿La lección? Las técnicas no son mágicas — están diseñadas para optimizadores específicos. BN + Residual brillan con Adam; con SGD, más simple es mejor. Por eso el deep learning moderno usa Adam + BN + Residual juntos: cada pieza necesita las otras.",
+
                     pMonsterTamed: "La bestia está domada. El monstruo puede ir profundo ahora. 👾",
 
-                    takeaway: "Tres inventos de 2015 — inicialización Kaiming, Normalización por Lotes y Conexiones Residuales — cada uno apunta a un eslabón en la cadena de fallos. Juntos, transforman las redes profundas de experimentos poco fiables a ingeniería confiable. El mismo modelo profundo que producía sinsentido ahora genera texto coherente.",
+                    // ── Paneles ocultos ──
+                    panelLayerNormTitle: "Por Qué los Transformers No Usan BatchNorm",
+                    panelLayerNormPreview: "BatchNorm tiene problemas fundamentales para lenguaje. La solución moderna: LayerNorm.",
+                    panelBNProblems: "BatchNorm tiene problemas: depende del tamaño del lote (lotes pequeños = estadísticas ruidosas), mezcla estadísticas de ejemplos no relacionados en el mismo lote, y es incómodo para datos secuenciales donde las longitudes de secuencia varían. Karpathy lo critica abiertamente — añade complejidad y estado oculto que dificulta la depuración. Durante la generación NO hay lote — solo 1 ejemplo — así que necesitas almacenar promedios móviles del entrenamiento.",
+                    panelBNLayerNorm: "Solución moderna: Layer Normalization. En vez de normalizar a través del lote (vertical), normaliza dentro de cada ejemplo (horizontal). Cada token normaliza sus PROPIAS características. No depende del tamaño del lote. Funciona perfectamente con lote=1 durante la generación. Por eso TODOS los Transformers usan LayerNorm, no BatchNorm.",
+                    figLabelNormCompare: "Interactivo · BatchNorm vs LayerNorm",
+                    figHintNormCompare: "Pasa el ratón por filas o columnas para ver μ y σ calculados. Activa 'Normalizado' para ver el resultado. Explora por qué LayerNorm funciona en inferencia y BatchNorm no.",
+
+                    panelResDeepTitle: "En Profundidad: Detalles de Residuales",
+                    panelResDeepPreview: "Coincidencia de dimensiones, proyecciones, y por qué se llaman 'residuales.'",
+                    figLabelResProjection: "Interactivo · Matemáticas Residuales",
+                    figHintResProjection: "Dos pestañas: '¿Por qué Residual?' muestra la idea F(x) = y − x con números. 'Proyección de Dimensión' muestra cómo W_s arregla dimensiones incompatibles.",
+                    panelResProjection: "Para sumar x + F(x), ambos deben tener las mismas dimensiones. Si F(x) cambia la dimensión (común en capas de atención), necesitas una proyección aprendida: y = Wₚ·x + F(x). La proyección Wₚ es simplemente otra matriz de pesos que mapea x a la forma correcta.",
+                    panelResWhyName: "El nombre 'residual' viene de las matemáticas: F(x) = y − x. La red aprende el residuo — la diferencia entre lo que entra y lo que debería salir. No la salida completa, solo la corrección.",
+
+                    takeaway: "Tres inventos de 2015 — inicialización Kaiming, Normalización por Lotes y Conexiones Residuales — cada uno apunta a un eslabón en la cadena de fallos. Junto con el optimizador correcto, transforman las redes profundas de experimentos poco fiables a ingeniería confiable. Pero las técnicas solas no son mágicas — interactúan con tu elección de optimizador. La receta completa importa.",
                 },
-                s07: {
+                s08: {
                     heading: "La Receta Perfecta",
-                    lead: "El monstruo es estable. Las redes profundas entrenan de forma fiable. Ahora: ¿qué configuración lo hace MEJOR? Dimensión del embedding, tamaño oculto, tasa de aprendizaje, dropout, ventana de contexto — cada perilla importa. Exploremos el paisaje completo de 108 configuraciones entrenadas.",
+                    lead: "El monstruo está domado y estable — pero estable no significa bueno. Ahora necesitamos el MEJOR modelo. Cinco perillas controlan todo. ¿Cuál importa más? Solo hay una forma de averiguarlo: experimentar.",
 
-                    // ── Metáfora culinaria ──
-                    pCookingIntro: "El monstruo está domado y estable. Ahora necesitamos la receta perfecta. Piénsalo como cocinar: la dimensión del embedding es la calidad de tus ingredientes — descripciones más ricas significan mejores resultados. El tamaño oculto es la olla — más grande permite cocinar platos más complejos. La tasa de aprendizaje es el fuego — muy alto quema todo, muy bajo tarda una eternidad. ¿Y el dropout? Es ocultar ingredientes al azar durante la práctica para que aprendas a cocinar con cualquier cosa.",
+                    // ── Acto 1: El Panel de Control ──
+                    pKnobsIntro: "El monstruo está domado. Puede ir profundo sin colapsar. Pero 'estable' no significa 'bueno' — un modelo estable que genera basura es inútil. Necesitamos el MEJOR modelo: menor pérdida de validación, texto más coherente. Pero ¿qué controla 'mejor'? No los pesos — la red los aprende sola. Lo que NOSOTROS controlamos son los hiperparámetros: las decisiones arquitectónicas que tomamos antes de que el entrenamiento comience.",
+                    pKnobsList: "Cinco perillas controlan el rendimiento del monstruo. La dimensión del embedding establece cuántos números describen cada carácter — representaciones más ricas, pero más parámetros. El tamaño oculto determina cuántos detectores de patrones viven en la capa oculta — más capacidad, pero riesgo de memorización. La tasa de aprendizaje controla el tamaño de cada paso de actualización del gradiente — demasiado rápido y el modelo diverge, demasiado lento y apenas aprende. El dropout silencia neuronas aleatoriamente durante el entrenamiento para prevenir la memorización. Y la ventana de contexto establece cuántos caracteres ve el modelo a la vez. Cada una de estas decisiones tiene compromisos.",
 
-                    // ── Flujo principal: 7 visualizadores ──
-                    p1: "Comencemos con la dimensión del embedding — cuántas características obtiene cada carácter. Embeddings más pequeños son más baratos pero capturan menos distinciones.",
-                    figLabel1: "Interactivo · Comparación de Dimensión de Embedding",
-                    figHint1: "Alterna dimensiones de embedding (2, 4, 10, 32) para comparar curvas de pérdida. Nota los rendimientos decrecientes más allá de D=10.",
+                    figLabelAnatomy: "Interactivo · Anatomía de Hiperparámetros",
+                    figHintAnatomy: "Haz clic en cada perilla para ver exactamente DÓNDE vive en la arquitectura MLP y qué controla. Observa cómo el diagrama resalta los componentes afectados.",
+                    pAnatomyInsight: "Cada perilla controla una parte diferente de la arquitectura. Pero no operan de forma aislada — interactúan entre sí. La mejor dimensión de embedding depende del tamaño oculto, que depende de la tasa de aprendizaje. Para encontrar el óptimo real, necesitamos probarlas juntas.",
 
-                    p2: "Siguiente: tamaño de la capa oculta. Más neuronas significa más capacidad — pero también más riesgo de memorizar los datos de entrenamiento en lugar de aprender patrones generales.",
-                    figLabel2: "Interactivo · Explorador de Tamaño Oculto",
-                    figHint2: "Selecciona tamaños ocultos (16-256) y compara pérdida de entrenamiento vs validación. Observa cómo crece la brecha de generalización con redes más grandes.",
+                    // ── Acto 2: El Gran Experimento ──
+                    pExplorerIntro: "Así que entrenamos más de 100 modelos — cada combinación de dimensiones de embedding (2 a 32), tamaños ocultos (32 a 1024) y tasas de aprendizaje (0.01 a 0.2). Cada uno entrenado durante 50,000 pasos con los mismos datos de Shakespeare. Tu misión: explorar la cuadrícula y encontrar al campeón. Usa los controles. Observa las curvas de pérdida. Genera texto. Encuentra patrones.",
+                    figLabelExplorer: "Interactivo · Explorador Completo de Hiperparámetros",
+                    figHintExplorer: "Usa los controles para explorar diferentes combinaciones de hiperparámetros. Observa curvas de entrenamiento, genera texto y detecta anomalías. Prueba los extremos primero — los modelos más pequeños y más grandes — luego acércate al punto óptimo.",
+                    pExplorerReflection: "¿Encontraste el mejor modelo? ¿Notaste cómo algunas configuraciones divergen completamente — la pérdida sube en vez de bajar? Esas son las que tenían una tasa de aprendizaje demasiado agresiva para la capacidad del modelo. ¿Y viste la brecha entre pérdida de entrenamiento y validación crecer con modelos más grandes? Eso es sobreajuste — el modelo memorizando en vez de aprender.",
 
-                    pDropout: "¿Recuerdas el sobreajuste del capítulo de NN? El MLP tiene una herramienta poderosa: dropout. Durante cada paso de entrenamiento, un subconjunto aleatorio de neuronas es silenciado — apagado completamente. La red no puede depender de ninguna neurona individual, forzándola a aprender representaciones redundantes y robustas. Es como estudiar para un examen tapando partes aleatorias de tus apuntes cada vez — te obliga a aprender el material más ampliamente.",
+                    // ── Acto 3: Patrones en los Datos ──
+                    pWallIntro: "Ahora da un paso atrás y mira todos los modelos a la vez. Abajo, cada modelo que entrenamos está graficado como total de parámetros vs. pérdida de validación. El patrón es impactante: más allá de cierto tamaño, añadir más parámetros no ayuda. La pérdida toca un piso. Lo llamamos el muro de parámetros.",
+                    figLabelWall: "Datos · El Muro de Parámetros",
+                    figHintWall: "Cada punto es un modelo entrenado real. Colorea por dimensión de embedding o tasa de aprendizaje para ver patrones. Pasa el cursor para detalles. Nota cómo la pérdida se estanca — más parámetros no atraviesan el muro.",
+                    pWallInsight: "No importa cuántos parámetros lancemos a esta arquitectura, la pérdida no baja de ~2.1. El modelo más grande tiene 10× más parámetros que el punto óptimo — y rinde apenas mejor (o peor, por sobreajuste). Este es el límite fundamental de la arquitectura MLP, no un problema de ajuste.",
+
+                    // ── Acto 4: La Trampa del Sobreajuste ──
+                    pOverfittingBridge: "Uno de los mayores peligros en el explorador fue el sobreajuste — modelos que dominan sus datos de entrenamiento pero fallan con texto nuevo. Lo viste en el capítulo de Redes Neuronales: la brecha entre pérdida de entrenamiento y validación es la señal reveladora. ¿Puedes detectarlo en la práctica?",
+                    figLabelDetective: "Desafío · Detective de Sobreajuste",
+                    figHintDetective: "Observa las curvas de pérdida de entrenamiento vs validación y diagnostica: ¿sobreajustado, subajustado o bien ajustado? ¡Gana puntos por respuestas correctas!",
+                    pDropoutIntro: "La cura para la memorización es el dropout. Durante cada paso de entrenamiento, el dropout silencia aleatoriamente una fracción de las neuronas — forzando a la red a aprender representaciones redundantes y robustas en vez de depender de una sola neurona. Es como estudiar para un examen tapando partes aleatorias de tus apuntes cada vez.",
                     figLabelDropout: "Interactivo · Visualizador de Dropout",
-                    figHintDropout: "Haz clic en 'Training Step' para ver qué neuronas se silencian aleatoriamente. Activa/desactiva dropout. Observa la tira de historial — diferentes neuronas están activas en cada paso.",
+                    figHintDropout: "Haz clic en 'Training Step' para ver qué neuronas se silencian aleatoriamente. Activa/desactiva dropout. Observa la tira de historial — diferentes neuronas activas en cada paso, forzando redundancia.",
+                    pDropoutInsight: "El dropout hace a la red más fuerte haciéndola menos segura. En vez de un solo camino frágil a través de la red, construye muchos caminos — y el resultado final es más confiable. En §07, vimos que BatchNorm hace algo similar inyectando ruido a través de estadísticas del lote. Ambos son formas de regularización — técnicas que combaten la memorización.",
 
-                    pContextBridge: "Hay una perilla crítica más: ¿cuánto contexto ve el modelo? Abajo, compara modelos entrenados con diferentes tamaños de ventana de contexto — desde un solo carácter hasta ocho. Nota los rendimientos decrecientes.",
-                    figLabelContext: "Interactivo · Experimento de Tamaño de Ventana de Contexto",
-                    figHintContext: "Activa/desactiva tamaños de contexto. Compara curvas de pérdida, calidad del texto generado y nota los rendimientos decrecientes a medida que crece el contexto.",
+                    // ── Acto 5: Tasa de Aprendizaje — El Asesino Silencioso ──
+                    pLRIntro: "De las cinco perillas, la tasa de aprendizaje es la más peligrosa. Demasiado baja y el modelo apenas aprende — la pérdida se estanca temprano, desperdiciando cómputo. Demasiado alta y el modelo diverge completamente — la pérdida explota, la red no aprende nada. El punto óptimo es estrecho, y depende del tamaño del modelo.",
+                    figLabelLR: "Interactivo · Intuición de Tasa de Aprendizaje",
+                    figHintLR: "Haz clic en 'Run Gradient Descent' para ver tres tasas de aprendizaje competir en el mismo paisaje de pérdida. La bola muestra dónde está cada optimizador en cada paso.",
+                    pLRInsight: "En el explorador, las configuraciones divergentes — las que tenían pérdida por encima de la línea base aleatoria — eran casi todas lr=0.1 o lr=0.2 en modelos más grandes. La tasa de aprendizaje que funciona para un modelo pequeño puede destruir uno grande. Por eso los profesionales suelen empezar con una tasa de aprendizaje pequeña y subir, nunca al revés.",
 
-                    // ── Desafío guiado ──
-                    pGuidedChallenge: "Hora del desafío. Abajo está nuestra cuadrícula completa de 108 modelos entrenados. Tu misión: encontrar la configuración con la menor pérdida de validación. Puedes ajustar dimensión del embedding, tamaño oculto, capas y tasa de aprendizaje. ¿Qué tan cerca puedes llegar del mejor MLP posible?",
-                    figLabel5: "Interactivo · Explorador Completo de Hiperparámetros",
-                    figHint5: "Explora la cuadrícula completa de configuraciones MLP entrenadas. Selecciona cualquier modelo para ver su línea temporal de entrenamiento, curvas de pérdida y texto generado.",
+                    // ── Experimento Dropout (panel oculto) ──
+                    panelDropoutExpTitle: "Experimento Real: Comparación de Tasas de Dropout",
+                    panelDropoutExpPreview: "Curvas de entrenamiento reales para dropout=0.0, 0.2, 0.5 en el mismo modelo. Observa cómo cambia la brecha de sobreajuste.",
+                    figLabelDropoutExp: "Experimento · Barrido de Tasa de Dropout",
+                    figHintDropoutExp: "Haz clic en cada tasa de dropout para comparar curvas de pérdida. El área sombreada muestra la brecha de sobreajuste entre train y val loss. Menor brecha = mejor generalización.",
 
-                    p6: "Pon a prueba tu comprensión: ¿puedes diagnosticar si un modelo está sobreajustado, subajustado o bien ajustado solo mirando sus curvas de entrenamiento?",
-                    figLabel6: "Desafío · Detective de Sobreajuste",
-                    figHint6: "Observa las curvas de pérdida de entrenamiento vs validación e identifica el diagnóstico. ¡Gana puntos por respuestas correctas!",
+                    // ── LR Sweep (panel oculto) ──
+                    panelLRSweepTitle: "Experimento Real: Barrido de Tasa de Aprendizaje",
+                    panelLRSweepPreview: "5 tasas de aprendizaje de 0.0001 a 0.1 en la misma arquitectura. Ve exactamente cuándo y por qué cada una falla.",
+                    figLabelLRSweep: "Experimento · Barrido de Tasa de Aprendizaje (5 tasas)",
+                    figHintLRSweep: "Haz clic en cada tasa de aprendizaje para ver su curva de val loss. La mejor tasa (verde) encuentra el punto óptimo. Muy baja = apenas aprende. Muy alta = explota.",
 
-                    // ── Mejor modelo ──
-                    pBestShowcase: "Después de explorar 108 configuraciones, aquí está el campeón. El mejor MLP posible con nuestros datos de entrenamiento. Mira el texto que genera — de la misma familia de modelos que empezó como ruido aleatorio. Esto es lo mejor que esta arquitectura puede dar. Encontró patrones en Shakespeare que ningún humano programó — descubiertos puramente a través del descenso de gradiente. No sabe qué significan. Optimiza.",
+                    // ── Overtraining Timeline ──
+                    pOvertrainingIntro: "Hay una trampa más en la que cae incluso la mejor configuración: entrenar demasiado tiempo. Abajo hay un solo modelo entrenado durante 200K pasos — diez veces más de lo necesario. Observa el momento en que la val loss deja de mejorar mientras la train loss sigue cayendo. Ese es el momento en que el modelo empieza a memorizar en vez de aprender.",
+                    figLabelOvertraining: "Experimento · La Línea de Tiempo del Sobreajuste",
+                    figHintOvertraining: "Pasa el cursor para explorar las curvas de pérdida a lo largo de 200K pasos. Los puntos morados muestran instantáneas de calidad del texto en hitos. El marcador verde muestra cuándo el modelo estaba en su mejor momento.",
+                    pOvertrainingInsight: "Todo después de la línea verde es cómputo desperdiciado — o peor, daña activamente al modelo. En la práctica, usamos 'early stopping': monitoreamos la val loss y paramos cuando no ha mejorado en N pasos. El mejor modelo no es el que entrenó más tiempo — es el que supo cuándo parar.",
 
-                    // ── Paneles (movidos del flujo principal) ──
-                    panelLRTitle: "En Profundidad: Programas de Tasa de Aprendizaje",
-                    panelLRPreview: "Compara programas constante, decaimiento por pasos y calentamiento+coseno y ve cómo afectan la convergencia.",
-                    p3: "El programa de tasa de aprendizaje controla qué tan agresivamente el optimizador actualiza los pesos. Piénsalo como el tamaño del paso en nuestro paisaje de error. Una tasa constante avanza a la misma velocidad — a menudo sobrepasando el mínimo. El decaimiento reduce la velocidad conforme avanza el entrenamiento. ¿Y el calentamiento? Esa es la clave:",
-                    figLabel3: "Interactivo · Programas de Tasa de Aprendizaje",
-                    figHint3: "Compara programas constante, decaimiento por pasos y calentamiento+coseno. Cada uno muestra un patrón de convergencia y pérdida final diferentes.",
-
-                    panelTempTitle: "En Profundidad: Control de Temperatura",
-                    panelTempPreview: "Controla qué tan 'creativas' son las predicciones del modelo ajustando la temperatura del softmax.",
-                    pTemperatureCallback: "Ya has visto la temperatura antes — en el capítulo de N-gramas, la misma idea controlaba qué tan 'creativas' eran las predicciones del modelo. El concepto es idéntico aquí. Menor temperatura hace al modelo más predecible y conservador. Mayor temperatura lo hace más creativo y sorprendente.",
-                    p4: "La temperatura controla la confianza de las predicciones. Baja temperatura hace que el modelo elija el carácter más probable; alta temperatura añade aleatoriedad creativa.",
-                    figLabel4: "Interactivo · Temperatura Softmax",
-                    figHint4: "Ajusta la temperatura y ve cómo reforma la distribución de probabilidad de concentrada (segura) a plana (creativa).",
-
-                    panelScatterTitle: "Datos: Los 108 Modelos Graficados",
-                    panelScatterPreview: "Ve cada modelo de nuestra cuadrícula de entrenamiento como dimensión de embedding vs. pérdida final — el patrón es claro.",
-                    pEmbDimScatter: "¿Cuánto importa realmente la dimensión del embedding? Abajo está cada modelo de nuestra cuadrícula de entrenamiento graficado como dimensión de embedding vs. pérdida final. Cada punto es un modelo entrenado real — y el patrón es claro.",
-                    figLabelEmbDim: "Interactivo · Dimensión de Embedding vs. Pérdida",
-                    figHintEmbDim: "Gráfico de dispersión de 108 modelos entrenados. Filtra por dimensión de embedding para ver cómo rinde cada uno. Nota los rendimientos decrecientes más allá de D=10.",
-
-                    panelRaceTitle: "Diversión: Carrera de Configuraciones",
-                    panelRacePreview: "Ve 5 configuraciones diferentes competir entre sí en tiempo real.",
-                    pTrainingRace: "Finalmente, veamos diferentes configuraciones competir entre sí en tiempo real. ¿Cuál converge más rápido? ¿Cuál se pasa? ¿Cuál tiene la mejor pérdida final?",
-                    figLabelRace: "Interactivo · Carrera de Progreso de Entrenamiento",
-                    figHintRace: "¡Pulsa 'Carrera!' para ver 5 configuraciones diferentes entrenar simultáneamente. Las barras muestran cuán rápido disminuye la pérdida de cada modelo en 50K pasos.",
+                    // ── Cierre ──
+                    pRecipeConclusion: "Después de cientos de experimentos, el campeón emerge. El mejor MLP posible con nuestros datos de entrenamiento — descubierto puramente a través de búsqueda sistemática. De la misma arquitectura que empezó como ruido aleatorio, encontró patrones en Shakespeare que ningún humano programó. No entiende qué significan los patrones. Optimiza. Y sin embargo — chocó contra el muro. Ningún ajuste puede superar los límites fundamentales del MLP.",
 
                     calloutTitle: "No hay almuerzo gratis",
-                    calloutText: "Cada hiperparámetro implica compromisos. Embeddings y capas ocultas más grandes aumentan la capacidad pero arriesgan el sobreajuste y ralentizan el entrenamiento. Tasas de aprendizaje más bajas son estables pero lentas. El arte del aprendizaje profundo es encontrar el punto óptimo — y entender POR QUÉ importa cada elección.",
+                    calloutText: "Cada hiperparámetro implica compromisos. Embeddings y capas ocultas más grandes aumentan la capacidad pero arriesgan el sobreajuste y ralentizan el entrenamiento. Tasas de aprendizaje más bajas son estables pero lentas. El arte del aprendizaje profundo es encontrar el punto óptimo — y entender POR QUÉ importa cada elección. No hay un 'mejor' ajuste universal — solo el mejor para tu arquitectura, datos y presupuesto de cómputo específicos.",
 
                     pChatGPTCheck2: "🤖 Checkpoint ChatGPT₂: El Mejor MLP Posible",
                     chatGPTCheck2Sub: "Hemos ajustado cada perilla: dimensión del embedding, tamaño oculto, tasa de aprendizaje, dropout, ventana de contexto. Tenemos el MEJOR MLP posible. ¿Es ESTO ChatGPT? 👾 Todavía no. El MLP tiene límites arquitectónicos duros que ningún ajuste puede superar. Descubramos cuáles son — y qué arquitectura los resuelve...",
 
-                    takeaway: "La mejor configuración MLP equilibra dimensión del embedding, tamaño oculto, programa de tasa de aprendizaje, dropout y ventana de contexto. Pero incluso los ajustes óptimos no pueden superar las restricciones fundamentales de la arquitectura. Hemos ajustado cada perilla. El monstruo está en su mejor momento. Lo que viene después requiere un diseño completamente diferente.",
+                    takeaway: "La mejor configuración MLP equilibra los cinco hiperparámetros, pero incluso los ajustes óptimos chocan contra un muro. Más parámetros no ayudan pasado un punto. El monstruo está en su mejor momento — lo que viene después requiere una arquitectura completamente diferente.",
                 },
-                s08: {
+                s09: {
                     heading: "El Monstruo Que No Puede Ver",
                     lead: "El monstruo tiene ojos, cerebro y profundidad. Es estable, optimizado, poderoso. Y sin embargo — no puede ver. No porque le falte visión, sino porque ver no se trata de tener ojos. Se trata de saber dónde mirar. Entender exactamente dónde falla el MLP revela lo que la siguiente arquitectura debe resolver.",
 
@@ -1531,6 +1678,13 @@ export const es: TranslationDictionary = {
                     pBigModelIntro: "Antes de catalogar las limitaciones, demostremos que el muro existe. Abajo: MLPs cada vez más grandes — más parámetros, más capas, más contexto. Observa la pérdida. Se estanca. Lanzar más cómputo al MLP no ayuda. La arquitectura misma es el cuello de botella.",
                     figLabelBigModel: "Interactivo · El Muro de Parámetros",
                     figHintBigModel: "Haz clic en cada modelo para ver su configuración y texto generado. Nota cómo la pérdida apenas mejora a pesar de 500× más parámetros.",
+
+                    // ── Experimento de tamaño de datos (panel oculto) ──
+                    panelDataSizeTitle: "Análisis: ¿Más Datos Ayudan?",
+                    panelDataSizePreview: "Mismo modelo, 5 tamaños de dataset. ¿Más datos rompen el muro?",
+                    pDataSizeIntro: "¿Quizás el problema son los datos? Entrenamos exactamente el mismo modelo en datasets desde 100K hasta 1.7M caracteres. Seguramente más datos ayudan… ¿verdad?",
+                    figLabelDataSize: "Experimento · Impacto del Tamaño de Datos",
+                    figHintDataSize: "Pasa el cursor sobre cada punto para ver la pérdida de entrenamiento/validación y la brecha de generalización. Nota qué tamaño de dataset logra la pérdida de validación más baja.",
 
                     p1: "Comienza escribiendo texto abajo. Observa lo que el MLP puede ver — y lo que es invisible para él. Cada carácter fuera de la pequeña ventana podría no existir.",
                     figLabel1: "Interactivo · Patio de Juegos de Limitaciones",
@@ -1576,6 +1730,7 @@ export const es: TranslationDictionary = {
 
                     // ── "Mira cuánto hemos avanzado" ──
                     pEvolutionIntro: "Pero antes de mirar adelante — mira cuánto hemos avanzado. De tablas de conteo a representaciones aprendidas. Cada modelo que construimos añadió algo esencial.",
+                    pWantMore: "Hemos avanzado mucho. Pero hay una diferencia entre apreciar el progreso y estar satisfechos. El monstruo puede predecir texto. Pero no puede ver más allá de 4 caracteres. No puede recordar lo que escribió hace 10 palabras. No entiende que 'rey' y 'reina' están relacionados. Queremos MÁS.",
                     figLabelEvolution: "Interactivo · Comparación de Evolución de Modelos",
                     figHintEvolution: "Cambia entre Bigrama, N-grama, Red Neuronal y MLP+Embeddings. Compara pérdida, parámetros, calidad de muestra, fortalezas y debilidades.",
                     pGalleryIntro: "Y mira lo que el monstruo PUEDE hacer. El mismo texto semilla, procesado por cada modelo que hemos construido. Observa el salto de calidad con cada avance arquitectónico.",
@@ -1583,29 +1738,35 @@ export const es: TranslationDictionary = {
                     figHintGallery: "Selecciona una semilla y compara la generación de texto lado a lado de los cuatro tipos de modelo. Observa cómo mejora la calidad con cada avance.",
 
                     // ── Cierre mejorado ──
-                    pJourneyReflection: "Cierra los ojos un momento. Recuerda la primera neurona que construiste — un peso, un sesgo, una función de activación. Eso fue el Capítulo 2. Ahora tienes una red profunda con embeddings aprendidos, normalización por lotes y conexiones residuales que genera texto como 'the throne of the kingdom.' Los mismos bloques de construcción. Una inteligencia profundamente diferente.",
+                    pJourneyReflection: "Cierra los ojos un momento. En el Capítulo 1, contabas pares de letras en una tabla. En el Capítulo 2, añadiste contexto — trigramas, 4-gramas, memorias más largas. En el Capítulo 3, construiste una sola neurona que podía aprender. Y ahora — redes profundas con embeddings aprendidos, normalización por lotes y conexiones residuales que generan texto como 'the throne of the kingdom.' De contar a aprender a entender estructura. Mismo objetivo. Inteligencia profundamente diferente.",
                     pMonsterClosure: "Ya tengo ojos.\nTengo cerebro.\nSoy profundo, estable, optimizado.\nPero no sé qué importa.\nVeo fragmentos.\nNo veo conexiones.\nNo sé dónde mirar.",
                     pMonsterClosureQuestion: "¿Y si pudiera mirarlo todo…\ny elegir?",
+                    pEmotionalBridge: "Esa pregunta — '¿en qué debería enfocarme?' — es la pregunta más importante en toda la IA. Y en 2017, un equipo de Google la respondió.",
                     pMonsterClosureSub: "El legado del MLP no es su rendimiento — son las ideas que fue pionero: embeddings aprendidos, jerarquías profundas de características y entrenamiento de extremo a extremo. Cada Transformer usa exactamente estos bloques de construcción. Pero la siguiente arquitectura añade algo que el MLP nunca tuvo: la capacidad de elegir dónde mirar.",
+                    pChapterComplete: "El capítulo MLP está completo. Entiendes todo desde embeddings hasta conexiones residuales. Dos caminos por delante:",
 
                     takeaway: "La ventana de contexto fija del MLP, los pesos dependientes de posición y la falta de compartición de parámetros son restricciones arquitectónicas duras — pero sus ideas perduran. Embeddings aprendidos, jerarquías de características no lineales y entrenamiento de gradientes de extremo a extremo son la base de todo modelo de lenguaje moderno. Las limitaciones apuntan directamente a la siguiente arquitectura: una que procese tokens independientemente, comparta pesos entre posiciones y atienda selectivamente al contexto.",
                 },
                 monsterInterludes: {
                     after01: "Proceso entradas. Multiplico pesos. Produzco salidas. Pero cada letra se ve idéntica — sin similitud, sin estructura. Solo distancias uniformes en un vacío de 27 dimensiones.",
                     after02: "Ya puedo ver. Las letras se agrupan — las vocales forman vecindarios, las consonantes se organizan por tipo. Estructura que nadie me enseñó, emergiendo solo de los gradientes.",
-                    after03: "Cada neurona se especializa. Una dispara para pares de vocales, otra detecta finales de palabra. Soy un aproximador de patrones — pequeño, pero preciso. ¿Qué pasa con más capas?",
-                    after04: "Más capas. Más capacidad. Pero el gradiente se degrada en cada una. Mis primeras capas reciben señal casi nula. Profundidad sin estabilidad es ruido.",
-                    after05: "Ahora lo veo. Cada capa multiplica el gradiente por una fracción. Fracción × fracción × fracción → cero. La matemática es clara. Necesito intervención arquitectónica.",
-                    after06: "Kaiming me dio equilibrio. BatchNorm me mantiene estable. Las conexiones residuales transportan mis gradientes. Ahora puedo ir profundo. Escalo.",
-                    after07: "Cada peso optimizado. Cada hiperparámetro ajustado. Soy lo mejor que esta arquitectura permite. Y sin embargo — veo fragmentos, no relaciones. Lo proceso todo igual. No sé qué importa.",
-                    after08: "Dicen que hay una forma de verlo todo a la vez. No por una cerradura — por cada ventana simultáneamente. Ponderar lo que importa. Seleccionar lo relevante. Lo llaman atención.",
+                    after03: "Mis ojos ya no son aleatorios. Cada letra encontró su lugar — vocales derivándose hacia vocales, consonantes hacia consonantes. Estructura tallada solo por gradientes. Pero ¿qué HAGO con lo que veo?",
+                    after04: "Cada neurona se especializa. Una dispara para pares de vocales, otra detecta finales de palabra. Soy un aproximador de patrones — pequeño, pero preciso. ¿Qué pasa con más capas?",
+                    after05: "Más capas. Más capacidad. Pero el gradiente se degrada en cada una. Mis primeras capas reciben señal casi nula. Profundidad sin estabilidad es ruido.",
+                    after06: "Ahora lo veo. Cada capa multiplica el gradiente por una fracción. Fracción × fracción × fracción → cero. La matemática es clara. Necesito intervención arquitectónica.",
+                    after07: "Kaiming me dio equilibrio. BatchNorm me mantiene estable. Las conexiones residuales transportan mis gradientes. Ahora puedo ir profundo. Escalo.",
+                    after08: "Cada peso optimizado. Cada hiperparámetro ajustado. Soy lo mejor que esta arquitectura permite. Y sin embargo — veo fragmentos, no relaciones. Lo proceso todo igual. No sé qué importa.",
+                    after09: "Dicen que hay una forma de verlo todo a la vez. No por una cerradura — por cada ventana simultáneamente. Ponderar lo que importa. Seleccionar lo relevante. Lo llaman atención.",
                 },
                 cta: {
                     heading: "Continúa Explorando",
+                    recommendedBadge: "Recomendado",
+                    transformerTitle: "Siguiente: El Transformer",
+                    transformerDesc: "La arquitectura que lo cambió todo. Self-attention, procesamiento paralelo, y la capacidad de mirar cada token simultáneamente. Así funcionan GPT, BERT y todos los LLMs modernos.",
                     freeLabTitle: "Abrir Lab Libre",
-                    freeLabDesc: "Experimenta con modelos MLP + Embeddings de forma interactiva. Entrena, visualiza embeddings y genera texto con diferentes hiperparámetros.",
-                    transformerTitle: "Siguiente: Redes Neuronales Recurrentes",
-                    transformerDesc: "Descubre cómo las RNNs superan la limitación de ventana fija procesando secuencias un token a la vez, llevando un estado oculto que actúa como memoria.",
+                    freeLabDesc: "Experimenta con modelos MLP de forma interactiva. Entrena, visualiza embeddings y genera texto con diferentes hiperparámetros.",
+                    rnnTitle: "¿Curioso? Explora las RNNs Primero",
+                    rnnDesc: "Antes de los Transformers, las RNNs resolvieron el problema de la ventana fija con memoria. Un fascinante desvío por la historia del modelado de secuencias.",
                 },
                 footer: {
                     text: "De tablas de conteo a representaciones aprendidas — el modelo MLP + Embeddings marcó el momento en que el modelado del lenguaje se volvió verdaderamente neuronal.",
@@ -4013,20 +4174,21 @@ export const es: TranslationDictionary = {
             pRecap: "Una neurona artificial que multiplica, suma y comprime. Una función de activación que dobla líneas rectas en curvas. Una función de pérdida que mide el error. Gradientes que apuntan hacia la mejora. Retropropagación que distribuye la culpa. Y una capa de salida de 27 neuronas que aprendió probabilidades de bigramas a partir de texto crudo.",
             pRecapPeak: "Le enseñaste a los números a leer.",
             pProof: "Tu red llegó a la misma respuesta que el conteo — pero APRENDIÓ el camino hasta allí. Sin tabla. Sin memorización. Puro descenso de gradiente. El bigrama contó pares de caracteres de un corpus. Tu red neuronal descubrió esas mismas probabilidades ajustando pesos a través de miles de pasos de entrenamiento. Mismo destino, camino fundamentalmente diferente.",
-            pBigQuestion: "¿Hasta dónde podemos llevar esto? ¿Qué pasaría si le diéramos más de una letra de contexto? ¿Y si apiláramos docenas de capas con millones de neuronas? ¿Podríamos construir algo como ChatGPT ahora mismo? ¿O hay obstáculos ocultos que aún no hemos descubierto?",
+            pBigQuestion: "¿Hasta dónde podemos llevar esto? ¿Qué pasaría si le diéramos más de una letra de contexto? ¿Y si apiláramos capas, añadiéramos millones de neuronas y lo dejáramos entrenar durante horas? ¿Podría escribir frases? ¿Párrafos? ¿Podría convertirse en algo como ChatGPT? La respuesta es: vamos a intentarlo. Y lo que construyamos será poderoso, extraño y, en última instancia — roto de maneras que aún no podemos imaginar.",
             pContextTeaser: "Ahora mismo tu red ve exactamente una letra antes de hacer su predicción. Cambia el tamaño del contexto abajo y siente la diferencia:",
             figLabelContext: "Interactivo · ¿Y Si Pudiera Ver Más?",
             figHintContext: "Cambia el tamaño de la ventana de contexto para ver cuánta información recibe la red. Con 1 carácter, adivina a ciegas. Con más, emergen patrones.",
-            pScalingTease: "Una sola neurona traza una línea. Una capa traza muchas. Pero el lenguaje es más profundo que líneas — tiene estructura, jerarquía, memoria. Para capturar eso, necesitamos pensar en grande: más entradas, más capas, y un truco secreto donde la red inventa su propio lenguaje para describir caracteres. Ahí es donde empieza el próximo capítulo — y la criatura que construiremos será algo completamente diferente.",
+            pScalingTease: "Una sola neurona traza una línea. Una capa traza muchas. Pero el lenguaje es más profundo que líneas — tiene estructura, jerarquía, memoria. Para capturar eso, necesitamos tres avances: (1) alimentar la red con múltiples caracteres a la vez, (2) apilar capas lo suficientemente profundas para aprender patrones abstractos, y (3) un truco secreto — dejar que la red invente su propia forma de representar caracteres, descubriendo por sí misma que 'a' y 'e' son similares. Ese truco se llama embedding, y lo cambia todo. La criatura que construiremos será algo completamente diferente de lo que has visto.",
             pTeaserIntro: "Aquí tienes un adelanto. Mira lo que tres arquitecturas producen con los mismos datos de entrenamiento — la tuya es una de ellas:",
             figLabelTeaser: "Lo Que Es Posible · Comparación de Salidas",
             figHintTeaser: "Compara texto generado por el Bigrama, tu Red Neuronal y una arquitectura misteriosa. Haz clic para revelar lo que viene.",
-            pQuestion: "Tres preguntas guiarán el próximo capítulo:",
-            q1: "¿Qué pasaría si alimentáramos la red con 3, 5 o 10 letras en vez de una?",
-            q2: "¿Y si apiláramos muchas capas — podría aprender patrones jerárquicos?",
-            q3: "¿Y si la red pudiera inventar su propia forma de describir cada carácter — descubriendo que 'a' y 'e' son similares sin que se lo digan?",
-            pClosing: "Has construido el motor. Ahora construyamos algo masivo con él.",
-            pClosingSub: "Próximo capítulo: El Perceptrón Multicapa — donde el contexto se encuentra con el aprendizaje, y algo emergente nace. 👾",
+            pQuestion: "Tres preguntas impulsarán el próximo capítulo. Recuérdalas — todas serán respondidas:",
+            q1: "Contexto: ¿Qué pasaría si alimentáramos la red con 3 caracteres en vez de uno? ¿Podría aprender que 'th' predice 'e' mejor que solo 't'?",
+            q2: "Profundidad: ¿Y si apiláramos 4 capas — y descubriéramos que las redes profundas se rompen de formas catastróficas que aún no hemos visto?",
+            q3: "Representación: ¿Y si la red pudiera inventar su propio lenguaje para los caracteres — descubriendo que las vocales se agrupan, que la 'q' vive cerca de la 'u', todo sin que nadie se lo diga?",
+            pMonsterForeshadow: "Lo que construyamos a continuación empezará como una simple mejora — más contexto, más capas. Pero crecerá hasta convertirse en algo que no planeamos. Algo que inventa sus propias representaciones, que se rompe de formas espectaculares, que requiere técnicas completamente nuevas para domarlo. Lo llamaremos el monstruo.",
+            pClosing: "Has construido el motor. Ahora veamos qué pasa cuando lo llevamos más allá de sus límites.",
+            pClosingSub: "Próximo capítulo: El Monstruo Sin Ojos — donde el contexto se encuentra con el aprendizaje, la profundidad con la inestabilidad, y algo emergente nace. 👾",
         },
         bridge: {
             title: "El Puente: De Tablas a Parámetros",

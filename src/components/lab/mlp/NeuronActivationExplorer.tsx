@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Lightbulb } from "lucide-react";
 
 /* ─── Mock neuron data ─── */
 interface NeuronData {
@@ -207,6 +208,14 @@ export function NeuronActivationExplorer() {
 
     return (
         <div className="flex flex-col gap-5">
+            {/* Illustrative data disclaimer */}
+            <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/[0.04] px-3 py-2">
+                <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <p className="text-[10px] font-mono text-amber-400/70 leading-relaxed">
+                    <strong>Illustrative patterns.</strong> These neurons are hand-crafted examples showing the kinds of patterns real MLPs discover. Actual neurons often detect more abstract features, and many exhibit polysemanticity (responding to multiple unrelated patterns).
+                </p>
+            </div>
+
             {/* Test input */}
             <div className="flex items-center gap-3 px-1">
                 <span className="text-[10px] font-mono text-white/30 shrink-0">Test input:</span>
@@ -232,8 +241,8 @@ export function NeuronActivationExplorer() {
                             key={n.id}
                             onClick={() => setSelected(isActive ? null : n.id)}
                             className={`group relative flex flex-col items-center gap-1 p-2.5 rounded-xl border transition-all ${isActive
-                                    ? "bg-violet-500/15 border-violet-500/40 scale-[1.03] shadow-lg shadow-violet-500/5"
-                                    : "bg-white/[0.02] border-white/[0.08] hover:border-violet-400/25 hover:bg-violet-500/[0.03]"
+                                ? "bg-violet-500/15 border-violet-500/40 scale-[1.03] shadow-lg shadow-violet-500/5"
+                                : "bg-white/[0.02] border-white/[0.08] hover:border-violet-400/25 hover:bg-violet-500/[0.03]"
                                 }`}
                         >
                             {/* Activation glow ring */}

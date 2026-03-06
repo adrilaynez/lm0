@@ -1,10 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ArrowRight, Loader2 } from "lucide-react";
 
-import { fetchMLPInternals } from "@/lib/lmLabClient";
+import { fetchMLPGrid, fetchMLPInternals } from "@/lib/lmLabClient";
 import type { MLPGridConfig, MLPInternalsResponse } from "@/types/lmLab";
 
 /*
@@ -137,12 +137,27 @@ function StageDisplay({ stage, data, seed }: StageDisplayProps) {
 
     if (stage === "hidden") {
         const hiddenSize = (data.config["hidden_size"] as number | undefined) ?? 128;
+        const inputDim = (data.config["embedding_dim"] as number ?? 8) * contextSize;
         const displayed = hiddenPre.slice(0, SHOW);
         const maxAbs = Math.max(...displayed.map(Math.abs), 0.001);
+        const positiveCount = displayed.filter(v => v > 0).length;
         return (
-            <div className="space-y-2">
+            <div className="space-y-3">
+                {/* Operation explanation */}
+                <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] p-3 space-y-1.5">
+                    <p className="text-[10px] font-mono text-emerald-400/70 font-bold">What&apos;s happening here?</p>
+                    <p className="text-[10px] font-mono text-white/35 leading-relaxed">
+                        Each of the {hiddenSize} neurons takes <strong className="text-amber-400/60">{inputDim} input values</strong>,
+                        multiplies each by its own weight, adds them all up, and adds a bias.
+                        The result is a single number — shown below as a bar.
+                    </p>
+                    <p className="text-[9px] font-mono text-white/25 text-center pt-1">
+                        neuronᵢ = w₁x₁ + w₂x₂ + ... + w₃₀x₃₀ + bᵢ
+                    </p>
+                </div>
+
                 <p className="text-[10px] font-mono text-white/30">
-                    W₁ ({hiddenSize} neurons) — linear pre-activation values (before tanh)
+                    W₁ pre-activations — {hiddenSize} neurons ({positiveCount} positive, {displayed.length - positiveCount} negative)
                 </p>
                 <div className="space-y-0.5">
                     {displayed.map((v, i) => (
@@ -150,6 +165,7 @@ function StageDisplay({ stage, data, seed }: StageDisplayProps) {
                             <span className="text-[7px] font-mono text-white/15 w-6 text-right">n{i}</span>
                             <MiniBar v={v} max={maxAbs} color={v >= 0 ? "bg-blue-400/40" : "bg-rose-400/40"} />
                             <span className="text-[7px] font-mono text-white/25 w-10 text-right">{v.toFixed(2)}</span>
+                            {i === 0 && <span className="text-[7px] font-mono text-white/15">← {v >= 0 ? "excited" : "inhibited"}</span>}
                         </div>
                     ))}
                     {hiddenSize > SHOW && (
@@ -158,9 +174,11 @@ function StageDisplay({ stage, data, seed }: StageDisplayProps) {
                         </p>
                     )}
                 </div>
-                <p className="text-[10px] font-mono text-white/20">
-                    Each neuron computes a weighted sum of all {(data.config["embedding_dim"] as number ?? 8) * contextSize} input values.
-                </p>
+                {/* Legend */}
+                <div className="flex gap-4 text-[9px] font-mono text-white/20">
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-blue-400/40" /> positive = pattern detected</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-rose-400/40" /> negative = pattern absent</span>
+                </div>
             </div>
         );
     }
@@ -170,10 +188,21 @@ function StageDisplay({ stage, data, seed }: StageDisplayProps) {
         const displayed = hiddenActs.slice(0, SHOW);
         const maxAbs = 1;
         const stats = data.internals.activation_stats;
+        const saturatedCount = displayed.filter(v => Math.abs(v) > 0.9).length;
         return (
-            <div className="space-y-2">
+            <div className="space-y-3">
+                {/* What tanh does */}
+                <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] p-3 space-y-1.5">
+                    <p className="text-[10px] font-mono text-emerald-400/70 font-bold">Why tanh?</p>
+                    <p className="text-[10px] font-mono text-white/35 leading-relaxed">
+                        The tanh function <strong className="text-emerald-400/60">squashes any number into the range (-1, 1)</strong>.
+                        This prevents values from exploding and adds non-linearity — without it,
+                        stacking layers would be useless (it&apos;d just be one big linear equation).
+                    </p>
+                </div>
+
                 <p className="text-[10px] font-mono text-white/30">
-                    tanh(W₁x + b₁) — activations squashed into (−1, 1)
+                    tanh activations — {saturatedCount > 0 ? <span className="text-amber-400/50">{saturatedCount}/{displayed.length} saturated</span> : "all healthy"}
                 </p>
                 <div className="space-y-0.5">
                     {displayed.map((v, i) => (
@@ -181,6 +210,7 @@ function StageDisplay({ stage, data, seed }: StageDisplayProps) {
                             <span className="text-[7px] font-mono text-white/15 w-6 text-right">n{i}</span>
                             <MiniBar v={v} max={maxAbs} color={Math.abs(v) > 0.9 ? "bg-amber-400/50" : "bg-emerald-400/40"} />
                             <span className="text-[7px] font-mono text-white/25 w-10 text-right">{v.toFixed(2)}</span>
+                            {Math.abs(v) > 0.95 && <span className="text-[7px] font-mono text-amber-400/40">⚠ stuck</span>}
                         </div>
                     ))}
                     {hiddenSize > SHOW && (
@@ -191,12 +221,13 @@ function StageDisplay({ stage, data, seed }: StageDisplayProps) {
                     <div className="flex gap-4 text-[9px] font-mono text-white/25 pt-1">
                         <span>mean: {stats.mean.toFixed(3)}</span>
                         <span>std: {stats.std.toFixed(3)}</span>
-                        <span className="text-amber-400/50">amber = saturated (|v| &gt; 0.9)</span>
                     </div>
                 )}
-                <p className="text-[10px] font-mono text-white/20">
-                    Values near ±1 are saturated — those neurons contribute near-zero gradient during training.
-                </p>
+                {/* Legend */}
+                <div className="flex gap-4 text-[9px] font-mono text-white/20">
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-400/40" /> healthy (can learn)</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-amber-400/50" /> saturated (≈ stuck, slow learning)</span>
+                </div>
             </div>
         );
     }
@@ -289,18 +320,77 @@ interface Props {
     selectedConfig: MLPGridConfig | null;
 }
 
-export function MLPPipelineVisualizer({ selectedConfig }: Props) {
+export function MLPPipelineVisualizer({ selectedConfig: externalConfig }: Props) {
     const [seed, setSeed] = useState("the");
     const [activeStage, setActiveStage] = useState(0);
     const [data, setData] = useState<MLPInternalsResponse | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [autoConfig, setAutoConfig] = useState<MLPGridConfig | null>(null);
+    const [autoLoading, setAutoLoading] = useState(false);
     const cancelRef = useRef(false);
+
+    // Use external config if provided, otherwise auto-fetch best config
+    const selectedConfig = externalConfig ?? autoConfig;
+
+    useEffect(() => {
+        if (externalConfig) return; // external config provided, no need to auto-fetch
+        let cancelled = false;
+        setAutoLoading(true);
+        fetchMLPGrid()
+            .then(res => {
+                if (cancelled) return;
+                const configs = res.configurations ?? res.configs ?? [];
+                if (configs.length === 0) throw new Error("No configs");
+                // Prefer emb=10, largest hidden, lowest LR (best pedagogical config)
+                const withEmb = configs.filter((c: MLPGridConfig) => c.embedding_dim > 0);
+                const pool = withEmb.length > 0 ? withEmb : configs;
+                // Try exact match first: emb=10, H=1024
+                const ideal = pool.find((c: MLPGridConfig) => c.embedding_dim === 10 && c.hidden_size === 1024);
+                if (ideal) {
+                    setAutoConfig(ideal);
+                } else {
+                    // Fallback: sort by val_loss (or final_loss) ascending
+                    const sorted = [...pool].sort(
+                        (a: MLPGridConfig, b: MLPGridConfig) =>
+                            (a.final_val_loss ?? a.final_loss) - (b.final_val_loss ?? b.final_loss)
+                    );
+                    setAutoConfig(sorted[0]);
+                }
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    // Fallback config
+                    setAutoConfig({
+                        config_id: "fallback",
+                        embedding_dim: 10,
+                        hidden_size: 64,
+                        context_size: 3,
+                        learning_rate: 0.01,
+                        num_layers: 1,
+                        total_parameters: 11000,
+                        final_loss: 2.1,
+                        filename: "fallback",
+                    } as MLPGridConfig);
+                }
+            })
+            .finally(() => { if (!cancelled) setAutoLoading(false); });
+        return () => { cancelled = true; };
+    }, [externalConfig]);
+
+    // Auto-run pipeline when config becomes available and no data yet
+    useEffect(() => {
+        if (selectedConfig && selectedConfig.embedding_dim > 0 && !data && !loading && seed.trim()) {
+            handleRun();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedConfig]);
 
     const handleRun = async () => {
         if (
             !selectedConfig ||
-            selectedConfig.embedding_dim == null ||
+            !selectedConfig.embedding_dim ||
+            selectedConfig.embedding_dim < 1 ||
             selectedConfig.hidden_size == null ||
             selectedConfig.learning_rate == null ||
             !seed.trim()
@@ -364,9 +454,9 @@ export function MLPPipelineVisualizer({ selectedConfig }: Props) {
                 </button>
             </div>
 
-            {!selectedConfig && (
-                <p className="text-[10px] font-mono text-amber-400/50 italic">
-                    Select a configuration in the Hyperparameter Explorer above to enable the pipeline.
+            {!selectedConfig && autoLoading && (
+                <p className="text-[10px] font-mono text-white/30 italic flex items-center gap-2">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Loading best model configuration…
                 </p>
             )}
 

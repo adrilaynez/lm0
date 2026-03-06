@@ -276,6 +276,7 @@ export interface MLPGenerateResponse {
     model_id: string;
     config: Record<string, unknown>;
     generated_text: string;
+    generated_only?: string;
     seed_text: string;
     temperature: number;
     length: number;

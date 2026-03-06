@@ -175,8 +175,41 @@ export function InitializationSensitivityVisualizer({ timeline }: Initialization
             : zoneInfo.zone === "chaotic" ? "rgb(251,113,133)"
                 : "rgb(251,146,60)";
 
+    // Zone explanation
+    const zoneExplanation = useMemo(() => {
+        const z = zoneInfo.zone;
+        if (z === "dead") return {
+            title: "Dead Zone",
+            what: "All weights are tiny → activations are near 0 → tanh'(0) ≈ 1 but the signal itself is negligible.",
+            why: `With σ=${sigma < 0.01 ? sigma.toExponential(1) : sigma.toFixed(3)}, weights are ~${(sigma * 100).toFixed(1)}× smaller than needed. The input to each neuron sums to ≈0. Gradients exist but carry no useful information — the network outputs random noise and stays there.`,
+            result: "Loss stays flat near random baseline. The network has capacity but can't use it.",
+            hex: "#fb7185",
+        };
+        if (z === "sweet") return {
+            title: "Sweet Spot (Kaiming Region)",
+            what: "Weights are scaled so activations stay in tanh's linear zone (|x| < 1).",
+            why: `With σ=${sigma.toFixed(3)}, pre-activations have variance ≈1. tanh'(x) stays between 0.6–1.0. Gradients flow cleanly through all layers — each layer learns at a proportional rate.`,
+            result: "Loss drops steadily and converges to a good minimum. This is where Kaiming initialization (σ = √(2/N)) lives.",
+            hex: "#34d399",
+        };
+        if (z === "transition") return {
+            title: "Unstable Zone",
+            what: "Weights are getting too large → some activations saturate → gradients become noisy.",
+            why: `With σ=${sigma.toFixed(2)}, many neurons see inputs |x| > 1.5. tanh starts saturating, derivatives drop. Some gradients vanish while others spike. The network oscillates between learning and forgetting.`,
+            result: "Loss curve is jagged and unpredictable. Final loss is much higher than the sweet spot. Training is unreliable.",
+            hex: "#fbbf24",
+        };
+        return {
+            title: "Chaotic Zone",
+            what: "Weights are so large that ALL activations saturate immediately → training diverges.",
+            why: `With σ=${sigma.toFixed(1)}, even the first layer's pre-activations are |x| >> 2. Every neuron is stuck at tanh(x) ≈ ±1. Gradients are either zero (vanishing) or enormous (exploding). Weight updates are chaotic and destructive.`,
+            result: "Loss spikes, oscillates wildly, or NaNs. The network is broken from step 0 and never recovers.",
+            hex: "#fb7185",
+        };
+    }, [zoneInfo, sigma]);
+
     return (
-        <div className="space-y-4">
+        <div className="p-4 sm:p-5 space-y-4">
             {/* Sigma slider with zone coloring */}
             <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -187,7 +220,6 @@ export function InitializationSensitivityVisualizer({ timeline }: Initialization
                 </div>
                 {/* Zone-colored track */}
                 <div className="relative h-6 flex items-center">
-                    {/* Background track with zone colors */}
                     <div className="absolute inset-x-0 h-2 rounded-full overflow-hidden flex">
                         <div className="h-full bg-rose-500/30" style={{ width: "18%" }} />
                         <div className="h-full bg-emerald-500/30" style={{ width: "22%" }} />
@@ -227,7 +259,7 @@ export function InitializationSensitivityVisualizer({ timeline }: Initialization
             </motion.div>
 
             {/* SVG chart */}
-            <div className="rounded-xl border border-white/[0.06] bg-black/30 overflow-hidden">
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] overflow-hidden">
                 <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 220 }}>
                     {yTicks.map(v => (
                         <g key={v}>
@@ -248,6 +280,27 @@ export function InitializationSensitivityVisualizer({ timeline }: Initialization
                     />
                 </svg>
             </div>
+
+            {/* ── Zone explanation card ── */}
+            <motion.div
+                key={zoneInfo.zone + sigma.toFixed(2)}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-xl border p-3 space-y-2"
+                style={{
+                    borderColor: zoneExplanation.hex + "25",
+                    backgroundColor: zoneExplanation.hex + "08",
+                }}
+            >
+                <p className="text-[10px] font-mono font-bold" style={{ color: zoneExplanation.hex }}>
+                    {zoneExplanation.title}
+                </p>
+                <div className="space-y-1.5 text-[8px] font-mono text-white/25 leading-relaxed">
+                    <p><span className="text-white/35 font-bold">What happens:</span> {zoneExplanation.what}</p>
+                    <p><span className="text-white/35 font-bold">Why:</span> {zoneExplanation.why}</p>
+                    <p><span className="text-white/35 font-bold">Result:</span> {zoneExplanation.result}</p>
+                </div>
+            </motion.div>
         </div>
     );
 }

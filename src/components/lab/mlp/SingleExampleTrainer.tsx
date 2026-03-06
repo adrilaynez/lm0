@@ -44,16 +44,17 @@ const BASE_PREDS = [
     { char: "e", base: 0.05, growth: 0.005 },
 ];
 
-// Simulated hidden neuron activations
+// Simulated hidden neuron computations: each shows w·x + b → tanh
+// pre = weighted sum + bias, post = tanh(pre)
 const HIDDEN_NEURONS = [
-    { label: "th-detect", value: 0.82 },
-    { label: "vowel", value: -0.45 },
-    { label: "ending", value: 0.67 },
-    { label: "double", value: 0.12 },
-    { label: "space", value: -0.71 },
-    { label: "cluster", value: 0.34 },
-    { label: "rhythm", value: -0.23 },
-    { label: "rare", value: 0.05 },
+    { weights: [0.31, -0.12, 0.47], bias: 0.15, pre: 1.16, post: 0.82 },
+    { weights: [-0.22, 0.38, -0.15], bias: -0.10, pre: -0.49, post: -0.45 },
+    { weights: [0.18, 0.25, 0.41], bias: -0.05, pre: 0.81, post: 0.67 },
+    { weights: [0.05, -0.03, 0.08], bias: 0.02, pre: 0.12, post: 0.12 },
+    { weights: [-0.35, -0.20, 0.10], bias: -0.22, pre: -0.89, post: -0.71 },
+    { weights: [0.14, 0.09, 0.22], bias: -0.08, pre: 0.35, post: 0.34 },
+    { weights: [-0.11, -0.15, 0.03], bias: -0.01, pre: -0.24, post: -0.23 },
+    { weights: [0.02, 0.04, -0.01], bias: 0.00, pre: 0.05, post: 0.05 },
 ];
 
 function charToOneHot(ch: string): number[] {
@@ -350,7 +351,12 @@ export function SingleExampleTrainer() {
                     {phase === 0 && fwdStep === 3 && (
                         <div className="rounded-xl border border-violet-500/20 bg-violet-500/[0.03] p-4 space-y-4">
                             <p className="text-[11px] font-mono text-violet-400">Step 4 · Hidden Layer</p>
-                            <p className="text-[10px] text-white/40 leading-relaxed">The concatenated vector enters the hidden layer: h = tanh(W₁·x + b₁). Each neuron computes a weighted sum, adds bias, then squashes through tanh.</p>
+                            <p className="text-[10px] text-white/40 leading-relaxed">Each neuron does the same thing: multiply every input by a weight, add them up, add a bias, then squash through tanh. That&apos;s it — weighted sum + activation.</p>
+                            <div className="rounded-lg border border-violet-500/15 bg-violet-500/[0.02] p-3 space-y-1.5 text-center">
+                                <p className="text-[9px] font-mono text-white/30">For each neuron:</p>
+                                <p className="text-[11px] font-mono text-violet-400">h = tanh( w₁·x₁ + w₂·x₂ + ... + w₈₁·x₈₁ + b )</p>
+                                <p className="text-[8px] font-mono text-white/20">81 inputs × 1 weight each + 1 bias → 1 number → tanh</p>
+                            </div>
                             <div className="grid grid-cols-4 gap-2">
                                 {HIDDEN_NEURONS.map((n, i) => (
                                     <motion.div
@@ -362,20 +368,23 @@ export function SingleExampleTrainer() {
                                     >
                                         <div className="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-mono font-bold"
                                             style={{
-                                                backgroundColor: n.value > 0 ? `rgba(167,139,250,${Math.abs(n.value) * 0.3})` : `rgba(244,63,94,${Math.abs(n.value) * 0.3})`,
-                                                color: n.value > 0 ? "#a78bfa" : "#f43f5e",
+                                                backgroundColor: n.post > 0 ? `rgba(167,139,250,${Math.abs(n.post) * 0.3})` : `rgba(244,63,94,${Math.abs(n.post) * 0.3})`,
+                                                color: n.post > 0 ? "#a78bfa" : "#f43f5e",
                                             }}
                                         >
                                             h{i}
                                         </div>
-                                        <span className="text-[7px] font-mono text-white/30">{n.label}</span>
-                                        <span className="text-[8px] font-mono font-bold" style={{ color: n.value > 0 ? "#a78bfa" : "#f43f5e" }}>
-                                            {n.value > 0 ? "+" : ""}{n.value.toFixed(2)}
+                                        <span className="text-[7px] font-mono text-white/20 leading-tight text-center" title={`w·x = ${n.weights.join(" + ")} + b=${n.bias}`}>
+                                            Σw·x = {n.pre > 0 ? "+" : ""}{n.pre.toFixed(2)}
+                                        </span>
+                                        <span className="text-[7px] font-mono text-white/15">↓ tanh</span>
+                                        <span className="text-[9px] font-mono font-bold" style={{ color: n.post > 0 ? "#a78bfa" : "#f43f5e" }}>
+                                            {n.post > 0 ? "+" : ""}{n.post.toFixed(2)}
                                         </span>
                                     </motion.div>
                                 ))}
                             </div>
-                            <p className="text-[8px] font-mono text-white/15 text-center">tanh squashes each value to [−1, +1]</p>
+                            <p className="text-[8px] font-mono text-white/15 text-center">128 neurons total (showing 8) · tanh squashes each to [−1, +1]</p>
                         </div>
                     )}
 

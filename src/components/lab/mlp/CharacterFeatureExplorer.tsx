@@ -180,54 +180,20 @@ export function CharacterFeatureExplorer() {
                         >
                             <div className="flex items-center gap-2 mb-3">
                                 <Sparkles className="w-4 h-4 text-violet-400" />
-                                <span className="text-xs font-mono font-bold text-violet-400 uppercase tracking-widest">The key insight</span>
+                                <span className="text-xs font-mono font-bold text-violet-400 uppercase tracking-widest">Notice something?</span>
                             </div>
                             <p className="text-sm text-white/70 leading-relaxed mb-3">
-                                You just gave every letter a <strong className="text-white/90">number based on its group</strong>.
-                                Vowels = 1, common consonants = 2, rare consonants = 3.
+                                You just proved that letters aren&apos;t all the same. They have <strong className="text-white/90">properties</strong> —
+                                some are vowels, some are common, some are rare. You <em>know</em> that &apos;a&apos; and &apos;e&apos; are more alike
+                                than &apos;a&apos; and &apos;x&apos;.
                             </p>
                             <p className="text-sm text-white/70 leading-relaxed mb-3">
-                                But one number isn&apos;t enough. Letters have <em>many</em> features — frequency, whether they&apos;re voiced,
-                                where your tongue goes. What if each letter had <strong className="text-white/90">multiple numbers</strong>, one per feature?
+                                But our model doesn&apos;t know any of this. To our model right now, every letter is just a number —
+                                with <strong className="text-white/90">no concept of similarity at all</strong>.
                             </p>
-                            <div className="rounded-lg bg-black/30 p-3 font-mono text-xs space-y-1.5">
-                                <div className="flex items-center gap-3">
-                                    <span className="text-violet-400 w-6">a:</span>
-                                    <span className="text-white/50">[</span>
-                                    <span className="text-amber-400">1.0</span>
-                                    <span className="text-white/20">,</span>
-                                    <span className="text-blue-400">0.8</span>
-                                    <span className="text-white/20">,</span>
-                                    <span className="text-green-400">0.2</span>
-                                    <span className="text-white/50">]</span>
-                                    <span className="text-white/20 text-[9px] ml-auto">vowel · common · low pitch</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-violet-400 w-6">t:</span>
-                                    <span className="text-white/50">[</span>
-                                    <span className="text-amber-400">0.0</span>
-                                    <span className="text-white/20">,</span>
-                                    <span className="text-blue-400">0.9</span>
-                                    <span className="text-white/20">,</span>
-                                    <span className="text-green-400">0.7</span>
-                                    <span className="text-white/50">]</span>
-                                    <span className="text-white/20 text-[9px] ml-auto">consonant · very common · sharp</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-violet-400 w-6">z:</span>
-                                    <span className="text-white/50">[</span>
-                                    <span className="text-amber-400">0.0</span>
-                                    <span className="text-white/20">,</span>
-                                    <span className="text-blue-400">0.1</span>
-                                    <span className="text-white/20">,</span>
-                                    <span className="text-green-400">0.6</span>
-                                    <span className="text-white/50">]</span>
-                                    <span className="text-white/20 text-[9px] ml-auto">consonant · rare · buzzy</span>
-                                </div>
-                            </div>
-                            <p className="text-xs text-white/40 mt-3 leading-relaxed">
-                                What if the network could learn these numbers <em>by itself</em> — discovering features <strong className="text-violet-300/80">we never told it about</strong>?
-                                That&apos;s exactly what we&apos;ll build next.
+                            <p className="text-xs text-white/40 leading-relaxed">
+                                What if we could somehow encode these properties into the input? What if similar letters
+                                could be represented by similar numbers? That&apos;s the question we need to solve.
                             </p>
                         </motion.div>
                     )}
@@ -266,7 +232,7 @@ export function CharacterFeatureExplorer() {
             )}
 
             {/* Character grid */}
-            <div className="flex flex-wrap gap-2 justify-center py-2">
+            <div className="flex flex-wrap gap-2.5 justify-center py-3">
                 {availableChars.map((ch, i) => {
                     const style = getCharStyle(ch);
                     return (
@@ -278,15 +244,15 @@ export function CharacterFeatureExplorer() {
                             transition={{ delay: i * 0.02 }}
                             onClick={() => toggleChar(ch)}
                             disabled={confirmed}
-                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg text-sm font-mono font-bold transition-all flex items-center justify-center"
+                            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl text-sm font-mono font-bold transition-all flex items-center justify-center"
                             style={{
                                 backgroundColor: style.bg,
                                 borderWidth: 2,
                                 borderColor: style.border,
                                 color: style.text,
-                                boxShadow: style.glow ? `0 0 12px ${currentInfo?.groupColor}30` : "none",
+                                boxShadow: style.glow ? `0 0 16px ${currentInfo?.groupColor}30` : "none",
                             }}
-                            whileHover={!confirmed ? { scale: 1.12, y: -2 } : {}}
+                            whileHover={!confirmed ? { scale: 1.12, y: -3 } : {}}
                             whileTap={!confirmed ? { scale: 0.92 } : {}}
                         >
                             {ch}

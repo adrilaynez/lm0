@@ -46,19 +46,24 @@ export function MLPLivePredictor() {
     // Load best config on mount
     useEffect(() => {
         let cancelled = false;
+        console.log("[MLPLivePredictor] Loading best config...");
         fetchMLPGrid()
             .then(res => {
                 if (cancelled) return;
+                console.log("[MLPLivePredictor] Grid response:", res);
                 const configs = res.configurations ?? res.configs ?? [];
                 if (configs.length === 0) throw new Error("No configs");
                 const best = [...configs].sort((a, b) => a.final_loss - b.final_loss)[0];
+                console.log("[MLPLivePredictor] Best config:", best);
                 setConfig({
                     embedding_dim: best.embedding_dim,
                     hidden_size: best.hidden_size,
                     learning_rate: best.learning_rate,
                 });
+                setBackendAvailable(true);
             })
-            .catch(() => {
+            .catch(err => {
+                console.error("[MLPLivePredictor] Failed to load config:", err);
                 if (!cancelled) {
                     setConfig({ embedding_dim: 10, hidden_size: 64, learning_rate: 0.01 });
                     setBackendAvailable(false);
@@ -82,6 +87,7 @@ export function MLPLivePredictor() {
 
     const handleGenerate = useCallback(async () => {
         if (!config) return;
+        console.log("[MLPLivePredictor] Generating with config:", config);
         setGenerated("");
         setCharIndex(0);
         setIsGenerating(true);
@@ -95,13 +101,15 @@ export function MLPLivePredictor() {
                 60,
                 temperature
             );
-            // Strip the seed from the front if present
-            let text = res.generated_text ?? "";
-            if (text.startsWith(seed)) text = text.slice(seed.length);
+            console.log("[MLPLivePredictor] Generation response:", res);
+            // Use generated_only (excludes seed) if available, otherwise strip seed manually
+            let text = res.generated_only ?? res.generated_text ?? "";
+            if (!res.generated_only && text.startsWith(seed)) text = text.slice(seed.length);
             fullTextRef.current = text;
             setCharIndex(0);
             setBackendAvailable(true);
-        } catch {
+        } catch (err) {
+            console.error("[MLPLivePredictor] Generation failed:", err);
             // Use fallback
             setBackendAvailable(false);
             const key = Object.keys(FALLBACK_SAMPLES).find(k => seed.startsWith(k)) ?? Object.keys(FALLBACK_SAMPLES)[0];
@@ -144,8 +152,8 @@ export function MLPLivePredictor() {
                             onClick={() => { setSeed(s); handleReset(); }}
                             disabled={isGenerating}
                             className={`px-2 py-0.5 rounded text-[10px] font-mono transition-all border ${seed === s
-                                    ? "bg-violet-500/15 border-violet-500/30 text-violet-400"
-                                    : "bg-white/[0.03] border-white/[0.06] text-white/30 hover:text-white/50"
+                                ? "bg-violet-500/15 border-violet-500/30 text-violet-400"
+                                : "bg-white/[0.03] border-white/[0.06] text-white/30 hover:text-white/50"
                                 } disabled:opacity-40`}
                         >
                             &quot;{s.trim()}&quot;

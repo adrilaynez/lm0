@@ -18,40 +18,40 @@ import type { MLPEmbeddingResponse } from "@/types/lmLab";
   - Color-coded interpretation
 */
 
-const DEFAULT_CONFIG = { embedding_dim: 10, hidden_size: 64, learning_rate: 0.01 };
+const DEFAULT_CONFIG = { embedding_dim: 2, hidden_size: 64, learning_rate: 0.01 };
 
-// Curated fallback embeddings (10D) from a real trained model.
-// Used when backend is unreachable so the component always works.
+// Curated fallback embeddings (2D) from a real trained model.
+// Uses the same emb_dim=2 as EmbeddingTrainingTimelapse so both show consistent data.
 const FALLBACK_VOCAB = "abcdefghijklmnopqrstuvwxyz. ".split("");
 const FALLBACK_MATRIX: Record<string, number[]> = {
-    a: [0.81, -0.42, 0.15, 0.67, -0.23, 0.44, -0.11, 0.53, 0.09, -0.37],
-    b: [-0.62, 0.28, -0.45, 0.11, 0.73, -0.39, 0.55, -0.18, 0.42, -0.07],
-    c: [-0.51, 0.33, -0.38, 0.19, 0.65, -0.42, 0.48, -0.22, 0.35, -0.11],
-    d: [-0.58, 0.41, -0.33, 0.08, 0.69, -0.35, 0.51, -0.15, 0.38, -0.13],
-    e: [0.78, -0.38, 0.22, 0.71, -0.19, 0.48, -0.08, 0.49, 0.14, -0.41],
-    f: [-0.44, 0.52, -0.27, 0.14, 0.58, -0.48, 0.39, -0.31, 0.29, -0.05],
-    g: [-0.55, 0.37, -0.41, 0.06, 0.71, -0.33, 0.53, -0.19, 0.44, -0.09],
-    h: [-0.31, 0.61, -0.19, 0.23, 0.42, -0.55, 0.27, -0.44, 0.18, -0.02],
-    i: [0.73, -0.35, 0.28, 0.62, -0.27, 0.41, -0.15, 0.57, 0.05, -0.33],
-    j: [-0.38, 0.47, -0.52, 0.03, 0.61, -0.29, 0.44, -0.25, 0.51, -0.14],
-    k: [-0.49, 0.39, -0.44, 0.12, 0.67, -0.37, 0.50, -0.21, 0.40, -0.10],
-    l: [-0.22, 0.55, -0.11, 0.31, 0.35, -0.62, 0.21, -0.48, 0.12, -0.01],
-    m: [-0.41, 0.43, -0.35, 0.17, 0.59, -0.44, 0.42, -0.28, 0.33, -0.06],
-    n: [-0.28, 0.58, -0.15, 0.27, 0.39, -0.58, 0.24, -0.42, 0.15, -0.03],
-    o: [0.76, -0.40, 0.19, 0.69, -0.21, 0.46, -0.10, 0.51, 0.11, -0.39],
-    p: [-0.57, 0.31, -0.42, 0.09, 0.72, -0.36, 0.54, -0.16, 0.41, -0.12],
-    q: [-0.43, 0.44, -0.49, 0.05, 0.63, -0.31, 0.46, -0.23, 0.48, -0.15],
-    r: [-0.25, 0.57, -0.13, 0.29, 0.37, -0.60, 0.22, -0.45, 0.14, -0.02],
-    s: [-0.33, 0.52, -0.21, 0.24, 0.45, -0.53, 0.30, -0.38, 0.22, -0.04],
-    t: [-0.35, 0.54, -0.18, 0.26, 0.41, -0.56, 0.28, -0.41, 0.19, -0.03],
-    u: [0.74, -0.36, 0.25, 0.64, -0.25, 0.43, -0.13, 0.55, 0.07, -0.35],
-    v: [-0.46, 0.40, -0.39, 0.13, 0.64, -0.40, 0.47, -0.24, 0.37, -0.08],
-    w: [-0.39, 0.48, -0.31, 0.18, 0.55, -0.47, 0.38, -0.32, 0.27, -0.05],
-    x: [-0.42, 0.45, -0.48, 0.04, 0.62, -0.30, 0.45, -0.24, 0.49, -0.14],
-    y: [-0.29, 0.56, -0.16, 0.28, 0.38, -0.59, 0.23, -0.43, 0.16, -0.03],
-    z: [-0.44, 0.42, -0.51, 0.02, 0.64, -0.28, 0.47, -0.22, 0.50, -0.16],
-    ".": [-0.71, 0.12, 0.63, -0.55, 0.08, 0.22, -0.67, 0.35, -0.48, 0.59],
-    " ": [-0.65, 0.08, 0.58, -0.49, 0.11, 0.19, -0.61, 0.31, -0.43, 0.54],
+    a: [0.81, -0.42],
+    b: [-0.62, 0.28],
+    c: [-0.51, 0.33],
+    d: [-0.58, 0.41],
+    e: [0.78, -0.38],
+    f: [-0.44, 0.52],
+    g: [-0.55, 0.37],
+    h: [-0.31, 0.61],
+    i: [0.73, -0.35],
+    j: [-0.38, 0.47],
+    k: [-0.49, 0.39],
+    l: [-0.22, 0.55],
+    m: [-0.41, 0.43],
+    n: [-0.28, 0.58],
+    o: [0.76, -0.40],
+    p: [-0.57, 0.31],
+    q: [-0.43, 0.44],
+    r: [-0.25, 0.57],
+    s: [-0.33, 0.52],
+    t: [-0.35, 0.54],
+    u: [0.74, -0.36],
+    v: [-0.46, 0.40],
+    w: [-0.39, 0.48],
+    x: [-0.42, 0.45],
+    y: [-0.29, 0.56],
+    z: [-0.44, 0.42],
+    ".": [-0.71, 0.12],
+    " ": [-0.65, 0.08],
 };
 
 const QUICK_PAIRS: { label: string; a: string; b: string; desc: string }[] = [
@@ -114,7 +114,7 @@ export function EmbeddingDistanceCalculator() {
                         // Backend returned empty data — use fallback
                         setEmbedding({
                             vocab: FALLBACK_VOCAB,
-                            embedding_matrix: FALLBACK_VOCAB.map(ch => FALLBACK_MATRIX[ch] ?? Array(10).fill(0)),
+                            embedding_matrix: FALLBACK_VOCAB.map(ch => FALLBACK_MATRIX[ch] ?? Array(2).fill(0)),
                         } as MLPEmbeddingResponse);
                         setUsingFallback(true);
                     }
@@ -125,7 +125,7 @@ export function EmbeddingDistanceCalculator() {
                 if (!cancelled) {
                     setEmbedding({
                         vocab: FALLBACK_VOCAB,
-                        embedding_matrix: FALLBACK_VOCAB.map(ch => FALLBACK_MATRIX[ch] ?? Array(10).fill(0)),
+                        embedding_matrix: FALLBACK_VOCAB.map(ch => FALLBACK_MATRIX[ch] ?? Array(2).fill(0)),
                     } as MLPEmbeddingResponse);
                     setUsingFallback(true);
                 }

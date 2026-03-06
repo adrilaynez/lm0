@@ -213,7 +213,7 @@ export function DeepModelRedemptionDemo() {
                     <div className="flex items-center gap-2 mb-3">
                         <Skull className="w-4 h-4 text-red-400 shrink-0" />
                         <div>
-                            <h4 className="text-xs font-bold text-red-300 uppercase tracking-wider">{t("models.mlp.narrative.s06.redemptionBefore")}</h4>
+                            <h4 className="text-xs font-bold text-red-300 uppercase tracking-wider">{t("models.mlp.narrative.s07.redemptionBefore")}</h4>
                             <p className="text-[9px] font-mono text-white/25">{data.failure.configLabel}</p>
                         </div>
                     </div>
@@ -228,7 +228,7 @@ export function DeepModelRedemptionDemo() {
                     <div className="mt-3 rounded-lg bg-black/30 border border-red-500/10 p-2.5">
                         <div className="flex items-center gap-1.5 mb-1">
                             <Zap className="w-2.5 h-2.5 text-red-400" />
-                            <span className="text-[8px] font-mono text-red-400/50 uppercase tracking-wider">{t("models.mlp.narrative.s06.redemptionOutput")}</span>
+                            <span className="text-[8px] font-mono text-red-400/50 uppercase tracking-wider">{t("models.mlp.narrative.s07.redemptionOutput")}</span>
                         </div>
                         <p className="text-[11px] font-mono text-white/35 leading-relaxed break-all">{data.failure.sample}</p>
                     </div>
@@ -247,7 +247,7 @@ export function DeepModelRedemptionDemo() {
                             <div className="flex items-center gap-2 mb-3">
                                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                                 <div>
-                                    <h4 className="text-xs font-bold text-emerald-300 uppercase tracking-wider">{t("models.mlp.narrative.s06.redemptionAfter")}</h4>
+                                    <h4 className="text-xs font-bold text-emerald-300 uppercase tracking-wider">{t("models.mlp.narrative.s07.redemptionAfter")}</h4>
                                     <p className="text-[9px] font-mono text-white/25">{data.success.configLabel}</p>
                                 </div>
                             </div>
@@ -262,7 +262,7 @@ export function DeepModelRedemptionDemo() {
                             <div className="mt-3 rounded-lg bg-black/30 border border-emerald-500/10 p-2.5">
                                 <div className="flex items-center gap-1.5 mb-1">
                                     <Sparkles className="w-2.5 h-2.5 text-emerald-400" />
-                                    <span className="text-[8px] font-mono text-emerald-400/50 uppercase tracking-wider">{t("models.mlp.narrative.s06.redemptionOutput")}</span>
+                                    <span className="text-[8px] font-mono text-emerald-400/50 uppercase tracking-wider">{t("models.mlp.narrative.s07.redemptionOutput")}</span>
                                 </div>
                                 <p className="text-[11px] font-mono text-white/50 leading-relaxed">{data.success.sample}</p>
                             </div>
@@ -279,7 +279,7 @@ export function DeepModelRedemptionDemo() {
                                 <AlertTriangle className="w-8 h-8 text-amber-400/40" />
                             </motion.div>
                             <p className="text-xs font-mono text-white/20 text-center">
-                                {t("models.mlp.narrative.s06.redemptionWaiting")}
+                                {t("models.mlp.narrative.s07.redemptionWaiting")}
                             </p>
                         </motion.div>
                     )}

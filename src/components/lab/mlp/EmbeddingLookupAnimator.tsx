@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Play, RotateCcw } from "lucide-react";
+import { ArrowRight, Play, RotateCcw, Sparkles } from "lucide-react";
 
 /*
   EmbeddingLookupAnimator — Redesigned
@@ -92,24 +92,24 @@ export function EmbeddingLookupAnimator() {
     const isDone = phase === "done";
 
     return (
-        <div className="p-4 sm:p-6 space-y-5">
+        <div className="p-4 sm:p-6 space-y-6">
             {/* Token selector */}
-            <div className="flex items-center gap-3 justify-center">
-                <span className="text-[10px] font-mono text-white/30">Pick a letter:</span>
-                <div className="flex gap-1.5">
+            <div className="flex flex-col items-center gap-3">
+                <span className="text-[10px] font-mono text-white/25 uppercase tracking-widest">Select a character</span>
+                <div className="flex gap-2">
                     {VOCAB.map((ch, i) => (
                         <motion.button
                             key={ch}
                             onClick={() => selectAndReset(i)}
-                            whileHover={{ scale: 1.1, y: -2 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="w-10 h-10 rounded-xl text-base font-mono font-bold transition-all"
+                            whileHover={{ scale: 1.12, y: -3 }}
+                            whileTap={{ scale: 0.92 }}
+                            className="w-12 h-12 rounded-xl text-lg font-mono font-bold transition-all"
                             style={{
-                                backgroundColor: i === selectedIdx ? "#a78bfa20" : "rgba(255,255,255,0.03)",
-                                color: i === selectedIdx ? "#a78bfa" : "rgba(255,255,255,0.35)",
+                                backgroundColor: i === selectedIdx ? "#a78bfa18" : "rgba(255,255,255,0.02)",
+                                color: i === selectedIdx ? "#a78bfa" : "rgba(255,255,255,0.3)",
                                 borderWidth: 2,
                                 borderColor: i === selectedIdx ? "#a78bfa50" : "rgba(255,255,255,0.06)",
-                                boxShadow: i === selectedIdx ? "0 0 16px rgba(167,139,250,0.15)" : "none",
+                                boxShadow: i === selectedIdx ? "0 0 24px rgba(167,139,250,0.2), inset 0 0 12px rgba(167,139,250,0.05)" : "none",
                             }}
                         >
                             {ch}
@@ -119,8 +119,8 @@ export function EmbeddingLookupAnimator() {
             </div>
 
             {/* Main visualization */}
-            <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] p-4 sm:p-5">
-                <div className="flex items-start justify-center gap-3 sm:gap-5 flex-wrap min-h-[200px]">
+            <div className="rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.02] to-transparent p-5 sm:p-6">
+                <div className="flex items-start justify-center gap-4 sm:gap-6 flex-wrap min-h-[220px]">
                     {/* One-hot vector */}
                     <AnimatePresence>
                         {showOneHot && (
@@ -323,20 +323,28 @@ export function EmbeddingLookupAnimator() {
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex flex-col items-center justify-center gap-3 py-8"
+                            className="flex flex-col items-center justify-center gap-4 py-10"
                         >
-                            <p className="text-sm text-white/30 text-center font-mono">
-                                How does &quot;{VOCAB[selectedIdx]}&quot; become a vector of numbers?
-                            </p>
-                            <button
+                            <div className="text-center space-y-2">
+                                <p className="text-base text-white/40 font-mono">
+                                    How does <span className="text-violet-400 font-bold">&quot;{VOCAB[selectedIdx]}&quot;</span> become a vector?
+                                </p>
+                                <p className="text-[11px] text-white/20 font-mono">
+                                    One-hot encoding × Embedding matrix = Dense vector
+                                </p>
+                            </div>
+                            <motion.button
                                 onClick={play}
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-mono font-bold
-                                    bg-violet-500/15 text-violet-300 border border-violet-500/30
-                                    hover:bg-violet-500/25 transition-all shadow-[0_0_20px_rgba(139,92,246,0.1)]"
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="flex items-center gap-2.5 px-6 py-3 rounded-xl text-sm font-mono font-bold
+                                    bg-gradient-to-r from-violet-500/20 to-emerald-500/15 text-violet-300 border border-violet-500/30
+                                    hover:from-violet-500/30 hover:to-emerald-500/25 transition-all
+                                    shadow-[0_0_30px_rgba(139,92,246,0.12)]"
                             >
                                 <Play className="w-4 h-4" />
                                 Watch the lookup
-                            </button>
+                            </motion.button>
                         </motion.div>
                     )}
                 </div>
@@ -358,8 +366,9 @@ export function EmbeddingLookupAnimator() {
                     <motion.p
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-[11px] font-mono text-emerald-400/60"
+                        className="text-[11px] font-mono text-emerald-400/60 flex items-center gap-1.5"
                     >
+                        <Sparkles className="w-3 h-3" />
                         Row {selectedIdx} of E → that&apos;s the embedding!
                     </motion.p>
                 )}
@@ -371,13 +380,21 @@ export function EmbeddingLookupAnimator() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="rounded-xl border border-emerald-500/15 bg-emerald-500/[0.04] p-4"
+                    className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.06] to-transparent p-5"
                 >
-                    <p className="text-xs text-white/50 leading-relaxed">
-                        <strong className="text-emerald-300/80">The one-hot vector picks one row from the table</strong> — the 1 at position {selectedIdx} selects
-                        row {selectedIdx}. Mathematically it&apos;s a matrix multiply, but in practice it&apos;s just a <em>table lookup</em>.
-                        Each row stores the learned features for that character.
-                    </p>
+                    <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center shrink-0 mt-0.5">
+                            <Sparkles className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <div>
+                            <p className="text-xs font-mono font-bold text-emerald-300/80 mb-1">The one-hot vector picks one row</p>
+                            <p className="text-[11px] text-white/45 leading-relaxed">
+                                The 1 at position {selectedIdx} selects row {selectedIdx} from the table.
+                                Mathematically it&apos;s a matrix multiply, but in practice it&apos;s just a <em className="text-emerald-400/60">table lookup</em>.
+                                Each row stores the learned features for that character.
+                            </p>
+                        </div>
+                    </div>
                 </motion.div>
             )}
         </div>

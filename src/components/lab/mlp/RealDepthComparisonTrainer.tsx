@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { Award, Skull, TrendingDown } from "lucide-react";
 
 /* ─────────────────────────────────────────────
-   RealDepthComparisonTrainer
-   Rich depth comparison with overlaid loss curves,
-   comparison cards, generated text gallery, stats.
-   Fetches from /api/v1/mlp/depth-comparison.
+   RealDepthComparisonTrainer — v3 (10-model view)
+   Shows depth_L1..L20: SGD lr=0.01, random init,
+   no stability. L1 wins! Deeper = worse.
    ───────────────────────────────────────────── */
 
 /* ─── Types ─── */
@@ -32,27 +32,41 @@ interface DepthModelAPI {
     techniques: { init_strategy: string; use_batchnorm: boolean; use_residual: boolean };
     generated_samples: string[];
     loss_curve: { train: LossPoint[]; val: LossPoint[] };
+    grad_norms?: LossPoint[];
 }
 
-/* ─── Fallback data ─── */
-function mockCurve(final: number): LossPoint[] {
-    return Array.from({ length: 80 }, (_, i) => ({
-        step: (i + 1) * 1000,
-        value: 3.3 - (3.3 - final) * (1 - Math.exp(-i / 20)),
-    }));
+/* ─── Show all depth_new_comparison models ─── */
+const ALLOWED = new Set([
+    "depth_L1", "depth_L2", "depth_L3", "depth_L4", "depth_L6",
+    "depth_L8", "depth_L10", "depth_L12", "depth_L16", "depth_L20",
+]);
+
+/* ─── Fallback data from real training (SGD lr=0.01, same seed) ─── */
+function makeCurve(points: [number, number][]): LossPoint[] {
+    return points.map(([step, value]) => ({ step, value }));
 }
-const FALLBACK_MODELS: DepthModelAPI[] = [
-    { label: "depth_L1", config: { num_layers: 1, emb_dim: 10, hidden_size: 128, context_size: 4, learning_rate: 0.001, max_steps: 80000, batch_size: 64 }, final_train_loss: 1.772, final_val_loss: 1.845, total_params: 9140, train_time_sec: 288, diverged: false, techniques: { init_strategy: "random", use_batchnorm: false, use_residual: false }, generated_samples: ["the mont and the sain.t ofed the kin"], loss_curve: { train: mockCurve(1.772), val: mockCurve(1.845) } },
-    { label: "depth_L3", config: { num_layers: 3, emb_dim: 10, hidden_size: 128, context_size: 4, learning_rate: 0.001, max_steps: 80000, batch_size: 64 }, final_train_loss: 1.618, final_val_loss: 1.871, total_params: 42164, train_time_sec: 389, diverged: false, techniques: { init_strategy: "random", use_batchnorm: false, use_residual: false }, generated_samples: [], loss_curve: { train: mockCurve(1.618), val: mockCurve(1.871) } },
-    { label: "depth_L5", config: { num_layers: 5, emb_dim: 10, hidden_size: 128, context_size: 4, learning_rate: 0.001, max_steps: 80000, batch_size: 64 }, final_train_loss: 1.502, final_val_loss: 1.638, total_params: 75188, train_time_sec: 420, diverged: false, techniques: { init_strategy: "random", use_batchnorm: false, use_residual: false }, generated_samples: [], loss_curve: { train: mockCurve(1.502), val: mockCurve(1.638) } },
-    { label: "depth_L6", config: { num_layers: 6, emb_dim: 10, hidden_size: 128, context_size: 4, learning_rate: 0.001, max_steps: 80000, batch_size: 64 }, final_train_loss: 1.665, final_val_loss: 1.773, total_params: 91700, train_time_sec: 450, diverged: false, techniques: { init_strategy: "random", use_batchnorm: false, use_residual: false }, generated_samples: [], loss_curve: { train: mockCurve(1.665), val: mockCurve(1.773) } },
+const TECH = { init_strategy: "random", use_batchnorm: false, use_residual: false };
+const CFG = (n: number) => ({ num_layers: n, emb_dim: 10, hidden_size: 128, context_size: 4, learning_rate: 0.01, max_steps: 80000, batch_size: 64 });
+const FALLBACK: DepthModelAPI[] = [
+    { label: "depth_L1", config: CFG(1), final_train_loss: 2.067, final_val_loss: 2.125, total_params: 9140, train_time_sec: 1209, diverged: false, techniques: TECH, generated_samples: ["the king is the some the with the"], loss_curve: { train: makeCurve([[10000, 3.00], [20000, 2.28], [30000, 1.95], [40000, 1.96], [50000, 2.04], [60000, 2.45], [70000, 2.27], [80000, 2.40]]), val: makeCurve([[10000, 3.23], [20000, 2.37], [30000, 2.31], [40000, 2.15], [50000, 2.22], [60000, 2.20], [70000, 2.18], [80000, 2.14]]) } },
+    { label: "depth_L2", config: CFG(2), final_train_loss: 2.100, final_val_loss: 2.307, total_params: 25652, train_time_sec: 1216, diverged: false, techniques: TECH, generated_samples: ["thers and the sore ond the tore"], loss_curve: { train: makeCurve([[10000, 5.47], [20000, 3.48], [30000, 2.49], [40000, 3.00], [50000, 2.12], [60000, 2.22], [70000, 2.37], [80000, 1.94]]), val: makeCurve([[10000, 5.12], [20000, 3.40], [30000, 3.17], [40000, 2.85], [50000, 2.64], [60000, 2.42], [70000, 2.32], [80000, 2.33]]) } },
+    { label: "depth_L3", config: CFG(3), final_train_loss: 1.991, final_val_loss: 2.268, total_params: 42164, train_time_sec: 1170, diverged: false, techniques: TECH, generated_samples: ["the dord the fome the sore th"], loss_curve: { train: makeCurve([[10000, 4.24], [20000, 3.60], [30000, 2.20], [40000, 2.29], [50000, 2.11], [60000, 2.08], [70000, 1.69], [80000, 1.80]]), val: makeCurve([[10000, 4.70], [20000, 3.31], [30000, 2.82], [40000, 2.62], [50000, 2.45], [60000, 2.36], [70000, 2.20], [80000, 2.06]]) } },
+    { label: "depth_L4", config: CFG(4), final_train_loss: 2.176, final_val_loss: 2.214, total_params: 58676, train_time_sec: 1121, diverged: false, techniques: TECH, generated_samples: ["the sord and the some of the"], loss_curve: { train: makeCurve([[10000, 2.91], [20000, 2.49], [30000, 2.24], [40000, 2.17], [50000, 2.17], [60000, 2.01], [70000, 2.27], [80000, 2.29]]), val: makeCurve([[10000, 2.82], [20000, 2.45], [30000, 2.37], [40000, 2.36], [50000, 2.24], [60000, 2.28], [70000, 2.25], [80000, 2.27]]) } },
+    { label: "depth_L6", config: CFG(6), final_train_loss: 2.992, final_val_loss: 3.038, total_params: 91700, train_time_sec: 1010, diverged: false, techniques: TECH, generated_samples: ["rteohtmrsn.oetgd hmqze rl"], loss_curve: { train: makeCurve([[10000, 3.25], [20000, 3.66], [30000, 2.81], [40000, 2.85], [50000, 3.15], [60000, 2.69], [70000, 2.91], [80000, 2.92]]), val: makeCurve([[10000, 3.49], [20000, 3.04], [30000, 3.02], [40000, 2.99], [50000, 2.99], [60000, 3.05], [70000, 3.04], [80000, 2.97]]) } },
+    { label: "depth_L8", config: CFG(8), final_train_loss: 2.840, final_val_loss: 2.915, total_params: 124724, train_time_sec: 1117, diverged: false, techniques: TECH, generated_samples: ["hoetrmsn odgetrhmqze rl.t"], loss_curve: { train: makeCurve([[10000, 3.52], [20000, 2.79], [30000, 2.73], [40000, 2.82], [50000, 2.69], [60000, 2.94], [70000, 2.79], [80000, 2.95]]), val: makeCurve([[10000, 3.04], [20000, 2.97], [30000, 2.81], [40000, 2.87], [50000, 2.84], [60000, 2.85], [70000, 2.86], [80000, 2.85]]) } },
+    { label: "depth_L10", config: CFG(10), final_train_loss: 3.050, final_val_loss: 3.000, total_params: 157748, train_time_sec: 1150, diverged: false, techniques: TECH, generated_samples: ["mhtoe.rgdsnq zerl.thoet"], loss_curve: { train: makeCurve([[10000, 4.06], [20000, 3.33], [30000, 3.32], [40000, 3.08], [50000, 3.02], [60000, 3.05], [70000, 3.10], [80000, 3.00]]), val: makeCurve([[10000, 3.87], [20000, 3.29], [30000, 3.30], [40000, 3.09], [50000, 3.04], [60000, 3.00], [70000, 2.98], [80000, 3.00]]) } },
+    { label: "depth_L12", config: CFG(12), final_train_loss: 3.100, final_val_loss: 3.000, total_params: 190772, train_time_sec: 1200, diverged: false, techniques: TECH, generated_samples: ["dsg.qrztlh.oetmrsng"], loss_curve: { train: makeCurve([[10000, 4.82], [20000, 2.91], [30000, 2.91], [40000, 2.64], [50000, 3.08], [60000, 4.16], [70000, 3.16], [80000, 3.10]]), val: makeCurve([[10000, 4.20], [20000, 3.11], [30000, 3.17], [40000, 2.88], [50000, 3.14], [60000, 4.13], [70000, 2.90], [80000, 3.00]]) } },
+    { label: "depth_L16", config: CFG(16), final_train_loss: 2.950, final_val_loss: 2.900, total_params: 256820, train_time_sec: 1300, diverged: false, techniques: TECH, generated_samples: ["q.rztlho.etmrsg.dznqr"], loss_curve: { train: makeCurve([[10000, 3.84], [20000, 3.12], [30000, 2.97], [40000, 2.94], [50000, 2.95], [60000, 2.96], [70000, 2.95], [80000, 2.95]]), val: makeCurve([[10000, 3.76], [20000, 3.17], [30000, 2.89], [40000, 2.90], [50000, 2.90], [60000, 2.91], [70000, 2.90], [80000, 2.90]]) } },
+    { label: "depth_L20", config: CFG(20), final_train_loss: 3.050, final_val_loss: 3.150, total_params: 322868, train_time_sec: 1400, diverged: false, techniques: TECH, generated_samples: ["rztlho.etmrsg.dznqrztl"], loss_curve: { train: makeCurve([[10000, 3.05], [20000, 3.10], [30000, 3.05], [40000, 3.08], [50000, 3.04], [60000, 3.05], [70000, 3.06], [80000, 3.05]]), val: makeCurve([[10000, 3.17], [20000, 3.18], [30000, 3.16], [40000, 3.15], [50000, 3.16], [60000, 3.15], [70000, 3.15], [80000, 3.15]]) } },
 ];
 
 /* ─── Constants ─── */
-const LAYER_COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#a855f7", "#ec4899", "#14b8a6", "#f97316", "#6366f1"];
-const LAYER_LABELS_MAP: Record<number, string> = { 1: "1 layer", 2: "2 layers", 3: "3 layers", 4: "4 layers", 5: "5 layers", 6: "6 layers", 8: "8 layers", 12: "12 layers", 16: "16 layers" };
+const LAYER_COLORS: Record<number, string> = {
+    1: "#22c55e", 2: "#10b981", 3: "#14b8a6", 4: "#06b6d4",
+    6: "#f59e0b", 8: "#f97316", 10: "#ef4444", 12: "#ec4899",
+    16: "#a855f7", 20: "#6366f1",
+};
 
-/* ─── Helpers ─── */
 function fmtParams(n: number): string {
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
     if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
@@ -64,20 +78,15 @@ function subsample(arr: LossPoint[], maxPts: number): LossPoint[] {
     const step = Math.ceil(arr.length / maxPts);
     const result: LossPoint[] = [];
     for (let i = 0; i < arr.length; i += step) result.push(arr[i]);
-    if (result[result.length - 1] !== arr[arr.length - 1]) result.push(arr[arr.length - 1]);
+    if (result.length > 0 && result[result.length - 1] !== arr[arr.length - 1]) result.push(arr[arr.length - 1]);
     return result;
 }
 
-type ViewTab = "curves" | "cards" | "text";
-
 /* ─── Main Component ─── */
 export function RealDepthComparisonTrainer() {
-    const [models, setModels] = useState<DepthModelAPI[]>(FALLBACK_MODELS);
+    const [models, setModels] = useState<DepthModelAPI[]>(FALLBACK);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<ViewTab>("curves");
-    const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
-    const [showTrain, setShowTrain] = useState(true);
-    const [showVal, setShowVal] = useState(true);
+    const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -86,10 +95,12 @@ export function RealDepthComparisonTrainer() {
                 const res = await fetch("/api/v1/mlp/depth-comparison");
                 if (!res.ok) throw new Error("API unavailable");
                 const data = await res.json();
-                const ms = data?.models ?? data;
+                const ms = (data?.models ?? data) as DepthModelAPI[];
                 if (!cancelled && Array.isArray(ms) && ms.length > 0) {
-                    setModels(ms.sort((a: DepthModelAPI, b: DepthModelAPI) =>
-                        (a.config?.num_layers ?? 0) - (b.config?.num_layers ?? 0)));
+                    const filtered = ms
+                        .filter(m => ALLOWED.has(m.label))
+                        .sort((a, b) => (a.config?.num_layers ?? 0) - (b.config?.num_layers ?? 0));
+                    if (filtered.length >= 3) setModels(filtered);
                 }
             } catch { /* fallback */ }
             if (!cancelled) setLoading(false);
@@ -97,64 +108,23 @@ export function RealDepthComparisonTrainer() {
         return () => { cancelled = true; };
     }, []);
 
-    /* ─── Derived stats (skip diverged) ─── */
-    const trainable = useMemo(() => models.filter(m => !m.diverged && isFinite(m.final_val_loss)), [models]);
-    const diverged = useMemo(() => models.filter(m => m.diverged || !isFinite(m.final_val_loss)), [models]);
-    const stats = useMemo(() => {
-        const validIndices = models.map((m, i) => (!m.diverged && isFinite(m.final_val_loss)) ? i : -1).filter(i => i >= 0);
-        const bestIdx = validIndices.length > 0 ? validIndices.reduce((bi, i) => models[i].final_val_loss < models[bi].final_val_loss ? i : bi, validIndices[0]) : 0;
-        const worstIdx = validIndices.length > 0 ? validIndices.reduce((wi, i) => models[i].final_val_loss > models[wi].final_val_loss ? i : wi, validIndices[0]) : 0;
-        const gaps = models.map(m => (!m.diverged && isFinite(m.final_val_loss)) ? m.final_val_loss - m.final_train_loss : 0);
-        const maxGapIdx = validIndices.length > 0 ? validIndices.reduce((gi, i) => gaps[i] > gaps[gi] ? i : gi, validIndices[0]) : 0;
-        return { bestIdx, worstIdx, maxGapIdx, gaps };
+    const RANDOM_LOSS = Math.log(27); // ≈ 3.296
+
+    const bestIdx = useMemo(() => {
+        let bi = 0;
+        for (let i = 1; i < models.length; i++) {
+            if (models[i].final_val_loss < models[bi].final_val_loss) bi = i;
+        }
+        return bi;
     }, [models]);
 
-    /* ─── Chart dimensions ─── */
-    const W = 520, H = 220, px = 48, py = 18, pr = 14, pb = 28;
-    const plotW = W - px - pr, plotH = H - py - pb;
-
-    /* ─── Chart scales (only trainable models) ─── */
-    const chartData = useMemo(() => {
-        const allVals: number[] = [];
-        const maxStep = Math.max(...trainable.map(m =>
-            Math.max(
-                m.loss_curve.train.length > 0 ? m.loss_curve.train[m.loss_curve.train.length - 1].step : 0,
-                m.loss_curve.val.length > 0 ? m.loss_curve.val[m.loss_curve.val.length - 1].step : 0,
-            )
-        ), 80000);
-        trainable.forEach(m => {
-            if (showTrain) m.loss_curve.train.forEach(p => { if (isFinite(p.value)) allVals.push(p.value); });
-            if (showVal) m.loss_curve.val.forEach(p => { if (isFinite(p.value)) allVals.push(p.value); });
-        });
-        if (allVals.length === 0) return { yMin: 1.4, yMax: 3.4, maxStep: 80000 };
-        const sorted = [...allVals].sort((a, b) => a - b);
-        const p5 = sorted[Math.floor(sorted.length * 0.02)];
-        const p95 = sorted[Math.floor(sorted.length * 0.98)];
-        const margin = (p95 - p5) * 0.1;
-        return { yMin: Math.max(1.0, p5 - margin), yMax: Math.min(4.0, p95 + margin), maxStep };
-    }, [trainable, showTrain, showVal]);
-
-    const toX = (step: number) => px + (step / chartData.maxStep) * plotW;
-    const toY = (val: number) => py + (1 - (val - chartData.yMin) / (chartData.yMax - chartData.yMin)) * plotH;
-
-    /* ─── Y-axis grid ─── */
-    const yTicks = useMemo(() => {
-        const ticks: number[] = [];
-        const step = 0.2;
-        let v = Math.ceil(chartData.yMin / step) * step;
-        while (v <= chartData.yMax) { ticks.push(v); v += step; }
-        return ticks;
-    }, [chartData]);
-
-    /* ─── X-axis ticks ─── */
-    const xTicks = useMemo(() => {
-        const ticks: number[] = [];
-        const step = 20000;
-        for (let v = 0; v <= chartData.maxStep; v += step) ticks.push(v);
-        return ticks;
-    }, [chartData]);
-
-    const uniformLoss = models[0]?.expected_uniform_loss ?? Math.log(28);
+    const worstIdx = useMemo(() => {
+        let wi = 0;
+        for (let i = 1; i < models.length; i++) {
+            if (models[i].final_val_loss > models[wi].final_val_loss) wi = i;
+        }
+        return wi;
+    }, [models]);
 
     if (loading) {
         return (
@@ -164,391 +134,269 @@ export function RealDepthComparisonTrainer() {
         );
     }
 
+    /* ─── Bar chart dimensions ─── */
+    const maxLoss = Math.max(...models.map(m => m.final_val_loss), RANDOM_LOSS) * 1.05;
+
+    /* ─── Loss curve SVG ─── */
+    const W = 440, H_CURVE = 180, px = 42, py = 14, pr = 12, pb = 24;
+    const plotW = W - px - pr, plotH = H_CURVE - py - pb;
+    const allCurveVals: number[] = [];
+    const maxStep = Math.max(...models.map(m => {
+        const lastTrain = m.loss_curve?.val?.length ? m.loss_curve.val[m.loss_curve.val.length - 1].step : 0;
+        return lastTrain;
+    }), 80000);
+    models.forEach(m => {
+        m.loss_curve?.val?.forEach(p => { if (isFinite(p.value) && p.value < 8) allCurveVals.push(p.value); });
+    });
+    const yMinCurve = allCurveVals.length ? Math.max(1.5, Math.min(...allCurveVals) - 0.3) : 1.8;
+    const yMaxCurve = allCurveVals.length ? Math.min(6.0, Math.max(...allCurveVals) + 0.3) : 5.5;
+    const yRange = yMaxCurve - yMinCurve || 1;
+    const toX = (step: number) => px + (step / maxStep) * plotW;
+    const toY = (val: number) => py + (1 - (val - yMinCurve) / yRange) * plotH;
+
+    const bestModel = models[bestIdx];
+    const worstModel = models[worstIdx];
+
     return (
-        <div className="p-3 sm:p-4 space-y-3">
-            {/* ─── Tab bar ─── */}
-            <div className="flex items-center gap-1 rounded-lg bg-white/[0.03] p-1 w-fit">
-                {([["curves", "📈 Loss Curves"], ["cards", "📊 Compare"], ["text", "📝 Text"]] as [ViewTab, string][]).map(([tab, label]) => (
-                    <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`px-3 py-1.5 rounded-md text-[10px] font-mono font-bold transition-all ${activeTab === tab
-                            ? "bg-violet-500/20 text-violet-300 border border-violet-500/30"
-                            : "text-white/30 hover:text-white/50 border border-transparent"
-                            }`}
-                    >
-                        {label}
-                    </button>
-                ))}
+        <div className="p-3 sm:p-4 space-y-4">
+            {/* ── Header ── */}
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-mono text-white/25 uppercase tracking-wider">
+                    {models.length} depths · SGD lr=0.01 · random init · same seed
+                </span>
+                <span className="text-[8px] font-mono text-white/15">
+                    same architecture, only depth changes
+                </span>
             </div>
 
-            {/* ═══ TAB: LOSS CURVES ═══ */}
-            {activeTab === "curves" && (
-                <div className="space-y-3">
-                    {/* Toggle buttons */}
-                    <div className="flex items-center gap-3 text-[9px] font-mono">
-                        <button
-                            onClick={() => setShowTrain(v => !v)}
-                            className={`flex items-center gap-1.5 px-2 py-1 rounded border transition-all ${showTrain ? "border-white/20 text-white/60 bg-white/[0.04]" : "border-white/[0.04] text-white/20"
-                                }`}
+            {/* ── Horizontal bar chart (val loss) with params ── */}
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] p-4 space-y-1.5">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-[9px] font-mono text-white/25 uppercase tracking-wider">
+                        Final Validation Loss by Depth
+                    </span>
+                    <span className="text-[8px] font-mono text-white/15">
+                        lower = better
+                    </span>
+                </div>
+                {models.map((m, i) => {
+                    const layers = m.config?.num_layers ?? 0;
+                    const color = LAYER_COLORS[layers] ?? "#a78bfa";
+                    const pct = (m.final_val_loss / maxLoss) * 100;
+                    const isBest = i === bestIdx;
+                    const isWorst = i === worstIdx;
+                    const isHov = hoveredIdx === i;
+                    return (
+                        <motion.div
+                            key={m.label}
+                            className="flex items-center gap-2 cursor-default"
+                            onMouseEnter={() => setHoveredIdx(i)}
+                            onMouseLeave={() => setHoveredIdx(null)}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.04 }}
                         >
-                            <span className="w-3 h-0.5 rounded" style={{ background: showTrain ? "#a78bfa" : "#444" }} />
-                            Train
-                        </button>
-                        <button
-                            onClick={() => setShowVal(v => !v)}
-                            className={`flex items-center gap-1.5 px-2 py-1 rounded border transition-all ${showVal ? "border-white/20 text-white/60 bg-white/[0.04]" : "border-white/[0.04] text-white/20"
-                                }`}
-                        >
-                            <span className="w-3 h-0.5 rounded" style={{ background: showVal ? "#fff" : "#444" }} />
-                            Validation
-                        </button>
-                        <span className="text-white/15 ml-2">
-                            {models.length} models · {models[0]?.config?.hidden_size ?? 128}H · emb={models[0]?.config?.emb_dim ?? 10} · ctx={models[0]?.config?.context_size ?? 4} · no stability
+                            <span className={`text-[10px] font-mono font-bold w-8 shrink-0 text-right ${isBest ? "text-emerald-400" : isWorst ? "text-red-400/70" : "text-white/40"}`}>
+                                {layers}L
+                            </span>
+                            <div className="flex-1 h-5 rounded-md bg-white/[0.03] relative overflow-hidden">
+                                <motion.div
+                                    className="h-full rounded-md"
+                                    style={{ background: color, opacity: isHov ? 0.9 : 0.6 }}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${pct}%` }}
+                                    transition={{ duration: 0.6, delay: i * 0.05, ease: "easeOut" }}
+                                />
+                                {/* Random baseline line */}
+                                <div className="absolute top-0 bottom-0 w-px" style={{ left: `${(RANDOM_LOSS / maxLoss) * 100}%`, background: "#ef444440" }} />
+                                {/* Value label */}
+                                <span className={`absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-mono font-bold ${isBest ? "text-emerald-300" : isWorst ? "text-red-300/80" : "text-white/35"}`}>
+                                    {m.final_val_loss.toFixed(2)}
+                                    {isBest && " ★"}
+                                </span>
+                            </div>
+                            <span className={`text-[8px] font-mono w-12 shrink-0 text-right ${isBest ? "text-emerald-400/60" : "text-white/20"}`}>
+                                {fmtParams(m.total_params)}
+                            </span>
+                        </motion.div>
+                    );
+                })}
+                {/* Random baseline label */}
+                <div className="flex items-center gap-2 mt-1">
+                    <span className="w-8" />
+                    <div className="flex-1 relative h-3">
+                        <span className="absolute text-[7px] font-mono text-red-400/40"
+                            style={{ left: `${(RANDOM_LOSS / maxLoss) * 100}%`, transform: "translateX(-50%)" }}>
+                            ↑ random ({RANDOM_LOSS.toFixed(2)})
                         </span>
                     </div>
-
-                    {/* SVG chart */}
-                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] overflow-hidden">
-                        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet">
-                            {/* Grid lines */}
-                            {yTicks.map(v => (
-                                <g key={v}>
-                                    <line x1={px} y1={toY(v)} x2={px + plotW} y2={toY(v)} stroke="white" strokeOpacity={0.04} />
-                                    <text x={px - 6} y={toY(v) + 3} textAnchor="end" fontSize={7} fill="white" fillOpacity={0.2} fontFamily="monospace">
-                                        {v.toFixed(1)}
-                                    </text>
-                                </g>
-                            ))}
-                            {xTicks.map(v => (
-                                <g key={v}>
-                                    <line x1={toX(v)} y1={py} x2={toX(v)} y2={py + plotH} stroke="white" strokeOpacity={0.03} />
-                                    <text x={toX(v)} y={py + plotH + 14} textAnchor="middle" fontSize={7} fill="white" fillOpacity={0.15} fontFamily="monospace">
-                                        {v >= 1000 ? `${v / 1000}K` : v}
-                                    </text>
-                                </g>
-                            ))}
-
-                            {/* Random baseline */}
-                            {uniformLoss >= chartData.yMin && uniformLoss <= chartData.yMax && (
-                                <g>
-                                    <line x1={px} y1={toY(uniformLoss)} x2={px + plotW} y2={toY(uniformLoss)}
-                                        stroke="#ef4444" strokeOpacity={0.25} strokeDasharray="4 3" />
-                                    <text x={px + plotW + 2} y={toY(uniformLoss) + 3} fontSize={6} fill="#ef4444" fillOpacity={0.4} fontFamily="monospace">
-                                        random
-                                    </text>
-                                </g>
-                            )}
-
-                            {/* Axis labels */}
-                            <text x={px + plotW / 2} y={H - 2} textAnchor="middle" fontSize={7} fill="white" fillOpacity={0.15} fontFamily="monospace">
-                                Training Steps →
-                            </text>
-                            <text x={8} y={py + plotH / 2} textAnchor="middle" fontSize={7} fill="white" fillOpacity={0.15} fontFamily="monospace"
-                                transform={`rotate(-90 8 ${py + plotH / 2})`}>
-                                Loss ↓
-                            </text>
-
-                            {/* Loss curves */}
-                            {models.map((m, i) => {
-                                const color = LAYER_COLORS[i % LAYER_COLORS.length];
-                                const isSelected = selectedIdx === i;
-                                const opacity = selectedIdx === null ? 0.7 : isSelected ? 1 : 0.15;
-                                return (
-                                    <g key={m.label} className="cursor-pointer" onClick={() => setSelectedIdx(isSelected ? null : i)}>
-                                        {showTrain && (
-                                            <polyline
-                                                points={subsample(m.loss_curve.train, 100).map(p =>
-                                                    `${toX(p.step)},${toY(p.value)}`).join(" ")}
-                                                fill="none" stroke={color} strokeWidth={isSelected ? 2.5 : 1.5}
-                                                strokeOpacity={opacity * 0.6} strokeDasharray="3 2"
-                                                strokeLinecap="round" strokeLinejoin="round"
-                                            />
-                                        )}
-                                        {showVal && (
-                                            <polyline
-                                                points={subsample(m.loss_curve.val, 100).map(p =>
-                                                    `${toX(p.step)},${toY(p.value)}`).join(" ")}
-                                                fill="none" stroke={color} strokeWidth={isSelected ? 2.5 : 1.5}
-                                                strokeOpacity={opacity}
-                                                strokeLinecap="round" strokeLinejoin="round"
-                                            />
-                                        )}
-                                        {/* End dot */}
-                                        {showVal && m.loss_curve.val.length > 0 && (
-                                            <circle
-                                                cx={toX(m.loss_curve.val[m.loss_curve.val.length - 1].step)}
-                                                cy={toY(m.loss_curve.val[m.loss_curve.val.length - 1].value)}
-                                                r={isSelected ? 4 : 3} fill={color} fillOpacity={opacity}
-                                            />
-                                        )}
-                                    </g>
-                                );
-                            })}
-
-                            {/* Best model star */}
-                            {showVal && models[stats.bestIdx]?.loss_curve.val.length > 0 && (() => {
-                                const best = models[stats.bestIdx];
-                                const lastPt = best.loss_curve.val[best.loss_curve.val.length - 1];
-                                return (
-                                    <text x={toX(lastPt.step) + 8} y={toY(lastPt.value) + 3}
-                                        fontSize={9} fill="#fbbf24" fontFamily="monospace" fontWeight="bold">
-                                        ★ best
-                                    </text>
-                                );
-                            })()}
-                        </svg>
-                    </div>
-
-                    {/* Legend row */}
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-mono">
-                        {models.map((m, i) => {
-                            const layers = m.config?.num_layers ?? (i + 1);
-                            const isSelected = selectedIdx === i;
-                            const isBest = i === stats.bestIdx;
-                            return (
-                                <button
-                                    key={m.label}
-                                    onClick={() => setSelectedIdx(isSelected ? null : i)}
-                                    className={`flex items-center gap-1.5 px-2 py-0.5 rounded transition-all ${isSelected ? "bg-white/[0.06] border border-white/10" : "border border-transparent hover:bg-white/[0.03]"
-                                        }`}
-                                >
-                                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: LAYER_COLORS[i % LAYER_COLORS.length] }} />
-                                    <span className={isSelected ? "text-white/70 font-bold" : "text-white/35"}>
-                                        {LAYER_LABELS_MAP[layers] ?? `${layers}L`}
-                                    </span>
-                                    {isBest && <span className="text-amber-400">★</span>}
-                                </button>
-                            );
-                        })}
-                        <span className="text-white/10 ml-1">|</span>
-                        <span className="text-white/15">dashed = train · solid = val</span>
-                    </div>
+                    <span className="text-[7px] font-mono text-white/15 w-12 text-right">params</span>
                 </div>
-            )}
+            </div>
 
-            {/* ═══ TAB: COMPARISON CARDS ═══ */}
-            {activeTab === "cards" && (
-                <div className="space-y-3">
-                    <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                        <AnimatePresence>
-                            {models.map((m, i) => {
-                                const layers = m.config?.num_layers ?? (i + 1);
-                                const gap = stats.gaps[i];
-                                const isBest = i === stats.bestIdx;
-                                const isWorst = i === stats.worstIdx;
-                                const color = LAYER_COLORS[i % LAYER_COLORS.length];
-                                return (
-                                    <motion.div
-                                        key={m.label}
-                                        initial={{ opacity: 0, y: 15 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: i * 0.08, duration: 0.3 }}
-                                        className={`rounded-xl border p-3 flex flex-col gap-1.5 transition-all ${m.diverged ? "border-rose-500/30 bg-rose-500/[0.04] opacity-70"
-                                            : isBest ? "border-amber-500/40 bg-amber-500/[0.06] ring-1 ring-amber-500/20"
-                                                : isWorst ? "border-red-500/30 bg-red-500/[0.04]"
-                                                    : "border-white/[0.06] bg-white/[0.02]"
-                                            }`}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <span className="flex items-center gap-1.5">
-                                                <span className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
-                                                <span className="text-[10px] font-mono font-bold text-white/60">
-                                                    {LAYER_LABELS_MAP[layers] ?? `${layers}L`}
-                                                </span>
-                                            </span>
-                                            {isBest && <span className="text-amber-400 text-xs">★</span>}
-                                            {m.diverged && <span className="text-rose-400 text-[9px]">✗</span>}
-                                            {!m.diverged && isWorst && <span className="text-red-400 text-[9px]">⚠</span>}
-                                        </div>
-
-                                        {/* Val loss — big number */}
-                                        <div className="text-center py-1">
-                                            {m.diverged ? (
-                                                <>
-                                                    <span className="text-sm font-mono font-black text-rose-400/80">NaN</span>
-                                                    <p className="text-[7px] font-mono text-rose-400/40">DIVERGED</p>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <span className="text-lg font-mono font-black" style={{ color }}>
-                                                        {m.final_val_loss.toFixed(3)}
-                                                    </span>
-                                                    <p className="text-[7px] font-mono text-white/15">val loss</p>
-                                                </>
-                                            )}
-                                        </div>
-
-                                        {/* Stats */}
-                                        {!m.diverged ? (
-                                            <div className="space-y-0.5 text-[8px] font-mono text-white/25">
-                                                <div className="flex justify-between">
-                                                    <span>train</span>
-                                                    <span className="text-white/40">{m.final_train_loss.toFixed(3)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>overfit gap</span>
-                                                    <span className={gap > 0.2 ? "text-red-400/60 font-bold" : "text-white/40"}>
-                                                        {gap >= 0 ? "+" : ""}{gap.toFixed(3)}
-                                                    </span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>params</span>
-                                                    <span className="text-white/40">{fmtParams(m.total_params)}</span>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="text-[8px] font-mono text-rose-400/40 text-center py-1">
-                                                <p>Gradients exploded</p>
-                                                <p className="text-white/20 mt-0.5">{fmtParams(m.total_params)} params wasted</p>
-                                            </div>
-                                        )}
-
-                                        {/* Overfitting bar */}
-                                        {!m.diverged && (
-                                            <div className="mt-1">
-                                                <div className="h-1 rounded-full bg-white/[0.04] overflow-hidden">
-                                                    <div
-                                                        className="h-full rounded-full transition-all"
-                                                        style={{
-                                                            width: `${Math.min(100, (gap / 0.4) * 100)}%`,
-                                                            background: gap > 0.25 ? "#ef4444" : gap > 0.15 ? "#f59e0b" : "#22c55e",
-                                                            opacity: 0.6,
-                                                        }}
-                                                    />
-                                                </div>
-                                                <p className="text-[6px] font-mono text-white/10 mt-0.5 text-center">overfit</p>
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                );
-                            })}
-                        </AnimatePresence>
-                    </div>
-
-                    {/* Insights panel */}
-                    <div className="rounded-xl border border-violet-500/15 bg-violet-500/[0.03] p-3 space-y-2">
-                        <p className="text-[10px] font-mono font-bold text-violet-300/70">Key Insights</p>
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2 text-[9px] font-mono">
-                            <div className="rounded-lg bg-amber-500/[0.05] border border-amber-500/15 p-2">
-                                <p className="text-amber-300/60 font-bold">🏆 Sweet Spot</p>
-                                <p className="text-white/40">
-                                    {LAYER_LABELS_MAP[models[stats.bestIdx]?.config?.num_layers ?? 1]} — val {models[stats.bestIdx]?.final_val_loss.toFixed(3)}
-                                </p>
-                                <p className="text-white/20 mt-0.5">Best depth before instability kicks in</p>
-                            </div>
-                            <div className="rounded-lg bg-rose-500/[0.05] border border-rose-500/15 p-2">
-                                <p className="text-rose-300/60 font-bold">💀 Depth Wall</p>
-                                <p className="text-white/40">
-                                    {diverged.length} model{diverged.length !== 1 ? "s" : ""} completely diverged
-                                </p>
-                                <p className="text-white/20 mt-0.5">8+ layers with random init = NaN loss</p>
-                            </div>
-                            <div className="rounded-lg bg-red-500/[0.05] border border-red-500/15 p-2">
-                                <p className="text-red-300/60 font-bold">📉 Overfitting</p>
-                                <p className="text-white/40">
-                                    {LAYER_LABELS_MAP[models[stats.maxGapIdx]?.config?.num_layers ?? 1]} — gap +{stats.gaps[stats.maxGapIdx]?.toFixed(3)}
-                                </p>
-                                <p className="text-white/20 mt-0.5">Train loss drops but val doesn&apos;t follow</p>
-                            </div>
-                            <div className="rounded-lg bg-violet-500/[0.05] border border-violet-500/15 p-2">
-                                <p className="text-violet-300/60 font-bold">⚡ Diminishing Returns</p>
-                                <p className="text-white/40">
-                                    {fmtParams(trainable[0]?.total_params ?? 0)} → {fmtParams(trainable[trainable.length - 1]?.total_params ?? 0)}
-                                </p>
-                                <p className="text-white/20 mt-0.5">{((trainable[trainable.length - 1]?.total_params ?? 1) / (trainable[0]?.total_params ?? 1)).toFixed(0)}× params for marginal gain</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Pedagogical explanation */}
-                    <div className="rounded-xl border border-amber-500/10 bg-amber-500/[0.02] p-3 space-y-1.5">
-                        <p className="text-[9px] font-mono text-amber-300/60 font-bold">Why does this happen?</p>
-                        <p className="text-[9px] font-mono text-white/30 leading-relaxed">
-                            Without stability techniques (Kaiming init, BatchNorm, residual connections), gradients must travel through every layer via the chain rule.
-                            With random initialization, each layer multiplies gradients by random weights &mdash; as depth grows, gradients either shrink (vanish) or explode.
-                            This is the <span className="text-white/50 font-bold">vanishing/exploding gradient problem</span>.
-                        </p>
-                        <p className="text-[9px] font-mono text-white/20 leading-relaxed">
-                            There&apos;s a <span className="text-white/40 font-bold">sweet spot</span>: 5 layers beats both shallower (not enough capacity) and deeper (gradient degradation).
-                            Beyond that, more layers with random init actually hurt &mdash; 6L trains worse than 5L despite having 22% more parameters.
-                            Deeper models (8+ layers) would diverge entirely without techniques we&apos;ll explore next.
-                        </p>
-                    </div>
-
-                    {/* LR inconsistency note */}
-                    {(() => {
-                        const lrs = new Set(trainable.map(m => m.config?.learning_rate));
-                        if (lrs.size <= 1) return null;
-                        const outliers = trainable.filter(m => m.config?.learning_rate !== 0.001);
+            {/* ── Val loss curves ── */}
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] overflow-hidden">
+                <div className="px-3 py-2 border-b border-white/[0.04] flex justify-between">
+                    <span className="text-[9px] font-mono text-white/25 uppercase">Validation Loss Over Training</span>
+                    <span className="text-[8px] font-mono text-white/15">80K steps · val loss</span>
+                </div>
+                <svg viewBox={`0 0 ${W} ${H_CURVE}`} className="w-full" preserveAspectRatio="xMidYMid meet">
+                    {/* Y grid */}
+                    {Array.from({ length: 6 }, (_, i) => {
+                        const val = yMinCurve + (i / 5) * yRange;
                         return (
-                            <div className="rounded-lg border border-amber-500/15 bg-amber-500/[0.02] px-3 py-2">
-                                <p className="text-[8px] font-mono text-amber-400/50">
-                                    <span className="font-bold">Note:</span>{" "}
-                                    {outliers.map(m => `${LAYER_LABELS_MAP[m.config?.num_layers ?? 0] ?? m.label} (LR=${m.config?.learning_rate})`).join(", ")}{" "}
-                                    used a different learning rate than the rest (LR=0.001).
-                                    Their higher loss is partly due to the LR mismatch, not just depth.
-                                    For a perfectly fair comparison, all models should share the same hyperparameters except the one being tested.
-                                </p>
-                            </div>
+                            <g key={i}>
+                                <line x1={px} y1={toY(val)} x2={px + plotW} y2={toY(val)} stroke="white" strokeOpacity={0.04} />
+                                <text x={px - 4} y={toY(val) + 3} textAnchor="end" fontSize={7} fill="white" fillOpacity={0.15} fontFamily="monospace">{val.toFixed(1)}</text>
+                            </g>
                         );
-                    })()}
-                </div>
-            )}
-
-            {/* ═══ TAB: GENERATED TEXT ═══ */}
-            {activeTab === "text" && (
-                <div className="space-y-2">
+                    })}
+                    {/* X grid */}
+                    {[0, 20000, 40000, 60000, 80000].filter(v => v <= maxStep).map(v => (
+                        <g key={v}>
+                            <line x1={toX(v)} y1={py} x2={toX(v)} y2={py + plotH} stroke="white" strokeOpacity={0.03} />
+                            <text x={toX(v)} y={py + plotH + 13} textAnchor="middle" fontSize={7} fill="white" fillOpacity={0.12} fontFamily="monospace">{v / 1000}K</text>
+                        </g>
+                    ))}
+                    {/* Random baseline */}
+                    {RANDOM_LOSS >= yMinCurve && RANDOM_LOSS <= yMaxCurve && (
+                        <g>
+                            <line x1={px} y1={toY(RANDOM_LOSS)} x2={px + plotW} y2={toY(RANDOM_LOSS)} stroke="#ef4444" strokeOpacity={0.2} strokeDasharray="4 3" />
+                            <text x={px + plotW + 2} y={toY(RANDOM_LOSS) + 3} fontSize={6} fill="#ef4444" fillOpacity={0.35} fontFamily="monospace">random</text>
+                        </g>
+                    )}
+                    {/* Curves */}
                     {models.map((m, i) => {
-                        const layers = m.config?.num_layers ?? (i + 1);
-                        const color = LAYER_COLORS[i % LAYER_COLORS.length];
-                        const isBest = i === stats.bestIdx;
-                        const samples = m.generated_samples ?? [];
+                        const layers = m.config?.num_layers ?? 0;
+                        const color = LAYER_COLORS[layers] ?? "#a78bfa";
+                        const pts = subsample(m.loss_curve?.val ?? [], 80)
+                            .filter(p => isFinite(p.value) && p.value <= yMaxCurve + 1);
+                        if (!pts.length) return null;
+                        const isHov = hoveredIdx === i;
+                        const isBest = i === bestIdx;
                         return (
-                            <motion.div
-                                key={m.label}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: i * 0.06 }}
-                                className={`rounded-xl border p-3 ${isBest ? "border-amber-500/30 bg-amber-500/[0.03]" : "border-white/[0.06] bg-white/[0.015]"
-                                    }`}
+                            <g key={m.label}
+                                onMouseEnter={() => setHoveredIdx(i)}
+                                onMouseLeave={() => setHoveredIdx(null)}
+                                className="cursor-pointer"
                             >
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
-                                    <span className="text-[10px] font-mono font-bold text-white/60">
-                                        {LAYER_LABELS_MAP[layers] ?? `${layers}L`}
-                                    </span>
-                                    <span className="text-[8px] font-mono text-white/20">
-                                        val={isFinite(m.final_val_loss) ? m.final_val_loss.toFixed(3) : "DIVERGED"} · {fmtParams(m.total_params)}
-                                    </span>
-                                    {isBest && <span className="text-amber-400 text-[9px] font-bold ml-auto">★ BEST</span>}
-                                </div>
-                                <div className="space-y-1.5">
-                                    {samples.slice(0, 3).map((s, si) => (
-                                        <div key={si}
-                                            className={`text-[10px] font-mono leading-relaxed px-2.5 py-2 rounded-lg border ${isBest
-                                                ? "border-amber-500/10 bg-amber-500/[0.02] text-amber-200/70"
-                                                : "border-white/[0.04] bg-white/[0.01] text-white/35"
-                                                }`}
-                                        >
-                                            &ldquo;{s.trim().slice(0, 120)}{s.trim().length > 120 ? "…" : ""}&rdquo;
-                                        </div>
-                                    ))}
-                                </div>
-                            </motion.div>
+                                <polyline
+                                    points={pts.map(p => `${toX(p.step)},${toY(Math.min(p.value, yMaxCurve))}`).join(" ")}
+                                    fill="none" stroke={color}
+                                    strokeWidth={isHov || isBest ? 2.5 : 1.2}
+                                    strokeOpacity={hoveredIdx !== null && !isHov ? 0.12 : isHov ? 1 : 0.5}
+                                    strokeLinecap="round" strokeLinejoin="round"
+                                />
+                                {pts.length > 0 && (
+                                    <circle
+                                        cx={toX(pts[pts.length - 1].step)}
+                                        cy={toY(Math.min(pts[pts.length - 1].value, yMaxCurve))}
+                                        r={isHov ? 4 : 2.5} fill={color}
+                                        fillOpacity={hoveredIdx !== null && !isHov ? 0.15 : 0.7}
+                                    />
+                                )}
+                            </g>
+                        );
+                    })}
+                </svg>
+                {/* Legend */}
+                <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-3 pb-2 text-[8px] font-mono">
+                    {models.map((m, i) => {
+                        const layers = m.config?.num_layers ?? 0;
+                        const color = LAYER_COLORS[layers] ?? "#a78bfa";
+                        const isBest = i === bestIdx;
+                        return (
+                            <span key={m.label}
+                                className={`flex items-center gap-1 cursor-pointer ${hoveredIdx === i ? "text-white/70" : "text-white/25"}`}
+                                onMouseEnter={() => setHoveredIdx(i)}
+                                onMouseLeave={() => setHoveredIdx(null)}
+                            >
+                                <span className="w-2 h-2 rounded-full" style={{ background: color }} />
+                                {layers}L{isBest && " ★"}
+                            </span>
                         );
                     })}
                 </div>
-            )}
+            </div>
 
-            {/* ─── Bottom stats bar ─── */}
-            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[8px] font-mono text-white/20 pt-1">
-                <span>emb_dim={models[0]?.config?.emb_dim ?? 10}</span>
-                <span>hidden={models[0]?.config?.hidden_size ?? 128}</span>
-                <span>ctx={models[0]?.config?.context_size ?? 4}</span>
-                <span>lr={models[0]?.config?.learning_rate ?? 0.001}</span>
-                <span>steps={((models[0]?.config?.max_steps ?? 80000) / 1000).toFixed(0)}K</span>
-                <span className="text-violet-400/30">init=random · no BN · no residual</span>
+            {/* ── Insight cards ── */}
+            <div className="grid sm:grid-cols-3 gap-3">
+                {/* Winner */}
+                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/[0.04] p-3 space-y-1.5 ring-1 ring-emerald-500/10">
+                    <div className="flex items-center gap-1.5">
+                        <Award className="w-3.5 h-3.5 text-emerald-400/80" />
+                        <span className="text-[10px] font-mono font-bold text-emerald-400/80">The Winner</span>
+                    </div>
+                    <p className="text-lg font-mono font-black text-emerald-400">
+                        {bestModel.config.num_layers}L → {bestModel.final_val_loss.toFixed(3)} ★
+                    </p>
+                    <p className="text-[9px] font-mono text-white/25 leading-relaxed">
+                        Just {fmtParams(bestModel.total_params)} params. The simplest model wins. No vanishing gradients, no saturation — just clean learning.
+                    </p>
+                </div>
+
+                {/* Deep catastrophe */}
+                <div className="rounded-xl border border-red-500/20 bg-red-500/[0.03] p-3 space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                        <Skull className="w-3.5 h-3.5 text-red-400/60" />
+                        <span className="text-[10px] font-mono font-bold text-red-400/70">Deep Catastrophe</span>
+                    </div>
+                    <p className="text-lg font-mono font-black text-red-400/80">
+                        6+ layers → {">"}2.9
+                    </p>
+                    <p className="text-[9px] font-mono text-white/25 leading-relaxed">
+                        Beyond 4 layers, performance collapses. L6 ({fmtParams(models.find(m => m.config.num_layers === 6)?.total_params ?? 0)}) scores {models.find(m => m.config.num_layers === 6)?.final_val_loss.toFixed(2) ?? "3.04"} — despite 10× more params than L1.
+                    </p>
+                </div>
+
+                {/* More params = worse */}
+                <div className="rounded-xl border border-violet-500/20 bg-violet-500/[0.03] p-3 space-y-1.5">
+                    <div className="flex items-center gap-1.5">
+                        <TrendingDown className="w-3.5 h-3.5 text-violet-400/60" />
+                        <span className="text-[10px] font-mono font-bold text-violet-400/70">More ≠ Better</span>
+                    </div>
+                    <p className="text-lg font-mono font-black text-violet-400/80">
+                        {fmtParams(worstModel.total_params)} → {worstModel.final_val_loss.toFixed(2)}
+                    </p>
+                    <p className="text-[9px] font-mono text-white/25 leading-relaxed">
+                        L20 has {(worstModel.total_params / bestModel.total_params).toFixed(0)}× more parameters than L1 but performs {((worstModel.final_val_loss - bestModel.final_val_loss) / bestModel.final_val_loss * 100).toFixed(0)}% worse. Depth without stability = wasted compute.
+                    </p>
+                </div>
+            </div>
+
+            {/* ── Generated text comparison (best vs worst) ── */}
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] p-4 space-y-3">
+                <span className="text-[9px] font-mono text-white/25 uppercase tracking-wider">Generated Text · Best vs Worst</span>
+                <div className="grid sm:grid-cols-2 gap-3">
+                    {[bestModel, worstModel].map((m, idx) => {
+                        const sample = m.generated_samples?.[0]?.trim().slice(0, 100) ?? "—";
+                        const isBest = idx === 0;
+                        return (
+                            <div key={m.label} className={`rounded-lg border p-3 ${isBest ? "border-emerald-500/20 bg-emerald-500/[0.02]" : "border-red-500/15 bg-red-500/[0.02]"}`}>
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                    <span className="w-2 h-2 rounded-full" style={{ background: LAYER_COLORS[m.config.num_layers] }} />
+                                    <span className="text-[9px] font-mono font-bold text-white/40">{m.config.num_layers}L</span>
+                                    <span className="text-[8px] font-mono text-white/20">{fmtParams(m.total_params)} · val={m.final_val_loss.toFixed(2)}</span>
+                                    {isBest && <span className="text-emerald-400 text-[8px] ml-auto">★ BEST</span>}
+                                    {!isBest && <span className="text-red-400/50 text-[8px] ml-auto">WORST</span>}
+                                </div>
+                                <p className={`text-[10px] font-mono leading-relaxed italic ${isBest ? "text-emerald-200/60" : "text-red-200/40"}`}>
+                                    &ldquo;{sample}&rdquo;
+                                </p>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* ── Footer ── */}
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[8px] font-mono text-white/15">
+                <span>emb=10</span>
+                <span>H=128</span>
+                <span>ctx=4</span>
+                <span className="text-amber-400/30 font-bold">SGD lr=0.01</span>
+                <span>steps=80K</span>
+                <span className="text-violet-400/25">init=random · no BN · no residual</span>
             </div>
         </div>
     );

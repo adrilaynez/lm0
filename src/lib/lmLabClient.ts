@@ -14,7 +14,7 @@ import type {
 } from "@/types/lmLab";
 
 const BASE_URL =
-    process.env.NEXT_PUBLIC_LM_LAB_API_URL ?? "";
+    process.env.NEXT_PUBLIC_LM_LAB_API_URL ?? "http://localhost:8000";
 
 const TIMEOUT_MS = 45_000;
 const RETRY_DELAY_MS = 2_000;
@@ -395,6 +395,44 @@ export function fetchMLPInternals(
         "/api/v1/mlp-grid/internals",
         { embedding_dim, hidden_size, learning_rate, text, top_k }
     );
+}
+
+// ─── Pedagogical Group Endpoints ─────────────────────────────────────────────
+
+export function fetchActivationBattle(): Promise<Record<string, unknown>> {
+    return cachedGet<Record<string, unknown>>("/api/v1/mlp/activation-battle");
+}
+
+export function fetchEmbeddingBottleneck(): Promise<Record<string, unknown>> {
+    return cachedGet<Record<string, unknown>>("/api/v1/mlp/embedding-bottleneck");
+}
+
+export function fetchNetworkShape(): Promise<Record<string, unknown>> {
+    return cachedGet<Record<string, unknown>>("/api/v1/mlp/network-shape");
+}
+
+export interface AdvancedEmbeddingModel {
+    emb_dim: number;
+    vocab: string[];
+    vocab_size: number;
+    embedding_matrix: number[][];
+    config: { emb_dim: number; context_size: number; hidden_size: number; num_layers: number; max_steps: number };
+    final_train_loss: number | null;
+    final_val_loss: number | null;
+    total_params: number | null;
+    generated_samples: string[];
+}
+
+export interface AdvancedEmbeddingsResponse {
+    group: string;
+    description: string;
+    models: AdvancedEmbeddingModel[];
+}
+
+export function fetchAdvancedEmbeddings(dims?: number[]): Promise<AdvancedEmbeddingsResponse> {
+    const params: Record<string, string | number | undefined> = {};
+    if (dims?.length) params.dims = dims.join(",");
+    return cachedGet<AdvancedEmbeddingsResponse>("/api/v1/mlp/advanced-embeddings", params);
 }
 
 // ─── Legacy API compatibility layer ──────────────────────────────────────────

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, RotateCcw, Trophy, Zap, Table, BrainCircuit } from "lucide-react";
+import { Play, RotateCcw, Trophy, Zap, Table, BrainCircuit, Skull, Crown } from "lucide-react";
 
 import { fetchMLPGrid, fetchMLPTimeline, generateNgram, generateMLP } from "@/lib/lmLabClient";
 import { useI18n } from "@/i18n/context";
@@ -41,7 +41,7 @@ interface RacerData {
     icon: "table" | "brain";
 }
 
-type RacePhase = "ready" | "racing" | "done";
+type RacePhase = "ready" | "countdown" | "racing" | "done";
 
 /* ─── Helpers ─── */
 function interpolateLoss(data: number[], progress: number): number[] {
@@ -278,11 +278,22 @@ export function TrainingRace4gramVsMLP() {
         }
     }, []);
 
+    const [countdown, setCountdown] = useState(0);
+
     const startRace = useCallback(() => {
-        setPhase("racing");
+        setPhase("countdown");
         setProgress(0);
+        setCountdown(3);
         startRef.current = 0;
-        rafRef.current = requestAnimationFrame(animate);
+
+        // 3-2-1-GO countdown
+        setTimeout(() => setCountdown(2), 700);
+        setTimeout(() => setCountdown(1), 1400);
+        setTimeout(() => {
+            setCountdown(0);
+            setPhase("racing");
+            rafRef.current = requestAnimationFrame(animate);
+        }, 2100);
     }, [animate]);
 
     const resetRace = useCallback(() => {
@@ -313,6 +324,13 @@ export function TrainingRace4gramVsMLP() {
         if (!ngramData || !mlpData || phase !== "done") return null;
         return ngramData.finalLoss < mlpData.finalLoss ? "ngram" : "mlp";
     }, [ngramData, mlpData, phase]);
+
+    /* ─ Live position tracking ─ */
+    const ngramLiveLoss = useMemo(() => ngramVisible.length > 0 ? ngramVisible[ngramVisible.length - 1] : null, [ngramVisible]);
+    const mlpLiveLoss = useMemo(() => mlpVisible.length > 0 ? mlpVisible[mlpVisible.length - 1] : null, [mlpVisible]);
+    const liveLeader = ngramLiveLoss !== null && mlpLiveLoss !== null
+        ? (ngramLiveLoss < mlpLiveLoss ? "ngram" : ngramLiveLoss > mlpLiveLoss ? "mlp" : null)
+        : null;
 
     if (!loaded) {
         return (
@@ -350,13 +368,15 @@ export function TrainingRace4gramVsMLP() {
                 </div>
                 <div className="flex gap-2">
                     {phase === "ready" && (
-                        <button
+                        <motion.button
                             onClick={startRace}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/30 text-xs font-mono font-bold text-violet-300 transition-colors"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-500/25 to-amber-500/20 hover:from-violet-500/35 hover:to-amber-500/30 border border-violet-500/40 text-sm font-mono font-bold text-violet-300 transition-all shadow-[0_0_30px_rgba(139,92,246,0.15)]"
                         >
-                            <Play className="w-3 h-3" />
+                            <Play className="w-4 h-4" />
                             {t("models.mlp.narrative.s01.raceStart")}
-                        </button>
+                        </motion.button>
                     )}
                     {phase === "done" && (
                         <button
@@ -370,61 +390,142 @@ export function TrainingRace4gramVsMLP() {
                 </div>
             </div>
 
+            {/* ── Countdown overlay ── */}
+            <AnimatePresence mode="wait">
+                {phase === "countdown" && countdown > 0 && (
+                    <motion.div
+                        key={countdown}
+                        initial={{ opacity: 0, scale: 2.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.5 }}
+                        transition={{ duration: 0.35 }}
+                        className="flex items-center justify-center h-28"
+                    >
+                        <span className="text-7xl font-mono font-black bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent leading-none">
+                            {countdown}
+                        </span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* ── Progress bar ── */}
             {phase === "racing" && (
-                <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-                    <motion.div
-                        className="h-full bg-gradient-to-r from-violet-500 to-amber-500 rounded-full"
-                        style={{ width: `${progress * 100}%` }}
-                    />
+                <div className="space-y-2">
+                    <div className="h-2 rounded-full bg-white/5 overflow-hidden relative">
+                        <motion.div
+                            className="h-full bg-gradient-to-r from-violet-500 via-purple-500 to-amber-500 rounded-full"
+                            style={{ width: `${progress * 100}%` }}
+                        />
+                        {/* Pulse glow at the leading edge */}
+                        <motion.div
+                            className="absolute top-0 h-full w-4 rounded-full bg-white/30 blur-sm"
+                            style={{ left: `${Math.max(0, progress * 100 - 2)}%` }}
+                            animate={{ opacity: [0.3, 0.8, 0.3] }}
+                            transition={{ duration: 0.5, repeat: Infinity }}
+                        />
+                    </div>
+                    {/* Live position indicator */}
+                    {liveLeader && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-center"
+                        >
+                            <span className={`text-[10px] font-mono font-bold ${liveLeader === 'ngram' ? 'text-amber-400/70' : 'text-violet-400/70'}`}>
+                                {liveLeader === 'ngram' ? '📊 4-gram leading' : '🧠 MLP leading'}
+                                {ngramLiveLoss !== null && mlpLiveLoss !== null && (
+                                    <span className="text-white/20 ml-2">
+                                        ({Math.abs(ngramLiveLoss - mlpLiveLoss).toFixed(3)} gap)
+                                    </span>
+                                )}
+                            </span>
+                        </motion.div>
+                    )}
                 </div>
             )}
 
             {/* ── Race lanes ── */}
-            <div className="grid md:grid-cols-2 gap-4">
-                {/* 4-gram lane */}
-                {ngramData && (
-                    <RaceLane
-                        data={ngramData}
-                        visible={ngramVisible}
-                        maxSteps={STEPS}
-                        yMin={yMin}
-                        yMax={yMax}
-                        phase={phase}
-                        isWinner={winner === "ngram"}
-                        currentStep={phase === "racing" ? currentTrainStep : undefined}
-                    />
-                )}
-                {/* MLP lane */}
-                {mlpData && (
-                    <RaceLane
-                        data={mlpData}
-                        visible={mlpVisible}
-                        maxSteps={STEPS}
-                        yMin={yMin}
-                        yMax={yMax}
-                        phase={phase}
-                        isWinner={winner === "mlp"}
-                        currentStep={phase === "racing" ? currentTrainStep : undefined}
-                    />
-                )}
-            </div>
+            {(phase === "ready" || phase === "racing" || phase === "done") && (
+                <div className="grid md:grid-cols-2 gap-4">
+                    {/* 4-gram lane */}
+                    {ngramData && (
+                        <RaceLane
+                            data={ngramData}
+                            visible={ngramVisible}
+                            maxSteps={STEPS}
+                            yMin={yMin}
+                            yMax={yMax}
+                            phase={phase}
+                            isWinner={winner === "ngram"}
+                            isLoser={winner !== null && winner !== "ngram"}
+                            currentStep={phase === "racing" ? currentTrainStep : undefined}
+                        />
+                    )}
+                    {/* MLP lane */}
+                    {mlpData && (
+                        <RaceLane
+                            data={mlpData}
+                            visible={mlpVisible}
+                            maxSteps={STEPS}
+                            yMin={yMin}
+                            yMax={yMax}
+                            phase={phase}
+                            isWinner={winner === "mlp"}
+                            isLoser={winner !== null && winner !== "mlp"}
+                            currentStep={phase === "racing" ? currentTrainStep : undefined}
+                        />
+                    )}
+                </div>
+            )}
 
             {/* ── Verdict ── */}
             <AnimatePresence>
                 {phase === "done" && (
                     <motion.div
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="rounded-xl border border-violet-500/20 bg-gradient-to-r from-violet-500/[0.06] to-amber-500/[0.04] p-4 text-center"
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ delay: 0.4, type: "spring", bounce: 0.3 }}
+                        className={`rounded-2xl border-2 p-6 text-center ${winner === "ngram"
+                            ? "border-amber-500/40 bg-gradient-to-r from-amber-500/[0.08] to-red-500/[0.06]"
+                            : "border-violet-500/40 bg-gradient-to-r from-violet-500/[0.08] to-emerald-500/[0.06]"
+                            }`}
                     >
-                        <p className="text-sm text-white/70 leading-relaxed">
+                        {winner === "ngram" && (
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: 0.6, type: "spring", bounce: 0.5 }}
+                                className="text-4xl mb-3"
+                            >
+                                😱
+                            </motion.div>
+                        )}
+                        <p className={`text-base font-bold mb-2 ${winner === "ngram" ? "text-amber-300" : "text-violet-300"
+                            }`}>
+                            {winner === "ngram" ? "The counting table wins!" : "The neural network wins!"}
+                        </p>
+                        <p className="text-sm text-white/60 leading-relaxed max-w-lg mx-auto">
                             {winner === "ngram"
                                 ? t("models.mlp.narrative.s01.raceVerdictNgramWins")
                                 : t("models.mlp.narrative.s01.raceVerdictMlpWins")
                             }
                         </p>
+                        {winner === "ngram" && ngramData && mlpData && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.8 }}
+                                className="mt-4 flex items-center justify-center gap-6 text-[11px] font-mono"
+                            >
+                                <span className="text-amber-400">
+                                    4-gram: {ngramData.finalLoss.toFixed(3)} loss
+                                </span>
+                                <span className="text-white/20">vs</span>
+                                <span className="text-violet-400/60">
+                                    MLP: {mlpData.finalLoss.toFixed(3)} loss
+                                </span>
+                            </motion.div>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -439,7 +540,7 @@ export function TrainingRace4gramVsMLP() {
 }
 
 /* ─── Race lane component ─── */
-function RaceLane({ data, visible, maxSteps, yMin, yMax, phase, isWinner, currentStep }: {
+function RaceLane({ data, visible, maxSteps, yMin, yMax, phase, isWinner, isLoser, currentStep }: {
     data: RacerData;
     visible: number[];
     maxSteps: number;
@@ -447,30 +548,63 @@ function RaceLane({ data, visible, maxSteps, yMin, yMax, phase, isWinner, curren
     yMax: number;
     phase: RacePhase;
     isWinner: boolean;
+    isLoser: boolean;
     currentStep?: number;
 }) {
     return (
-        <div className={`relative rounded-xl border p-4 transition-colors space-y-3 ${isWinner ? (data.icon === "table" ? "border-amber-500/40 bg-amber-500/[0.04]" : "border-violet-500/40 bg-violet-500/[0.04]")
-            : "border-white/10 bg-white/[0.02]"
-            }`}>
+        <motion.div
+            animate={
+                isLoser
+                    ? { x: [0, -3, 3, -2, 2, 0], transition: { duration: 0.5, delay: 0.2 } }
+                    : isWinner
+                        ? { scale: [1, 1.02, 1], transition: { duration: 0.6, delay: 0.3 } }
+                        : {}
+            }
+            className={`relative rounded-xl border-2 p-4 transition-all duration-500 space-y-3 ${isWinner
+                ? (data.icon === "table"
+                    ? "border-amber-500/50 bg-amber-500/[0.06] shadow-[0_0_30px_rgba(245,158,11,0.12)]"
+                    : "border-violet-500/50 bg-violet-500/[0.06] shadow-[0_0_30px_rgba(139,92,246,0.12)]")
+                : isLoser
+                    ? "border-red-500/20 bg-red-500/[0.02] opacity-75"
+                    : "border-white/10 bg-white/[0.02]"
+                }`}
+        >
+            {/* Winner badge */}
             {isWinner && (
-                <div className="absolute -top-2.5 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase"
-                    style={{ backgroundColor: data.color + "25", color: data.color }}>
-                    <Trophy className="w-3 h-3" /> Winner
-                </div>
+                <motion.div
+                    initial={{ scale: 0, rotate: -20 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.3, type: "spring", bounce: 0.5 }}
+                    className="absolute -top-3 right-3 flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase shadow-lg"
+                    style={{ backgroundColor: data.color + "30", color: data.color, boxShadow: `0 0 20px ${data.color}25` }}
+                >
+                    <Crown className="w-3.5 h-3.5" /> Winner
+                </motion.div>
+            )}
+
+            {/* Loser badge */}
+            {isLoser && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="absolute -top-3 right-3 flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase bg-red-500/15 text-red-400/70"
+                >
+                    <Skull className="w-3.5 h-3.5" /> Defeated
+                </motion.div>
             )}
 
             {/* Header */}
             <div className="flex items-center gap-2">
-                {data.icon === "table" ? <Table className="w-4 h-4" style={{ color: data.color }} /> : <BrainCircuit className="w-4 h-4" style={{ color: data.color }} />}
+                {data.icon === "table" ? <Table className="w-4 h-4" style={{ color: isLoser ? '#ef444480' : data.color }} /> : <BrainCircuit className="w-4 h-4" style={{ color: isLoser ? '#ef444480' : data.color }} />}
                 <div>
-                    <span className="text-sm font-mono font-bold text-white/70">{data.label}</span>
+                    <span className={`text-sm font-mono font-bold ${isLoser ? 'text-white/40 line-through' : 'text-white/70'}`}>{data.label}</span>
                     <p className="text-[9px] font-mono text-white/25">{data.subtitle}</p>
                 </div>
             </div>
 
             {/* Loss chart */}
-            <LossChart data={visible} maxSteps={maxSteps} color={data.color} yMin={yMin} yMax={yMax} currentStep={currentStep} />
+            <LossChart data={visible} maxSteps={maxSteps} color={isLoser ? '#ef4444' : data.color} yMin={yMin} yMax={yMax} currentStep={currentStep} />
 
             {/* Stats — shown after race */}
             <AnimatePresence>
@@ -478,24 +612,26 @@ function RaceLane({ data, visible, maxSteps, yMin, yMax, phase, isWinner, curren
                     <motion.div
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: isWinner ? 0.2 : 0.5 }}
                         className="space-y-3"
                     >
                         <div className="flex gap-2">
-                            <StatCard label="Final loss" value={data.finalLoss.toFixed(3)} color={data.color} />
+                            <StatCard label="Final loss" value={data.finalLoss.toFixed(3)} color={isLoser ? '#ef4444' : data.color} />
                             {data.tableSize ? (
-                                <StatCard label="Table size" value={formatNum(data.tableSize)} sub="entries in memory" color={data.color} />
+                                <StatCard label="Table size" value={formatNum(data.tableSize)} sub="entries in memory" color={isLoser ? '#ef4444' : data.color} />
                             ) : (
-                                <StatCard label="Parameters" value={formatNum(data.params)} sub="learned weights" color={data.color} />
+                                <StatCard label="Parameters" value={formatNum(data.params)} sub="learned weights" color={isLoser ? '#ef4444' : data.color} />
                             )}
                         </div>
-                        <div className="p-2.5 rounded-lg bg-black/20 text-[10px] font-mono text-white/40 leading-relaxed break-all">
-                            <span className="text-white/20 text-[9px]">GENERATED TEXT</span>
+                        <div className={`p-2.5 rounded-lg text-[10px] font-mono leading-relaxed break-all ${isLoser ? 'bg-red-500/[0.04] text-red-300/30' : 'bg-black/20 text-white/40'
+                            }`}>
+                            <span className={`text-[9px] ${isLoser ? 'text-red-400/30' : 'text-white/20'}`}>GENERATED TEXT</span>
                             <br />{data.sample}
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </motion.div>
     );
 }
 

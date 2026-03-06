@@ -74,6 +74,7 @@ export interface MLPHyperparameterExplorerProps {
     onFetchTimeline: () => Promise<void>;
     generation: MLPGenerateResponse | null;
     generationLoading: boolean;
+    generationError: string | null;
     onGenerate: (seedText: string, maxTokens: number, temperature: number) => Promise<void>;
     gridLoading: boolean;
     gridError: string | null;
@@ -453,12 +454,18 @@ function buildConfigSummary(
 export function MLPHyperparameterExplorer({
     configs, selectedConfig, onSelectClosest,
     timeline, timelineLoading, onFetchTimeline,
-    generation, generationLoading, onGenerate,
+    generation, generationLoading, generationError, onGenerate,
     gridLoading, gridError,
     isNarrativeMode = false,
 }: MLPHyperparameterExplorerProps) {
     const { t } = useI18n();
-    const safeConfigs = useMemo(() => (configs ?? []).filter(c => c.embedding_dim > 0), [configs]);
+    const safeConfigs = useMemo(() => (configs ?? []).filter(c => {
+        if (c.embedding_dim <= 0) return false;
+        // Filter out diverged configs: loss above 2× expected uniform, or absurdly high loss with null params
+        if (c.expected_uniform_loss != null && c.final_loss > c.expected_uniform_loss * 2) return false;
+        if (c.final_loss > 5 && (c.total_parameters == null || c.total_parameters === 0)) return false;
+        return true;
+    }), [configs]);
     const embDimOptions = useMemo(() => uniqueSorted(safeConfigs.map(c => c.embedding_dim)), [safeConfigs]);
     const hiddenSizeOptions = useMemo(() => uniqueSorted(safeConfigs.map(c => c.hidden_size)), [safeConfigs]);
     const lrOptions = useMemo(() => uniqueSorted(safeConfigs.map(c => c.learning_rate)), [safeConfigs]);
@@ -578,20 +585,6 @@ export function MLPHyperparameterExplorer({
                     title={t("models.mlp.explorer.sections.s01Title")}
                     subtitle={`${safeConfigs.length} ${t("models.mlp.explorer.sections.s01Subtitle")}`}
                 >
-                    {safeConfigs.length > 1 && (
-                        <Expandable title={t("models.mlp.explorer.zoo.expandableTitle").replace("{count}", String(safeConfigs.length))} defaultOpen={true}>
-                            <div className="space-y-3">
-                                <p className="text-[11px] text-white/30 leading-relaxed font-mono">
-                                    {t("models.mlp.explorer.zoo.description")}
-                                </p>
-                                <CrossConfigScatterPlot
-                                    configs={safeConfigs}
-                                    selectedConfig={selectedConfig}
-                                    onSelect={(c) => onSelectClosest({ embeddingDim: c.embedding_dim, hiddenSize: c.hidden_size, learningRate: c.learning_rate })}
-                                />
-                            </div>
-                        </Expandable>
-                    )}
                     {/* Sliders */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {embDimOptions.length > 1 && <SliderControl label={t("models.mlp.explorer.sliders.embeddingDim")} options={embDimOptions} value={embDim} onChange={v => handleSliderChange("embDim", v)} />}
@@ -862,7 +855,12 @@ export function MLPHyperparameterExplorer({
                                 <span className="text-xs font-mono font-bold text-violet-400 w-8 text-right">{maxTokens}</span>
                             </div>
                         </div>
-                        {generation ? (
+                        {generationError ? (
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-rose-500/[0.04] border border-rose-500/15">
+                                <div className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
+                                <p className="text-[10px] text-rose-300/60 font-mono">{generationError}</p>
+                            </div>
+                        ) : generation ? (
                             <div className="space-y-2">
                                 <p className="font-mono text-sm text-white/60 leading-relaxed">&quot;{generation.generated_text}&quot;</p>
                                 <div className="flex items-center gap-3 text-[9px] font-mono text-white/20">

@@ -68,6 +68,7 @@ function MlpFreeLab({ mlpGrid }: { mlpGrid: UseMLPGridReturn }) {
                     onFetchTimeline={mlpGrid.fetchTimelineData}
                     generation={mlpGrid.generation}
                     generationLoading={mlpGrid.generationLoading}
+                    generationError={mlpGrid.generationError}
                     onGenerate={mlpGrid.generateText}
                     gridLoading={mlpGrid.gridLoading}
                     gridError={mlpGrid.gridError}

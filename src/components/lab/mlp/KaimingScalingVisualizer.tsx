@@ -67,8 +67,8 @@ export function KaimingScalingVisualizer() {
                     <button
                         onClick={() => setMode("naive")}
                         className={`px-3 py-1.5 text-[10px] font-mono font-bold transition-all ${mode === "naive"
-                                ? "bg-red-500/20 text-red-400 border-r border-white/10"
-                                : "bg-white/[0.02] text-white/30 border-r border-white/10 hover:text-white/50"
+                            ? "bg-red-500/20 text-red-400 border-r border-white/10"
+                            : "bg-white/[0.02] text-white/30 border-r border-white/10 hover:text-white/50"
                             }`}
                     >
                         Naive (σ=1)
@@ -76,8 +76,8 @@ export function KaimingScalingVisualizer() {
                     <button
                         onClick={() => setMode("kaiming")}
                         className={`px-3 py-1.5 text-[10px] font-mono font-bold transition-all ${mode === "kaiming"
-                                ? "bg-emerald-500/20 text-emerald-400"
-                                : "bg-white/[0.02] text-white/30 hover:text-white/50"
+                            ? "bg-emerald-500/20 text-emerald-400"
+                            : "bg-white/[0.02] text-white/30 hover:text-white/50"
                             }`}
                     >
                         Kaiming (σ=√(2/N))
@@ -184,18 +184,29 @@ export function KaimingScalingVisualizer() {
                 </span>
             </div>
 
-            {/* Summary */}
+            {/* Explanation card */}
             <motion.div
                 key={`${mode}-${N}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center text-[10px] font-mono"
-                style={{ color: mode === "kaiming" ? "#22c55e" : "#ef4444" }}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-lg border p-3 space-y-1.5"
+                style={{
+                    borderColor: mode === "kaiming" ? "#22c55e20" : "#ef444420",
+                    backgroundColor: mode === "kaiming" ? "#22c55e08" : "#ef444408",
+                }}
             >
-                {mode === "kaiming"
-                    ? `Variance stays at ~1.0 across all 6 layers. Stable.`
-                    : `Layer 6 variance: ${formatVar(variances[NUM_LAYERS])}× — ${variances[NUM_LAYERS] > 100 ? "catastrophically exploded" : "dangerously large"}.`
-                }
+                <p className="text-[9px] font-mono font-bold" style={{ color: mode === "kaiming" ? "#22c55e" : "#ef4444" }}>
+                    {mode === "kaiming"
+                        ? `✓ Variance stays at ~1.0 across all ${NUM_LAYERS} layers`
+                        : `✗ Layer ${NUM_LAYERS} variance: ${formatVar(variances[NUM_LAYERS])}× the input`
+                    }
+                </p>
+                <p className="text-[8px] font-mono text-white/25 leading-relaxed">
+                    {mode === "kaiming"
+                        ? `Each weight is drawn from σ = √(2/${N}) ≈ ${Math.sqrt(2 / N).toFixed(3)}. The factor 2/N exactly compensates for the summation of N inputs, keeping variance at ~1.0 per layer. No matter how deep the network, activations stay in the healthy range.`
+                        : `Each layer multiplies variance by ~${(N * 0.67).toFixed(0)}× (= N × tanh gain²). After ${NUM_LAYERS} layers: ${formatVar(variances[NUM_LAYERS])}. ${variances[NUM_LAYERS] > 1000 ? "Activations are astronomically large — every neuron is saturated at ±1, gradient ≈ 0." : "Activations are growing dangerously — neurons are starting to saturate."}`
+                    }
+                </p>
             </motion.div>
         </div>
     );

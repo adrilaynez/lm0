@@ -1643,6 +1643,9 @@ export function NeuralNetworkNarrative() {
                     ))}
                 </div>
 
+                {/* 6b. Monster foreshadow */}
+                <P>{t("neuralNetworkNarrative.whatsNext.pMonsterForeshadow")}</P>
+
                 {/* 7. Aspirational closing */}
                 <div className="my-10 py-8 border-t border-b border-violet-500/10 text-center space-y-4">
                     <motion.p

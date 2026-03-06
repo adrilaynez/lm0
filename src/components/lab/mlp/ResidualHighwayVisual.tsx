@@ -1,174 +1,235 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 /*
-  ResidualHighwayVisual
-  Animated highway metaphor: data flows through the main road (f(x))
-  but also has a highway bypass (skip connection). Signal always gets through.
-  Toggle between y=f(x) and y=x+f(x) to see the difference.
+  ResidualHighwayVisual — v2
+  Shows the correction-vs-replacement concept with REAL numbers.
+  - 6 layers, each with concrete input/output values
+  - Toggle: y=f(x) vs y=x+f(x)
+  - Step through layers to see values at each point
+  - Shows: input x, layer output f(x), correction f(x)-x, final y
+  - Signal quality bar per layer (cosine similarity to original)
+  - Layer 4 is intentionally "bad" to show resilience
 */
 
-const W = 360;
-const H = 140;
+const NUM_LAYERS = 6;
+const INPUT = [0.8, -0.3, 0.5, 0.9];
 
-const LAYERS = 4;
-const LAYER_X = [40, 120, 200, 280, 340]; // 4 layers + output
-const LAYER_Y = 70;
+// Pre-computed layer transforms (deterministic for reproducibility)
+const LAYER_TRANSFORMS: ((x: number[]) => number[])[] = [
+    (x) => x.map(v => v * 0.92 + 0.08),                    // L1: gentle
+    (x) => x.map(v => Math.tanh(v * 1.1)),                  // L2: activation
+    (x) => x.map(v => v * 0.88 - 0.05),                     // L3: slight shift
+    (x) => x.map((_, i) => (i % 2 === 0 ? 0.02 : -0.01)),  // L4: BAD — kills signal
+    (x) => x.map(v => Math.tanh(v * 0.9 + 0.1)),            // L5: tries to recover
+    (x) => x.map(v => v * 0.95),                             // L6: mild
+];
 
-// Simulated signal strength through each layer
-function getSignalStrength(layer: number, useResidual: boolean): number {
-    if (useResidual) return Math.max(0.6, 1 - layer * 0.05); // stays healthy
-    return Math.max(0.05, 1 - layer * 0.25); // degrades fast
+function cosineSimilarity(a: number[], b: number[]): number {
+    let dot = 0, na = 0, nb = 0;
+    for (let i = 0; i < a.length; i++) {
+        dot += a[i] * b[i]; na += a[i] ** 2; nb += b[i] ** 2;
+    }
+    return na === 0 || nb === 0 ? 0 : Math.max(0, dot / (Math.sqrt(na) * Math.sqrt(nb)));
+}
+
+interface LayerResult {
+    input: number[];
+    fOutput: number[];    // f(x) raw
+    correction: number[]; // f(x) - input (what the layer "wants to change")
+    output: number[];     // final output (either f(x) or x + scaled_correction)
+    quality: number;      // cosine sim to original input
+    isBad: boolean;
+}
+
+function computeLayers(useResidual: boolean): LayerResult[] {
+    const results: LayerResult[] = [];
+    let current = [...INPUT];
+
+    for (let l = 0; l < NUM_LAYERS; l++) {
+        const inp = [...current];
+        const fOut = LAYER_TRANSFORMS[l](current);
+        const isBad = l === 3;
+
+        if (useResidual) {
+            // y = x + α·(f(x) - x), where α=0.3 to simulate learned small corrections
+            const corr = fOut.map((f, i) => f - inp[i]);
+            const out = inp.map((x, i) => x + corr[i] * 0.3);
+            current = out;
+            results.push({ input: inp, fOutput: fOut, correction: corr, output: out, quality: cosineSimilarity(INPUT, out), isBad });
+        } else {
+            // y = f(x) — full replacement
+            const corr = fOut.map((f, i) => f - inp[i]);
+            current = fOut;
+            results.push({ input: inp, fOutput: fOut, correction: corr, output: fOut, quality: cosineSimilarity(INPUT, fOut), isBad });
+        }
+    }
+    return results;
 }
 
 export function ResidualHighwayVisual() {
     const [useResidual, setUseResidual] = useState(false);
-    const [animKey, setAnimKey] = useState(0);
+    const [activeLayer, setActiveLayer] = useState<number | null>(null);
 
-    const toggle = () => {
-        setUseResidual(prev => !prev);
-        setAnimKey(k => k + 1);
-    };
+    const layers = useMemo(() => computeLayers(useResidual), [useResidual]);
+    const finalQ = layers[NUM_LAYERS - 1].quality;
 
     return (
-        <div className="p-4 sm:p-5 space-y-3">
+        <div className="p-4 sm:p-5 space-y-4">
             {/* Toggle */}
-            <div className="flex items-center justify-center gap-3">
-                <button
-                    onClick={toggle}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] font-mono font-bold border transition-all"
-                    style={{
-                        backgroundColor: useResidual ? "#22c55e15" : "#ef444415",
-                        borderColor: useResidual ? "#22c55e30" : "#ef444430",
-                        color: useResidual ? "#22c55e" : "#ef4444",
-                    }}
-                >
-                    {useResidual ? "y = x + f(x)" : "y = f(x)"}
-                </button>
-                <span className="text-[8px] font-mono text-white/20">
-                    {useResidual ? "Skip connection ON — signal always gets through" : "No skip — signal degrades at each toll booth"}
-                </span>
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+                <div className="flex rounded-lg border border-white/10 overflow-hidden">
+                    <button
+                        onClick={() => setUseResidual(false)}
+                        className={`px-3 py-1.5 text-[10px] font-mono font-bold transition-all ${!useResidual
+                            ? "bg-red-500/20 text-red-400" : "bg-white/[0.02] text-white/30 hover:text-white/50"}`}
+                    >
+                        y = f(x) · replace
+                    </button>
+                    <button
+                        onClick={() => setUseResidual(true)}
+                        className={`px-3 py-1.5 text-[10px] font-mono font-bold transition-all border-l border-white/10 ${useResidual
+                            ? "bg-emerald-500/20 text-emerald-400" : "bg-white/[0.02] text-white/30 hover:text-white/50"}`}
+                    >
+                        y = x + f(x) · correct
+                    </button>
+                </div>
             </div>
 
-            {/* Visual */}
-            <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] overflow-hidden">
-                <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="xMidYMid meet">
-                    {/* Main road (bottom path) */}
-                    {LAYERS.toString() && Array.from({ length: LAYERS }).map((_, i) => {
-                        const x1 = LAYER_X[i];
-                        const x2 = LAYER_X[i + 1];
-                        const signal = getSignalStrength(i, useResidual);
-                        return (
-                            <g key={`road-${i}`}>
-                                {/* Road segment */}
-                                <motion.line
-                                    x1={x1 + 20} y1={LAYER_Y} x2={x2 - 20} y2={LAYER_Y}
-                                    stroke={useResidual ? "#22c55e" : "#ef4444"}
-                                    animate={{ strokeOpacity: signal * 0.5 }}
-                                    strokeWidth={3}
-                                    transition={{ duration: 0.5 }}
-                                />
+            {/* Layer flow with real numbers */}
+            <div className="space-y-1.5">
+                {/* Input row */}
+                <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.04] p-2 flex items-center gap-2">
+                    <span className="text-[9px] font-mono font-bold text-amber-400 w-14 shrink-0">Input x</span>
+                    <div className="flex gap-1 flex-1">
+                        {INPUT.map((v, i) => (
+                            <span key={i} className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold tabular-nums bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                                {v.toFixed(2)}
+                            </span>
+                        ))}
+                    </div>
+                    <QualityBar quality={1} />
+                </div>
 
-                                {/* Layer box (toll booth) */}
-                                <motion.rect
-                                    x={x1 - 16} y={LAYER_Y - 16} width={32} height={32} rx={6}
-                                    fill="white" fillOpacity={0.03}
-                                    animate={{
-                                        stroke: useResidual ? "#22c55e" : signal > 0.3 ? "#a78bfa" : "#ef4444",
-                                        strokeOpacity: signal * 0.4,
-                                    }}
-                                    strokeWidth={1.5}
-                                    transition={{ duration: 0.5 }}
-                                />
-
-                                {/* f(x) label */}
-                                <text x={x1} y={LAYER_Y + 3} textAnchor="middle" fontSize={7} fill="white" fillOpacity={0.3} fontFamily="monospace">
-                                    f{i + 1}(x)
-                                </text>
-
-                                {/* Signal bar below */}
-                                <rect
-                                    x={x1 - 12} y={LAYER_Y + 22} width={24} height={3} rx={1.5}
-                                    fill="white" fillOpacity={0.05}
-                                />
-                                <motion.rect
-                                    x={x1 - 12} y={LAYER_Y + 22}
-                                    height={3} rx={1.5}
-                                    fill={signal > 0.5 ? "#22c55e" : signal > 0.2 ? "#f59e0b" : "#ef4444"}
-                                    animate={{ width: signal * 24, fillOpacity: signal * 0.8 }}
-                                    transition={{ duration: 0.5 }}
-                                />
-                            </g>
-                        );
-                    })}
-
-                    {/* Skip connections (highway bypass) */}
-                    {useResidual && Array.from({ length: LAYERS }).map((_, i) => {
-                        const x1 = LAYER_X[i] + 20;
-                        const x2 = LAYER_X[i + 1] - 20;
-                        const midX = (x1 + x2) / 2;
-                        const curveY = LAYER_Y - 35;
-                        return (
-                            <motion.path
-                                key={`skip-${i}`}
-                                d={`M${x1},${LAYER_Y} Q${midX},${curveY} ${x2},${LAYER_Y}`}
-                                fill="none"
-                                stroke="#22c55e"
-                                strokeWidth={1.5}
-                                strokeDasharray="4,3"
-                                initial={{ pathLength: 0, opacity: 0 }}
-                                animate={{ pathLength: 1, opacity: 0.4 }}
-                                transition={{ duration: 0.6, delay: i * 0.15 }}
-                            />
-                        );
-                    })}
-
-                    {/* Highway label */}
-                    {useResidual && (
-                        <motion.text
-                            x={W / 2} y={28}
-                            textAnchor="middle" fontSize={6} fill="#22c55e" fillOpacity={0.4} fontFamily="monospace"
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                {/* Layer rows */}
+                {layers.map((lr, l) => {
+                    const color = lr.isBad ? "#ef4444" : lr.quality > 0.7 ? "#22c55e" : lr.quality > 0.3 ? "#f59e0b" : "#ef4444";
+                    const isActive = activeLayer === l;
+                    return (
+                        <motion.div
+                            key={`${l}-${useResidual}`}
+                            initial={{ opacity: 0, x: -8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: l * 0.06 }}
+                            className="rounded-lg border p-2 cursor-pointer transition-all"
+                            style={{
+                                borderColor: isActive ? color + "40" : color + "15",
+                                backgroundColor: isActive ? color + "0a" : color + "04",
+                            }}
+                            onClick={() => setActiveLayer(isActive ? null : l)}
                         >
-                            skip connections — original signal always passes through
-                        </motion.text>
-                    )}
+                            <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-mono font-bold w-14 shrink-0" style={{ color }}>
+                                    L{l + 1} {lr.isBad ? "⚠️" : ""}
+                                </span>
+                                <div className="flex gap-1 flex-1">
+                                    {lr.output.map((v, i) => (
+                                        <span key={i} className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold tabular-nums border"
+                                            style={{ backgroundColor: color + "0a", borderColor: color + "20", color }}>
+                                            {v.toFixed(2)}
+                                        </span>
+                                    ))}
+                                </div>
+                                <QualityBar quality={lr.quality} />
+                                <span className="text-[7px] font-mono font-bold tabular-nums w-8 text-right" style={{ color }}>
+                                    {(lr.quality * 100).toFixed(0)}%
+                                </span>
+                            </div>
 
-                    {/* Input / Output labels */}
-                    <text x={LAYER_X[0] - 25} y={LAYER_Y + 3} textAnchor="middle" fontSize={7} fill="white" fillOpacity={0.2} fontFamily="monospace">x</text>
-                    <text x={LAYER_X[LAYERS] + 15} y={LAYER_Y + 3} textAnchor="middle" fontSize={7} fill="white" fillOpacity={0.2} fontFamily="monospace">ŷ</text>
-
-                    {/* Signal strength labels */}
-                    {Array.from({ length: LAYERS }).map((_, i) => {
-                        const signal = getSignalStrength(i, useResidual);
-                        return (
-                            <motion.text
-                                key={`sig-${i}`}
-                                x={LAYER_X[i]} y={LAYER_Y + 34}
-                                textAnchor="middle" fontSize={6} fontFamily="monospace" fontWeight="bold"
-                                animate={{
-                                    fill: signal > 0.5 ? "#22c55e" : signal > 0.2 ? "#f59e0b" : "#ef4444",
-                                    fillOpacity: 0.5,
-                                }}
-                                transition={{ duration: 0.5 }}
-                            >
-                                {(signal * 100).toFixed(0)}%
-                            </motion.text>
-                        );
-                    })}
-                </svg>
+                            {/* Expanded detail */}
+                            <AnimatePresence>
+                                {isActive && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className="mt-2 pt-2 border-t space-y-1.5" style={{ borderColor: color + "15" }}>
+                                            {/* f(x) output */}
+                                            <div className="flex items-center gap-1.5 text-[8px] font-mono">
+                                                <span className="text-white/25 w-16 shrink-0">f(x) raw:</span>
+                                                {lr.fOutput.map((v, i) => (
+                                                    <span key={i} className="text-white/30 tabular-nums">{v.toFixed(3)}</span>
+                                                ))}
+                                            </div>
+                                            {/* Correction */}
+                                            <div className="flex items-center gap-1.5 text-[8px] font-mono">
+                                                <span className="text-violet-400/40 w-16 shrink-0">correction:</span>
+                                                {lr.correction.map((v, i) => (
+                                                    <span key={i} className="tabular-nums" style={{ color: Math.abs(v) > 0.5 ? "#ef444480" : "#a78bfa60" }}>
+                                                        {v > 0 ? "+" : ""}{(useResidual ? v * 0.3 : v).toFixed(3)}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            {/* Explanation */}
+                                            <p className="text-[8px] font-mono text-white/20 leading-relaxed">
+                                                {lr.isBad
+                                                    ? useResidual
+                                                        ? "Bad layer tried to kill the signal, but the skip connection kept the original. Damage limited to small corrections."
+                                                        : "Bad layer REPLACED the entire signal. Original information is gone forever — no recovery possible."
+                                                    : useResidual
+                                                        ? `Layer applied a small correction (max Δ = ${Math.max(...lr.correction.map(c => Math.abs(c * 0.3))).toFixed(3)}). Original signal preserved.`
+                                                        : `Layer replaced the signal entirely. Quality dropped to ${(lr.quality * 100).toFixed(0)}%.`
+                                                }
+                                            </p>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </motion.div>
+                    );
+                })}
             </div>
 
-            {/* Description */}
-            <p className="text-[9px] font-mono text-white/25 text-center">
-                {useResidual
-                    ? "Each layer adds its contribution: y = x + f(x). Even if f(x) learns nothing, the original signal x passes through untouched."
-                    : "Each layer replaces the signal: y = f(x). If a layer is weak, the signal degrades — and there's no recovery."
-                }
-            </p>
+            {/* Final verdict */}
+            <motion.div
+                key={`verdict-${useResidual}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="rounded-xl border p-3 text-center space-y-1"
+                style={{
+                    borderColor: finalQ > 0.5 ? "#22c55e25" : "#ef444425",
+                    backgroundColor: finalQ > 0.5 ? "#22c55e08" : "#ef444408",
+                }}
+            >
+                <p className="text-[10px] font-mono font-bold" style={{ color: finalQ > 0.5 ? "#22c55e" : "#ef4444" }}>
+                    After {NUM_LAYERS} layers: {(finalQ * 100).toFixed(0)}% of original signal preserved
+                </p>
+                <p className="text-[8px] font-mono text-white/25">
+                    {useResidual
+                        ? "Each layer only corrects — never replaces. Even the bad layer (L4) couldn't destroy the signal. Click any layer to see the math."
+                        : "Each layer replaces the signal entirely. Layer 4 destroyed the information and layers 5–6 couldn't recover it. Click any layer for details."
+                    }
+                </p>
+            </motion.div>
+        </div>
+    );
+}
+
+function QualityBar({ quality }: { quality: number }) {
+    const color = quality > 0.7 ? "#22c55e" : quality > 0.3 ? "#f59e0b" : "#ef4444";
+    return (
+        <div className="w-14 h-2 rounded-full bg-white/[0.04] overflow-hidden shrink-0">
+            <motion.div
+                className="h-full rounded-full"
+                style={{ backgroundColor: color }}
+                animate={{ width: `${quality * 100}%`, opacity: 0.6 }}
+                transition={{ duration: 0.4 }}
+            />
         </div>
     );
 }

@@ -145,6 +145,34 @@ export function GaussianDistributionExplorer() {
                 </span>
                 <span>Range: [{Math.min(...samples).toFixed(2)}, {Math.max(...samples).toFixed(2)}]</span>
             </div>
+
+            {/* Neuron fate preview */}
+            <div className="rounded-lg border border-white/[0.04] bg-white/[0.015] p-3 space-y-2">
+                <div className="text-[8px] font-mono text-white/25 font-bold">What happens to a neuron with these weights?</div>
+                <div className="grid grid-cols-3 gap-2">
+                    {[
+                        { label: "Healthy (|w| < 1)", count: samples.filter(s => Math.abs(s) < 1).length, color: "#22c55e", desc: "tanh' > 0.4 → learns normally" },
+                        { label: "At Risk (1 < |w| < 2)", count: samples.filter(s => Math.abs(s) >= 1 && Math.abs(s) < 2).length, color: "#f59e0b", desc: "tanh' dropping → slow learning" },
+                        { label: "Dead (|w| > 2)", count: samples.filter(s => Math.abs(s) >= 2).length, color: "#ef4444", desc: "tanh' ≈ 0 → frozen forever" },
+                    ].map(({ label, count, color, desc }) => (
+                        <div key={label} className="text-center space-y-0.5">
+                            <div className="text-[14px] font-mono font-black" style={{ color }}>{count}</div>
+                            <div className="text-[7px] font-mono" style={{ color, opacity: 0.7 }}>{label}</div>
+                            <div className="text-[6px] font-mono text-white/15">{desc}</div>
+                        </div>
+                    ))}
+                </div>
+                {std > 0.8 && (
+                    <div className="text-[7px] font-mono text-red-400/50 text-center pt-1">
+                        With σ={std.toFixed(2)}, {((samples.filter(s => Math.abs(s) >= 2).length / 30) * 100).toFixed(0)}% of weights start in the dead zone — these neurons will never contribute to learning.
+                    </div>
+                )}
+                {std <= 0.15 && (
+                    <div className="text-[7px] font-mono text-emerald-400/50 text-center pt-1">
+                        With σ={std.toFixed(2)}, all weights are tiny — safe from saturation, but the signal may be too weak for deep networks.
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

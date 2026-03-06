@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useState } from "react";
+import { useI18n } from "@/i18n/context";
 
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -12,31 +13,34 @@ import { AnimatePresence, motion } from "framer-motion";
     Perceptron  = each neuron computes weighted sum + activation
 
   Features:
-  - Color-coded layers: Input (amber), Embedding (violet), Hidden (emerald), Output (rose)
+  - Color-coded layers: Input (amber), Hidden (emerald), Output (rose)
   - Click any layer to highlight it and see its description
   - Animated data flow pulse along connections
   - Name breakdown banner at the top
-  - Shows actual architecture: 3 context chars → embed → concat → hidden → softmax → 27 outputs
+  - Parameter count visualization showing the "size" of the beast
+  - Inline neuron zoom showing it's the same as NN chapter neuron
 */
 
 const LAYERS = [
     {
         id: "input",
         label: "Input",
-        subtitle: "3 × 27 one-hot",
+        subtitle: "3 characters",
         nodes: 4,
         nodeLabels: ["h", "e", "l", "..."],
         color: "#f59e0b",
-        desc: "The raw input: N characters encoded as one-hot vectors and concatenated into a single long vector (3 chars × 27 = 81 numbers).",
+        desc: "The raw input: the last N characters, encoded as numbers and fed into the network. How we encode them matters a lot — we'll explore that soon.",
+        paramCount: 0,
     },
     {
         id: "hidden",
         label: "Hidden Layer",
-        subtitle: "Pattern detectors",
+        subtitle: "128 neurons",
         nodes: 5,
         nodeLabels: ["h₁", "h₂", "h₃", "h₄", "h₅"],
         color: "#10b981",
-        desc: "The \"secret sauce\" — neurons that learn to detect patterns like vowel pairs, common bigrams, or letter shapes. This is what makes it an MLP, not just a lookup table.",
+        desc: "Pattern detectors — neurons that learn to recognize letter sequences, vowel pairs, common combinations. Each one computes a weighted sum of ALL inputs, adds a bias, and applies tanh.",
+        paramCount: 81 * 128 + 128, // W1 + b1
     },
     {
         id: "output",
@@ -45,11 +49,13 @@ const LAYERS = [
         nodes: 4,
         nodeLabels: ["P(a)", "P(b)", "...", "P(z)"],
         color: "#f43f5e",
-        desc: "Softmax turns the hidden layer's signals into a probability distribution: one probability per character in the vocabulary.",
+        desc: "Each output neuron connects to ALL 128 hidden neurons (128 weights + 1 bias = 129 params each). Softmax then turns these raw scores into probabilities.",
+        paramCount: 128 * 27 + 27, // W2 + b2
     },
 ] as const;
 
 type LayerId = typeof LAYERS[number]["id"];
+const TOTAL_PARAMS = LAYERS.reduce((sum, l) => sum + l.paramCount, 0);
 
 const NODE_R = 14;
 const COL_GAP = 130;
@@ -69,12 +75,26 @@ function nodeY(li: number, ni: number) {
     return PAD_Y + (totalH - layerH) / 2 + ni * ROW_GAP;
 }
 
+function formatParams(n: number): string {
+    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+    return n.toLocaleString();
+}
+
 export const MLPNetworkDiagram = memo(function MLPNetworkDiagram() {
+    const { t } = useI18n();
     const [selected, setSelected] = useState<LayerId | null>(null);
     const [animPhase, setAnimPhase] = useState(0);
+    const [zoomedNeuron, setZoomedNeuron] = useState<{ layer: LayerId; index: number } | null>(null);
 
     const handleLayerClick = useCallback((id: LayerId) => {
         setSelected(prev => prev === id ? null : id);
+    }, []);
+
+    const handleNeuronClick = useCallback((layerId: LayerId, neuronIndex: number) => {
+        if (layerId === "hidden") {
+            setZoomedNeuron(prev => prev?.layer === layerId && prev.index === neuronIndex ? null : { layer: layerId, index: neuronIndex });
+        }
     }, []);
 
     const startAnimation = useCallback(() => {
@@ -173,7 +193,12 @@ export const MLPNetworkDiagram = memo(function MLPNetworkDiagram() {
                                 const isAnimated = animPhase === li + 1;
 
                                 return (
-                                    <g key={`${layer.id}-${ni}`} style={{ cursor: "pointer" }} onClick={() => handleLayerClick(layer.id)}>
+                                    <g key={`${layer.id}-${ni}`} style={{ cursor: layer.id === "hidden" ? "pointer" : "default" }} onClick={() => {
+                                        handleLayerClick(layer.id);
+                                        if (layer.id === "hidden") {
+                                            handleNeuronClick(layer.id, ni);
+                                        }
+                                    }}>
                                         {(isSelected || isAnimated) && (
                                             <circle cx={cx} cy={cy} r={NODE_R * 2.2} fill={`url(#glow-${layer.id})`} />
                                         )}
@@ -186,6 +211,17 @@ export const MLPNetworkDiagram = memo(function MLPNetworkDiagram() {
                                             strokeWidth={isSelected ? 2 : 1}
                                             style={{ transition: "fill-opacity 0.2s" }}
                                         />
+                                        {layer.id === "hidden" && (
+                                            <circle
+                                                cx={cx} cy={cy} r={NODE_R + 3}
+                                                fill="none"
+                                                stroke={layer.color}
+                                                strokeOpacity={0.3}
+                                                strokeWidth={0.5}
+                                                strokeDasharray="2 2"
+                                                className="pointer-events-none"
+                                            />
+                                        )}
                                         <text
                                             x={cx} y={cy + 4}
                                             fontSize={li === 0 ? 10 : 7}
@@ -258,30 +294,170 @@ export const MLPNetworkDiagram = memo(function MLPNetworkDiagram() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -4 }}
                         transition={{ duration: 0.2 }}
-                        className="rounded-xl border p-4 text-sm text-white/60"
+                        className="rounded-xl border p-4"
                         style={{
                             borderColor: `${selectedLayer.color}33`,
                             backgroundColor: `${selectedLayer.color}08`,
                         }}
                     >
-                        <span className="font-mono font-bold text-xs" style={{ color: selectedLayer.color }}>
-                            {selectedLayer.label}
-                        </span>
-                        <span className="text-white/25 mx-2">·</span>
-                        <span className="text-[11px]">{selectedLayer.desc}</span>
+                        <div className="flex items-start gap-3">
+                            <div className="w-2 h-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: selectedLayer.color }} />
+                            <div>
+                                <span className="font-mono font-bold text-xs" style={{ color: selectedLayer.color }}>
+                                    {selectedLayer.label}
+                                </span>
+                                {selectedLayer.paramCount > 0 && (
+                                    <span className="text-[9px] font-mono text-white/25 ml-2">
+                                        {formatParams(selectedLayer.paramCount)} parameters
+                                    </span>
+                                )}
+                                <p className="text-[11px] text-white/50 mt-1 leading-relaxed">{selectedLayer.desc}</p>
+                            </div>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
+            {/* Inline neuron zoom — replaces the old sliding panel */}
+            <AnimatePresence mode="wait">
+                {zoomedNeuron && zoomedNeuron.layer === "hidden" && (
+                    <motion.div
+                        key="neuron-zoom"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                    >
+                        <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.06] to-transparent p-5 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                                        <span className="text-sm font-mono font-bold text-emerald-400">h{zoomedNeuron.index + 1}</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-mono font-bold text-emerald-400">
+                                            {t("models.mlp.narrative.s01.neuronZoomTitle")}
+                                        </p>
+                                        <p className="text-[9px] font-mono text-white/25">
+                                            Same operation as NN chapter — just with more inputs
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setZoomedNeuron(null)}
+                                    className="text-white/30 hover:text-white/60 text-sm transition-colors"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            {/* Visual formula */}
+                            <div className="rounded-xl bg-black/20 p-4 space-y-3">
+                                <div className="flex items-center justify-center gap-2 flex-wrap">
+                                    <div className="flex flex-col items-center">
+                                        <div className="flex gap-0.5">
+                                            {["x₁", "x₂", "x₃", "...", "x₈₁"].map((x, i) => (
+                                                <div key={i} className="w-7 h-7 rounded bg-amber-500/15 border border-amber-500/20 flex items-center justify-center">
+                                                    <span className="text-[7px] font-mono text-amber-400">{x}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <span className="text-[8px] font-mono text-white/20 mt-1">81 inputs</span>
+                                    </div>
+                                    <span className="text-white/20 text-lg">×</span>
+                                    <div className="flex flex-col items-center">
+                                        <div className="flex gap-0.5">
+                                            {["w₁", "w₂", "w₃", "...", "w₈₁"].map((w, i) => (
+                                                <div key={i} className="w-7 h-7 rounded bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center">
+                                                    <span className="text-[7px] font-mono text-emerald-400">{w}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <span className="text-[8px] font-mono text-white/20 mt-1">81 weights</span>
+                                    </div>
+                                    <span className="text-white/20 text-lg">+</span>
+                                    <div className="flex flex-col items-center">
+                                        <div className="w-7 h-7 rounded bg-violet-500/15 border border-violet-500/20 flex items-center justify-center">
+                                            <span className="text-[7px] font-mono text-violet-400">b</span>
+                                        </div>
+                                        <span className="text-[8px] font-mono text-white/20 mt-1">bias</span>
+                                    </div>
+                                    <span className="text-white/20 text-lg">→</span>
+                                    <div className="flex flex-col items-center">
+                                        <div className="w-10 h-7 rounded bg-emerald-500/25 border border-emerald-500/30 flex items-center justify-center">
+                                            <span className="text-[8px] font-mono text-emerald-300 font-bold">tanh</span>
+                                        </div>
+                                        <span className="text-[8px] font-mono text-white/20 mt-1">activation</span>
+                                    </div>
+                                    <span className="text-white/20 text-lg">→</span>
+                                    <div className="flex flex-col items-center">
+                                        <div className="w-10 h-7 rounded bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                                            <span className="text-[8px] font-mono text-emerald-400 font-bold">out</span>
+                                        </div>
+                                        <span className="text-[8px] font-mono text-white/20 mt-1">(-1, 1)</span>
+                                    </div>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-[10px] font-mono text-emerald-400/60">
+                                        output = tanh(w₁x₁ + w₂x₂ + ... + w₈₁x₈₁ + b)
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Key insight */}
+                            <div className="text-[11px] text-white/45 leading-relaxed">
+                                <strong className="text-emerald-300/70">It&apos;s exactly the same neuron from the previous chapter</strong> — weighted sum, bias, activation.
+                                The only difference? Instead of 2-3 inputs, each hidden neuron in this MLP receives <strong className="text-amber-300/70">81 inputs</strong> (3 characters × 27 one-hot values).
+                                With 128 neurons, that&apos;s <strong className="text-violet-300/70">{formatParams(81 * 128)} weights</strong> just for this layer.
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Parameter count bar */}
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono text-white/25 uppercase tracking-widest">Total trainable parameters</span>
+                    <span className="text-sm font-mono font-bold text-violet-400">{TOTAL_PARAMS.toLocaleString()}</span>
+                </div>
+                <div className="flex gap-1 h-3 rounded-full overflow-hidden">
+                    {LAYERS.filter(l => l.paramCount > 0).map(l => (
+                        <motion.div
+                            key={l.id}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(l.paramCount / TOTAL_PARAMS) * 100}%` }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                            className="h-full rounded-full"
+                            style={{ backgroundColor: l.color + '60' }}
+                            title={`${l.label}: ${formatParams(l.paramCount)}`}
+                        />
+                    ))}
+                </div>
+                <div className="flex justify-between text-[9px] font-mono text-white/20">
+                    {LAYERS.filter(l => l.paramCount > 0).map(l => (
+                        <span key={l.id} style={{ color: l.color + '80' }}>
+                            {l.label}: {formatParams(l.paramCount)}
+                        </span>
+                    ))}
+                </div>
+                <p className="text-[10px] text-white/25 font-mono text-center">
+                    Every single one of these numbers is learned during training via gradient descent.
+                </p>
+            </div>
+
             {/* Animate button */}
-            <div className="flex justify-center">
-                <button
+            <div className="flex justify-center gap-3">
+                <motion.button
                     onClick={startAnimation}
                     disabled={animPhase > 0}
-                    className="px-4 py-2 rounded-lg bg-violet-500/10 border border-violet-500/20 text-[10px] font-mono font-bold text-violet-400 hover:bg-violet-500/20 transition-colors disabled:opacity-30"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-500/15 to-emerald-500/10 border border-violet-500/20 text-[11px] font-mono font-bold text-violet-400 hover:from-violet-500/25 hover:to-emerald-500/15 transition-all disabled:opacity-30 shadow-[0_0_20px_rgba(139,92,246,0.08)]"
                 >
                     {animPhase > 0 ? "Flowing..." : "▶ Watch data flow through the network"}
-                </button>
+                </motion.button>
             </div>
         </div>
     );
