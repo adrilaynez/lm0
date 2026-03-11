@@ -9,10 +9,11 @@ const ACCENT_COLORS: Record<string, string> = {
     emerald: "#34d399",
     amber: "#fbbf24",
     violet: "#a78bfa",
+    cyan: "#22d3ee",
 };
 
 interface ReadingProgressBarProps {
-    accent?: "rose" | "emerald" | "amber" | "violet";
+    accent?: "rose" | "emerald" | "amber" | "violet" | "cyan";
 }
 
 export function ReadingProgressBar({ accent = "rose" }: ReadingProgressBarProps) {

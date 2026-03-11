@@ -13,8 +13,8 @@ import { cn } from "@/lib/utils";
    Shared types
    ───────────────────────────────────────────── */
 
-export type NarrativeAccent = "emerald" | "amber" | "rose" | "violet";
-export type HighlightColor = NarrativeAccent | "indigo";
+export type NarrativeAccent = "emerald" | "amber" | "rose" | "violet" | "cyan";
+export type HighlightColor = NarrativeAccent | "indigo" | "cyan";
 
 /* ─────────────────────────────────────────────
    Color maps
@@ -25,6 +25,7 @@ const ACCENT_SIMPLE_CIRCLE: Record<NarrativeAccent, string> = {
     amber: "bg-amber-500/10 border-amber-500/20 text-amber-400",
     rose: "bg-rose-500/10 border-rose-500/20 text-rose-400",
     violet: "bg-violet-500/10 border-violet-500/20 text-violet-400",
+    cyan: "bg-cyan-500/10 border-cyan-500/20 text-cyan-400",
 };
 
 const CALLOUT_COLORS: Record<NarrativeAccent | "indigo", { border: string; bg: string; icon: string; title: string; glow: string }> = {
@@ -33,6 +34,7 @@ const CALLOUT_COLORS: Record<NarrativeAccent | "indigo", { border: string; bg: s
     rose: { border: "border-rose-500/20", bg: "bg-rose-500/[0.04]", icon: "text-rose-400", title: "text-rose-400", glow: "from-rose-500/[0.06]" },
     violet: { border: "border-violet-500/20", bg: "bg-violet-500/[0.04]", icon: "text-violet-400", title: "text-violet-400", glow: "from-violet-500/[0.06]" },
     indigo: { border: "border-indigo-500/20", bg: "bg-indigo-500/[0.04]", icon: "text-indigo-400", title: "text-indigo-400", glow: "from-indigo-500/[0.06]" },
+    cyan: { border: "border-cyan-500/20", bg: "bg-cyan-500/[0.04]", icon: "text-cyan-400", title: "text-cyan-400", glow: "from-cyan-500/[0.06]" },
 };
 
 const HIGHLIGHT_COLORS: Record<HighlightColor, string> = {
@@ -41,6 +43,7 @@ const HIGHLIGHT_COLORS: Record<HighlightColor, string> = {
     rose: "text-rose-400",
     violet: "text-violet-400",
     indigo: "text-indigo-400",
+    cyan: "text-cyan-400",
 };
 
 const FORMULA_STYLES: Record<NarrativeAccent, { bg: string; border: string; shadow: string }> = {
@@ -48,6 +51,7 @@ const FORMULA_STYLES: Record<NarrativeAccent, { bg: string; border: string; shad
     amber: { bg: "bg-amber-500/[0.04]", border: "border-amber-500/[0.15]", shadow: "shadow-[0_0_40px_-15px_rgba(245,158,11,0.15)]" },
     rose: { bg: "bg-rose-500/[0.04]", border: "border-rose-500/[0.15]", shadow: "shadow-[0_0_40px_-15px_rgba(244,63,94,0.15)]" },
     violet: { bg: "bg-violet-500/[0.04]", border: "border-violet-500/[0.15]", shadow: "shadow-[0_0_40px_-15px_rgba(139,92,246,0.15)]" },
+    cyan: { bg: "bg-cyan-500/[0.04]", border: "border-cyan-500/[0.15]", shadow: "shadow-[0_0_40px_-15px_rgba(34,211,238,0.15)]" },
 };
 
 const PULLQUOTE_BORDER: Record<NarrativeAccent, string> = {
@@ -55,6 +59,7 @@ const PULLQUOTE_BORDER: Record<NarrativeAccent, string> = {
     amber: "border-amber-400/40",
     rose: "border-rose-500/30",
     violet: "border-violet-500/30",
+    cyan: "border-cyan-400/40",
 };
 
 /* ─────────────────────────────────────────────
@@ -96,8 +101,14 @@ export function SectionLabel({
                     {number}
                 </span>
             ) : (
-                <span className={`flex items-center justify-center w-7 h-7 rounded-full border text-[11px] font-mono font-bold ${ACCENT_SIMPLE_CIRCLE[accent]}`}>
+                <span className={`relative flex items-center justify-center w-7 h-7 rounded-full border text-[11px] font-mono font-bold ${ACCENT_SIMPLE_CIRCLE[accent]}`}>
                     {number}
+                    {accent === "cyan" && (
+                        <>
+                            <span className="w-1 h-1 rounded-full bg-red-500 absolute -top-0.5 -right-0.5" />
+                            <span className="w-1 h-1 rounded-full bg-blue-500 absolute -bottom-0.5 -right-0.5" />
+                        </>
+                    )}
                 </span>
             )}
             <span className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[var(--lab-text-subtle)]">
@@ -295,6 +306,7 @@ export const FIGURE_ACCENTS = {
     emerald: { border: "border-emerald-500/[0.1]", bg: "bg-[radial-gradient(ellipse_at_top,rgba(52,211,153,0.02),transparent)]", bar: "border-emerald-500/[0.08] bg-emerald-500/[0.02]", text: "text-emerald-400/50" },
     rose: { border: "border-rose-500/[0.12]", bg: "bg-gradient-to-br from-rose-500/[0.03] to-transparent", bar: "border-rose-500/[0.08] bg-rose-500/[0.02]", text: "text-rose-400/50" },
     violet: { border: "border-violet-500/[0.12]", bg: "bg-gradient-to-br from-violet-500/[0.03] to-transparent", bar: "border-violet-500/[0.08] bg-violet-500/[0.02]", text: "text-violet-400/50" },
+    cyan: { border: "border-cyan-500/[0.12]", bg: "bg-gradient-to-br from-cyan-500/[0.03] to-transparent", bar: "border-cyan-500/[0.08] bg-cyan-500/[0.02]", text: "text-cyan-400/50" },
     indigo: { border: "border-indigo-500/[0.1]", bg: "bg-gradient-to-br from-indigo-500/[0.02] to-transparent", bar: "border-indigo-500/[0.08] bg-indigo-500/[0.02]", text: "text-indigo-400/50" },
 } as const;
 

@@ -170,14 +170,16 @@ function LabShellInner({ children }: { children: React.ReactNode }) {
             ? "amber"
             : pathname?.startsWith("/lab/mlp")
                 ? "violet"
-                : "rose";
+                : pathname?.startsWith("/lab/transformer")
+                    ? "cyan"
+                    : "rose";
 
     const models = [
         { id: "bigram", label: t("lab.bigram"), href: "/lab/bigram", ready: true },
         { id: "ngram", label: t("lab.ngram"), href: "/lab/ngram", ready: true },
         { id: "neural-networks", label: t("lab.neuralNetworks"), href: "/lab/neural-networks", ready: true },
         { id: "mlp", label: t("lab.mlp"), href: "/lab/mlp", ready: true },
-        { id: "transformer", label: t("lab.transformer"), href: "/lab/transformer", ready: false },
+        { id: "transformer", label: t("lab.transformer"), href: "/lab/transformer", ready: true },
     ];
 
     return (

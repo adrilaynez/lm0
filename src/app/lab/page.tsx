@@ -263,7 +263,7 @@ export default function LabLandingPage() {
                     name: t("lab.models.transformer.name"),
                     subtitle: t("lab.models.transformer.subtitle"),
                     description: t("lab.models.transformer.description"),
-                    status: "coming" as const,
+                    status: "ready" as const,
                     icon: Cpu,
                     href: "/lab/transformer",
                 },

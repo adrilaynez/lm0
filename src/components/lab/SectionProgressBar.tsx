@@ -10,13 +10,14 @@ export type SectionProgressItem = {
     name?: string;
 };
 
-type ProgressAccent = "rose" | "emerald" | "amber" | "violet";
+type ProgressAccent = "rose" | "emerald" | "amber" | "violet" | "cyan";
 
 const ACTIVE_DOT: Record<ProgressAccent, string> = {
     rose: "bg-rose-400",
     emerald: "bg-emerald-400",
     amber: "bg-amber-400",
     violet: "bg-violet-400",
+    cyan: "bg-cyan-400",
 };
 
 export function SectionProgressBar({

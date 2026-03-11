@@ -8,7 +8,7 @@ import { BookOpen, X } from "lucide-react";
 interface ContinueToastProps {
     /** Human-readable section names keyed by section id */
     sectionNames: Record<string, string>;
-    accent?: "rose" | "emerald" | "amber" | "violet";
+    accent?: "rose" | "emerald" | "amber" | "violet" | "cyan";
     hasStoredProgress: boolean;
     storedSection: string;
     clearProgress: () => void;
@@ -21,6 +21,7 @@ const ACCENT = {
     emerald: { border: "border-emerald-500/25", bg: "bg-emerald-500/[0.08]", icon: "text-emerald-400", btn: "bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/25 text-emerald-300" },
     amber: { border: "border-amber-500/25", bg: "bg-amber-500/[0.08]", icon: "text-amber-400", btn: "bg-amber-500/15 hover:bg-amber-500/25 border-amber-500/25 text-amber-300" },
     violet: { border: "border-violet-500/25", bg: "bg-violet-500/[0.08]", icon: "text-violet-400", btn: "bg-violet-500/15 hover:bg-violet-500/25 border-violet-500/25 text-violet-300" },
+    cyan: { border: "border-cyan-500/25", bg: "bg-cyan-500/[0.08]", icon: "text-cyan-400", btn: "bg-cyan-500/15 hover:bg-cyan-500/25 border-cyan-500/25 text-cyan-300" },
 };
 
 export function ContinueToast({ sectionNames, accent = "rose", hasStoredProgress, storedSection, clearProgress }: ContinueToastProps) {
