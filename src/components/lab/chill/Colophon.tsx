@@ -1,10 +1,13 @@
 "use client";
 
+import Link from "next/link";
+
 import { useI18n } from "@/i18n/context";
 
 /**
  * Footer with brand logo (large, neon-treated), centered "Hecho por · Author"
- * block, and right-aligned copyright. Stacks centered on mobile.
+ * block (clickable, links back to the personal site home), and right-aligned
+ * copyright. Stacks centered on mobile.
  */
 export function ChillColophon() {
     const { t } = useI18n();
@@ -18,14 +21,15 @@ export function ChillColophon() {
                     className="brand-logo"
                 />
             </div>
-            <div className="notebook-text">
+            <Link href="/" className="notebook-text" aria-label="Visit Adrian Laynez's homepage">
                 <span className="notebook-kicker">{t("lab.landing.chill.colophon.kicker")}</span>
                 <span className="notebook-name">
                     {t("lab.landing.chill.colophon.authorFirst")}
                     <span className="dot">·</span>
                     {t("lab.landing.chill.colophon.authorLast")}
+                    <span className="notebook-arrow" aria-hidden="true">↗</span>
                 </span>
-            </div>
+            </Link>
             <div className="copyright">{t("lab.landing.chill.colophon.copyright")}</div>
         </footer>
     );

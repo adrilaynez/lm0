@@ -288,11 +288,11 @@ export const en = {
                     titlePrefix: "From a letter to",
                     titleAccent: "ChatGPT.",
                     sub: "Predict one character. Then a few. Then a sentence. Then everything. The argument moves in one direction — so does the page.",
-                    cta: "Begin at Chapter 01",
+                    cta: "Enter the laboratory",
                 },
                 colophon: {
                     kicker: "Hecho por",
-                    authorFirst: "Adrián Laynez",
+                    authorFirst: "Adrian Laynez",
                     authorLast: "Ortiz",
                     copyright: "© 2026 · written slowly",
                 },

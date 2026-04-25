@@ -348,11 +348,11 @@ export const es: TranslationDictionary = {
                     titlePrefix: "De una letra a",
                     titleAccent: "ChatGPT.",
                     sub: "Predice un carácter. Luego unos pocos. Luego una frase. Luego todo. El argumento se mueve en una dirección — la página, también.",
-                    cta: "Empieza en el Capítulo 01",
+                    cta: "Entra al laboratorio",
                 },
                 colophon: {
                     kicker: "Hecho por",
-                    authorFirst: "Adrián Laynez",
+                    authorFirst: "Adrian Laynez",
                     authorLast: "Ortiz",
                     copyright: "© 2026 · escrito despacio",
                 },
