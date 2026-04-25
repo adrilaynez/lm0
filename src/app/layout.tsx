@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-import { JetBrains_Mono, Playfair_Display, Space_Grotesk } from "next/font/google";
+import { Bebas_Neue, Inter, JetBrains_Mono, Playfair_Display, Space_Grotesk } from "next/font/google";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -39,6 +39,19 @@ const spaceGrotesk = Space_Grotesk({
   display: "swap",
 });
 
+const bebasNeue = Bebas_Neue({
+  variable: "--font-bebas",
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Adrian Laynez | Research & Engineering",
   description: "Personal website and research lab of Adrian Laynez.",
@@ -52,7 +65,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} ${bebasNeue.variable} ${inter.variable} antialiased`}
       >
         <ThemeProvider
           attribute="class"
