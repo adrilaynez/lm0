@@ -9,6 +9,10 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org)
 [![Bilingual](https://img.shields.io/badge/i18n-EN%20%2F%20ES-orange?style=flat-square)](./src/i18n)
 
+<br/>
+
+![Home](./docs/screenshots/home.png)
+
 </div>
 
 ---
@@ -25,6 +29,8 @@ Three things built as one:
 
 ## Portfolio
 
+![About section](./docs/screenshots/home-about.png)
+
 The home page is a full-screen editorial experience: animated character reveal on load, a bento-grid with project cards, and an EN/ES language toggle that persists across sessions. The `/projects` page showcases LM-Lab as the flagship project with a live demo CTA, plus a section for upcoming experiments.
 
 ---
@@ -35,6 +41,8 @@ The home page is a full-screen editorial experience: animated character reveal o
 
 **Live:** [adrianlaynez.dev/lab](https://adrianlaynez.dev/lab)  
 **Backend:** [lm-lab.onrender.com/api/v1](https://lm-lab.onrender.com/api/v1)
+
+![LM Lab landing](./docs/screenshots/lab-landing.png)
 
 ### The Journey
 
@@ -92,6 +100,8 @@ From a single perceptron to full backpropagation. No shortcuts — every compone
 ---
 
 ### Chapter 04 — MLP (`/lab/mlp`)
+
+![MLP chapter](./docs/screenshots/lab-mlp.png)
 
 The core chapter. 99 components, ~30,000 lines. A complete treatment of the multilayer perceptron: from raw character embeddings through training dynamics to a model you can run live.
 
@@ -155,6 +165,8 @@ The lab works fully without a backend — every visualizer has a client-side sim
 
 ## Latent Space
 
+![Latent Space](./docs/screenshots/latent-space-essays.png)
+
 > *Personal writing at the intersection of AI, cognition, and design.*
 
 **Live:** [adrianlaynez.dev/latent-space](https://adrianlaynez.dev/latent-space)
@@ -175,8 +187,4 @@ The same notes reimagined as a navigable knowledge graph:
 
 Currently 20 published notes/essays, including:
 
-> *The Geometry of Intelligence · Attention is all you need (in life too) · The Observer Effect in AI · The Loss Landscape of Understanding · Latent Spaces as Maps · What is Intelligence, Really? · Pattern Language of Xanadu · The Shape of a Thought · Why I Write · Writing is a Search Procedure*
-
-### Adding content
-
-Drop an `.
+> *The Geometry of Intelligence · Attention is all you need (in life too) 
