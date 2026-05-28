@@ -1,7 +1,7 @@
 import "katex/dist/katex.min.css";
 
-import { LabModeProvider } from "@/context/LabModeContext";
-import { UserProvider } from "@/context/UserContext";
+import { LabModeProvider } from "@/features/lab/context/LabModeContext";
+import { UserProvider } from "@/features/lab/context/UserContext";
 
 export default function LabLayout({
     children,

@@ -8,7 +8,7 @@ import {
     Brain, FlaskConical, Sparkles
 } from "lucide-react";
 
-import { FadeInView } from "@/components/lab/FadeInView";
+import { FadeInView } from "@/features/lab/components/FadeInView";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

@@ -2,11 +2,11 @@
 
 import dynamic from "next/dynamic";
 
-import { ErrorBoundary } from "@/components/lab/ErrorBoundary";
-import { LabShell } from "@/components/lab/LabShell";
+import { ErrorBoundary } from "@/features/lab/components/ErrorBoundary";
+import { LabShell } from "@/features/lab/components/LabShell";
 
 const TransformerNarrative = dynamic(
-    () => import("@/components/lab/TransformerNarrative").then((m) => ({ default: m.TransformerNarrative })),
+    () => import("@/features/lab/components/TransformerNarrative").then((m) => ({ default: m.TransformerNarrative })),
     {
         ssr: false,
         loading: () => (

@@ -1,0 +1,28 @@
+"use client";
+
+import { useCallback,useState } from "react";
+
+import { ngramStepwise } from "@/features/lab/lib/lmLabClient";
+import type { StepwiseResponse } from "@/features/lab/types/lmLab";
+
+export function useNgramStepwise(contextSize: number) {
+    const [data, setData] = useState<StepwiseResponse | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const predict = useCallback(async (text: string, steps: number) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await ngramStepwise(text, steps, contextSize);
+            setData(res);
+        } catch (err) {
+            setError((err as Error).message || "Failed to predict");
+            setData(null);
+        } finally {
+            setLoading(false);
+        }
+    }, [contextSize]);
+
+    return { data, loading, error, predict };
+}

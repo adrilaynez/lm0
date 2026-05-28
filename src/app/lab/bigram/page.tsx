@@ -6,38 +6,38 @@ import Link from "next/link";
 
 import { ArrowRight, FlaskConical } from "lucide-react";
 
-import { FadeInView } from "@/components/lab/FadeInView";
+import { FadeInView } from "@/features/lab/components/FadeInView";
 
-import { DatasetExplorerModal } from "@/components/lab/DatasetExplorerModal";
-import { ErrorBoundary } from "@/components/lab/ErrorBoundary";
-import { HistoricalContextPanel } from "@/components/lab/HistoricalContextPanel";
-import { LabSectionHeader } from "@/components/lab/LabSectionHeader";
-import { LabShell } from "@/components/lab/LabShell";
-import { ModelHero } from "@/components/lab/ModelHero";
-import { SectionDivider } from "@/components/lab/SectionDivider";
-import { useLabMode } from "@/context/LabModeContext";
-import { useBigramGeneration } from "@/hooks/useBigramGeneration";
-import { useBigramStepwise } from "@/hooks/useBigramStepwise";
-import { useBigramVisualization } from "@/hooks/useBigramVisualization";
+import { DatasetExplorerModal } from "@/features/lab/components/DatasetExplorerModal";
+import { ErrorBoundary } from "@/features/lab/components/ErrorBoundary";
+import { HistoricalContextPanel } from "@/features/lab/components/HistoricalContextPanel";
+import { LabSectionHeader } from "@/features/lab/components/LabSectionHeader";
+import { LabShell } from "@/features/lab/components/LabShell";
+import { ModelHero } from "@/features/lab/components/ModelHero";
+import { SectionDivider } from "@/features/lab/components/SectionDivider";
+import { useLabMode } from "@/features/lab/context/LabModeContext";
+import { useBigramGeneration } from "@/features/lab/hooks/useBigramGeneration";
+import { useBigramStepwise } from "@/features/lab/hooks/useBigramStepwise";
+import { useBigramVisualization } from "@/features/lab/hooks/useBigramVisualization";
 import { useI18n } from "@/i18n/context";
 
 const BigramNarrative = dynamic(() =>
-    import("@/components/lab/BigramNarrative").then((m) => m.BigramNarrative)
+    import("@/features/lab/components/BigramNarrative").then((m) => m.BigramNarrative)
 );
 const BigramDiagramExperience = dynamic(() =>
-    import("@/components/lab/BigramDiagramExperience").then((m) => m.BigramDiagramExperience)
+    import("@/features/lab/components/BigramDiagramExperience").then((m) => m.BigramDiagramExperience)
 );
 const InferenceConsole = dynamic(() =>
-    import("@/components/lab/InferenceConsole").then((m) => m.InferenceConsole)
+    import("@/features/lab/components/InferenceConsole").then((m) => m.InferenceConsole)
 );
 const StepwisePrediction = dynamic(() =>
-    import("@/components/lab/StepwisePrediction").then((m) => m.StepwisePrediction)
+    import("@/features/lab/components/StepwisePrediction").then((m) => m.StepwisePrediction)
 );
 const GenerationPlayground = dynamic(() =>
-    import("@/components/lab/GenerationPlayground").then((m) => m.GenerationPlayground)
+    import("@/features/lab/components/GenerationPlayground").then((m) => m.GenerationPlayground)
 );
 const ArchitectureDeepDive = dynamic(() =>
-    import("@/components/lab/ArchitectureDeepDive").then((m) => m.ArchitectureDeepDive)
+    import("@/features/lab/components/ArchitectureDeepDive").then((m) => m.ArchitectureDeepDive)
 );
 
 

@@ -12,6 +12,7 @@
   --font-serif: var(--font-playfair);
   --font-space-grotesk: var(--font-space-grotesk);
   --font-jetbrains-mono: var(--font-jetbrains-mono);
+  --font-pixel: var(--font-pixel);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -144,6 +145,89 @@
   --lab-header-bg: rgba(250, 250, 250, 0.95);
 }
 
+/* ─── Latent Space tokens (Essays = light editorial / Mind = dark warm) ─── */
+[data-ls-mode="essays"] {
+  --ls-bg: oklch(0.962 0.008 85);
+  /* warm cream/paper */
+  --ls-bg-elevated: oklch(0.964 0.007 87);
+  /* card — almost same as bg, near-zero contrast */
+  --ls-bg-subtle: oklch(0.970 0.005 85);
+  --ls-fg: oklch(0.20 0.04 265);
+  /* deep indigo near-black */
+  --ls-fg-muted: oklch(0.40 0.03 265);
+  --ls-fg-subtle: oklch(0.55 0.02 265);
+  --ls-border: oklch(0.20 0.04 265 / 9%);
+  --ls-border-strong: oklch(0.20 0.04 265 / 16%);
+  --ls-accent: oklch(0.32 0.13 265);
+  /* deep indigo */
+  --ls-accent-soft: oklch(0.32 0.13 265 / 9%);
+  --ls-accent-secondary: oklch(0.40 0.10 15);
+  /* muted maroon/garnet */
+  --ls-font-display: var(--font-playfair);
+  /* Playfair Display — high-contrast serif for titles only */
+  --ls-font-body: var(--font-inter);
+  /* Inter sans-serif — description, meta, UI */
+  --ls-font-meta: var(--font-inter);
+  /* Inter sans-serif — labels, tags, dates */
+}
+
+[data-ls-mode="mind"] {
+  --ls-bg: oklch(0.175 0.008 70);
+  /* warm dark gray, NOT pure black */
+  --ls-bg-elevated: oklch(0.215 0.010 70);
+  --ls-bg-panel: oklch(0.195 0.009 70);
+  --ls-fg: oklch(0.93 0.014 75);
+  /* warm parchment headings */
+  --ls-fg-body: oklch(0.84 0.013 75);
+  /* warm cream body */
+  --ls-fg-muted: oklch(0.66 0.010 75);
+  /* secondary muted */
+  --ls-fg-subtle: oklch(0.52 0.008 75);
+  /* metadata subtle */
+  --ls-border: oklch(1 0.04 50 / 7%);
+  --ls-border-strong: oklch(1 0.04 50 / 12%);
+  --ls-accent: oklch(0.74 0.16 45);
+  --ls-accent-soft: oklch(0.74 0.16 45 / 12%);
+  --ls-accent-glow: oklch(0.74 0.16 45 / 18%);
+  --ls-shadow-panel: 0 0 0 1px oklch(1 0.04 50 / 6%), 0 4px 24px oklch(0 0 0 / 40%);
+  --ls-font-display: var(--font-serif);
+  --ls-font-body: var(--font-serif);
+  --ls-font-prose: var(--font-source-serif);
+  --ls-font-meta: var(--font-jetbrains-mono);
+  --ls-font-ui: var(--font-inter);
+}
+
+/* Clean flat bg — no lines texture */
+[data-ls-mode="essays"] {
+  background-image: none;
+}
+
+[data-ls-mode="mind"] {
+  background-image:
+    radial-gradient(ellipse 80% 60% at 15% 0%, oklch(0.72 0.16 45 / 0.07), transparent 65%),
+    radial-gradient(ellipse 65% 55% at 95% 95%, oklch(0.65 0.12 260 / 0.05), transparent 70%);
+}
+
+/* Essays light mode — bridge ShadCN vars so Alert/UI components adapt */
+[data-ls-mode="essays"] {
+  --background: oklch(0.962 0.008 85);
+  --foreground: oklch(0.20 0.04 265);
+  --border: oklch(0.20 0.04 265 / 11%);
+}
+
+/* Pixel title override for cream essays bg — refined indigo shadow, tighter tracking */
+[data-ls-mode="essays"] .ls-pixel-title {
+  letter-spacing: 0.019em;
+  text-shadow:
+    2.4px 2.4px 0 var(--ls-accent),
+    4.8px 4.8px 0 oklch(0.20 0.04 265 / 12%),
+    0 0 38px oklch(0.32 0.13 265 / 0.08);
+}
+
+[data-ls-mode="essays"] .ls-block-caret {
+  display: none;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -210,6 +294,349 @@
       linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
     background-size: 40px 40px;
   }
+
+  /* ─── Latent Space: pixel display title ─── */
+  .ls-pixel-title {
+    font-family: var(--font-pixel);
+    letter-spacing: 0.048em;
+    line-height: 1;
+    text-shadow:
+      2.4px 2.4px 0 var(--ls-accent),
+      4.8px 4.8px 0 oklch(0 0 0 / 35%),
+      0 0 48px oklch(0.74 0.16 45 / 0.15);
+  }
+
+  /* ─── Latent Space: blinking caret variants ─── */
+  .ls-caret::after {
+    content: "▋";
+    display: inline-block;
+    margin-left: 0.15em;
+    color: var(--ls-accent);
+    animation: ls-blink 1s steps(1) infinite;
+  }
+
+  .ls-block-caret {
+    display: inline-block;
+    width: 0.6em;
+    height: 1em;
+    background: var(--ls-accent);
+    margin-left: 0.18em;
+    animation: ls-blink 1.2s steps(1) infinite;
+    vertical-align: -0.04em;
+    opacity: 0.85;
+    box-shadow: 0 0 14px oklch(0.74 0.16 45 / 0.5);
+  }
+
+  @keyframes ls-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* ─── Latent Space: prose variants ─── */
+  .prose-essays {
+    color: var(--ls-fg);
+    font-family: var(--ls-font-body);
+    @apply max-w-none;
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      font-family: var(--ls-font-display);
+      color: var(--ls-fg);
+      @apply tracking-tight;
+    }
+
+    h1 {
+      @apply text-4xl lg:text-5xl font-bold mb-8 leading-tight;
+    }
+
+    h2 {
+      font-size: 1.65rem;
+      font-weight: 500;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
+      line-height: 1.25;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      @apply leading-[1.8] text-[1.0625rem] [&:not(:first-child)]:mt-6;
+      color: var(--ls-fg-muted);
+    }
+
+    a {
+      color: var(--ls-accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    strong {
+      color: var(--ls-fg);
+      font-weight: 600;
+    }
+
+    blockquote {
+      border-left: 2px solid var(--ls-accent);
+      padding-left: 1.25rem;
+      font-style: italic;
+      color: var(--ls-fg-muted);
+    }
+
+    code {
+      background: var(--ls-bg-elevated);
+      color: var(--ls-fg);
+      @apply rounded px-[0.35rem] py-[0.15rem] text-[0.9em] font-mono;
+    }
+  }
+
+  .prose-mind {
+    color: var(--ls-fg-body);
+    font-family: var(--ls-font-prose);
+    /* Editorial reading: serif body, generous breathing */
+    font-size: 1.18rem;
+    line-height: 1.95;
+    max-width: none !important;
+    width: 100%;
+
+    /* ── Headings ── */
+    h1,
+    h2,
+    h3,
+    h4 {
+      font-family: var(--ls-font-display);
+      color: var(--ls-fg);
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+    }
+
+    h2 {
+      @apply text-[1.55rem] mt-16 mb-6;
+      padding-left: 0.85rem;
+      border-left: 2px solid var(--ls-accent);
+    }
+
+    h3 {
+      @apply text-[1.2rem] mt-12 mb-4 font-semibold;
+    }
+
+    /* ── Body paragraphs — editorial serif, airy ── */
+    p {
+      font-family: var(--ls-font-prose);
+      color: oklch(0.88 0.010 75);
+      font-weight: 400;
+      margin-bottom: 2.1rem;
+      max-width: 62ch;
+    }
+
+    p:first-child {
+      margin-top: 0;
+    }
+
+    /* ── Drop cap — same warm color as title, not accent ── */
+    >p:first-of-type::first-letter {
+      font-family: var(--ls-font-display);
+      float: left;
+      font-size: 3.6rem;
+      line-height: 0.85;
+      font-weight: 600;
+      color: oklch(0.92 0.018 75);
+      padding: 0.3rem 0.7rem 0 0;
+      margin-top: 0.2rem;
+    }
+
+    /* ── Links — softer underline like SS3 ── */
+    a {
+      color: var(--ls-accent);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-thickness: 1px;
+      text-decoration-color: color-mix(in oklch, var(--ls-accent) 40%, transparent);
+      transition: text-decoration-color 0.2s;
+    }
+
+    a:hover {
+      text-decoration-color: var(--ls-accent);
+    }
+
+    /* ── Emphasis ── */
+    strong {
+      color: var(--ls-fg);
+      font-weight: 500;
+    }
+
+    em {
+      font-style: italic;
+      opacity: 0.9;
+    }
+
+    /* ── Blockquote — restrained, no float issues ── */
+    blockquote {
+      border-left: 2px solid var(--ls-accent);
+      padding: 0.1rem 0 0.1rem 1.2rem;
+      color: oklch(0.78 0.012 70);
+      font-style: italic;
+      font-size: 1.08rem;
+      line-height: 1.82;
+      max-width: 62ch;
+      @apply my-8;
+    }
+
+    blockquote p {
+      color: inherit;
+      margin-bottom: 0;
+      max-width: none;
+      font-size: inherit;
+    }
+
+    blockquote strong {
+      color: var(--ls-accent);
+      font-style: normal;
+      font-family: var(--ls-font-ui);
+      font-weight: 500;
+      opacity: 1;
+    }
+
+    /* ── Inline code ── */
+    code {
+      font-family: var(--ls-font-meta);
+      background: var(--ls-bg-elevated);
+      color: var(--ls-accent);
+      @apply rounded-sm px-[0.35rem] py-[0.05rem] text-[0.88em];
+    }
+
+    /* ── Lists — generous spacing ── */
+    ul {
+      @apply my-7 list-disc pl-6 marker:text-[var(--ls-accent)]/50;
+      font-family: var(--ls-font-prose);
+    }
+
+    ul>li {
+      @apply mt-2.5;
+      color: oklch(0.86 0.014 70);
+      line-height: 1.75;
+    }
+
+    ol {
+      @apply my-7 pl-6 list-decimal marker:text-[var(--ls-fg-subtle)];
+      font-family: var(--ls-font-prose);
+    }
+
+    ol>li {
+      @apply mt-2.5;
+      color: oklch(0.86 0.014 70);
+      line-height: 1.75;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--ls-border);
+      @apply my-12;
+    }
+
+    /* ── Callout boxes — warm only, body-size text ── */
+    .callout {
+      position: relative;
+      padding: 1rem 1.25rem 1rem 1.1rem;
+      border-radius: 0.5rem;
+      border-left: 3px solid var(--ls-accent);
+      background: oklch(0.74 0.16 45 / 0.07);
+      color: oklch(0.90 0.008 40);
+      max-width: 68ch;
+      font-size: 1.05rem;
+      line-height: 1.85;
+      @apply my-8;
+    }
+
+    .callout-info {
+      border-color: var(--ls-accent);
+      background: oklch(0.74 0.16 45 / 0.07);
+    }
+
+    .callout-warning {
+      border-color: oklch(0.78 0.15 55);
+      background: oklch(0.78 0.15 55 / 0.07);
+    }
+
+    .callout strong {
+      color: var(--ls-accent);
+      font-size: 0.75rem;
+      font-family: var(--ls-font-meta);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+
+    /* ── shadcn Alert overrides inside mind prose ── */
+    [role="alert"] {
+      max-width: 68ch;
+      font-size: 1.05rem;
+      line-height: 1.85;
+    }
+  }
+
+  /* ─── Latent Space: landing footer utilities ─── */
+  .ls-footer-heading {
+    font-family: var(--font-jetbrains-mono);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: var(--ls-accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .ls-footer-body {
+    font-family: var(--font-jetbrains-mono);
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: var(--ls-fg-subtle);
+  }
+
+  .ls-footer-shortcuts li {
+    font-family: var(--font-jetbrains-mono);
+    font-size: 0.78rem;
+    color: var(--ls-fg-subtle);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0;
+  }
+
+  .ls-footer-shortcuts kbd {
+    display: inline-block;
+    border-radius: 3px;
+    border: 1px solid var(--ls-border-strong);
+    padding: 0.1rem 0.4rem;
+    font-size: 0.68rem;
+    font-family: var(--font-jetbrains-mono);
+    background: var(--ls-bg-elevated);
+    color: var(--ls-fg-subtle);
+    margin: 0 0.3rem;
+    line-height: 1.4;
+  }
+
+  /* ─── Latent Space: tag pill (raw-code feel) ─── */
+  .ls-tag {
+    font-family: var(--font-jetbrains-mono);
+    color: var(--ls-fg-subtle);
+    border: 1px solid var(--ls-border);
+    background: transparent;
+    @apply inline-block rounded-sm px-1.5 py-0 text-[0.7rem] leading-relaxed;
+  }
+
+  .ls-tag:hover {
+    color: var(--ls-accent);
+    border-color: var(--ls-accent);
+  }
 }
 
 /* ─── Print ─── */
@@ -254,6 +681,14 @@
   }
 }
 
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── Thin dark scrollbar for lab visualizers ── */
 .custom-scrollbar {
   scrollbar-width: thin;
@@ -276,6 +711,15 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Hidden scrollbar (scroll works, bar is invisible) ── */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* ─── Premium slider for transformer visualizers ─── */

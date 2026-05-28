@@ -4,15 +4,15 @@ import "./chill-lab.css";
 
 import { useMemo } from "react";
 
-import { ChillAntiHero } from "@/components/lab/chill/AntiHero";
-import { ChillColophon } from "@/components/lab/chill/Colophon";
-import { ChillEraSection, type EraChapter } from "@/components/lab/chill/EraSection";
-import { ChillHero } from "@/components/lab/chill/Hero";
-import { ChillMasthead } from "@/components/lab/chill/Masthead";
-import { ChillPrologue } from "@/components/lab/chill/Prologue";
-import { AttentionFlowGrid } from "@/components/lab/chill/visualizers/AttentionFlowGrid";
-import { BigramFrequencyMap } from "@/components/lab/chill/visualizers/BigramFrequencyMap";
-import { MLPForwardWave } from "@/components/lab/chill/visualizers/MLPForwardWave";
+import { ChillAntiHero } from "@/features/lab/components/chill/AntiHero";
+import { ChillColophon } from "@/features/lab/components/chill/Colophon";
+import { ChillEraSection, type EraChapter } from "@/features/lab/components/chill/EraSection";
+import { ChillHero } from "@/features/lab/components/chill/Hero";
+import { ChillMasthead } from "@/features/lab/components/chill/Masthead";
+import { ChillPrologue } from "@/features/lab/components/chill/Prologue";
+import { AttentionFlowGrid } from "@/features/lab/components/chill/visualizers/AttentionFlowGrid";
+import { BigramFrequencyMap } from "@/features/lab/components/chill/visualizers/BigramFrequencyMap";
+import { MLPForwardWave } from "@/features/lab/components/chill/visualizers/MLPForwardWave";
 import { useI18n } from "@/i18n/context";
 
 /**

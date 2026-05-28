@@ -5,26 +5,26 @@ import dynamic from "next/dynamic";
 
 import { FlaskConical } from "lucide-react";
 
-import { FadeInView } from "@/components/lab/FadeInView";
+import { FadeInView } from "@/features/lab/components/FadeInView";
 
-import { ErrorBoundary } from "@/components/lab/ErrorBoundary";
-import { LabShell } from "@/components/lab/LabShell";
-import type { MLPHyperparameterExplorerProps } from "@/components/lab/mlp/MLPHyperparameterExplorer";
-import type { MLPNarrativeProps } from "@/components/lab/MLPNarrative";
-import { ModelHero } from "@/components/lab/ModelHero";
-import { SectionDivider } from "@/components/lab/SectionDivider";
-import { useLabMode } from "@/context/LabModeContext";
-import type { UseMLPGridReturn } from "@/hooks/useMLPGrid";
-import { useMLPGrid } from "@/hooks/useMLPGrid";
+import { ErrorBoundary } from "@/features/lab/components/ErrorBoundary";
+import { LabShell } from "@/features/lab/components/LabShell";
+import type { MLPHyperparameterExplorerProps } from "@/features/lab/components/mlp/MLPHyperparameterExplorer";
+import type { MLPNarrativeProps } from "@/features/lab/components/MLPNarrative";
+import { ModelHero } from "@/features/lab/components/ModelHero";
+import { SectionDivider } from "@/features/lab/components/SectionDivider";
+import { useLabMode } from "@/features/lab/context/LabModeContext";
+import type { UseMLPGridReturn } from "@/features/lab/hooks/useMLPGrid";
+import { useMLPGrid } from "@/features/lab/hooks/useMLPGrid";
 import { useI18n } from "@/i18n/context";
 
 const MLPNarrative = dynamic<MLPNarrativeProps>(
-    () => import("@/components/lab/MLPNarrative").then((m) => ({ default: m.MLPNarrative })),
+    () => import("@/features/lab/components/MLPNarrative").then((m) => ({ default: m.MLPNarrative })),
     { ssr: false, loading: () => <MLPLoadingPlaceholder /> }
 );
 
 const MLPHyperparameterExplorer = dynamic<MLPHyperparameterExplorerProps>(
-    () => import("@/components/lab/mlp/MLPHyperparameterExplorer").then((m) => ({ default: m.MLPHyperparameterExplorer })),
+    () => import("@/features/lab/components/mlp/MLPHyperparameterExplorer").then((m) => ({ default: m.MLPHyperparameterExplorer })),
     { ssr: false, loading: () => <MLPLoadingPlaceholder /> }
 );
 

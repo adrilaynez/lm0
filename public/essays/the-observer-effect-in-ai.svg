@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0c2340"/>
+      <stop offset="50%" stop-color="#0e4060"/>
+      <stop offset="100%" stop-color="#0a7a7a"/>
+    </linearGradient>
+    <radialGradient id="eye" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#g)"/>
+  <!-- Observation concentric rings -->
+  <circle cx="400" cy="225" r="50" fill="url(#eye)"/>
+  <circle cx="400" cy="225" r="50" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.5"/>
+  <circle cx="400" cy="225" r="100" fill="none" stroke="#00d4ff" stroke-width="0.8" opacity="0.3"/>
+  <circle cx="400" cy="225" r="160" fill="none" stroke="#00d4ff" stroke-width="0.5" opacity="0.18"/>
+  <circle cx="400" cy="225" r="220" fill="none" stroke="#00d4ff" stroke-width="0.4" opacity="0.1"/>
+  <!-- Horizontal scan lines -->
+  <g stroke="#38bdf8" stroke-width="0.4" opacity="0.15">
+    <line x1="0" y1="100" x2="800" y2="100"/><line x1="0" y1="150" x2="800" y2="150"/>
+    <line x1="0" y1="200" x2="800" y2="200"/><line x1="0" y1="250" x2="800" y2="250"/>
+    <line x1="0" y1="300" x2="800" y2="300"/><line x1="0" y1="350" x2="800" y2="350"/>
+  </g>
+  <!-- Center pupil -->
+  <circle cx="400" cy="225" r="16" fill="#00d4ff" opacity="0.7"/>
+  <circle cx="400" cy="225" r="7" fill="#001a2e"/>
+</svg>

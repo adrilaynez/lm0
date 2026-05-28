@@ -5,27 +5,27 @@ import Link from "next/link";
 
 import { ArrowRight, FlaskConical } from "lucide-react";
 
-import { FadeInView } from "@/components/lab/FadeInView";
+import { FadeInView } from "@/features/lab/components/FadeInView";
 
-import { ErrorBoundary } from "@/components/lab/ErrorBoundary";
-import { LabShell } from "@/components/lab/LabShell";
-import { ModelHero } from "@/components/lab/ModelHero";
-import { SectionDivider } from "@/components/lab/SectionDivider";
-import { useLabMode } from "@/context/LabModeContext";
+import { ErrorBoundary } from "@/features/lab/components/ErrorBoundary";
+import { LabShell } from "@/features/lab/components/LabShell";
+import { ModelHero } from "@/features/lab/components/ModelHero";
+import { SectionDivider } from "@/features/lab/components/SectionDivider";
+import { useLabMode } from "@/features/lab/context/LabModeContext";
 import { useI18n } from "@/i18n/context";
 
 const NeuralNetworkNarrative = dynamic(
-    () => import("@/components/lab/NeuralNetworkNarrative").then((m) => ({ default: m.NeuralNetworkNarrative })),
+    () => import("@/features/lab/components/NeuralNetworkNarrative").then((m) => ({ default: m.NeuralNetworkNarrative })),
     { ssr: false, loading: () => <NeuralNetworksLoadingPlaceholder /> }
 );
 
 const NNPlayground = dynamic(
-    () => import("@/components/lab/NNPlayground").then((m) => ({ default: m.NNPlayground })),
+    () => import("@/features/lab/components/NNPlayground").then((m) => ({ default: m.NNPlayground })),
     { ssr: false, loading: () => <NeuralNetworksLoadingPlaceholder /> }
 );
 
 const GuidedExperiments = dynamic(
-    () => import("@/components/lab/GuidedExperiments").then((m) => ({ default: m.GuidedExperiments })),
+    () => import("@/features/lab/components/GuidedExperiments").then((m) => ({ default: m.GuidedExperiments })),
     { ssr: false }
 );
 

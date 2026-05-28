@@ -12,7 +12,7 @@ const navItems = [
     { name: "Home", href: "/" },
     { name: "Projects", href: "/projects" },
     { name: "Lab", href: "/lab" },
-    { name: "Notes", href: "/notes" },
+    { name: "Latent Space", href: "/latent-space" },
 ]
 
 export function Navbar() {

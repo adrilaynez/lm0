@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { motion, useScroll, useTransform } from "framer-motion";
 
-import { FadeInView } from "@/components/lab/FadeInView";
+import { FadeInView } from "@/features/lab/components/FadeInView";
 import {
   ArrowRight,
   ChevronDown,

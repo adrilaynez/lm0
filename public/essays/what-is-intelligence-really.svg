@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2d1b69"/>
+      <stop offset="55%" stop-color="#4a2080"/>
+      <stop offset="100%" stop-color="#1a3a7a"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#g)"/>
+  <!-- Abstract flowing brain-like curves -->
+  <g stroke="#c084fc" stroke-width="1" fill="none" opacity="0.22">
+    <path d="M100,225 Q200,100 400,150 Q600,200 700,225"/>
+    <path d="M100,225 Q200,350 400,300 Q600,250 700,225"/>
+    <path d="M200,80 Q350,200 300,380"/>
+    <path d="M500,70 Q450,220 600,380"/>
+  </g>
+  <!-- Circles suggesting thought bubbles -->
+  <circle cx="250" cy="180" r="60" fill="none" stroke="#a78bfa" stroke-width="0.8" opacity="0.2"/>
+  <circle cx="550" cy="270" r="80" fill="none" stroke="#a78bfa" stroke-width="0.8" opacity="0.2"/>
+  <circle cx="400" cy="225" r="120" fill="none" stroke="#c084fc" stroke-width="1" opacity="0.12"/>
+  <!-- Question mark geometry -->
+  <circle cx="400" cy="180" r="35" fill="none" stroke="#e9d5ff" stroke-width="2" opacity="0.35"/>
+  <circle cx="400" cy="270" r="4" fill="#e9d5ff" opacity="0.5"/>
+</svg>

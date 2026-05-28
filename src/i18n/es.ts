@@ -4350,5 +4350,17 @@ export const es: TranslationDictionary = {
             text: "Del conteo al aprendizaje — ahora entiendes los bloques básicos de las redes neuronales. Siguiente: apílalos en capas y aplícalos al lenguaje.",
             brand: "LM-LAB · Modo Educativo"
         }
+    },
+    latentSpace: {
+        eyebrow: "BIENVENIDO A",
+        title: "MI ESPACIO LATENTE",
+        intro: "notas, ideas, pensamiento inacabado.",
+        introEssays: "Escritos de opinión, largos y con una agenda.",
+        toggle: {
+            mind: "Mente",
+            essays: "Ensayos",
+            hint: "PRESIONA ESPACIO O ← → PARA CAMBIAR",
+            label: "Modo de vista"
+        }
     }
 };

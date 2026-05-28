@@ -4358,5 +4358,17 @@ export const en = {
             text: "From counting to learning — you now understand the core building blocks of neural networks. Next: stack them into layers and apply them to language.",
             brand: "LM-LAB · Educational Mode"
         }
+    },
+    latentSpace: {
+        eyebrow: "WELCOME TO",
+        title: "MY LATENT SPACE",
+        intro: "notes, ideas, unfinished thinking.",
+        introEssays: "Opinionated, longform writing with an agenda.",
+        toggle: {
+            mind: "Mind",
+            essays: "Essays",
+            hint: "PRESS SPACE OR ← → TO SWITCH",
+            label: "View mode"
+        }
     }
 };

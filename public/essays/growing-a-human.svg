@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3a1a4a"/>
+      <stop offset="50%" stop-color="#6a2a7a"/>
+      <stop offset="100%" stop-color="#c06080"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#g)"/>
+  <!-- Organic growth spirals -->
+  <g stroke="#f9a8d4" stroke-width="1.2" fill="none" opacity="0.28">
+    <path d="M400,225 Q420,200 440,215 Q460,230 445,255 Q430,280 400,270 Q370,260 360,235 Q350,210 375,195 Q400,180 425,190 Q455,200 465,230 Q475,265 450,290 Q420,315 385,300 Q345,280 335,245 Q325,205 355,180 Q385,155 420,165"/>
+  </g>
+  <!-- Concentric growth rings -->
+  <circle cx="400" cy="225" r="30" fill="none" stroke="#f472b6" stroke-width="0.8" opacity="0.3"/>
+  <circle cx="400" cy="225" r="70" fill="none" stroke="#f472b6" stroke-width="0.6" opacity="0.2"/>
+  <circle cx="400" cy="225" r="120" fill="none" stroke="#f472b6" stroke-width="0.5" opacity="0.13"/>
+  <!-- Small dots — cells -->
+  <g fill="#fce7f3" opacity="0.5">
+    <circle cx="400" cy="195" r="2.5"/><circle cx="430" cy="225" r="2"/><circle cx="400" cy="255" r="2.5"/>
+    <circle cx="370" cy="225" r="2"/><circle cx="416" cy="209" r="1.5"/><circle cx="384" cy="241" r="1.5"/>
+  </g>
+</svg>

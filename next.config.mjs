@@ -19,6 +19,25 @@ const nextConfig = {
             },
         ];
     },
+    async redirects() {
+        return [
+            {
+                source: '/notes',
+                destination: '/latent-space?mode=essays',
+                permanent: false,
+            },
+            {
+                source: '/notes/:slug',
+                destination: '/latent-space/essays/:slug',
+                permanent: false,
+            },
+            {
+                source: '/latent-space/garden/:slug',
+                destination: '/latent-space/mind/:slug',
+                permanent: true,
+            },
+        ];
+    },
     images: {
         remotePatterns: [
             {

@@ -56,3 +56,15 @@ step1-home.png
 step2-notes-page.png
 step3-article-read.png
 step5-back-home.png
+
+# Planning and audit documents (internal use only)
+transformer_plan/
+design-mockups/
+specs/
+__tests__/
+
+# Backup files
+old-i18n-*.ts
+
+# Claude workspace
+.claude/

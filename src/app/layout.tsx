@@ -19,7 +19,14 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-import { Bebas_Neue, Inter, JetBrains_Mono, Playfair_Display, Space_Grotesk } from "next/font/google";
+import { Bebas_Neue, Inter, JetBrains_Mono, Playfair_Display, Silkscreen, Source_Serif_4, Space_Grotesk } from "next/font/google";
+
+const sourceSerif = Source_Serif_4({
+  variable: "--font-source-serif",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["200", "300", "400", "600", "700"],
+});
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -52,6 +59,13 @@ const inter = Inter({
   display: "swap",
 });
 
+const silkscreen = Silkscreen({
+  variable: "--font-pixel",
+  weight: ["400", "700"],
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Adrian Laynez | Research & Engineering",
   description: "Personal website and research lab of Adrian Laynez.",
@@ -65,7 +79,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} ${bebasNeue.variable} ${inter.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} ${bebasNeue.variable} ${inter.variable} ${silkscreen.variable} ${sourceSerif.variable} antialiased`}
       >
         <ThemeProvider
           attribute="class"

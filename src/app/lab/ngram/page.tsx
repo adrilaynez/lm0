@@ -6,7 +6,7 @@ import Link from "next/link";
 
 import { AnimatePresence, motion } from "framer-motion";
 
-import { FadeInView } from "@/components/lab/FadeInView";
+import { FadeInView } from "@/features/lab/components/FadeInView";
 import {
     Activity,
     ArrowRight,
@@ -25,50 +25,50 @@ import {
     Zap,
 } from "lucide-react";
 
-import { ErrorBoundary } from "@/components/lab/ErrorBoundary";
-import { LabShell } from "@/components/lab/LabShell";
-import { ModelHero } from "@/components/lab/ModelHero";
-import { NgramComparisonDashboard } from "@/components/lab/NgramComparisonDashboard";
-import { NgramLossChart } from "@/components/lab/NgramLossChart";
-import { NgramPerformanceSummary } from "@/components/lab/NgramPerformanceSummary";
-import { NgramSparsityIndicator } from "@/components/lab/NgramSparsityIndicator";
-import { useLabMode } from "@/context/LabModeContext";
-import { useNgramGeneration } from "@/hooks/useNgramGeneration";
-import { useNgramStepwise } from "@/hooks/useNgramStepwise";
-import { useNgramVisualization } from "@/hooks/useNgramVisualization";
+import { ErrorBoundary } from "@/features/lab/components/ErrorBoundary";
+import { LabShell } from "@/features/lab/components/LabShell";
+import { ModelHero } from "@/features/lab/components/ModelHero";
+import { NgramComparisonDashboard } from "@/features/lab/components/NgramComparisonDashboard";
+import { NgramLossChart } from "@/features/lab/components/NgramLossChart";
+import { NgramPerformanceSummary } from "@/features/lab/components/NgramPerformanceSummary";
+import { NgramSparsityIndicator } from "@/features/lab/components/NgramSparsityIndicator";
+import { useLabMode } from "@/features/lab/context/LabModeContext";
+import { useNgramGeneration } from "@/features/lab/hooks/useNgramGeneration";
+import { useNgramStepwise } from "@/features/lab/hooks/useNgramStepwise";
+import { useNgramVisualization } from "@/features/lab/hooks/useNgramVisualization";
 import { useI18n } from "@/i18n/context";
-import { visualizeNgram } from "@/lib/lmLabClient";
-import type { NGramTrainingInfo } from "@/types/lmLab";
+import { visualizeNgram } from "@/features/lab/lib/lmLabClient";
+import type { NGramTrainingInfo } from "@/features/lab/types/lmLab";
 
 const ContextControl = dynamic(() =>
-    import("@/components/lab/ContextControl").then((m) => m.ContextControl)
+    import("@/features/lab/components/ContextControl").then((m) => m.ContextControl)
 );
 const TransitionMatrix = dynamic(() =>
-    import("@/components/lab/TransitionMatrix").then((m) => m.TransitionMatrix)
+    import("@/features/lab/components/TransitionMatrix").then((m) => m.TransitionMatrix)
 );
 const InferenceConsole = dynamic(() =>
-    import("@/components/lab/InferenceConsole").then((m) => m.InferenceConsole)
+    import("@/features/lab/components/InferenceConsole").then((m) => m.InferenceConsole)
 );
 const StepwisePrediction = dynamic(() =>
-    import("@/components/lab/StepwisePrediction").then((m) => m.StepwisePrediction)
+    import("@/features/lab/components/StepwisePrediction").then((m) => m.StepwisePrediction)
 );
 const GenerationPlayground = dynamic(() =>
-    import("@/components/lab/GenerationPlayground").then((m) => m.GenerationPlayground)
+    import("@/features/lab/components/GenerationPlayground").then((m) => m.GenerationPlayground)
 );
 const NgramFiveGramScale = dynamic(() =>
-    import("@/components/lab/NgramPedagogyPanels").then((m) => m.NgramFiveGramScale)
+    import("@/features/lab/components/NgramPedagogyPanels").then((m) => m.NgramFiveGramScale)
 );
 const NgramNarrative = dynamic(() =>
-    import("@/components/lab/NgramNarrative").then((m) => m.NgramNarrative)
+    import("@/features/lab/components/NgramNarrative").then((m) => m.NgramNarrative)
 );
 const NgramGenerationBattle = dynamic(() =>
-    import("@/components/lab/NgramGenerationBattle").then((m) => m.NgramGenerationBattle)
+    import("@/features/lab/components/NgramGenerationBattle").then((m) => m.NgramGenerationBattle)
 );
 const NgramTechnicalExplanation = dynamic(() =>
-    import("@/components/lab/NgramTechnicalExplanation").then((m) => m.NgramTechnicalExplanation)
+    import("@/features/lab/components/NgramTechnicalExplanation").then((m) => m.NgramTechnicalExplanation)
 );
 const NgramContextDrilldown = dynamic(() =>
-    import("@/components/lab/NgramContextDrilldown").then((m) => m.NgramContextDrilldown)
+    import("@/features/lab/components/NgramContextDrilldown").then((m) => m.NgramContextDrilldown)
 );
 
 /* ─────────────────────────────────────────────
