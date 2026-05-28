@@ -1,70 +1,70 @@
 /**
  * Generate README screenshots for adrianlaynez.dev
  *
- * Usage:
- *   npm install playwright
+ * Usage (from project root):
  *   node docs/screenshots/generate.js
  *
- * Outputs:
- *   docs/screenshots/home.png
- *   docs/screenshots/home-about.png
- *   docs/screenshots/lab-landing.png
- *   docs/screenshots/lab-bigram.png
- *   docs/screenshots/lab-mlp.png
- *   docs/screenshots/lab-mlp-interactive.png
- *   docs/screenshots/latent-space-essays.png
- *   docs/screenshots/latent-space-mind.png
+ * Uses your already-installed system Chrome — no downloads needed.
  */
 
-const { chromium } = require('playwright');
+const puppeteer = require('puppeteer');
 const path = require('path');
 
 const BASE = 'https://adrianlaynez.dev';
-const OUT  = path.join(__dirname);
+const OUT  = __dirname;   // docs/screenshots/
 const W    = 1400;
 const H    = 800;
 
+// Common Chrome paths on Windows — tries each until one exists
+const CHROME_PATHS = [
+  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+  process.env.LOCALAPPDATA + '\\Google\\Chrome\\Application\\chrome.exe',
+  process.env.PROGRAMFILES + '\\Google\\Chrome\\Application\\chrome.exe',
+];
+
+const fs = require('fs');
+const executablePath = CHROME_PATHS.find(p => { try { return fs.existsSync(p); } catch { return false; } });
+
+if (!executablePath) {
+  console.error('Chrome not found. Tried:\n' + CHROME_PATHS.join('\n'));
+  process.exit(1);
+}
+
+console.log('Using Chrome at:', executablePath);
+
 async function shot(page, name, setup) {
   if (setup) await setup(page);
-  await page.waitForTimeout(1200);
-  await page.screenshot({ path: path.join(OUT, `${name}.png`), clip: { x: 0, y: 0, width: W, height: H } });
-  console.log(`✓ ${name}.png`);
+  await page.waitForTimeout(1500);
+  await page.screenshot({
+    path: path.join(OUT, `${name}.png`),
+    clip: { x: 0, y: 0, width: W, height: H },
+  });
+  console.log(`  ✓ ${name}.png`);
 }
 
 (async () => {
-  const browser = await chromium.launch();
-  const page = await browser.newPage({ viewport: { width: W, height: H } });
+  const browser = await puppeteer.launch({
+    executablePath,
+    headless: 'new',
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
 
-  // Home — hero
-  await page.goto(BASE, { waitUntil: 'networkidle' });
+  const page = await browser.newPage();
+  await page.setViewport({ width: W, height: H });
+
+  console.log('\n→ Home');
+  await page.goto(BASE, { waitUntil: 'networkidle2', timeout: 30000 });
   await shot(page, 'home');
-
-  // Home — about/bento section
   await shot(page, 'home-about', p => p.evaluate(() => window.scrollTo(0, 900)));
 
-  // Lab landing
-  await page.goto(`${BASE}/lab`, { waitUntil: 'networkidle' });
+  console.log('→ Lab landing');
+  await page.goto(`${BASE}/lab`, { waitUntil: 'networkidle2', timeout: 30000 });
   await shot(page, 'lab-landing');
 
-  // Bigram chapter
-  await page.goto(`${BASE}/lab/bigram`, { waitUntil: 'networkidle' });
+  console.log('→ Bigram chapter');
+  await page.goto(`${BASE}/lab/bigram`, { waitUntil: 'networkidle2', timeout: 30000 });
   await shot(page, 'lab-bigram');
 
-  // MLP chapter — hero
-  await page.goto(`${BASE}/lab/mlp`, { waitUntil: 'networkidle' });
-  await shot(page, 'lab-mlp');
-
-  // MLP chapter — first interactive block
-  await shot(page, 'lab-mlp-interactive', p => p.evaluate(() => window.scrollTo(0, 1600)));
-
-  // Latent Space — essays mode
-  await page.goto(`${BASE}/latent-space`, { waitUntil: 'networkidle' });
-  await shot(page, 'latent-space-essays');
-
-  // Latent Space — mind mode
-  await page.goto(`${BASE}/latent-space?mode=mind`, { waitUntil: 'networkidle' });
-  await shot(page, 'latent-space-mind');
-
-  await browser.close();
-  console.log('\nDone. Commit docs/screenshots/ and push.');
-})();
+  console.log('→ MLP chapter');
+  await page.go
