@@ -187,4 +187,152 @@ The same notes reimagined as a navigable knowledge graph:
 
 Currently 20 published notes/essays, including:
 
-> *The Geometry of Intelligence · Attention is all you need (in life too) 
+> *The Geometry of Intelligence · Attention is all you need (in life too) · The Observer Effect in AI · The Loss Landscape of Understanding · Latent Spaces as Maps · What is Intelligence, Really? · Pattern Language of Xanadu · The Shape of a Thought · Why I Write · Writing is a Search Procedure*
+
+### Adding content
+
+Drop an `.mdx` file in `src/content/notes/`:
+
+```mdx
+---
+title: "Your Note Title"
+date: "2026-05-28"
+tags: ["ai", "cognition"]
+description: "One line that captures the idea."
+---
+
+Your content. Math: $E = mc^2$. Code with syntax highlighting. [[wikilinks]] create graph edges.
+```
+
+---
+
+## Project Structure
+
+```
+src/
+├── app/                        # Next.js App Router
+│   ├── lab/                    # Lab routes: bigram, ngram, neural-networks, mlp, transformer
+│   ├── latent-space/           # Essays + Mind graph
+│   ├── projects/
+│   └── page.tsx                # Home / Portfolio
+│
+├── features/
+│   └── lab/                    # Self-contained lab module
+│       ├── components/         # ~340 visualizer components
+│       │   ├── bigram/
+│       │   ├── ngram/
+│       │   ├── nn/
+│       │   ├── mlp/            # 99 components · ~30k lines
+│       │   ├── transformer/    # 114 components
+│       │   └── chill/          # Lab landing page
+│       ├── hooks/              # 15 custom hooks (training loops, generation, viz)
+│       ├── context/            # LabModeContext (narrative/lab), UserContext
+│       ├── lib/                # lmLabClient.ts — typed API client
+│       └── types/              # TypeScript types for all API responses
+│
+├── components/                 # Shared globals only
+│   ├── layout/                 # Navbar, footer
+│   ├── ui/                     # Design system primitives (Button, Card, BentoGrid…)
+│   └── mdx/                    # MDX renderers (callout, math, code)
+│
+├── context/
+│   └── ScrollContext.tsx       # Shared scroll state (home + lab + latent-space)
+│
+├── content/
+│   └── notes/                  # 20 MDX source files
+│
+├── i18n/                       # Bilingual EN/ES
+│   ├── en.ts                   # ~4300 lines of English strings
+│   ├── es.ts                   # ~4300 lines of Spanish strings
+│   ├── context.tsx             # useI18n() hook
+│   └── types.ts                # TranslationDictionary type
+│
+└── lib/
+    ├── mdx.ts                  # MDX parsing utilities
+    └── utils.ts                # cn() — Tailwind class merger
+```
+
+### Design Decisions
+
+**Why `features/lab/` instead of `components/lab/`?** The lab is a self-contained product with its own hooks, context, API client, and types. Nothing outside `features/lab/` imports from inside it (except the `app/lab/` pages that mount it). This makes the boundary explicit and the module independently understandable.
+
+**Why not next-intl or i18next?** The translation surface is large but static. A custom `useI18n()` hook over two typed dictionaries is ~40 lines vs a full library setup, and gives full TypeScript autocomplete on every key via `TranslationDictionary`. Acceptable tradeoff for a solo project.
+
+**Why Next.js rewrites for the API?** Keeps the backend URL out of the browser (no CORS preflight), allows a zero-config local dev swap, and lets `useBackendHealth` detect cold starts the same way in both environments.
+
+---
+
+## i18n
+
+Every user-facing string lives in `src/i18n/en.ts` and `src/i18n/es.ts`. Language toggle in the navbar, preference persists in `localStorage`.
+
+```tsx
+const { t, language } = useI18n();
+<p>{t('lab.mlp.sections.hidden.pWhyHiddenLayers')}</p>
+```
+
+Keys mirror the app structure: `nav`, `landing`, `lab.bigram`, `lab.mlp.sections.*`, `latentSpace`, etc.
+
+> ⚠️ **Encoding:** these files must be saved as UTF-8 without BOM. If you see `?` characters in the UI, check the file encoding first — Windows editors sometimes corrupt them silently.
+
+---
+
+## Tech Stack
+
+| | |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript 5 |
+| Styling | Tailwind CSS |
+| Animation | Framer Motion |
+| UI Primitives | Radix UI |
+| MDX | next-mdx-remote + gray-matter |
+| Math | KaTeX |
+| Code highlighting | Shiki via rehype-pretty-code |
+| Icons | Lucide React |
+| Backend | FastAPI + PyTorch (separate repo) |
+| Hosting | Vercel (frontend) · Render (backend) |
+
+---
+
+## Getting Started
+
+```bash
+git clone https://github.com/adrianlaynez/adrian-v2-web
+cd adrian-v2-web
+npm install
+npm run dev          # → localhost:3000
+```
+
+The site works fully without the backend — every interactive visualizer has a client-side simulation mode. To enable real model inference:
+
+```bash
+# .env.local — point to local backend (optional)
+NEXT_PUBLIC_LM_LAB_API_URL=http://localhost:8000
+```
+
+```bash
+# Analyze bundle
+ANALYZE=true npm run build
+```
+
+---
+
+## Adding a New Lab Chapter
+
+1. **Page** — `src/app/lab/[chapter]/page.tsx`
+2. **Narrative** — `src/features/lab/components/[Chapter]Narrative.tsx`
+3. **Visualizers** — `src/features/lab/components/[chapter]/`
+4. **Translations** — add `lab.[chapter]` to both `src/i18n/en.ts` and `src/i18n/es.ts`
+5. **Nav link** — edit `src/app/lab/page.tsx` → add to the `EraSection` chapters array
+
+---
+
+## Internal Documentation
+
+| File | Covers |
+|---|---|
+| [`src/features/lab/README.md`](./src/features/lab/README.md) | Lab module internals: entry points, hooks, context, API client |
+| [`src/features/lab/components/mlp/README.md`](./src/features/lab/components/mlp/README.md) | MLP chapter: 8-section structure, full component index |
+| [`src/features/lab/components/transformer/README.md`](./src/features/lab/components/transformer/README.md) | Transformer chapter: topics, component index by category |
+| [`src/i18n/README.md`](./src/i18n/README.md) | i18n system: usage, key structure, encoding warning |

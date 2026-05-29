@@ -67,4 +67,19 @@ async function shot(page, name, setup) {
   await shot(page, 'lab-bigram');
 
   console.log('→ MLP chapter');
-  await page.go
+  await page.goto(`${BASE}/lab/mlp`, { waitUntil: 'networkidle2', timeout: 30000 });
+  await shot(page, 'lab-mlp');
+  await shot(page, 'lab-mlp-interactive', p => p.evaluate(() => window.scrollTo(0, 1800)));
+
+  console.log('→ Latent Space');
+  await page.goto(`${BASE}/latent-space`, { waitUntil: 'networkidle2', timeout: 30000 });
+  await shot(page, 'latent-space-essays');
+  await page.goto(`${BASE}/latent-space?mode=mind`, { waitUntil: 'networkidle2', timeout: 30000 });
+  await shot(page, 'latent-space-mind');
+
+  await browser.close();
+  console.log('\nDone! Now run:');
+  console.log('  git add docs/screenshots/*.png');
+  console.log('  git commit -m "docs: add screenshots"');
+  console.log('  git push');
+})();

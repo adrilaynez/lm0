@@ -13,6 +13,7 @@ const navItems = [
     { name: "Projects", href: "/projects" },
     { name: "Lab", href: "/lab" },
     { name: "Latent Space", href: "/latent-space" },
+    { name: "About", href: "/?view=about" },
 ]
 
 export function Navbar() {

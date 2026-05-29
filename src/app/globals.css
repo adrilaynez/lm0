@@ -228,6 +228,68 @@
   display: none;
 }
 
+/* ─── Projects (editorial "Híbrida") tokens ─── */
+/* Light = cream editorial (matches the landing); dark = carbon.
+   Per-project accent (--accent / --accent-deep / --accent-ink) is injected
+   inline on each block, not here. */
+[data-proj] {
+  --proj-bg: #ebe8e1;
+  --proj-bg-2: #e3dfd6;
+  --proj-panel: #e4e0d7;
+  --proj-panel-2: #dcd8ce;
+  --proj-fg: #1a1815;
+  --proj-muted: #6f6e67;
+  --proj-dim: #a4a199;
+  --proj-ghost: #c8c5bc;
+  --proj-rule: rgba(26, 24, 21, 0.15);
+  --proj-rule-soft: rgba(26, 24, 21, 0.08);
+}
+
+.dark [data-proj] {
+  --proj-bg: #0c0d0d;
+  --proj-bg-2: #111212;
+  --proj-panel: #151616;
+  --proj-panel-2: #1b1c1c;
+  --proj-fg: #ece9e2;
+  --proj-muted: #97968f;
+  --proj-dim: #5f5e57;
+  --proj-ghost: #383832;
+  --proj-rule: rgba(236, 233, 226, 0.13);
+  --proj-rule-soft: rgba(236, 233, 226, 0.06);
+}
+
+/* Mock-thumbnail SVG fills (structure = monochrome, data = project accent) */
+.proj-mk .mk-bg { fill: var(--proj-panel); }
+.proj-mk .mk-pn { fill: var(--proj-panel-2); }
+.proj-mk .mk-ln { fill: var(--proj-fg); fill-opacity: 0.10; }
+.proj-mk .mk-ln2 { fill: var(--proj-fg); fill-opacity: 0.18; }
+.proj-mk .mk-tx { fill: var(--proj-fg); fill-opacity: 0.32; }
+.proj-mk .mk-acc { fill: var(--accent); }
+.proj-mk text { fill: var(--proj-fg); fill-opacity: 0.45; font-family: var(--font-jetbrains-mono), monospace; }
+.proj-mk .mk-blink { animation: projblink 1.5s steps(1) infinite; }
+.proj-mk .mk-pulse { animation: projpulse 2.6s ease-in-out infinite; }
+@keyframes projblink { 50% { opacity: 0; } }
+@keyframes projpulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+@keyframes projping { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(1.5); } }
+.proj-dot-live { animation: projping 1.7s ease-in-out infinite; }
+
+/* Rich inline markup inside project prose / steps (<b>, <span>) */
+.proj-rich b { color: var(--proj-fg); font-weight: 500; }
+.proj-rich span {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 0.9em;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+/* Detail code block */
+.proj-code { background: #0b0d0c; border: 1px solid var(--proj-rule); overflow: hidden; }
+.proj-code pre { margin: 0; padding: 20px 22px; font-family: var(--font-jetbrains-mono), monospace; font-size: 13.5px; line-height: 1.7; color: rgba(255, 255, 255, 0.82); overflow-x: auto; }
+.proj-code .kw { color: #34d399; }
+.proj-code .out { color: #34d399; }
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

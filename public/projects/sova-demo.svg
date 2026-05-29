@@ -1,0 +1,70 @@
+<svg width="840" height="540" viewBox="0 0 840 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Demo en bucle: compilar y ejecutar un programa Sova">
+  <defs>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#a78bfa"/><stop offset="0.55" stop-color="#8b6df0"/><stop offset="1" stop-color="#36d39a"/>
+    </linearGradient>
+    <radialGradient id="bgGlow" cx="0.5" cy="0" r="1">
+      <stop offset="0" stop-color="#a78bfa" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <style>
+      .mono{font:15px ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+      .p{fill:#a78bfa}.c{fill:#c9d1d9}.o{fill:#36d39a}.d{fill:#6e7681}
+      .kw{fill:#ff7b72}.ty{fill:#79c0ff}.nm{fill:#d2a8ff}.fn{fill:#d29922}
+      .row{opacity:0}
+    </style>
+  </defs>
+
+  <!-- window -->
+  <rect x="12" y="12" width="816" height="516" rx="16" fill="#0b0f17" stroke="#222a38"/>
+  <rect x="12" y="12" width="816" height="220" rx="16" fill="url(#bgGlow)"/>
+  <!-- title bar -->
+  <rect x="12" y="12" width="816" height="42" rx="16" fill="#11151f"/>
+  <rect x="12" y="40" width="816" height="14" fill="#11151f"/>
+  <rect x="12" y="12" width="816" height="3" rx="1.5" fill="url(#accent)"/>
+  <circle cx="38" cy="33" r="6" fill="#ff5f56"/><circle cx="60" cy="33" r="6" fill="#ffbd2e"/><circle cx="82" cy="33" r="6" fill="#27c93f"/>
+  <text x="420" y="38" text-anchor="middle" class="mono d">sova — While.sova → WebAssembly</text>
+
+  <!-- source preview -->
+  <g class="mono" transform="translate(38,92)">
+    <text y="0"><tspan class="d">// While.sova</tspan></text>
+    <text y="28"><tspan class="kw">FUNCION</tspan> <tspan class="fn">MAIN</tspan><tspan class="c">() {</tspan></text>
+    <text y="56"><tspan class="c">  </tspan><tspan class="ty">ENT</tspan> <tspan class="c">n := </tspan><tspan class="nm">4</tspan><tspan class="c">;  </tspan><tspan class="ty">ENT</tspan> <tspan class="c">fact := </tspan><tspan class="nm">1</tspan><tspan class="c">;</tspan></text>
+    <text y="84"><tspan class="c">  </tspan><tspan class="kw">MIENTRAS</tspan> <tspan class="c">n &gt; </tspan><tspan class="nm">1</tspan> <tspan class="c">{ fact := fact * n; n := n - </tspan><tspan class="nm">1</tspan><tspan class="c">; }</tspan></text>
+    <text y="112"><tspan class="c">  </tspan><tspan class="fn">MOSTRAR</tspan><tspan class="c">(fact);  </tspan><tspan class="d">// 24</tspan></text>
+    <text y="140"><tspan class="c">}</tspan></text>
+  </g>
+
+  <line x1="38" y1="252" x2="802" y2="252" stroke="#222a38"/>
+
+  <!-- terminal: looped reveal sequence (9s cycle) -->
+  <g class="mono" transform="translate(38,284)">
+    <g class="row"><text><tspan class="p">$</tspan> <tspan class="c">javac -cp ".:cup.jar" constructorAst/*.java …</tspan></text>
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.067;0.100;0.889;1" dur="9s" repeatCount="indefinite"/></g>
+
+    <g class="row" transform="translate(0,30)"><text><tspan class="p">$</tspan> <tspan class="c">java constructorAst.Main examples/While.sova</tspan></text>
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.167;0.200;0.889;1" dur="9s" repeatCount="indefinite"/></g>
+
+    <g class="row" transform="translate(0,60)"><text><tspan class="o">¡Generado salida.wat!</tspan></text>
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.267;0.300;0.889;1" dur="9s" repeatCount="indefinite"/></g>
+
+    <g class="row" transform="translate(0,90)"><text><tspan class="p">$</tspan> <tspan class="c">wat2wasm salida.wat -o salida.wasm</tspan></text>
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.367;0.400;0.889;1" dur="9s" repeatCount="indefinite"/></g>
+
+    <g class="row" transform="translate(0,120)"><text><tspan class="p">$</tspan> <tspan class="c">node runtime/loader.js</tspan></text>
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.467;0.500;0.889;1" dur="9s" repeatCount="indefinite"/></g>
+
+    <g class="row" transform="translate(0,154)">
+      <text filter="url(#soft)"><tspan class="nm" style="font-size:22px;font-weight:700">24</tspan></text>
+      <text x="34" y="-1"><tspan class="d">← 4! computed in WebAssembly</tspan></text>
+      <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.567;0.600;0.889;1" dur="9s" repeatCount="indefinite"/></g>
+
+    <rect x="0" y="178" width="10" height="18" rx="2" fill="#a78bfa">
+      <animate attributeName="opacity" values="1;0;1" dur="1.05s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+</svg>
