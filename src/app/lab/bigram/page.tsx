@@ -6,10 +6,9 @@ import Link from "next/link";
 
 import { ArrowRight, FlaskConical } from "lucide-react";
 
-import { FadeInView } from "@/features/lab/components/FadeInView";
-
 import { DatasetExplorerModal } from "@/features/lab/components/DatasetExplorerModal";
 import { ErrorBoundary } from "@/features/lab/components/ErrorBoundary";
+import { FadeInView } from "@/features/lab/components/FadeInView";
 import { HistoricalContextPanel } from "@/features/lab/components/HistoricalContextPanel";
 import { LabSectionHeader } from "@/features/lab/components/LabSectionHeader";
 import { LabShell } from "@/features/lab/components/LabShell";
@@ -19,6 +18,7 @@ import { useLabMode } from "@/features/lab/context/LabModeContext";
 import { useBigramGeneration } from "@/features/lab/hooks/useBigramGeneration";
 import { useBigramStepwise } from "@/features/lab/hooks/useBigramStepwise";
 import { useBigramVisualization } from "@/features/lab/hooks/useBigramVisualization";
+import { useLabTheme } from "@/features/lab/hooks/useLabTheme";
 import { useI18n } from "@/i18n/context";
 
 const BigramNarrative = dynamic(() =>
@@ -44,6 +44,7 @@ const ArchitectureDeepDive = dynamic(() =>
 function BigramPageContent() {
     const { t } = useI18n();
     const { mode } = useLabMode();
+    const { theme } = useLabTheme();
     const isEducational = mode === "educational";
 
     const viz = useBigramVisualization();
@@ -82,6 +83,10 @@ function BigramPageContent() {
 
     return (
         <LabShell>
+            <div
+                data-bigram-theme={theme}
+                className="bg-bigram-bg text-bigram-ink min-h-screen"
+            >
             {isEducational ? (
                 /* ═══════════════════════════════════════════
                    EDUCATIONAL MODE — Narrative blog layout
@@ -104,11 +109,12 @@ function BigramPageContent() {
                 <div className="max-w-7xl mx-auto pb-24">
 
                     {/* ─── HERO ─── */}
-                    <ModelHero />
+                    <ModelHero accent="bigram" />
 
                     {/* ─── 01 · TRANSITION MATRIX & PROBABILITY FLOW ─── */}
                     <SectionDivider
                         number="01"
+                        accent="bigram"
                         title={t("models.bigram.sections.visualization.title")}
                         description={t("models.bigram.sections.visualization.description")}
                     />
@@ -127,6 +133,7 @@ function BigramPageContent() {
                     {/* ─── 02 · INFERENCE & GENERATION ─── */}
                     <SectionDivider
                         number="02"
+                        accent="bigram"
                         title={t("models.bigram.sections.inference.title")}
                         description={t("models.bigram.sections.inference.description")}
                     />
@@ -139,9 +146,10 @@ function BigramPageContent() {
                                     number="2.1"
                                     title={t("models.bigram.inference.probDist")}
                                     description={t("models.bigram.inference.probDistDesc")}
-                                    accent="emerald"
+                                    accent="bigram"
                                 />
                                 <InferenceConsole
+                                    accent="bigram"
                                     onAnalyze={viz.analyze}
                                     predictions={viz.data?.predictions ?? null}
                                     inferenceMs={viz.data?.metadata.inference_time_ms}
@@ -156,7 +164,7 @@ function BigramPageContent() {
                                     number="2.2"
                                     title={t("models.bigram.stepwise.mainTitle")}
                                     description={t("models.bigram.stepwise.description")}
-                                    accent="violet"
+                                    accent="bigram"
                                 />
                                 <StepwisePrediction
                                     onPredict={step.predict}
@@ -174,7 +182,7 @@ function BigramPageContent() {
                                 number="2.3"
                                 title={t("models.bigram.generation.mainTitle")}
                                 description={t("models.bigram.generation.description")}
-                                accent="amber"
+                                accent="bigram"
                             />
                             <GenerationPlayground
                                 onGenerate={gen.generate}
@@ -188,6 +196,7 @@ function BigramPageContent() {
                     {/* ─── 03 · ARCHITECTURE ─── */}
                     <SectionDivider
                         number="03"
+                        accent="bigram"
                         title={t("models.bigram.sections.architecture.title")}
                         description={t("models.bigram.sections.architecture.description")}
                     />
@@ -211,30 +220,38 @@ function BigramPageContent() {
                                     ],
                                     modern_evolution: t("models.bigram.historicalContext.evolution")
                                 }}
+                                labels={{
+                                    title: t("models.ngram.historical.title"),
+                                    learnMore: t("models.ngram.historical.learnMore"),
+                                    description: t("models.ngram.historical.description"),
+                                    limitations: t("models.ngram.historical.limitations"),
+                                    evolution: t("models.ngram.historical.evolution"),
+                                }}
                                 collapsible
                             />
                         </FadeInView>
                     )}
 
                     {/* ─── FOOTER ─── */}
-                    <FadeInView className="mt-32 border-t border-white/[0.05] pt-12 flex flex-col items-center gap-6">
-                        <p className="text-xs text-white/30 max-w-sm text-center leading-relaxed">
+                    <FadeInView className="mt-32 border-t border-bigram-rule pt-12 flex flex-col items-center gap-6">
+                        <p className="text-xs text-bigram-dim max-w-sm text-center leading-relaxed">
                             {t("bigramNarrative.cliffhanger.hookLine")}
                         </p>
                         <Link
                             href="/lab/ngram"
-                            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 hover:border-amber-500/40 text-amber-300 hover:text-amber-200 text-sm font-semibold transition-colors"
+                            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-bigram-accent-soft border border-[color-mix(in_oklab,var(--bigram-accent)_28%,transparent)] hover:border-[color-mix(in_oklab,var(--bigram-accent)_50%,transparent)] text-bigram-accent-ink text-sm font-semibold transition-colors"
                         >
                             {t("bigramNarrative.cta.nextTitle")}
                             <ArrowRight className="w-4 h-4" />
                         </Link>
-                        <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-white/20">
+                        <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest text-bigram-dim">
                             <FlaskConical className="h-3 w-3" />
                             <span>LM-Lab · {t("models.bigram.hero.scientificInstrument")}</span>
                         </div>
                     </FadeInView>
                 </div>
             )}
+            </div>
 
             {/* MODALS */}
             <DatasetExplorerModal

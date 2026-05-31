@@ -23,8 +23,12 @@ interface TransitionMatrixProps {
         trainDataSize?: number;
         vocabSize?: number;
     };
-    /** Use "cyan" or "amber" on N-gram page to match lab style; "emerald" on Bigram page */
-    accent?: "cyan" | "emerald" | "amber";
+    /**
+     * Visual accent. "cyan"/"amber" match the N-gram lab style; "emerald" is the legacy
+     * literal-Tailwind green. "bigram" maps to the token-driven editorial-green (--bigram-*)
+     * and is the accent to use inside the [data-bigram-theme] scope.
+     */
+    accent?: "cyan" | "emerald" | "amber" | "bigram";
 }
 
 const accentStyles = {
@@ -61,6 +65,19 @@ const accentStyles = {
         bar: "bg-amber-500",
         barBg: "bg-amber-500/20",
     },
+    // Bigram (editorial-green) — token-driven so it follows the [data-bigram-theme] scope
+    // in both dark and light. Never overwrites the literal Tailwind accents above.
+    bigram: {
+        badge: "bg-bigram-accent-soft text-bigram-accent-ink border-[color-mix(in_oklab,var(--bigram-accent)_30%,transparent)]",
+        input: "focus:border-[color-mix(in_oklab,var(--bigram-accent)_55%,transparent)] focus:ring-[var(--bigram-accent-soft)]",
+        searchIcon: "group-focus-within:text-bigram-accent-ink",
+        infoActive: "bg-bigram-accent-soft",
+        card: "bg-bigram-accent-soft border-[color-mix(in_oklab,var(--bigram-accent)_22%,transparent)]",
+        cardText: "text-bigram-accent-ink",
+        tooltipCell: "text-bigram-accent-ink bg-bigram-accent-soft",
+        bar: "bg-bigram-accent",
+        barBg: "bg-bigram-accent-soft",
+    },
 } as const;
 
 export const TransitionMatrix = memo(function TransitionMatrix({
@@ -74,6 +91,18 @@ export const TransitionMatrix = memo(function TransitionMatrix({
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const style = accentStyles[accent];
+
+    // Legend swatch fill at a given intensity. Token-driven for "bigram" (follows the
+    // [data-bigram-theme] scope via color-mix); literal rgba for the lab accents.
+    const legendSwatch = useCallback(
+        (a: number) => {
+            if (accent === "bigram") return `color-mix(in oklab, var(--bigram-accent) ${Math.round(a * 100)}%, transparent)`;
+            if (accent === "cyan") return `rgba(6,182,212,${a})`;
+            if (accent === "amber") return `rgba(245,158,11,${a})`;
+            return `rgba(16,185,129,${a})`;
+        },
+        [accent]
+    );
 
     const formatCount = useCallback((value?: number) => {
         if (value === undefined || value === null) return t("models.bigram.unknown");
@@ -138,10 +167,25 @@ export const TransitionMatrix = memo(function TransitionMatrix({
         ctx.scale(dpr, dpr);
         ctx.clearRect(0, 0, totalW, totalH);
 
+        // For the literal accents we paint rgba(r,g,b,alpha). For "bigram" we keep the
+        // canvas token-driven: resolve the live --bigram-accent (it follows the
+        // [data-bigram-theme] scope, dark or light) and apply intensity via globalAlpha,
+        // so no green literal is ever hardcoded here.
+        const isBigram = accent === "bigram";
         const isCyan = accent === "cyan";
         const r = isCyan ? 6 : 16;
         const g = isCyan ? 182 : 185;
         const b = isCyan ? 212 : 129;
+
+        let bigramFill = "";
+        let bigramHighlightStroke = "rgba(251, 191, 36, 0.6)";
+        if (isBigram) {
+            const cs = getComputedStyle(canvas);
+            // canvas inherits from the themed wrapper, so these resolve per dark/light scope
+            bigramFill = cs.getPropertyValue("--bigram-accent").trim() || "oklch(0.70 0.148 164)";
+            const sage = cs.getPropertyValue("--bigram-sage").trim();
+            if (sage) bigramHighlightStroke = sage;
+        }
 
         for (let rIdx = 0; rIdx < rows; rIdx++) {
             for (let c = 0; c < cols; c++) {
@@ -155,11 +199,17 @@ export const TransitionMatrix = memo(function TransitionMatrix({
                 if (isDimmed) alpha *= 0.1;
                 if (highlightIdx === null) alpha = Math.max(alpha, 0.05);
 
-                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                if (isBigram) {
+                    ctx.globalAlpha = alpha;
+                    ctx.fillStyle = bigramFill;
+                } else {
+                    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                }
                 ctx.fillRect(x, y, cellW - 0.5, cellH - 0.5);
+                if (isBigram) ctx.globalAlpha = 1;
 
                 if (isHighlighted) {
-                    ctx.strokeStyle = "rgba(251, 191, 36, 0.6)";
+                    ctx.strokeStyle = bigramHighlightStroke;
                     ctx.lineWidth = 2;
                     ctx.strokeRect(x, y, cellW, cellH);
                 }
@@ -338,17 +388,17 @@ export const TransitionMatrix = memo(function TransitionMatrix({
                 <div className="flex items-center justify-center gap-4 py-2">
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: accent === "cyan" ? "rgba(6,182,212,0.15)" : accent === "amber" ? "rgba(245,158,11,0.15)" : "rgba(16,185,129,0.15)" }} />
-                            <span className="text-[9px] font-mono text-white/25 uppercase tracking-wider">{t("models.bigram.matrix.legendRare")}</span>
+                            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: legendSwatch(0.15) }} />
+                            <span className={cn("text-[9px] font-mono uppercase tracking-wider", accent === "bigram" ? "text-bigram-dim" : "text-white/25")}>{t("models.bigram.matrix.legendRare")}</span>
                         </div>
                         <div className="flex items-center gap-1">
                             {[0.15, 0.3, 0.5, 0.7, 0.9].map((a) => (
-                                <div key={a} className="w-3 h-3 rounded-sm" style={{ backgroundColor: accent === "cyan" ? `rgba(6,182,212,${a})` : accent === "amber" ? `rgba(245,158,11,${a})` : `rgba(16,185,129,${a})` }} />
+                                <div key={a} className="w-3 h-3 rounded-sm" style={{ backgroundColor: legendSwatch(a) }} />
                             ))}
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: accent === "cyan" ? "rgba(6,182,212,0.9)" : accent === "amber" ? "rgba(245,158,11,0.9)" : "rgba(16,185,129,0.9)" }} />
-                            <span className="text-[9px] font-mono text-white/25 uppercase tracking-wider">{t("models.bigram.matrix.legendCommon")}</span>
+                            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: legendSwatch(0.9) }} />
+                            <span className={cn("text-[9px] font-mono uppercase tracking-wider", accent === "bigram" ? "text-bigram-dim" : "text-white/25")}>{t("models.bigram.matrix.legendCommon")}</span>
                         </div>
                     </div>
                 </div>

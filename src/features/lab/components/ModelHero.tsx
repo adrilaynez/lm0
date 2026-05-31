@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowDown, type LucideIcon } from "lucide-react";
 
 import { ModeToggle } from "@/features/lab/components/ModeToggle";
@@ -21,13 +21,173 @@ interface ModelHeroProps {
     description?: string;
     showExplanationCta?: boolean;
     customStats?: StatItem[];
+    /**
+     * Opt-in editorial-green treatment for the Bigram chapter (v8). When omitted, the hero renders
+     * exactly as before so the N-gram / MLP / Neural-Networks chapters keep their indigo identity
+     * untouched. The "bigram" branch reads only --bigram-* tokens and is gated by the page's
+     * [data-bigram-theme] scope, so no other accent is ever affected.
+     */
+    accent?: "default" | "bigram";
 }
 
-export const ModelHero = memo(function ModelHero({
-    title,
-    description,
-    customStats,
-}: ModelHeroProps) {
+export const ModelHero = memo(function ModelHero(props: ModelHeroProps) {
+    if (props.accent === "bigram") {
+        return <BigramHero {...props} />;
+    }
+    return <DefaultHero {...props} />;
+});
+
+/* ============================================================
+   BIGRAM · editorial-green hero (v8)
+   Calm, confident, typography-first. One Playfair title with an
+   accent word; a single faint --bigram-accent glow instead of the
+   old indigo/violet blob soup; mono kicker with a hairline rule.
+   ============================================================ */
+
+/** Split the title so the final word carries the accent (e.g. "Bigram Language" · "Model"). */
+function splitAccentTitle(title: string): { lead: string; accent: string } {
+    const words = title.trim().split(/\s+/);
+    if (words.length <= 1) {
+        return { lead: "", accent: title.trim() };
+    }
+    return {
+        lead: words.slice(0, -1).join(" "),
+        accent: words[words.length - 1],
+    };
+}
+
+function BigramHero({ title, description }: ModelHeroProps) {
+    const { t } = useI18n();
+    const reduceMotion = useReducedMotion();
+
+    const displayTitle = title ?? t("models.bigram.title");
+    const displayDesc = description ?? t("models.bigram.description");
+    const { lead, accent } = splitAccentTitle(displayTitle);
+
+    const rise = (delay: number) =>
+        reduceMotion
+            ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.4, delay } }
+            : {
+                  initial: { opacity: 0, y: 16 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { duration: 0.7, delay, ease: [0.2, 0.7, 0.2, 1] as const },
+              };
+
+    return (
+        <section className="relative overflow-hidden pt-16 pb-20 md:pt-24 md:pb-28">
+
+            {/* ── Background · ONE faint accent glow, top-left. No blobs, no neon. ── */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                <motion.div
+                    aria-hidden
+                    initial={reduceMotion ? false : { opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1.4, ease: "easeOut" }}
+                    className="absolute -left-[6%] -top-[18%] h-[460px] w-[560px] rounded-full blur-[120px]"
+                    style={{
+                        background:
+                            "radial-gradient(circle, color-mix(in oklab, var(--bigram-accent) 16%, transparent), transparent 70%)",
+                    }}
+                />
+            </div>
+
+            <div className="relative z-10 mx-auto max-w-[880px] px-6 md:px-7">
+
+                {/* ── Kicker · mono uppercase + accent hairline + dot ── */}
+                <motion.div {...rise(0)} className="mb-8 flex items-center gap-3">
+                    <span
+                        className="h-px w-9"
+                        style={{ background: "var(--bigram-accent)", opacity: 0.55 }}
+                    />
+                    <span
+                        className="inline-flex items-center gap-2.5 text-bigram-accent"
+                        style={{
+                            fontFamily: "var(--bigram-font-mono)",
+                            fontSize: "12px",
+                            fontWeight: 500,
+                            letterSpacing: "0.2em",
+                            textTransform: "uppercase",
+                        }}
+                    >
+                        <span
+                            className="h-1.5 w-1.5 rounded-full"
+                            style={{ background: "var(--bigram-accent)" }}
+                        />
+                        {t("models.bigram.hero.scientificInstrument")}
+                    </span>
+                </motion.div>
+
+                {/* ── Title · editorial Playfair, accent word italic ── */}
+                <motion.h1
+                    {...rise(0.08)}
+                    className="text-bigram-ink"
+                    style={{
+                        fontFamily: "var(--bigram-font-display)",
+                        fontWeight: 600,
+                        fontSize: "clamp(46px, 7vw, 92px)",
+                        lineHeight: 1.0,
+                        letterSpacing: "-0.018em",
+                        textWrap: "balance",
+                        margin: 0,
+                    }}
+                >
+                    {lead && <span>{lead} </span>}
+                    <span
+                        className="text-bigram-accent"
+                        style={{ fontStyle: "italic", fontWeight: 500 }}
+                    >
+                        {accent}
+                    </span>
+                </motion.h1>
+
+                {/* ── Lead · Source Serif, ink-2, editorial measure ── */}
+                <motion.p
+                    {...rise(0.16)}
+                    className="text-bigram-ink-2"
+                    style={{
+                        fontFamily: "var(--bigram-font-serif)",
+                        fontSize: "clamp(21px, 2.2vw, 25px)",
+                        fontWeight: 400,
+                        lineHeight: 1.55,
+                        maxWidth: "33em",
+                        textWrap: "pretty",
+                        margin: "28px 0 0",
+                    }}
+                >
+                    {displayDesc}
+                </motion.p>
+
+                {/* ── Mode toggle ── */}
+                <motion.div {...rise(0.26)} className="mt-12 flex">
+                    <ModeToggle />
+                </motion.div>
+
+                {/* ── Scroll cue · quiet, accent-tinted ── */}
+                <motion.div
+                    {...rise(0.36)}
+                    className="mt-16 flex"
+                    aria-hidden
+                >
+                    <motion.span
+                        className="text-bigram-dim"
+                        animate={reduceMotion ? undefined : { y: [0, 6, 0] }}
+                        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                        <ArrowDown className="h-5 w-5" strokeWidth={1.5} />
+                    </motion.span>
+                </motion.div>
+
+            </div>
+        </section>
+    );
+}
+
+/* ============================================================
+   DEFAULT · original hero (N-gram / MLP / Neural Networks)
+   Unchanged behavior and appearance — do not retheme.
+   ============================================================ */
+
+function DefaultHero({ title, description, customStats }: ModelHeroProps) {
     const { t } = useI18n();
 
     const displayTitle = title ?? t("models.bigram.title");
@@ -119,4 +279,4 @@ export const ModelHero = memo(function ModelHero({
             </div>
         </section>
     );
-});
+}

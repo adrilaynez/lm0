@@ -11,10 +11,21 @@ import { cn } from "@/lib/utils";
 
 /* ─────────────────────────────────────────────
    Shared types
+
+   The Bigram chapter (editorial-green, v8) opts in via accent="bigram".
+   That branch is token-only (--bigram-*) and resolves through the
+   [data-bigram-theme] scope set on the chapter wrapper, so every other
+   chapter keeps its literal Tailwind accent untouched. Never replace an
+   existing accent's value — the bigram entry is purely additive.
    ───────────────────────────────────────────── */
 
-export type NarrativeAccent = "emerald" | "amber" | "rose" | "violet" | "cyan";
-export type HighlightColor = NarrativeAccent | "indigo" | "cyan";
+export type NarrativeAccent = "emerald" | "amber" | "rose" | "violet" | "cyan" | "bigram";
+export type HighlightColor = NarrativeAccent | "indigo";
+
+/* Bigram families — Playfair titles, Source Serif body, JetBrains Mono data. */
+const BIGRAM_DISPLAY = "font-[family-name:var(--bigram-font-display)]";
+const BIGRAM_SERIF = "font-[family-name:var(--bigram-font-serif)]";
+const BIGRAM_MONO = "font-[family-name:var(--bigram-font-mono)]";
 
 /* ─────────────────────────────────────────────
    Color maps
@@ -26,6 +37,7 @@ const ACCENT_SIMPLE_CIRCLE: Record<NarrativeAccent, string> = {
     rose: "bg-rose-500/10 border-rose-500/20 text-rose-400",
     violet: "bg-violet-500/10 border-violet-500/20 text-violet-400",
     cyan: "bg-cyan-500/10 border-cyan-500/20 text-cyan-400",
+    bigram: "bg-bigram-accent-soft border-[color-mix(in_oklab,var(--bigram-accent)_38%,transparent)] text-bigram-accent-ink",
 };
 
 const CALLOUT_COLORS: Record<NarrativeAccent | "indigo", { border: string; bg: string; icon: string; title: string; glow: string }> = {
@@ -35,6 +47,8 @@ const CALLOUT_COLORS: Record<NarrativeAccent | "indigo", { border: string; bg: s
     violet: { border: "border-violet-500/20", bg: "bg-violet-500/[0.04]", icon: "text-violet-400", title: "text-violet-400", glow: "from-violet-500/[0.06]" },
     indigo: { border: "border-indigo-500/20", bg: "bg-indigo-500/[0.04]", icon: "text-indigo-400", title: "text-indigo-400", glow: "from-indigo-500/[0.06]" },
     cyan: { border: "border-cyan-500/20", bg: "bg-cyan-500/[0.04]", icon: "text-cyan-400", title: "text-cyan-400", glow: "from-cyan-500/[0.06]" },
+    // v8: surface panel, rule-2 hairline, mono accent title + 6px accent dot (rendered below).
+    bigram: { border: "border-[color:var(--bigram-rule-2)]", bg: "bg-bigram-surface", icon: "text-bigram-accent", title: "text-bigram-accent", glow: "from-transparent" },
 };
 
 const HIGHLIGHT_COLORS: Record<HighlightColor, string> = {
@@ -44,6 +58,8 @@ const HIGHLIGHT_COLORS: Record<HighlightColor, string> = {
     violet: "text-violet-400",
     indigo: "text-indigo-400",
     cyan: "text-cyan-400",
+    // v8 inline emphasis (.hl): accent-ink, italic, weight 500 — rich but legible.
+    bigram: "text-bigram-accent-ink italic font-medium",
 };
 
 const FORMULA_STYLES: Record<NarrativeAccent, { bg: string; border: string; shadow: string }> = {
@@ -52,6 +68,8 @@ const FORMULA_STYLES: Record<NarrativeAccent, { bg: string; border: string; shad
     rose: { bg: "bg-rose-500/[0.04]", border: "border-rose-500/[0.15]", shadow: "shadow-[0_0_40px_-15px_rgba(244,63,94,0.15)]" },
     violet: { bg: "bg-violet-500/[0.04]", border: "border-violet-500/[0.15]", shadow: "shadow-[0_0_40px_-15px_rgba(139,92,246,0.15)]" },
     cyan: { bg: "bg-cyan-500/[0.04]", border: "border-cyan-500/[0.15]", shadow: "shadow-[0_0_40px_-15px_rgba(34,211,238,0.15)]" },
+    // v8: sunken bg-2 well, marked rule-2 hairline, no glow halo.
+    bigram: { bg: "bg-bigram-bg-2", border: "border-[color:var(--bigram-rule-2)]", shadow: "" },
 };
 
 const PULLQUOTE_BORDER: Record<NarrativeAccent, string> = {
@@ -60,6 +78,7 @@ const PULLQUOTE_BORDER: Record<NarrativeAccent, string> = {
     rose: "border-rose-500/30",
     violet: "border-violet-500/30",
     cyan: "border-cyan-400/40",
+    bigram: "border-bigram-accent",
 };
 
 /* ─────────────────────────────────────────────
@@ -76,6 +95,9 @@ export function Section({ id, children }: { id?: string; children: React.ReactNo
 
 /* ─────────────────────────────────────────────
    SectionLabel
+
+   v8 (bigram): italic Playfair numeral in accent + mono uppercase label +
+   a single hairline rule. No box, no chip — typography carries the hierarchy.
    ───────────────────────────────────────────── */
 
 export function SectionLabel({
@@ -89,6 +111,20 @@ export function SectionLabel({
     accent?: NarrativeAccent;
     variant?: "simple" | "gradient";
 }) {
+    if (accent === "bigram") {
+        return (
+            <div className="flex items-baseline gap-3.5 mb-4">
+                <span className={cn(BIGRAM_DISPLAY, "italic font-semibold text-[22px] leading-none text-bigram-accent")}>
+                    {number}
+                </span>
+                <span className={cn(BIGRAM_MONO, "text-[11.5px] font-medium uppercase tracking-[0.18em] text-bigram-muted")}>
+                    {label}
+                </span>
+                <span className="flex-1 self-center h-px bg-[var(--bigram-rule)]" />
+            </div>
+        );
+    }
+
     const isGradient = variant === "gradient" && accent === "rose";
 
     return (
@@ -121,9 +157,34 @@ export function SectionLabel({
 
 /* ─────────────────────────────────────────────
    Heading
+
+   v8 (bigram): Playfair section h2, ink, generous size, balanced wrap.
    ───────────────────────────────────────────── */
 
-export function Heading({ children, className }: { children: React.ReactNode; className?: string }) {
+export function Heading({
+    children,
+    className,
+    accent,
+}: {
+    children: React.ReactNode;
+    className?: string;
+    accent?: NarrativeAccent;
+}) {
+    if (accent === "bigram") {
+        return (
+            <h2
+                className={cn(
+                    BIGRAM_DISPLAY,
+                    "font-semibold text-bigram-ink tracking-[-0.012em] leading-[1.08] mb-8 text-balance",
+                    "text-[clamp(34px,4.8vw,52px)]",
+                    className
+                )}
+            >
+                {children}
+            </h2>
+        );
+    }
+
     return (
         <h2 className={cn("text-2xl md:text-[2rem] font-bold text-[var(--lab-text)] tracking-tight mb-6 leading-tight", className)}>
             {children}
@@ -133,9 +194,25 @@ export function Heading({ children, className }: { children: React.ReactNode; cl
 
 /* ─────────────────────────────────────────────
    Lead
+
+   v8 (bigram): Source Serif, larger, ink-2, relaxed leading.
    ───────────────────────────────────────────── */
 
-export function Lead({ children }: { children: React.ReactNode }) {
+export function Lead({
+    children,
+    accent,
+}: {
+    children: React.ReactNode;
+    accent?: NarrativeAccent;
+}) {
+    if (accent === "bigram") {
+        return (
+            <p className={cn(BIGRAM_SERIF, "text-[clamp(22px,2.3vw,27px)] font-normal leading-[1.45] text-bigram-ink-2 mb-10 text-pretty")}>
+                {children}
+            </p>
+        );
+    }
+
     return (
         <p className="text-lg md:text-xl text-[var(--lab-text-muted)] leading-[1.8] mb-6 font-light">
             {children}
@@ -145,9 +222,25 @@ export function Lead({ children }: { children: React.ReactNode }) {
 
 /* ─────────────────────────────────────────────
    P (paragraph)
+
+   v8 (bigram): Source Serif body, color `body`, 1.7 leading.
    ───────────────────────────────────────────── */
 
-export function P({ children }: { children: React.ReactNode }) {
+export function P({
+    children,
+    accent,
+}: {
+    children: React.ReactNode;
+    accent?: NarrativeAccent;
+}) {
+    if (accent === "bigram") {
+        return (
+            <p className={cn(BIGRAM_SERIF, "text-[20.5px] leading-[1.7] text-bigram-body mb-[1.32em] last:mb-0 text-pretty")}>
+                {children}
+            </p>
+        );
+    }
+
     return (
         <p className="text-[15px] md:text-base text-[var(--lab-text-muted)] leading-[1.9] mb-5 last:mb-0">
             {children}
@@ -168,14 +261,42 @@ export function Highlight({
     color?: HighlightColor;
     tooltip?: string;
 }) {
+    const isBigram = color === "bigram";
+    // The bigram inline style already carries italic + weight; non-bigram keeps semibold.
+    const emphasis = isBigram ? HIGHLIGHT_COLORS.bigram : `${HIGHLIGHT_COLORS[color]} font-semibold`;
+
     if (!tooltip) {
-        return <strong className={`${HIGHLIGHT_COLORS[color]} font-semibold`}>{children}</strong>;
+        return <strong className={emphasis}>{children}</strong>;
+    }
+
+    if (isBigram) {
+        return (
+            <span className="relative inline-flex group align-baseline">
+                <strong
+                    className={cn(emphasis, "cursor-help border-b border-dashed border-bigram-accent-2 not-italic text-bigram-ink")}
+                    tabIndex={0}
+                >
+                    {children}
+                </strong>
+                <span
+                    role="tooltip"
+                    className={cn(
+                        BIGRAM_SERIF,
+                        "pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 z-30 w-56 rounded-[var(--bigram-r-md)]",
+                        "border border-[color:var(--bigram-rule-2)] bg-bigram-elev px-3 py-2 text-[13px] leading-relaxed text-bigram-body shadow-[0_16px_38px_-22px_rgba(0,0,0,0.62)]",
+                        "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity"
+                    )}
+                >
+                    {tooltip}
+                </span>
+            </span>
+        );
     }
 
     return (
         <span className="relative inline-flex group align-baseline">
             <strong
-                className={`${HIGHLIGHT_COLORS[color]} font-semibold cursor-help underline decoration-white/15 underline-offset-4`}
+                className={`${emphasis} cursor-help underline decoration-white/15 underline-offset-4`}
                 tabIndex={0}
             >
                 {children}
@@ -192,6 +313,9 @@ export function Highlight({
 
 /* ─────────────────────────────────────────────
    Callout (card + glow)
+
+   v8 (bigram): a calm surface panel with a rule-2 hairline, no glow wash.
+   Title is mono accent uppercase preceded by a 6px accent dot.
    ───────────────────────────────────────────── */
 
 export function Callout({
@@ -206,6 +330,22 @@ export function Callout({
     children: React.ReactNode;
 }) {
     const a = CALLOUT_COLORS[accent];
+
+    if (accent === "bigram") {
+        return (
+            <FadeInView as="aside" margin="-40px" className="relative my-9 rounded-[var(--bigram-r-md)] border border-[color:var(--bigram-rule-2)] bg-bigram-surface p-6">
+                {title && (
+                    <p className={cn(BIGRAM_MONO, "flex items-center gap-2.5 text-[11px] uppercase tracking-[0.2em] text-bigram-accent mb-3")}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-bigram-accent" />
+                        {title}
+                    </p>
+                )}
+                <div className={cn(BIGRAM_SERIF, "text-[17px] leading-[1.7] text-bigram-ink-2 [&>p]:mb-2.5 [&>p:last-child]:mb-0")}>
+                    {children}
+                </div>
+            </FadeInView>
+        );
+    }
 
     return (
         <FadeInView as="aside" margin="-40px" className={`relative my-8 rounded-xl border ${a.border} ${a.bg} p-5 md:p-6 overflow-hidden`}>
@@ -231,6 +371,9 @@ export function Callout({
 
 /* ─────────────────────────────────────────────
    FormulaBlock
+
+   v8 (bigram): a sunken bg-2 well with a rule-2 hairline; the equation in
+   mono accent, the caption in mono muted. No glow, no backdrop blur.
    ───────────────────────────────────────────── */
 
 export function FormulaBlock({
@@ -248,6 +391,20 @@ export function FormulaBlock({
     }, []);
 
     const s = FORMULA_STYLES[accent];
+
+    if (accent === "bigram") {
+        return (
+            <FadeInView margin="-40px" className="my-9 text-center">
+                <div className={cn("rounded-[var(--bigram-r-md)] px-7 py-6 text-bigram-accent", s.bg, "border", s.border)}>
+                    <BlockMath math={formula} />
+                </div>
+                <p className={cn(BIGRAM_MONO, "mt-4 text-[11px] uppercase tracking-[0.14em] text-bigram-muted")}>
+                    {caption}
+                </p>
+            </FadeInView>
+        );
+    }
+
     return (
         <FadeInView margin="-40px" className="my-10 text-center">
             <div className="flex items-center justify-center mb-10">
@@ -264,6 +421,8 @@ export function FormulaBlock({
 
 /* ─────────────────────────────────────────────
    PullQuote
+
+   v8 (bigram): left 3px accent border, Playfair, ink, no quote chrome.
    ───────────────────────────────────────────── */
 
 export function PullQuote({
@@ -273,6 +432,16 @@ export function PullQuote({
     children: React.ReactNode;
     accent?: NarrativeAccent;
 }) {
+    if (accent === "bigram") {
+        return (
+            <FadeInView as="blockquote" margin="-40px" className="my-11 md:my-12 pl-7 border-l-[3px] border-bigram-accent">
+                <p className={cn(BIGRAM_DISPLAY, "font-semibold text-[clamp(26px,3.2vw,38px)] leading-[1.2] tracking-[-0.01em] text-bigram-ink text-balance")}>
+                    {children}
+                </p>
+            </FadeInView>
+        );
+    }
+
     return (
         <FadeInView as="blockquote" margin="-40px" className={`my-10 md:my-12 pl-6 border-l-2 ${PULLQUOTE_BORDER[accent]}`}>
             <p className="text-lg md:text-xl text-[var(--lab-text-muted)] font-light italic leading-relaxed">
@@ -284,9 +453,15 @@ export function PullQuote({
 
 /* ─────────────────────────────────────────────
    SectionBreak
+
+   v8 (bigram): a single quiet hairline — no dot ornament.
    ───────────────────────────────────────────── */
 
-export function SectionBreak() {
+export function SectionBreak({ accent }: { accent?: NarrativeAccent } = {}) {
+    if (accent === "bigram") {
+        return <div className="h-px bg-[var(--bigram-rule)] my-16 md:my-20" />;
+    }
+
     return (
         <div className="flex items-center justify-center gap-3 my-16 md:my-20">
             <div className="h-px w-12 bg-gradient-to-r from-transparent to-[var(--lab-border)]" />
@@ -298,6 +473,11 @@ export function SectionBreak() {
 
 /* ─────────────────────────────────────────────
    FigureWrapper (accent-keyed, from NN)
+
+   v8 (bigram): the editorial figure — NO frame, NO chrome, NO traffic-light
+   dots. The label is a numbered mono caption above; the demo body is a single
+   faint plane (color-mix(surface 55%, bg)) with no border or shadow — the one
+   subtle signal that "this is interactive." Hint sits below in mono muted.
    ───────────────────────────────────────────── */
 
 export const FIGURE_ACCENTS = {
@@ -308,6 +488,9 @@ export const FIGURE_ACCENTS = {
     violet: { border: "border-violet-500/[0.12]", bg: "bg-gradient-to-br from-violet-500/[0.03] to-transparent", bar: "border-violet-500/[0.08] bg-violet-500/[0.02]", text: "text-violet-400/50" },
     cyan: { border: "border-cyan-500/[0.12]", bg: "bg-gradient-to-br from-cyan-500/[0.03] to-transparent", bar: "border-cyan-500/[0.08] bg-cyan-500/[0.02]", text: "text-cyan-400/50" },
     indigo: { border: "border-indigo-500/[0.1]", bg: "bg-gradient-to-br from-indigo-500/[0.02] to-transparent", bar: "border-indigo-500/[0.08] bg-indigo-500/[0.02]", text: "text-indigo-400/50" },
+    // Bigram is rendered through the dedicated editorial path below; this entry
+    // exists only so accent="bigram" type-checks against FigureAccent.
+    bigram: { border: "", bg: "", bar: "", text: "" },
 } as const;
 
 export type FigureAccent = keyof typeof FIGURE_ACCENTS;
@@ -323,6 +506,26 @@ export function FigureWrapper({
     accent?: FigureAccent;
     children: React.ReactNode;
 }) {
+    if (accent === "bigram") {
+        return (
+            <figure className="my-11 md:my-14 -mx-2 sm:mx-0">
+                {/* Numbered mono caption — no underline, separated by space (no chrome). */}
+                <figcaption className={cn(BIGRAM_MONO, "px-1 pb-3 text-[12.5px] uppercase tracking-[0.16em] text-bigram-muted")}>
+                    {label}
+                </figcaption>
+                {/* The single faint plane: the only "this is interactive" signal. */}
+                <div className="rounded-[var(--bigram-r-sm)] bg-[color-mix(in_oklab,var(--bigram-surface)_55%,var(--bigram-bg))] px-7 py-8 sm:px-7">
+                    {children}
+                </div>
+                {hint && (
+                    <p className={cn(BIGRAM_SERIF, "mt-3 px-1 text-[15.5px] italic text-bigram-muted text-center")}>
+                        {hint}
+                    </p>
+                )}
+            </figure>
+        );
+    }
+
     const a = FIGURE_ACCENTS[accent];
     return (
         <div className={`my-8 -mx-2 sm:mx-0 rounded-2xl border ${a.border} ${a.bg} overflow-hidden`}>

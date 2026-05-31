@@ -49,6 +49,23 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  /* ─── Bigram (editorial-green) bridge → bg-bigram-* / text-bigram-* / border-bigram-* ─── */
+  --color-bigram-bg: var(--bigram-bg);
+  --color-bigram-bg-2: var(--bigram-bg-2);
+  --color-bigram-surface: var(--bigram-surface);
+  --color-bigram-elev: var(--bigram-elev);
+  --color-bigram-ink: var(--bigram-ink);
+  --color-bigram-ink-2: var(--bigram-ink-2);
+  --color-bigram-body: var(--bigram-body);
+  --color-bigram-muted: var(--bigram-muted);
+  --color-bigram-dim: var(--bigram-dim);
+  --color-bigram-accent: var(--bigram-accent);
+  --color-bigram-accent-2: var(--bigram-accent-2);
+  --color-bigram-accent-bright: var(--bigram-accent-bright);
+  --color-bigram-accent-ink: var(--bigram-accent-ink);
+  --color-bigram-sage: var(--bigram-sage);
+  --color-bigram-wrong: var(--bigram-wrong);
 }
 
 :root {
@@ -143,6 +160,70 @@
   --lab-surface: rgba(0, 0, 0, 0.04);
   --lab-viz-bg: #0f0f14;
   --lab-header-bg: rgba(250, 250, 250, 0.95);
+}
+
+/* ─── Bigram chapter tokens (editorial-green, v8) ───
+   Additive + scoped: only the bigram chapter content opts in via
+   [data-bigram-theme]. Never overwrites --lab-* or any other accent.
+   Fonts reuse existing registrations (Playfair / Source Serif / JetBrains Mono). */
+[data-bigram-theme] {
+  --bigram-r-sm: 8px;
+  --bigram-r-md: 12px;
+  --bigram-r-lg: 16px;
+  --bigram-r-pill: 999px;
+  --bigram-font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --bigram-font-serif: var(--font-source-serif), Georgia, "Times New Roman", serif;
+  --bigram-font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+[data-bigram-theme="dark"] {
+  --bigram-bg-2: oklch(0.138 0.014 195);
+  --bigram-bg: oklch(0.176 0.016 193);
+  --bigram-surface: oklch(0.223 0.018 193);
+  --bigram-elev: oklch(0.265 0.020 193);
+  --bigram-rule: oklch(0.99 0.02 195 / 10%);
+  --bigram-rule-2: oklch(0.99 0.03 195 / 18%);
+  --bigram-ink: oklch(0.94 0.012 85);
+  --bigram-ink-2: oklch(0.86 0.012 85);
+  --bigram-body: oklch(0.82 0.013 88);
+  --bigram-muted: oklch(0.73 0.012 90);
+  --bigram-dim: oklch(0.62 0.010 95);
+  --bigram-accent: oklch(0.70 0.148 164);
+  --bigram-accent-2: oklch(0.60 0.132 166);
+  --bigram-accent-deep: oklch(0.48 0.108 167);
+  --bigram-accent-bright: oklch(0.78 0.142 167);
+  --bigram-accent-ink: oklch(0.72 0.152 163);
+  --bigram-accent-soft: oklch(0.70 0.148 164 / 16%);
+  --bigram-on-accent: oklch(0.16 0.03 165);
+  --bigram-sage: oklch(0.82 0.062 152);
+  --bigram-sage-soft: oklch(0.82 0.062 152 / 13%);
+  --bigram-wrong: oklch(0.70 0.135 38);
+  --bigram-wrong-soft: oklch(0.70 0.135 38 / 16%);
+}
+
+[data-bigram-theme="light"] {
+  --bigram-bg: #f4ecd8;
+  --bigram-bg-2: #efe5cd;
+  --bigram-elev: #f9f3e4;
+  --bigram-surface: #faf5e8;
+  --bigram-ink: #20271f;
+  --bigram-ink-2: #3c463a;
+  --bigram-body: oklch(0.43 0.013 145);
+  --bigram-muted: #5e6b5b;
+  --bigram-dim: #8d9684;
+  --bigram-rule: #ded3b9;
+  --bigram-rule-2: #d2c6a8;
+  --bigram-accent: #305a3d;
+  --bigram-accent-2: #3d6e4c;
+  --bigram-accent-deep: #234430;
+  --bigram-accent-bright: #3f7250;
+  --bigram-accent-ink: #274d35;
+  --bigram-accent-soft: #e4ecdb;
+  --bigram-on-accent: #f7f1e2;
+  --bigram-sage: #4a6b4f;
+  --bigram-sage-soft: oklch(0.55 0.055 150 / 14%);
+  --bigram-wrong: #b1492f;
+  --bigram-wrong-soft: #eedacf;
 }
 
 /* ─── Latent Space tokens (Essays = light editorial / Mind = dark warm) ─── */

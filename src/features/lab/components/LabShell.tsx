@@ -164,8 +164,9 @@ function LabShellInner({ children }: { children: React.ReactNode }) {
         onEscape: () => setShowShortcuts(false),
     });
 
-    const readingAccent = pathname?.startsWith("/lab/bigram")
-        ? "emerald"
+    const isBigram = pathname?.startsWith("/lab/bigram") ?? false;
+    const readingAccent = isBigram
+        ? "bigram"
         : pathname?.startsWith("/lab/ngram")
             ? "amber"
             : pathname?.startsWith("/lab/mlp")
@@ -184,7 +185,16 @@ function LabShellInner({ children }: { children: React.ReactNode }) {
 
     return (
         <div data-lab-theme={theme} className="min-h-screen bg-[var(--lab-bg)] text-[var(--lab-text)] font-sans">
-            <ReadingProgressBar accent={readingAccent} />
+            {/* Bigram (editorial-green) reading bar lives in the shared lab chrome, which is OUTSIDE
+                the page's [data-bigram-theme] wrapper. Scope it here (only on the bigram path) so the
+                fixed bar can resolve --bigram-accent; additive — never touches --lab-* or other chapters. */}
+            {isBigram ? (
+                <div data-bigram-theme={theme} className="contents">
+                    <ReadingProgressBar accent={readingAccent} />
+                </div>
+            ) : (
+                <ReadingProgressBar accent={readingAccent} />
+            )}
             {/* Top Bar */}
             <header className="sticky top-0 z-50 border-b border-[var(--lab-border)] bg-[var(--lab-header-bg)] backdrop-blur-sm">
                 <div className="container mx-auto flex items-center justify-between h-14 px-4 md:px-8 max-w-screen-2xl">

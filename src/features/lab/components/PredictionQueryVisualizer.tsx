@@ -1,13 +1,38 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronRight, Dices, RotateCcw } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Divide, RotateCcw } from "lucide-react";
 
+import { HonestBar } from "@/features/lab/components/bigram/HonestBar";
+import { Verdict } from "@/features/lab/components/bigram/Verdict";
 import { useI18n } from "@/i18n/context";
 
-/* ─── Hardcoded realistic bigram frequencies ─── */
+/**
+ * PredictionQueryVisualizer — Section 4 "How a bigram predicts" (v8 · editorial-green).
+ *
+ * ONE concept: *querying a single row of the count matrix and normalizing it into a
+ * next-character distribution.* Not a multi-screen wizard, not a casino — a single calm
+ * instrument that reveals the pipeline in place:
+ *
+ *   1 · PICK     — segmented control (sunk --bigram-bg-2 rail, active cell filled accent);
+ *   2 · LOOKUP   — the chosen row of the matrix as ONE horizontal strip of count cells,
+ *                  bracketed and summed to a row total (this is "querying one row");
+ *   3 · COUNTS   — the row's followers as shared HonestBars, scaled to the largest count;
+ *   4 · NORMALIZE— the SAME bars morph in place (count ÷ total) onto the honest fixed axis,
+ *                  with a formula well — the single act the section is about;
+ *   5 · PREDICT  — the plain-language Verdict ("After X, the most likely is Y").
+ *
+ * The two redundant raw/normalized bar charts of the old wizard are fused into one set that
+ * transforms; the weighted-dice step is dropped because sampling has its own dedicated widget
+ * later in the chapter, and a second concept here would compete with normalization.
+ *
+ * Reads only --bigram-* tokens + the registered fonts; gated by the chapter's [data-bigram-theme]
+ * scope. All copy through i18n (bigramNarrative.queryViz.*). Reduced-motion safe throughout.
+ */
+
+/* ─── Realistic bigram frequencies (unchanged) ─── */
 const QUERY_DATA: Record<string, Record<string, number>> = {
     h: { e: 3481, i: 1892, a: 1544, o: 987, " ": 432, t: 201 },
     e: { " ": 4012, r: 2156, n: 1423, s: 1198, d: 987, a: 654 },
@@ -21,485 +46,625 @@ const QUERY_DATA: Record<string, Record<string, number>> = {
 };
 
 const CHARS = Object.keys(QUERY_DATA);
+const SPACE_GLYPH = "␣";
+const PROB_AXIS = 0.5; // honest fixed axis — doubt stays visible, winner never normalises to 100%
+const EASE = [0.2, 0.8, 0.2, 1] as const;
 
-function displayChar(c: string) {
-    return c === " " ? "·" : c;
+function displayChar(c: string): string {
+    return c === " " ? SPACE_GLYPH : c;
+}
+
+interface Row {
+    char: string;
+    count: number;
 }
 
 /* ─── Component ─── */
 export const PredictionQueryVisualizer = memo(function PredictionQueryVisualizer() {
     const { t } = useI18n();
-    const [currentStep, setCurrentStep] = useState(0);
-    const [selectedChar, setSelectedChar] = useState<string | null>(null);
-    const [rolledChar, setRolledChar] = useState<string | null>(null);
-    const [isRolling, setIsRolling] = useState(false);
-    const rollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const reduce = useReducedMotion();
 
-    /* ── Derived data for selected character ── */
-    const rowData = useMemo(() => {
+    const [selectedChar, setSelectedChar] = useState<string | null>(null);
+    const [normalized, setNormalized] = useState(false);
+
+    /* ── Derived: the queried row, sorted by count ── */
+    const rowData = useMemo<Row[]>(() => {
         if (!selectedChar) return [];
         const raw = QUERY_DATA[selectedChar];
         if (!raw) return [];
         return Object.entries(raw)
-            .sort((a, b) => b[1] - a[1])
+            .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
             .map(([char, count]) => ({ char, count }));
     }, [selectedChar]);
 
-    const totalCount = useMemo(
-        () => rowData.reduce((sum, d) => sum + d.count, 0),
-        [rowData]
-    );
-
-    const probabilities = useMemo(
-        () => rowData.map((d) => ({ ...d, prob: d.count / totalCount })),
-        [rowData, totalCount]
-    );
-
+    const total = useMemo(() => rowData.reduce((s, d) => s + d.count, 0), [rowData]);
     const maxCount = rowData.length > 0 ? rowData[0].count : 1;
 
-    /* ── Character selection (Step 0 → 1) ── */
+    /* ── Honest axis: before normalizing, the largest count fills the track so each bar reads as
+          its true share of the row's max; after normalizing, the fixed probability axis (0.5)
+          keeps the model's doubt visible. ── */
+    const axis = normalized ? PROB_AXIS : 1;
+    const winner = rowData[0];
+    const winnerPct = winner && total > 0 ? `${((winner.count / total) * 100).toFixed(0)}%` : "";
+
+    /* ── Selection (resets the morph) ── */
     const selectChar = useCallback((ch: string) => {
         setSelectedChar(ch);
-        setCurrentStep(1);
-        setRolledChar(null);
+        setNormalized(false);
     }, []);
 
-    /* ── Step navigation ── */
-    const nextStep = useCallback(() => {
-        setCurrentStep((s) => Math.min(s + 1, 4));
-    }, []);
-
-    /* ── Dice roll animation (Step 4) ── */
-    const rollDice = useCallback(() => {
-        if (!selectedChar || isRolling) return;
-        setIsRolling(true);
-        setRolledChar(null);
-
-        const probs = probabilities;
-        let flickCount = 0;
-        const maxFlicks = 12;
-
-        const flick = () => {
-            flickCount++;
-            const randIdx = Math.floor(Math.random() * probs.length);
-            setRolledChar(probs[randIdx].char);
-
-            if (flickCount < maxFlicks) {
-                rollTimerRef.current = setTimeout(flick, 60 + flickCount * 15);
-            } else {
-                // Weighted final pick
-                const rand = Math.random();
-                let cumulative = 0;
-                let picked = probs[0].char;
-                for (const p of probs) {
-                    cumulative += p.prob;
-                    if (rand <= cumulative) {
-                        picked = p.char;
-                        break;
-                    }
-                }
-                setRolledChar(picked);
-                setIsRolling(false);
-            }
-        };
-
-        flick();
-    }, [selectedChar, probabilities, isRolling]);
-
-    /* ── Reset ── */
     const reset = useCallback(() => {
-        setCurrentStep(0);
         setSelectedChar(null);
-        setRolledChar(null);
-        setIsRolling(false);
-        if (rollTimerRef.current) clearTimeout(rollTimerRef.current);
+        setNormalized(false);
     }, []);
-
-    /* ── Cleanup ── */
-    useEffect(() => {
-        return () => {
-            if (rollTimerRef.current) clearTimeout(rollTimerRef.current);
-        };
-    }, []);
-
-    /* ── Step labels ── */
-    const stepLabels = [
-        t("bigramNarrative.queryViz.step0Label"),
-        t("bigramNarrative.queryViz.step1Label"),
-        t("bigramNarrative.queryViz.step2Label"),
-        t("bigramNarrative.queryViz.step3Label"),
-        t("bigramNarrative.queryViz.step4Label"),
-    ];
 
     return (
-        <div className="space-y-6">
-            {/* ── Step indicator ── */}
-            <div className="flex items-center justify-center gap-1">
-                {stepLabels.map((label, i) => (
-                    <div key={i} className="flex items-center gap-1">
-                        <div
-                            className={`flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-mono font-bold transition-all duration-300 ${
-                                i === currentStep
-                                    ? "bg-emerald-500/30 text-emerald-300 ring-2 ring-emerald-500/40"
-                                    : i < currentStep
-                                        ? "bg-emerald-500/15 text-emerald-400/60"
-                                        : "bg-white/[0.04] text-white/20"
-                            }`}
-                        >
-                            {i + 1}
-                        </div>
-                        <span
-                            className={`text-[9px] font-mono uppercase tracking-wider hidden sm:inline ${
-                                i === currentStep ? "text-white/50" : "text-white/15"
-                            }`}
-                        >
-                            {label}
-                        </span>
-                        {i < stepLabels.length - 1 && (
-                            <div className={`w-4 h-px mx-1 ${i < currentStep ? "bg-emerald-500/30" : "bg-white/[0.06]"}`} />
-                        )}
-                    </div>
-                ))}
+        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+            {/* ─── 1 · PICK — segmented control ─── */}
+            <Eyebrow num={1} label={t("bigramNarrative.queryViz.step0Label")} />
+            <p style={leadHintStyle}>{t("bigramNarrative.queryViz.pickChar")}</p>
+
+            <div style={{ textAlign: "center", marginTop: 14 }}>
+                <div
+                    role="radiogroup"
+                    aria-label={t("bigramNarrative.queryViz.pickChar")}
+                    style={{
+                        display: "inline-flex",
+                        flexWrap: "wrap",
+                        justifyContent: "center",
+                        gap: 4,
+                        padding: 5,
+                        borderRadius: "var(--bigram-r-md)",
+                        background: "var(--bigram-bg-2)",
+                        boxShadow: "inset 0 1px 4px rgba(0,0,0,.28)",
+                    }}
+                >
+                    {CHARS.map((ch) => {
+                        const active = selectedChar === ch;
+                        return (
+                            <button
+                                key={ch}
+                                type="button"
+                                role="radio"
+                                aria-checked={active}
+                                aria-label={`${ch === " " ? "space" : ch}`}
+                                onClick={() => selectChar(ch)}
+                                style={{
+                                    position: "relative",
+                                    minWidth: 44,
+                                    height: 44,
+                                    padding: "0 12px",
+                                    display: "grid",
+                                    placeItems: "center",
+                                    fontFamily: "var(--font-jetbrains-mono)",
+                                    fontSize: 21,
+                                    fontWeight: active ? 600 : 500,
+                                    border: 0,
+                                    borderRadius: "var(--bigram-r-sm)",
+                                    cursor: "pointer",
+                                    background: "transparent",
+                                    color: active ? "var(--bigram-on-accent)" : "var(--bigram-muted)",
+                                    transition: "color .2s ease",
+                                }}
+                            >
+                                {active && (
+                                    <motion.span
+                                        layoutId="pqv-seg"
+                                        aria-hidden
+                                        transition={
+                                            reduce
+                                                ? { duration: 0 }
+                                                : { type: "spring", stiffness: 520, damping: 38 }
+                                        }
+                                        style={{
+                                            position: "absolute",
+                                            inset: 0,
+                                            borderRadius: "var(--bigram-r-sm)",
+                                            background: "var(--bigram-accent)",
+                                            boxShadow:
+                                                "0 5px 14px -5px color-mix(in oklab, var(--bigram-accent) 65%, transparent)",
+                                            zIndex: 0,
+                                        }}
+                                    />
+                                )}
+                                <span style={{ position: "relative", zIndex: 1 }}>{displayChar(ch)}</span>
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
 
-            {/* ── Step content ── */}
+            {/* ─── idle invitation ─── */}
             <AnimatePresence mode="wait">
-                {/* STEP 0: Character selection */}
-                {currentStep === 0 && (
+                {selectedChar === null ? (
                     <motion.div
-                        key="step0"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        className="text-center space-y-4"
+                        key="idle"
+                        initial={reduce ? false : { opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={reduce ? undefined : { opacity: 0 }}
+                        style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            gap: 12,
+                            margin: "32px 0 4px",
+                        }}
+                        aria-hidden
                     >
-                        <p className="text-sm text-white/50">
-                            {t("bigramNarrative.queryViz.pickChar")}
-                        </p>
-                        <div className="flex flex-wrap justify-center gap-2">
-                            {CHARS.map((ch) => (
-                                <button
-                                    key={ch}
-                                    onClick={() => selectChar(ch)}
-                                    aria-label={`Select character ${displayChar(ch)}`}
-                                    className="w-12 h-12 rounded-xl font-mono text-xl font-bold border border-white/[0.08] bg-white/[0.03] text-white/60 hover:bg-emerald-500/15 hover:border-emerald-500/30 hover:text-emerald-300 transition-all duration-200 cursor-pointer"
-                                >
-                                    {displayChar(ch)}
-                                </button>
-                            ))}
-                        </div>
+                        {/* a calm, faint placeholder strip — the only "this is interactive" cue while idle */}
+                        {[0, 1, 2, 3].map((i) => (
+                            <span
+                                key={i}
+                                style={{
+                                    width: i === 1 ? 96 : 56,
+                                    height: 12,
+                                    borderRadius: 6,
+                                    background: "color-mix(in oklab, var(--bigram-ink) 6%, transparent)",
+                                }}
+                            />
+                        ))}
                     </motion.div>
-                )}
-
-                {/* STEP 1: Row lookup */}
-                {currentStep === 1 && selectedChar && (
+                ) : (
                     <motion.div
-                        key="step1"
-                        initial={{ opacity: 0, y: 8 }}
+                        key={`stage-${selectedChar}`}
+                        initial={reduce ? false : { opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        className="space-y-4"
+                        transition={{ duration: 0.4, ease: EASE }}
                     >
-                        <p className="text-center text-sm text-white/50">
-                            {t("bigramNarrative.queryViz.lookingUp").replace("{char}", displayChar(selectedChar))}
-                        </p>
-
-                        {/* Mini matrix showing the selected row */}
-                        <div className="overflow-auto rounded-xl border border-white/[0.08] bg-black/40 custom-scrollbar">
-                            <table className="w-full border-collapse font-mono text-xs">
-                                <thead>
-                                    <tr>
-                                        <th className="px-2 py-2 text-[10px] text-white/30 border-b border-r border-white/[0.06] bg-[var(--lab-viz-bg)]" />
-                                        {rowData.map(({ char }) => (
-                                            <th
-                                                key={char}
-                                                className="px-3 py-2 text-center border-b border-white/[0.06] bg-[var(--lab-viz-bg)] text-white/50"
-                                            >
-                                                {displayChar(char)}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {/* Dimmed rows for other chars */}
-                                    {CHARS.filter((c) => c !== selectedChar)
-                                        .slice(0, 2)
-                                        .map((c) => (
-                                            <tr key={c} className="opacity-20">
-                                                <th className="px-2 py-1.5 text-white/30 border-r border-white/[0.06] bg-[var(--lab-viz-bg)]">
-                                                    {displayChar(c)}
-                                                </th>
-                                                {rowData.map((_, ci) => (
-                                                    <td key={ci} className="px-3 py-1.5 text-center text-white/10 border-white/[0.04]">
-                                                        ···
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        ))}
-                                    {/* Highlighted selected row */}
-                                    <motion.tr
-                                        initial={{ backgroundColor: "rgba(16,185,129,0)" }}
-                                        animate={{ backgroundColor: "rgba(16,185,129,0.08)" }}
-                                        transition={{ duration: 0.6 }}
-                                    >
-                                        <th className="px-2 py-2 text-emerald-300 font-bold border-r border-white/[0.06] bg-emerald-500/10">
-                                            {displayChar(selectedChar)}
-                                        </th>
-                                        {rowData.map(({ char, count }) => (
-                                            <motion.td
-                                                key={char}
-                                                initial={{ opacity: 0 }}
-                                                animate={{ opacity: 1 }}
-                                                transition={{ delay: 0.3 }}
-                                                className="px-3 py-2 text-center text-emerald-200 font-bold"
-                                            >
-                                                {count}
-                                            </motion.td>
-                                        ))}
-                                    </motion.tr>
-                                    {/* Dimmed rows below */}
-                                    {CHARS.filter((c) => c !== selectedChar)
-                                        .slice(2, 4)
-                                        .map((c) => (
-                                            <tr key={c} className="opacity-20">
-                                                <th className="px-2 py-1.5 text-white/30 border-r border-white/[0.06] bg-[var(--lab-viz-bg)]">
-                                                    {displayChar(c)}
-                                                </th>
-                                                {rowData.map((_, ci) => (
-                                                    <td key={ci} className="px-3 py-1.5 text-center text-white/10 border-white/[0.04]">
-                                                        ···
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        ))}
-                                </tbody>
-                            </table>
+                        {/* ─── 2 · LOOKUP — the queried row as one horizontal strip ─── */}
+                        <div style={{ marginTop: 38 }}>
+                            <Eyebrow num={2} label={t("bigramNarrative.queryViz.step1Label")} />
+                            <p style={leadHintStyle}>
+                                {t("bigramNarrative.queryViz.lookingUp", {
+                                    char: displayChar(selectedChar),
+                                })}
+                            </p>
+                            <RowStrip row={rowData} src={selectedChar} total={total} reduce={!!reduce} t={t} />
                         </div>
 
-                        <div className="flex justify-center">
-                            <button
-                                onClick={nextStep}
-                                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-sm font-mono hover:bg-emerald-500/25 transition-colors cursor-pointer"
-                            >
-                                <ChevronRight className="w-4 h-4" />
-                                {t("bigramNarrative.queryViz.next")}
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* STEP 2: Raw counts bar chart */}
-                {currentStep === 2 && selectedChar && (
-                    <motion.div
-                        key="step2"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        className="space-y-4"
-                    >
-                        <p className="text-center text-sm text-white/50">
-                            {t("bigramNarrative.queryViz.rawCountsIntro").replace("{char}", displayChar(selectedChar))}
-                        </p>
-
-                        <div className="space-y-2 max-w-lg mx-auto">
-                            {rowData.map(({ char, count }, i) => (
-                                <motion.div
-                                    key={char}
-                                    initial={{ opacity: 0, x: -12 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: i * 0.08 }}
-                                    className="flex items-center gap-3"
-                                >
-                                    <code className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/[0.04] border border-white/[0.08] text-white/70 font-mono text-sm font-bold shrink-0">
-                                        {displayChar(char)}
-                                    </code>
-                                    <div className="flex-1 h-7 bg-white/[0.03] rounded-lg overflow-hidden">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${(count / maxCount) * 100}%` }}
-                                            transition={{ duration: 0.5, delay: i * 0.08 }}
-                                            className="h-full rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-400"
-                                        />
-                                    </div>
-                                    <span className="w-14 text-right font-mono text-xs font-bold text-white/60">
-                                        {count.toLocaleString()}
-                                    </span>
-                                </motion.div>
-                            ))}
-                        </div>
-
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.6 }}
-                            className="text-center text-[10px] font-mono text-white/25 uppercase tracking-widest"
-                        >
-                            {t("bigramNarrative.queryViz.totalRaw").replace("{total}", totalCount.toLocaleString())}
-                        </motion.p>
-
-                        <div className="flex justify-center">
-                            <button
-                                onClick={nextStep}
-                                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-sm font-mono hover:bg-emerald-500/25 transition-colors cursor-pointer"
-                            >
-                                <ChevronRight className="w-4 h-4" />
-                                {t("bigramNarrative.queryViz.next")}
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* STEP 3: Normalization */}
-                {currentStep === 3 && selectedChar && (
-                    <motion.div
-                        key="step3"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        className="space-y-4"
-                    >
-                        <p className="text-center text-sm text-white/50">
-                            {t("bigramNarrative.queryViz.normalizeIntro")}
-                        </p>
-
-                        {/* Formula */}
-                        <div className="text-center">
-                            <code className="inline-block px-4 py-2 rounded-lg bg-emerald-500/[0.06] border border-emerald-500/20 text-emerald-300 text-sm font-mono">
-                                count ÷ {totalCount.toLocaleString()} = probability
-                            </code>
-                        </div>
-
-                        <div className="space-y-2 max-w-lg mx-auto">
-                            {probabilities.map(({ char, count, prob }, i) => (
-                                <motion.div
-                                    key={char}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: i * 0.06 }}
-                                    className="flex items-center gap-3"
-                                >
-                                    <code className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/[0.04] border border-white/[0.08] text-white/70 font-mono text-sm font-bold shrink-0">
-                                        {displayChar(char)}
-                                    </code>
-                                    <div className="flex-1 h-7 bg-white/[0.03] rounded-lg overflow-hidden relative">
-                                        <motion.div
-                                            initial={{ width: `${(count / maxCount) * 100}%` }}
-                                            animate={{ width: `${prob * 100}%` }}
-                                            transition={{ duration: 0.8, delay: 0.3 + i * 0.06 }}
-                                            className="h-full rounded-lg bg-gradient-to-r from-emerald-600 to-emerald-400"
-                                        />
-                                    </div>
-                                    <span className="w-16 text-right font-mono text-xs font-bold text-emerald-400">
-                                        {(prob * 100).toFixed(1)}%
-                                    </span>
-                                </motion.div>
-                            ))}
-                        </div>
-
-                        <div className="flex justify-center">
-                            <button
-                                onClick={nextStep}
-                                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-sm font-mono hover:bg-emerald-500/25 transition-colors cursor-pointer"
-                            >
-                                <ChevronRight className="w-4 h-4" />
-                                {t("bigramNarrative.queryViz.next")}
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* STEP 4: Prediction / Dice roll */}
-                {currentStep === 4 && selectedChar && (
-                    <motion.div
-                        key="step4"
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        className="space-y-5"
-                    >
-                        <p className="text-center text-sm text-white/50">
-                            {t("bigramNarrative.queryViz.predictionIntro").replace("{char}", displayChar(selectedChar))}
-                        </p>
-
-                        {/* Top prediction highlight */}
-                        <div className="flex items-center justify-center gap-4">
-                            <div className="text-center">
-                                <p className="text-[10px] font-mono text-white/25 uppercase tracking-widest mb-1">
-                                    {t("bigramNarrative.queryViz.topPrediction")}
-                                </p>
-                                <div className="inline-flex items-center gap-3 px-5 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25">
-                                    <span className="text-3xl font-mono font-bold text-emerald-300">
-                                        {displayChar(probabilities[0]?.char ?? "")}
-                                    </span>
-                                    <span className="text-lg font-mono font-bold text-emerald-400/70">
-                                        {((probabilities[0]?.prob ?? 0) * 100).toFixed(1)}%
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Dice roll area */}
-                        <div className="text-center space-y-3">
-                            <p className="text-xs text-white/30">
-                                {t("bigramNarrative.queryViz.diceExplain")}
+                        {/* ─── 3 · COUNTS → 4 · NORMALIZE — one bar stack that morphs ─── */}
+                        <div style={{ marginTop: 40 }}>
+                            <Eyebrow
+                                num={normalized ? 4 : 3}
+                                label={t(
+                                    normalized
+                                        ? "bigramNarrative.queryViz.step3Label"
+                                        : "bigramNarrative.queryViz.step2Label"
+                                )}
+                            />
+                            <p style={leadHintStyle}>
+                                {normalized
+                                    ? t("bigramNarrative.queryViz.normalizeIntro")
+                                    : t("bigramNarrative.queryViz.rawCountsIntro", {
+                                          char: displayChar(selectedChar),
+                                      })}
                             </p>
 
-                            <div className="flex items-center justify-center gap-4">
-                                <button
-                                    onClick={rollDice}
-                                    disabled={isRolling}
-                                    aria-label="Roll dice"
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-sm font-mono hover:bg-emerald-500/25 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
-                                    <Dices className="w-4 h-4" />
-                                    {t("bigramNarrative.queryViz.rollDice")}
-                                </button>
+                            {/* formula well — appears with normalization */}
+                            <AnimatePresence>
+                                {normalized && (
+                                    <motion.div
+                                        key="formula"
+                                        initial={reduce ? false : { opacity: 0, height: 0, marginTop: 0 }}
+                                        animate={{ opacity: 1, height: "auto", marginTop: 18 }}
+                                        exit={reduce ? undefined : { opacity: 0, height: 0, marginTop: 0 }}
+                                        transition={{ duration: 0.4, ease: EASE }}
+                                        style={{ overflow: "hidden" }}
+                                    >
+                                        <FormulaWell total={total} t={t} />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
-                                <AnimatePresence mode="wait">
-                                    {rolledChar !== null && (
-                                        <motion.div
-                                            key={`roll-${rolledChar}-${isRolling}`}
-                                            initial={{ scale: 0.5, opacity: 0 }}
-                                            animate={{ scale: 1, opacity: 1 }}
-                                            exit={{ scale: 0.5, opacity: 0 }}
-                                            className={`w-14 h-14 rounded-xl flex items-center justify-center font-mono text-2xl font-bold border transition-all ${
-                                                isRolling
-                                                    ? "bg-white/[0.06] border-white/[0.1] text-white/60"
-                                                    : "bg-emerald-500/20 border-emerald-500/40 text-emerald-300"
-                                            }`}
-                                        >
-                                            {displayChar(rolledChar)}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                            <div style={{ marginTop: 22 }}>
+                                {rowData.map((d, i) => {
+                                    const value = normalized ? d.count / total : d.count / maxCount;
+                                    const isTop = i === 0;
+                                    // winner-last cascade only when normalizing (the payoff moment)
+                                    const delay = normalized ? (rowData.length - 1 - i) * 0.07 : 0;
+                                    return (
+                                        <HonestBar
+                                            key={`${d.char}-${normalized ? "p" : "c"}`}
+                                            src={selectedChar}
+                                            dst={d.char}
+                                            value={value}
+                                            axis={axis}
+                                            top={isTop}
+                                            glint={isTop && normalized}
+                                            countUp={normalized}
+                                            delay={delay}
+                                            ariaLabel={
+                                                normalized
+                                                    ? `${selectedChar === " " ? "space" : selectedChar} followed by ${
+                                                          d.char === " " ? "space" : d.char
+                                                      }, ${((d.count / total) * 100).toFixed(1)} percent`
+                                                    : `${selectedChar === " " ? "space" : selectedChar} followed by ${
+                                                          d.char === " " ? "space" : d.char
+                                                      }, ${d.count.toLocaleString()} times`
+                                            }
+                                        />
+                                    );
+                                })}
                             </div>
 
-                            {rolledChar && !isRolling && (
-                                <motion.p
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="text-xs text-white/40"
+                            {/* total / normalize control */}
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    flexWrap: "wrap",
+                                    gap: 14,
+                                    marginTop: 18,
+                                    paddingTop: 14,
+                                    borderTop: "1px solid var(--bigram-rule)",
+                                }}
+                            >
+                                <span
+                                    style={{
+                                        fontFamily: "var(--font-jetbrains-mono)",
+                                        fontSize: 11.5,
+                                        letterSpacing: ".14em",
+                                        textTransform: "uppercase",
+                                        color: "var(--bigram-muted)",
+                                        fontVariantNumeric: "lining-nums tabular-nums",
+                                    }}
                                 >
-                                    {t("bigramNarrative.queryViz.rolled")
-                                        .replace("{char}", displayChar(selectedChar))
-                                        .replace("{next}", displayChar(rolledChar))}
-                                </motion.p>
-                            )}
+                                    {t("bigramNarrative.queryViz.totalRaw", {
+                                        total: total.toLocaleString(),
+                                    })}
+                                </span>
+
+                                {!normalized && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setNormalized(true)}
+                                        style={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: 9,
+                                            fontFamily: "var(--font-jetbrains-mono)",
+                                            fontSize: 12,
+                                            letterSpacing: ".1em",
+                                            textTransform: "uppercase",
+                                            fontWeight: 600,
+                                            padding: "11px 18px",
+                                            border: 0,
+                                            borderRadius: "var(--bigram-r-sm)",
+                                            cursor: "pointer",
+                                            background: "var(--bigram-accent)",
+                                            color: "var(--bigram-on-accent)",
+                                            transition: "background .2s ease",
+                                        }}
+                                    >
+                                        <Divide style={{ width: 15, height: 15 }} aria-hidden />
+                                        {t("bigramNarrative.queryViz.step3Label")}
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
-                        {/* Try another */}
-                        <div className="flex justify-center">
-                            <button
-                                onClick={reset}
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono text-white/40 border border-white/[0.08] hover:bg-white/[0.04] hover:text-white/60 transition-colors cursor-pointer"
-                            >
-                                <RotateCcw className="w-3.5 h-3.5" />
-                                {t("bigramNarrative.queryViz.tryAnother")}
-                            </button>
-                        </div>
+                        {/* ─── 5 · PREDICT — the plain-language verdict ─── */}
+                        <AnimatePresence>
+                            {normalized && winner && (
+                                <motion.div
+                                    key="verdict"
+                                    initial={reduce ? false : { opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{
+                                        duration: 0.4,
+                                        delay: reduce ? 0 : 0.35,
+                                        ease: EASE,
+                                    }}
+                                    style={{ marginTop: 34 }}
+                                >
+                                    <Eyebrow num={5} label={t("bigramNarrative.queryViz.step4Label")} />
+                                    <div style={{ marginTop: 14 }}>
+                                        <Verdict
+                                            label={t("bigramNarrative.corpusCounting.verdictLabel")}
+                                            main={
+                                                <VerdictSentence
+                                                    template={t("bigramNarrative.corpusCounting.verdictMain")}
+                                                    char={displayChar(selectedChar)}
+                                                    best={displayChar(winner.char)}
+                                                />
+                                            }
+                                            sub={t("bigramNarrative.corpusCounting.verdictSub", {
+                                                n: winner.count.toLocaleString(),
+                                                total: total.toLocaleString(),
+                                                pct: winnerPct,
+                                            })}
+                                        />
+                                    </div>
+
+                                    <div style={{ textAlign: "center", marginTop: 18 }}>
+                                        <button
+                                            type="button"
+                                            onClick={reset}
+                                            style={{
+                                                display: "inline-flex",
+                                                alignItems: "center",
+                                                gap: 8,
+                                                fontFamily: "var(--font-jetbrains-mono)",
+                                                fontSize: 11,
+                                                letterSpacing: ".06em",
+                                                padding: "7px 14px",
+                                                border: 0,
+                                                borderRadius: "var(--bigram-r-sm)",
+                                                cursor: "pointer",
+                                                background: "transparent",
+                                                color: "var(--bigram-muted)",
+                                                boxShadow: "inset 0 0 0 1px var(--bigram-rule-2)",
+                                            }}
+                                        >
+                                            <RotateCcw style={{ width: 13, height: 13 }} aria-hidden />
+                                            {t("bigramNarrative.queryViz.tryAnother")}
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </motion.div>
                 )}
             </AnimatePresence>
         </div>
     );
 });
+
+/* ─────────────────────────────────────────────
+   Sub-components
+   ───────────────────────────────────────────── */
+
+/** Section eyebrow — italic Playfair numeral (accent) + mono uppercase label + hairline rule. */
+const Eyebrow = memo(function Eyebrow({ num, label }: { num: number; label: string }) {
+    return (
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 6 }}>
+            <span
+                style={{
+                    fontFamily: "var(--font-playfair)",
+                    fontStyle: "italic",
+                    fontWeight: 600,
+                    fontSize: 18,
+                    color: "var(--bigram-accent)",
+                    lineHeight: 1,
+                }}
+            >
+                {num}
+            </span>
+            <span
+                style={{
+                    fontFamily: "var(--font-jetbrains-mono)",
+                    fontSize: 11,
+                    fontWeight: 500,
+                    letterSpacing: ".2em",
+                    textTransform: "uppercase",
+                    color: "var(--bigram-muted)",
+                }}
+            >
+                {label}
+            </span>
+            <span style={{ flex: 1, height: 1, background: "var(--bigram-rule)" }} />
+        </div>
+    );
+});
+
+/**
+ * RowStrip — the queried row as one horizontal strip of count cells, bracketed under a single
+ * row label and summing to the row total. This makes "look up the row of the matrix" literal:
+ * a row pulled out of the table, with its members and its sum.
+ */
+const RowStrip = memo(function RowStrip({
+    row,
+    src,
+    total,
+    reduce,
+    t,
+}: {
+    row: Row[];
+    src: string;
+    total: number;
+    reduce: boolean;
+    t: (key: string, params?: Record<string, string | number>) => string;
+}) {
+    return (
+        <div
+            style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+                marginTop: 16,
+                padding: "18px 18px",
+                borderRadius: "var(--bigram-r-md)",
+                background: "color-mix(in oklab, var(--bigram-surface) 55%, var(--bigram-bg))",
+                overflowX: "auto",
+            }}
+        >
+            {/* row key — the starting character, in accent */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flex: "none" }}>
+                <span
+                    style={{
+                        fontFamily: "var(--font-jetbrains-mono)",
+                        fontSize: 9.5,
+                        letterSpacing: ".18em",
+                        textTransform: "uppercase",
+                        color: "var(--bigram-dim)",
+                    }}
+                >
+                    {t("bigramNarrative.queryViz.step0Label")}
+                </span>
+                <span
+                    style={{
+                        fontFamily: "var(--font-jetbrains-mono)",
+                        fontSize: 30,
+                        fontWeight: 700,
+                        color: "var(--bigram-accent)",
+                        lineHeight: 1,
+                    }}
+                >
+                    {displayChar(src)}
+                </span>
+            </div>
+
+            <span
+                aria-hidden
+                style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 18, color: "var(--bigram-dim)" }}
+            >
+                →
+            </span>
+
+            {/* the followers — one cell each: glyph over count */}
+            <div style={{ display: "flex", gap: 8, flex: 1, justifyContent: "flex-start" }}>
+                {row.map((d, i) => (
+                    <motion.div
+                        key={d.char}
+                        initial={reduce ? false : { opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.32, delay: reduce ? 0 : 0.1 + i * 0.05, ease: EASE }}
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: 5,
+                            minWidth: 46,
+                            padding: "8px 6px",
+                            borderRadius: "var(--bigram-r-sm)",
+                            background:
+                                i === 0
+                                    ? "var(--bigram-accent-soft)"
+                                    : "color-mix(in oklab, var(--bigram-ink) 4%, transparent)",
+                        }}
+                    >
+                        <span
+                            style={{
+                                fontFamily: "var(--font-jetbrains-mono)",
+                                fontSize: 17,
+                                fontWeight: 600,
+                                color: i === 0 ? "var(--bigram-accent-ink)" : "var(--bigram-ink-2)",
+                                lineHeight: 1,
+                            }}
+                        >
+                            {displayChar(d.char)}
+                        </span>
+                        <span
+                            style={{
+                                fontFamily: "var(--font-jetbrains-mono)",
+                                fontSize: 11,
+                                color: "var(--bigram-dim)",
+                                fontVariantNumeric: "lining-nums tabular-nums",
+                            }}
+                        >
+                            {d.count.toLocaleString()}
+                        </span>
+                    </motion.div>
+                ))}
+            </div>
+
+            {/* row total — the denominator we are about to divide by */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flex: "none" }}>
+                <span
+                    style={{
+                        fontFamily: "var(--font-jetbrains-mono)",
+                        fontSize: 9.5,
+                        letterSpacing: ".18em",
+                        textTransform: "uppercase",
+                        color: "var(--bigram-dim)",
+                    }}
+                >
+                    Σ
+                </span>
+                <span
+                    style={{
+                        fontFamily: "var(--font-jetbrains-mono)",
+                        fontSize: 16,
+                        fontWeight: 700,
+                        color: "var(--bigram-ink)",
+                        lineHeight: 1,
+                        fontVariantNumeric: "lining-nums tabular-nums",
+                    }}
+                >
+                    {total.toLocaleString()}
+                </span>
+            </div>
+        </div>
+    );
+});
+
+/** FormulaWell — the normalization equation, v8 formula block (bg-2 well, centered, mono accent). */
+const FormulaWell = memo(function FormulaWell({
+    total,
+    t,
+}: {
+    total: number;
+    t: (key: string, params?: Record<string, string | number>) => string;
+}) {
+    return (
+        <div
+            style={{
+                padding: "16px 20px",
+                borderRadius: "var(--bigram-r-md)",
+                background: "var(--bigram-bg-2)",
+                border: "1px solid var(--bigram-rule-2)",
+                textAlign: "center",
+            }}
+        >
+            <span
+                style={{
+                    fontFamily: "var(--font-jetbrains-mono)",
+                    fontSize: 15,
+                    color: "var(--bigram-accent)",
+                    fontVariantNumeric: "lining-nums tabular-nums",
+                    letterSpacing: ".01em",
+                }}
+            >
+                count&nbsp;&divide;&nbsp;{total.toLocaleString()}&nbsp;=&nbsp;probability
+            </span>
+            <p
+                style={{
+                    margin: "8px 0 0",
+                    fontFamily: "var(--font-jetbrains-mono)",
+                    fontSize: 10.5,
+                    letterSpacing: ".14em",
+                    textTransform: "uppercase",
+                    color: "var(--bigram-muted)",
+                }}
+            >
+                {t("bigramNarrative.queryViz.step3Label")}
+            </p>
+        </div>
+    );
+});
+
+/**
+ * VerdictSentence — fills the i18n template, replacing {char}/{best} with bold spans. Verdict
+ * colours any <b> in `main` with --bigram-accent-ink, so the predicted chars read in accent.
+ */
+function VerdictSentence({
+    template,
+    char,
+    best,
+}: {
+    template: string;
+    char: string;
+    best: string;
+}) {
+    const parts = template.split(/(\{char\}|\{best\})/g);
+    return (
+        <>
+            {parts.map((part, i) => {
+                if (part === "{char}") return <b key={i}>{char}</b>;
+                if (part === "{best}") return <b key={i}>{best}</b>;
+                return <span key={i}>{part}</span>;
+            })}
+        </>
+    );
+}
+
+/* ─── shared lead-hint style (editorial caption under each eyebrow) ─── */
+const leadHintStyle: React.CSSProperties = {
+    fontFamily: "var(--font-source-serif)",
+    fontSize: 16,
+    lineHeight: 1.6,
+    color: "var(--bigram-body)",
+    textAlign: "center",
+    margin: "0 auto",
+    maxWidth: "44ch",
+};

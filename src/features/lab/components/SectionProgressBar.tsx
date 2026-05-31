@@ -10,7 +10,7 @@ export type SectionProgressItem = {
     name?: string;
 };
 
-type ProgressAccent = "rose" | "emerald" | "amber" | "violet" | "cyan";
+type ProgressAccent = "rose" | "emerald" | "amber" | "violet" | "cyan" | "bigram";
 
 const ACTIVE_DOT: Record<ProgressAccent, string> = {
     rose: "bg-rose-400",
@@ -18,6 +18,10 @@ const ACTIVE_DOT: Record<ProgressAccent, string> = {
     amber: "bg-amber-400",
     violet: "bg-violet-400",
     cyan: "bg-cyan-400",
+    // Bigram (editorial-green): the active dot uses the chapter accent token, resolved under
+    // [data-bigram-theme] (emerald in dark, forest in light). The floating rail itself stays
+    // shared --lab-* chrome — only the active marker carries the chapter accent.
+    bigram: "bg-bigram-accent",
 };
 
 export function SectionProgressBar({

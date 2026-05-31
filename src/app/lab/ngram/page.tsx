@@ -50,7 +50,9 @@ const InferenceConsole = dynamic(() =>
     import("@/features/lab/components/InferenceConsole").then((m) => m.InferenceConsole)
 );
 const StepwisePrediction = dynamic(() =>
-    import("@/features/lab/components/StepwisePrediction").then((m) => m.StepwisePrediction)
+    import("@/features/lab/components/NgramStepwisePrediction").then(
+        (m) => m.NgramStepwisePrediction
+    )
 );
 const GenerationPlayground = dynamic(() =>
     import("@/features/lab/components/GenerationPlayground").then((m) => m.GenerationPlayground)

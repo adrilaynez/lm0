@@ -14,6 +14,9 @@ export function useLabTheme() {
         const saved = localStorage.getItem(STORAGE_KEY) as LabTheme | null;
         if (saved === "light" || saved === "dark") {
             setThemeState(saved);
+        } else {
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            setThemeState(prefersDark ? "dark" : "light");
         }
         setIsInitialized(true);
     }, []);

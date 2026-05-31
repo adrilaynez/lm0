@@ -16,8 +16,15 @@ import { SectionAnchor } from "@/features/lab/components/SectionAnchor";
 import { SectionProgressBar } from "@/features/lab/components/SectionProgressBar";
 import { useLabMode } from "@/features/lab/context/LabModeContext";
 import { useProgressTracker } from "@/features/lab/hooks/useProgressTracker";
-import { useI18n } from "@/i18n/context";
 import type { TrainingViz, TransitionMatrixViz } from "@/features/lab/types/lmLab";
+import { useI18n } from "@/i18n/context";
+import { cn } from "@/lib/utils";
+
+/* Bigram type families (Playfair display · Source Serif body · JetBrains Mono data),
+   resolved through the [data-bigram-theme] font tokens defined in globals.css. */
+const BIGRAM_DISPLAY = "font-[family-name:var(--bigram-font-display)]";
+const BIGRAM_SERIF = "font-[family-name:var(--bigram-font-serif)]";
+const BIGRAM_MONO = "font-[family-name:var(--bigram-font-mono)]";
 
 /* ─── Lazy-loaded interactive visualizers ─── */
 const BigramMatrixBuilder = lazy(() => import("@/features/lab/components/BigramMatrixBuilder").then(m => ({ default: m.BigramMatrixBuilder })));
@@ -37,20 +44,49 @@ const TransitionMatrix = lazy(() => import("@/features/lab/components/Transition
 
 import {
     Callout as _Callout,
-    Heading, Highlight as _Highlight,
+    FigureWrapper as _FigureWrapper,
+    FormulaBlock as _FormulaBlock,
+    Heading as _Heading, Highlight as _Highlight,
     type HighlightColor,
-    Lead, type NarrativeAccent,
-    P, PullQuote as _PullQuote,
-    Section, SectionBreak,
+    Lead as _Lead, type NarrativeAccent,
+    P as _P, PullQuote as _PullQuote,
+    Section, SectionBreak as _SectionBreak,
     SectionLabel as _SectionLabel,
 } from "./narrative-primitives";
 
-/* ─── Accent-bound wrappers ─── */
-const NA: NarrativeAccent = "emerald";
+/* ─── Accent-bound wrappers ───
+   The Bigram chapter opts every shared primitive into the v8 editorial-green
+   accent. The green resolves through the [data-bigram-theme] scope on the page
+   wrapper, so no other chapter is affected. */
+const NA: NarrativeAccent = "bigram";
 const SectionLabel = (p: { number: string; label: string }) => <_SectionLabel accent={NA} {...p} />;
+const Heading = (p: { children: React.ReactNode; className?: string }) => <_Heading accent={NA} {...p} />;
+const Lead = (p: { children: React.ReactNode }) => <_Lead accent={NA} {...p} />;
+const P = (p: { children: React.ReactNode }) => <_P accent={NA} {...p} />;
 const Highlight = ({ color, ...p }: { children: React.ReactNode; color?: HighlightColor; tooltip?: string }) => <_Highlight color={color ?? NA} {...p} />;
 const Callout = ({ accent, ...p }: Parameters<typeof _Callout>[0]) => <_Callout accent={accent ?? NA} {...p} />;
 const PullQuote = ({ children }: { children: React.ReactNode }) => <_PullQuote accent={NA}>{children}</_PullQuote>;
+const SectionBreak = () => <_SectionBreak accent={NA} />;
+
+/* The editorial v8 figure: no frame, no chrome, NO traffic-light dots — it lives
+   in the shared primitive's bigram branch (numbered mono caption + single faint
+   plane). Routing the local wrapper here removes the old window-dot decoration. */
+const FigureWrapper = (p: { label: string; hint: string; children: React.ReactNode }) =>
+    <_FigureWrapper accent={NA} {...p} />;
+
+/* Inline equations go through the shared FormulaBlock (v8 .formula tokens:
+   sunken bg-2 well, rule-2 hairline, mono accent equation, mono muted caption). */
+const FormulaBlock = (p: { formula: string; caption: string }) =>
+    <_FormulaBlock accent={NA} {...p} />;
+
+/* ─────────────────────────────────────────────
+   ExpandableSection · v8 ".xpand" disclosure
+
+   The whole summary row is a card-like control (Don Norman affordance): an accent
+   dot, a Source-Serif title, and an explicit expand/collapse pill ending in a +/−
+   disc. States read by FILL, not by piling on borders. All color is --bigram-*,
+   resolved under the [data-bigram-theme] scope, so no other chapter is touched.
+   ───────────────────────────────────────────── */
 
 function ExpandableSection({
     title,
@@ -63,24 +99,42 @@ function ExpandableSection({
 }) {
     const [open, setOpen] = useState(defaultOpen);
     return (
-        <div className="my-10">
+        <div className="my-8">
             <button
+                type="button"
                 onClick={() => setOpen(o => !o)}
-                className="w-full flex items-center gap-3 text-left group mb-4"
                 aria-expanded={open}
+                className={cn(
+                    "group w-full flex items-center gap-3.5 text-left",
+                    "rounded-[var(--bigram-r-md)] border px-[18px] py-4",
+                    "border-[color:var(--bigram-rule)] bg-[color-mix(in_oklab,var(--bigram-ink)_3%,transparent)]",
+                    "transition-colors duration-200",
+                    "hover:bg-[var(--bigram-accent-soft)] hover:border-[color-mix(in_oklab,var(--bigram-accent)_32%,var(--bigram-rule))]",
+                    "focus-visible:outline-none focus-visible:border-bigram-accent focus-visible:shadow-[0_0_0_3px_var(--bigram-accent-soft)]"
+                )}
             >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                <h3 className="text-lg font-bold text-[var(--lab-text)] flex-1 leading-snug">{title}</h3>
-                <span className="shrink-0 text-[10px] font-mono uppercase tracking-widest text-[var(--lab-text-subtle)] group-hover:text-[var(--lab-text-muted)] transition-colors mr-1">
-                    {open ? "collapse" : "expand"}
-                </span>
-                <motion.div
-                    animate={{ rotate: open ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="shrink-0"
+                {/* accent dot */}
+                <span className="shrink-0 w-[9px] h-[9px] rounded-full bg-bigram-accent" />
+                {/* title — Source Serif, weight 600 */}
+                <h3 className={cn(BIGRAM_SERIF, "flex-1 m-0 text-[19px] font-semibold leading-snug text-bigram-ink")}>
+                    {title}
+                </h3>
+                {/* expand / collapse pill ending in a +/− disc */}
+                <span
+                    className={cn(
+                        BIGRAM_MONO,
+                        "shrink-0 inline-flex items-center gap-2 rounded-[var(--bigram-r-pill)]",
+                        "pl-[13px] pr-1.5 py-1.5 text-[10.5px] uppercase tracking-[0.18em] text-bigram-accent",
+                        "border border-[color-mix(in_oklab,var(--bigram-accent)_32%,var(--bigram-rule))]",
+                        "bg-[color-mix(in_oklab,var(--bigram-accent)_8%,transparent)]",
+                        "transition-colors duration-200 group-hover:bg-[color-mix(in_oklab,var(--bigram-accent)_16%,transparent)]"
+                    )}
                 >
-                    <ChevronDown className="w-4 h-4 text-[var(--lab-text-subtle)] group-hover:text-[var(--lab-text-muted)] transition-colors" />
-                </motion.div>
+                    {open ? "collapse" : "expand"}
+                    <span className="inline-grid place-items-center w-[18px] h-[18px] rounded-full bg-bigram-accent text-[var(--bigram-on-accent)] text-[14px] font-bold leading-none">
+                        {open ? "−" : "+"}
+                    </span>
+                </span>
             </button>
             <AnimatePresence initial={false}>
                 {open && (
@@ -92,48 +146,11 @@ function ExpandableSection({
                         transition={{ duration: 0.38, ease: [0.25, 0, 0, 1] }}
                         className="overflow-hidden"
                     >
-                        {children}
+                        <div className="pt-[22px] px-1">{children}</div>
                     </motion.div>
                 )}
             </AnimatePresence>
         </div>
-    );
-}
-
-function FigureWrapper({
-    label,
-    hint,
-    showWindowDots = true,
-    children,
-}: {
-    label: string;
-    hint?: string;
-    showWindowDots?: boolean;
-    children: React.ReactNode;
-}) {
-    return (
-        <FadeInView as="figure" className="my-12 md:my-16 -mx-4 sm:mx-0">
-            <div className="rounded-2xl border border-[var(--lab-border)] bg-[var(--lab-card)] overflow-hidden">
-                <div className="flex items-center gap-3 px-5 py-3 border-b border-[var(--lab-border)] bg-[var(--lab-card)]">
-                    {showWindowDots && (
-                        <div className="flex gap-1.5">
-                            <span className="w-2.5 h-2.5 rounded-full bg-red-500/30" />
-                            <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/30" />
-                            <span className="w-2.5 h-2.5 rounded-full bg-green-500/30" />
-                        </div>
-                    )}
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--lab-text-subtle)]">
-                        {label}
-                    </span>
-                </div>
-                <div className="p-4 sm:p-6 bg-[var(--lab-viz-bg)]">{children}</div>
-            </div>
-            {hint && (
-                <figcaption className="mt-3 text-center text-xs text-[var(--lab-text-subtle)] italic">
-                    {hint}
-                </figcaption>
-            )}
-        </FadeInView>
     );
 }
 
@@ -144,27 +161,37 @@ function FigureWrapper({
 function BigramHistorySidebar({ t }: { t: (key: string) => string }) {
     const [open, setOpen] = useState(false);
 
+    /* Rainbow → green/sage family. Each era keeps a distinct step within the
+       editorial-green scale (bright → accent → deep → sage), so the timeline still
+       reads chronologically but never leaves the bigram palette. Tokens only. */
     const timelineEvents = [
-        { year: "1913", color: "from-teal-400 to-cyan-400", label: "Markov Chains" },
-        { year: "1948", color: "from-emerald-400 to-green-400", label: "Shannon's Bet" },
-        { year: "1960s", color: "from-amber-400 to-orange-400", label: "First NLP" },
-        { year: "2003", color: "from-rose-400 to-pink-400", label: "Neural LMs" },
+        { year: "1913", dot: "var(--bigram-accent-bright)", label: "Markov Chains" },
+        { year: "1948", dot: "var(--bigram-accent)", label: "Shannon's Bet" },
+        { year: "1960s", dot: "var(--bigram-accent-2)", label: "First NLP" },
+        { year: "2003", dot: "var(--bigram-sage)", label: "Neural LMs" },
+    ];
+
+    const eras = [
+        { year: "1913", label: "Markov Chains", color: "var(--bigram-accent-bright)", p: "p1" },
+        { year: "1948", label: "Shannon's Bet", color: "var(--bigram-accent)", p: "p2" },
+        { year: "1960s", label: "First NLP", color: "var(--bigram-accent-2)", p: "p3" },
+        { year: "2003", label: "Neural LMs", color: "var(--bigram-sage)", p: "p4" },
     ];
 
     return (
-        <aside className="my-12 rounded-2xl border border-emerald-500/20 overflow-hidden relative">
+        <aside className="my-12 rounded-[var(--bigram-r-lg)] border border-[color:var(--bigram-rule-2)] bg-bigram-surface overflow-hidden relative">
             <button
                 onClick={() => setOpen(!open)}
-                className="w-full flex items-center gap-4 px-6 py-5 text-left group transition-all duration-300 relative bg-gradient-to-br from-emerald-500/[0.08] via-teal-500/[0.04] to-emerald-500/[0.06] hover:from-emerald-500/[0.12] hover:via-teal-500/[0.06] hover:to-emerald-500/[0.08]"
+                className="w-full flex items-center gap-4 px-6 py-5 text-left group transition-colors duration-300 relative hover:bg-[var(--bigram-accent-soft)]"
             >
-                <div className="shrink-0 p-2.5 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 ring-1 ring-emerald-500/30 group-hover:ring-emerald-500/50 transition-all">
-                    <History className="w-5 h-5 text-emerald-300" />
+                <div className="shrink-0 grid place-items-center w-11 h-11 rounded-[var(--bigram-r-md)] bg-[var(--bigram-accent-soft)] ring-1 ring-[color-mix(in_oklab,var(--bigram-accent)_30%,transparent)] group-hover:ring-[color-mix(in_oklab,var(--bigram-accent)_50%,transparent)] transition-colors">
+                    <History className="w-5 h-5 text-bigram-accent" />
                 </div>
                 <div className="min-w-0 flex-1">
-                    <p className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 via-teal-200 to-emerald-200 mb-1">
+                    <p className={cn(BIGRAM_SERIF, "text-[17px] font-semibold text-bigram-ink mb-1 leading-snug")}>
                         {t("bigramNarrative.history.title")}
                     </p>
-                    <p className="text-xs text-[var(--lab-text-muted)] leading-relaxed">
+                    <p className={cn(BIGRAM_SERIF, "text-[14px] text-bigram-muted leading-relaxed")}>
                         {t("bigramNarrative.history.summary")}
                     </p>
                 </div>
@@ -173,7 +200,7 @@ function BigramHistorySidebar({ t }: { t: (key: string) => string }) {
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="shrink-0"
                 >
-                    <ChevronDown className="w-5 h-5 text-emerald-400/60 group-hover:text-emerald-400 transition-colors" />
+                    <ChevronDown className="w-5 h-5 text-[color-mix(in_oklab,var(--bigram-accent)_70%,transparent)] group-hover:text-bigram-accent transition-colors" />
                 </motion.div>
             </button>
 
@@ -184,17 +211,20 @@ function BigramHistorySidebar({ t }: { t: (key: string) => string }) {
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-                        className="overflow-hidden bg-[var(--lab-viz-bg)]"
+                        className="overflow-hidden bg-[color-mix(in_oklab,var(--bigram-surface)_55%,var(--bigram-bg))]"
                     >
-                        <div className="px-6 pb-6 border-t border-white/[0.06] pt-5">
-                            <p className="text-xs font-bold uppercase tracking-[0.15em] text-emerald-400/50 mb-6 text-center">
+                        <div className="px-6 pb-6 border-t border-[color:var(--bigram-rule)] pt-5">
+                            <p className={cn(BIGRAM_MONO, "text-[10.5px] font-medium uppercase tracking-[0.18em] text-bigram-sage mb-6 text-center")}>
                                 {t("bigramNarrative.history.subtitle")}
                             </p>
 
                             {/* Mini Timeline */}
                             <div className="mb-8 px-2">
                                 <div className="relative">
-                                    <div className="absolute left-0 right-0 top-4 h-0.5 bg-gradient-to-r from-teal-500/20 via-emerald-500/30 to-rose-500/20" />
+                                    <div
+                                        className="absolute left-0 right-0 top-4 h-px"
+                                        style={{ background: "linear-gradient(to right, var(--bigram-accent-bright), var(--bigram-accent-2), var(--bigram-sage))", opacity: 0.45 }}
+                                    />
                                     <div className="relative flex justify-between items-start">
                                         {timelineEvents.map((event, idx) => (
                                             <motion.div
@@ -204,13 +234,19 @@ function BigramHistorySidebar({ t }: { t: (key: string) => string }) {
                                                 transition={{ delay: idx * 0.1, duration: 0.3 }}
                                                 className="flex flex-col items-center"
                                             >
-                                                <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${event.color} shadow-lg flex items-center justify-center ring-4 ring-black/50`}>
-                                                    <div className="w-2 h-2 rounded-full bg-white/90" />
+                                                <div
+                                                    className="w-8 h-8 rounded-full grid place-items-center"
+                                                    style={{
+                                                        background: event.dot,
+                                                        boxShadow: "0 0 0 4px var(--bigram-bg)",
+                                                    }}
+                                                >
+                                                    <div className="w-2 h-2 rounded-full bg-[var(--bigram-on-accent)]" />
                                                 </div>
-                                                <span className="mt-2 text-[10px] font-bold font-mono text-white/60 whitespace-nowrap">
+                                                <span className={cn(BIGRAM_MONO, "mt-2 text-[10px] font-medium text-bigram-muted whitespace-nowrap")}>
                                                     {event.year}
                                                 </span>
-                                                <span className="mt-1 text-[9px] text-white/30 text-center max-w-[60px] leading-tight">
+                                                <span className={cn(BIGRAM_SERIF, "mt-1 text-[9px] text-bigram-dim text-center max-w-[60px] leading-tight")}>
                                                     {event.label}
                                                 </span>
                                             </motion.div>
@@ -221,57 +257,31 @@ function BigramHistorySidebar({ t }: { t: (key: string) => string }) {
 
                             {/* Story paragraphs */}
                             <div className="space-y-5">
-                                <motion.div
-                                    initial={{ x: -20, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: 0.1 }}
-                                    className="border-l-2 border-teal-500/30 pl-4"
-                                >
-                                    <div className="flex items-baseline gap-3 mb-2">
-                                        <span className="text-2xl font-bold text-teal-400 font-mono shrink-0">1913</span>
-                                        <span className="text-xs uppercase tracking-wider text-teal-400/60 font-semibold">Markov Chains</span>
-                                    </div>
-                                    <p className="text-sm text-white/50 leading-relaxed">{t("bigramNarrative.history.p1")}</p>
-                                </motion.div>
-
-                                <motion.div
-                                    initial={{ x: -20, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: 0.2 }}
-                                    className="border-l-2 border-emerald-500/30 pl-4"
-                                >
-                                    <div className="flex items-baseline gap-3 mb-2">
-                                        <span className="text-2xl font-bold text-emerald-400 font-mono shrink-0">1948</span>
-                                        <span className="text-xs uppercase tracking-wider text-emerald-400/60 font-semibold">Shannon&apos;s Bet</span>
-                                    </div>
-                                    <p className="text-sm text-white/50 leading-relaxed">{t("bigramNarrative.history.p2")}</p>
-                                </motion.div>
-
-                                <motion.div
-                                    initial={{ x: -20, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: 0.3 }}
-                                    className="border-l-2 border-amber-500/30 pl-4"
-                                >
-                                    <div className="flex items-baseline gap-3 mb-2">
-                                        <span className="text-2xl font-bold text-amber-400 font-mono shrink-0">1960s</span>
-                                        <span className="text-xs uppercase tracking-wider text-amber-400/60 font-semibold">First NLP</span>
-                                    </div>
-                                    <p className="text-sm text-white/50 leading-relaxed">{t("bigramNarrative.history.p3")}</p>
-                                </motion.div>
-
-                                <motion.div
-                                    initial={{ x: -20, opacity: 0 }}
-                                    animate={{ x: 0, opacity: 1 }}
-                                    transition={{ delay: 0.4 }}
-                                    className="border-l-2 border-rose-500/30 pl-4"
-                                >
-                                    <div className="flex items-baseline gap-3 mb-2">
-                                        <span className="text-2xl font-bold text-rose-400 font-mono shrink-0">2003</span>
-                                        <span className="text-xs uppercase tracking-wider text-rose-400/60 font-semibold">Neural LMs</span>
-                                    </div>
-                                    <p className="text-sm text-white/50 leading-relaxed">{t("bigramNarrative.history.p4")}</p>
-                                </motion.div>
+                                {eras.map((era, idx) => (
+                                    <motion.div
+                                        key={era.year}
+                                        initial={{ x: -20, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        transition={{ delay: 0.1 * (idx + 1) }}
+                                        className="border-l-2 pl-4"
+                                        style={{ borderColor: `color-mix(in oklab, ${era.color} 45%, transparent)` }}
+                                    >
+                                        <div className="flex items-baseline gap-3 mb-2">
+                                            <span className={cn(BIGRAM_MONO, "text-2xl font-semibold shrink-0")} style={{ color: era.color }}>
+                                                {era.year}
+                                            </span>
+                                            <span
+                                                className={cn(BIGRAM_MONO, "text-xs uppercase tracking-wider font-medium")}
+                                                style={{ color: `color-mix(in oklab, ${era.color} 75%, transparent)` }}
+                                            >
+                                                {era.label}
+                                            </span>
+                                        </div>
+                                        <p className={cn(BIGRAM_SERIF, "text-[15px] text-bigram-body leading-relaxed")}>
+                                            {t(`bigramNarrative.history.${era.p}`)}
+                                        </p>
+                                    </motion.div>
+                                ))}
                             </div>
                         </div>
                     </motion.div>
@@ -312,7 +322,7 @@ export function BigramNarrative({
     return (
         <article className="max-w-[920px] mx-auto px-6 pt-8 pb-24">
             <ContinueToast
-                accent="emerald"
+                accent="bigram"
                 hasStoredProgress={hasStoredProgress}
                 storedSection={storedSection}
                 clearProgress={clearProgress}
@@ -334,7 +344,7 @@ export function BigramNarrative({
                     { id: "bigram-05", label: "05", name: t("bigramNarrative.sampling.label") },
                     { id: "bigram-06", label: "06", name: t("bigramNarrative.cliffhanger.label") },
                 ]}
-                accent="emerald"
+                accent="bigram"
             />
 
             {/* ───────────────────── HERO ───────────────────── */}
@@ -344,23 +354,25 @@ export function BigramNarrative({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.7 }}
                 >
-                    <span className="inline-flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-[0.25em] text-emerald-400/60 mb-6">
+                    <span className={cn(BIGRAM_MONO, "inline-flex items-center gap-2.5 text-[12px] font-medium uppercase tracking-[0.18em] text-bigram-accent mb-7")}>
                         <BookOpen className="w-3.5 h-3.5" />
                         {t("bigramNarrative.hero.eyebrow")}
                     </span>
 
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-[var(--lab-text)] mb-6">
+                    {/* Editorial Playfair hero — accent suffix italic, per the v8 spec.
+                        Color resolves through [data-bigram-theme] so other chapters are untouched. */}
+                    <h1 className={cn(BIGRAM_DISPLAY, "font-semibold text-bigram-ink tracking-[-0.018em] leading-[1.0] mb-7 text-balance", "text-[clamp(46px,7vw,92px)]")}>
                         {t("bigramNarrative.hero.titlePrefix")}{" "}
-                        <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
+                        <span className="italic font-medium text-bigram-accent">
                             {t("bigramNarrative.hero.titleSuffix")}
                         </span>
                     </h1>
 
-                    <p className="text-lg md:text-xl text-[var(--lab-text-muted)] leading-relaxed max-w-2xl mx-auto mb-4">
+                    <p className={cn(BIGRAM_SERIF, "text-[clamp(20px,2.1vw,24px)] font-normal text-bigram-ink-2 leading-[1.5] max-w-2xl mx-auto mb-4 text-pretty")}>
                         {t("bigramNarrative.hero.description")}
                     </p>
 
-                    <p className="text-xs font-mono text-[var(--lab-text-subtle)] mb-8">
+                    <p className={cn(BIGRAM_MONO, "text-[11px] uppercase tracking-[0.14em] text-bigram-muted mb-8")}>
                         {t("bigramNarrative.hero.readTime")}
                     </p>
 
@@ -453,10 +465,10 @@ export function BigramNarrative({
                 <ExpandableSection title={t("bigramNarrative.coreIdea.formalTitle")}>
                     <P>{t("bigramNarrative.coreIdea.formalP1")}</P>
                     <P>{t("bigramNarrative.coreIdea.etymologyBridge")}</P>
-                    <div className="my-6 p-4 rounded-xl bg-black/30 border border-emerald-500/15 text-center">
-                        <p className="font-mono text-sm text-emerald-300 mb-2">P(cₙ | cₙ₋₁) = Count(cₙ₋₁, cₙ) / Count(cₙ₋₁)</p>
-                        <p className="text-[10px] text-white/30 font-mono">{t("bigramNarrative.coreIdea.formulaCaption")}</p>
-                    </div>
+                    <FormulaBlock
+                        formula="P(c_n \mid c_{n-1}) = \dfrac{\text{Count}(c_{n-1},\, c_n)}{\text{Count}(c_{n-1})}"
+                        caption={t("bigramNarrative.coreIdea.formulaCaption")}
+                    />
                     <P>{t("bigramNarrative.coreIdea.formalP2")}</P>
                     <P>{t("bigramNarrative.coreIdea.formalP3")}</P>
                 </ExpandableSection>
@@ -521,7 +533,7 @@ export function BigramNarrative({
                             <TransitionMatrix
                                 data={matrixData}
                                 onCellClick={onCellClick}
-                                accent="emerald"
+                                accent="bigram"
                             />
                         </Suspense>
                     </FigureWrapper>
@@ -556,7 +568,6 @@ export function BigramNarrative({
                     <FigureWrapper
                         label={t("bigramNarrative.normalization.label")}
                         hint={t("bigramNarrative.normalization.vizHint")}
-                        showWindowDots={false}
                     >
                         <Suspense fallback={<SectionSkeleton />}><NormalizationVisualizer /></Suspense>
                     </FigureWrapper>
@@ -579,7 +590,7 @@ export function BigramNarrative({
 
                 <P>{t("bigramNarrative.normalization.p3")}</P>
 
-                <KeyTakeaway accent="emerald">
+                <KeyTakeaway accent="bigram">
                     {t("bigramNarrative.keyTakeaways.normalization")}
                 </KeyTakeaway>
             </Section>
@@ -609,15 +620,15 @@ export function BigramNarrative({
                 <ExpandableSection title={t("bigramNarrative.sampling.softmaxTitle")}>
                     <P>{t("bigramNarrative.sampling.softmaxIntuition")}</P>
                     <P>{t("bigramNarrative.sampling.softmaxP1")}</P>
-                    <div className="my-6 p-4 rounded-xl bg-black/30 border border-emerald-500/15 text-center space-y-3">
-                        <p className="font-mono text-sm text-emerald-300">softmax(zᵢ) = eᶻⁱ / Σⱼ eᶻʲ</p>
-                        <p className="text-[10px] text-white/30 font-mono">{t("bigramNarrative.sampling.softmaxFormulaCaption")}</p>
-                    </div>
+                    <FormulaBlock
+                        formula="\text{softmax}(z_i) = \dfrac{e^{z_i}}{\sum_j e^{z_j}}"
+                        caption={t("bigramNarrative.sampling.softmaxFormulaCaption")}
+                    />
                     <P>{t("bigramNarrative.sampling.softmaxP2")}</P>
-                    <div className="my-6 p-4 rounded-xl bg-black/30 border border-emerald-500/15 text-center space-y-3">
-                        <p className="font-mono text-sm text-emerald-300">softmax(zᵢ / T) = eᶻⁱ/ᵀ / Σⱼ eᶻʲ/ᵀ</p>
-                        <p className="text-[10px] text-white/30 font-mono">{t("bigramNarrative.sampling.softmaxTempCaption")}</p>
-                    </div>
+                    <FormulaBlock
+                        formula="\text{softmax}(z_i / T) = \dfrac{e^{z_i / T}}{\sum_j e^{z_j / T}}"
+                        caption={t("bigramNarrative.sampling.softmaxTempCaption")}
+                    />
                     <P>{t("bigramNarrative.sampling.softmaxP3")}</P>
                 </ExpandableSection>
 
@@ -668,17 +679,20 @@ export function BigramNarrative({
 
                 <PullQuote>{t("bigramNarrative.cliffhanger.hookLine")}</PullQuote>
 
-                <KeyTakeaway accent="emerald">
+                <KeyTakeaway accent="bigram">
                     {t("bigramNarrative.keyTakeaways.fatalFlaw")}
                 </KeyTakeaway>
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── CTA (asymmetric — primary = next chapter) ─────────── */}
+            {/* ─────────── CTA (asymmetric — primary = next chapter) ───────────
+               v8 editorial-green: tokens only. Primary is a calm surface card with
+               an accent-soft icon well; the secondary is a quiet text-row. No teal,
+               no neon glow — the green resolves through [data-bigram-theme]. */}
             <Section>
                 <div className="text-center mb-10">
-                    <h2 className="text-2xl md:text-3xl font-bold text-[var(--lab-text)] tracking-tight mb-3">
+                    <h2 className={cn(BIGRAM_DISPLAY, "font-semibold text-bigram-ink tracking-[-0.012em] leading-[1.08] text-[clamp(28px,3.6vw,40px)] mb-3 text-balance")}>
                         {t("bigramNarrative.cta.title")}
                     </h2>
                 </div>
@@ -687,44 +701,44 @@ export function BigramNarrative({
                     {/* Primary CTA — next chapter */}
                     <Link href="/lab/ngram">
                         <motion.div
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="group relative w-full rounded-2xl border border-teal-500/25 bg-gradient-to-br from-teal-950/30 to-[var(--lab-viz-bg)]/80 p-8 text-left transition-colors hover:border-teal-500/50 overflow-hidden shadow-[0_0_40px_-12px_rgba(20,184,166,0.15)]"
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.99 }}
+                            className="group relative w-full overflow-hidden rounded-[var(--bigram-r-lg)] border border-[color:var(--bigram-rule-2)] bg-bigram-surface p-8 text-left transition-colors duration-300 hover:border-[color-mix(in_oklab,var(--bigram-accent)_40%,var(--bigram-rule-2))]"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-br from-teal-500/[0.08] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                            <div className="absolute inset-0 bg-[linear-gradient(135deg,var(--bigram-accent-soft),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                             <div className="relative flex items-center gap-5">
-                                <div className="p-3 rounded-2xl bg-teal-500/15 shrink-0">
-                                    <ArrowRight className="w-7 h-7 text-teal-300" />
+                                <div className="shrink-0 grid place-items-center w-12 h-12 rounded-[var(--bigram-r-md)] bg-[var(--bigram-accent-soft)] ring-1 ring-[color-mix(in_oklab,var(--bigram-accent)_30%,transparent)] transition-[box-shadow] group-hover:ring-[color-mix(in_oklab,var(--bigram-accent)_50%,transparent)]">
+                                    <ArrowRight className="w-6 h-6 text-bigram-accent" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <span className="text-xl font-bold text-[var(--lab-text)] tracking-tight block mb-1">
+                                    <span className={cn(BIGRAM_SERIF, "block mb-1 text-[20px] font-semibold leading-snug text-bigram-ink tracking-tight")}>
                                         {t("bigramNarrative.cta.nextTitle")}
                                     </span>
-                                    <p className="text-sm text-[var(--lab-text-muted)] leading-relaxed">
+                                    <p className={cn(BIGRAM_SERIF, "text-[15px] leading-relaxed text-bigram-muted")}>
                                         {t("bigramNarrative.cta.nextDesc")}
                                     </p>
                                 </div>
-                                <ArrowRight className="w-5 h-5 text-teal-400/50 shrink-0 group-hover:text-teal-400 transition-colors" />
+                                <ArrowRight className="w-5 h-5 shrink-0 text-[color-mix(in_oklab,var(--bigram-accent)_55%,transparent)] transition-all group-hover:translate-x-0.5 group-hover:text-bigram-accent" />
                             </div>
                         </motion.div>
                     </Link>
 
                     {/* Secondary CTA — free lab */}
                     <motion.button
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
+                        whileHover={{ scale: 1.005 }}
+                        whileTap={{ scale: 0.995 }}
                         onClick={() => setMode("free")}
-                        className="group relative w-full rounded-xl border border-white/[0.08] bg-white/[0.02] p-5 text-left transition-colors hover:border-emerald-500/25 overflow-hidden"
+                        className="group relative w-full overflow-hidden rounded-[var(--bigram-r-md)] border border-[color:var(--bigram-rule)] bg-[color-mix(in_oklab,var(--bigram-ink)_3%,transparent)] p-5 text-left transition-colors duration-200 hover:border-[color-mix(in_oklab,var(--bigram-accent)_28%,var(--bigram-rule))] hover:bg-[var(--bigram-accent-soft)]"
                     >
                         <div className="relative flex items-center gap-4">
-                            <div className="p-2 rounded-xl bg-emerald-500/10 shrink-0">
-                                <Beaker className="w-4 h-4 text-emerald-300/70" />
+                            <div className="shrink-0 grid place-items-center w-9 h-9 rounded-[var(--bigram-r-sm)] bg-[var(--bigram-accent-soft)]">
+                                <Beaker className="w-4 h-4 text-bigram-accent" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <span className="text-sm font-bold text-[var(--lab-text-muted)]">
+                                <span className={cn(BIGRAM_SERIF, "text-[15px] font-semibold text-bigram-ink-2")}>
                                     {t("bigramNarrative.cta.freeLabButton")}
                                 </span>
-                                <span className="text-xs text-[var(--lab-text-subtle)] ml-2">
+                                <span className={cn(BIGRAM_SERIF, "ml-2 text-[13px] text-bigram-muted")}>
                                     {t("bigramNarrative.cta.freeLabDesc")}
                                 </span>
                             </div>
@@ -734,8 +748,8 @@ export function BigramNarrative({
             </Section>
 
             {/* ───────────────── FOOTER ───────────────── */}
-            <FadeInView as="footer" className="mt-8 pt-12 border-t border-[var(--lab-border)] text-center">
-                <div className="flex items-center justify-center gap-2 text-[10px] font-mono uppercase tracking-widest text-[var(--lab-border)]">
+            <FadeInView as="footer" className="mt-8 pt-12 border-t border-[color:var(--bigram-rule)] text-center">
+                <div className={cn(BIGRAM_MONO, "flex items-center justify-center gap-2 text-[10px] uppercase tracking-widest text-bigram-dim")}>
                     <FlaskConical className="h-3 w-3" />
                     {t("bigramNarrative.footer.brand")}
                 </div>

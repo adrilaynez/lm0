@@ -10,10 +10,13 @@ const ACCENT_COLORS: Record<string, string> = {
     amber: "#fbbf24",
     violet: "#a78bfa",
     cyan: "#22d3ee",
+    // bigram (editorial-green): scoped token — resolves under [data-bigram-theme],
+    // shifts correctly between emerald (dark) and forest (light). Never a raw hex.
+    bigram: "var(--bigram-accent)",
 };
 
 interface ReadingProgressBarProps {
-    accent?: "rose" | "emerald" | "amber" | "violet" | "cyan";
+    accent?: "rose" | "emerald" | "amber" | "violet" | "cyan" | "bigram";
 }
 
 export function ReadingProgressBar({ accent = "rose" }: ReadingProgressBarProps) {

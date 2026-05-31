@@ -6,10 +6,19 @@ import { Lightbulb } from "lucide-react";
 
 interface KeyTakeawayProps {
     children: React.ReactNode;
-    accent?: "emerald" | "amber" | "rose" | "violet" | "cyan";
+    accent?: "emerald" | "amber" | "rose" | "violet" | "cyan" | "bigram";
 }
 
-const ACCENT_STYLES = {
+interface LiteralAccent {
+    border: string;
+    iconBg: string;
+    iconColor: string;
+    labelColor: string;
+    barColor: string;
+    glowRgb: string;
+}
+
+const ACCENT_STYLES: Record<Exclude<KeyTakeawayProps["accent"], "bigram" | undefined>, LiteralAccent> = {
     emerald: {
         border: "border-emerald-500/20",
         iconBg: "bg-emerald-500/15",
@@ -52,7 +61,59 @@ const ACCENT_STYLES = {
     },
 };
 
+/**
+ * Bigram (editorial-green, v8) takeaway — the SAGE "editorial insight" voice.
+ * Distinct from the interactive emerald accent: a paler, airier green.
+ * Every value is a --bigram-* token so it follows the [data-bigram-theme]
+ * scope (dark + light) and never touches another chapter's accent.
+ * Mirrors the `.takeaway` rule in styles-v8.css.
+ */
+function BigramTakeaway({ children }: { children: React.ReactNode }) {
+    return (
+        <div
+            className="my-10 rounded-[var(--bigram-r-lg)] p-6 sm:p-7 relative"
+            style={{
+                background:
+                    "linear-gradient(135deg, var(--bigram-sage-soft), transparent 82%)",
+                border: "1px solid color-mix(in oklab, var(--bigram-sage) 32%, transparent)",
+            }}
+        >
+            <div className="relative flex gap-4">
+                <div
+                    className="flex-shrink-0 grid place-items-center w-9 h-9 rounded-[var(--bigram-r-sm)]"
+                    style={{
+                        background: "var(--bigram-sage-soft)",
+                        color: "var(--bigram-sage)",
+                    }}
+                >
+                    <Lightbulb className="w-[18px] h-[18px]" />
+                </div>
+                <div>
+                    <div
+                        className="font-mono text-[10.5px] uppercase tracking-[0.18em] mb-2.5"
+                        style={{ color: "var(--bigram-sage)" }}
+                    >
+                        Key Takeaway
+                    </div>
+                    <div
+                        className="font-serif text-[19px] leading-relaxed"
+                        style={{ color: "var(--bigram-ink)" }}
+                    >
+                        {children}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export function KeyTakeaway({ children, accent = "emerald" }: KeyTakeawayProps) {
+    // Bigram opts into the SAGE editorial-green voice; all other chapters keep
+    // their original literal Tailwind accents untouched.
+    if (accent === "bigram") {
+        return <BigramTakeaway>{children}</BigramTakeaway>;
+    }
+
     const s = ACCENT_STYLES[accent];
 
     return (

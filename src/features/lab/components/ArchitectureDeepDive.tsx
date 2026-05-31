@@ -1,97 +1,123 @@
 "use client";
 
+import { useId, useState } from "react";
 import { BlockMath, InlineMath } from "react-katex";
 
-import {
-    AlertTriangle,
-    CheckCircle2,
-    Cpu,
-    Layers
-} from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 
 import { FadeInView } from "@/features/lab/components/FadeInView";
-import { Badge } from "@/components/ui/badge";
-import { useI18n } from "@/i18n/context";
 import type { ArchitectureViz } from "@/features/lab/types/lmLab";
+import { useI18n } from "@/i18n/context";
+
+/**
+ * ArchitectureDeepDive — the Bigram chapter's technical specification, redesigned into the v8
+ * editorial-green language. Three calm movements, one focal point at a time:
+ *
+ *   1 · Mechanism — a numbered editorial timeline. Each step reads as prose (Source Serif), the
+ *       formula lives in a sunken bg-2 well (mono accent equation), and a single quiet "?" disc
+ *       reveals an elev tooltip on hover/focus — sophistication tucked away, not on the surface.
+ *   2 · Analysis — capabilities and constraints under ONE accent system (the v8 single-accent rule):
+ *       what the model *can* do is emerald, what it *cannot* is terracotta (--bigram-wrong). State is
+ *       carried by fill + typography and a hairline rule, never by stacked boxes.
+ *   3 · Model card — a single calm surface panel with a rule-2 hairline; mono eyebrows, ink values,
+ *       use-cases as accent-soft pills.
+ *
+ * Token-only: reads exclusively --bigram-* variables + the registered fonts, resolved through the
+ * [data-bigram-theme] scope the chapter wrapper sets. No raw hex, no neon, no other chapter's accent.
+ * Reduced-motion safe (FadeInView + the only motion, the tooltip fade, both collapse to instant).
+ */
+
+const MONO = "font-[family-name:var(--bigram-font-mono)]";
+const SERIF = "font-[family-name:var(--bigram-font-serif)]";
+const DISPLAY = "font-[family-name:var(--bigram-font-display)]";
 
 interface ArchitectureDeepDiveProps {
     data: ArchitectureViz | null;
 }
 
+interface StepDef {
+    id: "matrixW" | "softmax" | "loss";
+    equation: string;
+    /** an extra inline equation shown inside the tooltip (softmax only) */
+    tipEquation?: string;
+}
+
+const STEP_DEFS: StepDef[] = [
+    { id: "matrixW", equation: "W \\in \\mathbb{R}^{|V| \\times |V|}" },
+    {
+        id: "softmax",
+        equation: "P(x_{t+1} \\mid x_t) = \\text{softmax}(W[idx])",
+        tipEquation: "\\sigma(z)_i = \\frac{e^{z_i}}{\\sum_j e^{z_j}}",
+    },
+    { id: "loss", equation: "\\mathcal{L} = -\\sum_{i} y_i \\log(\\hat{y}_i)" },
+];
+
+/* ── A single quiet "?" disc that reveals a tooltip on hover/focus. ─────────────────────────────
+   The disc is the only chrome; the panel itself is an elevated surface with a mono accent title
+   (the v8 callout voice). Reduced-motion safe. */
+function StepTooltip({
+    title,
+    desc,
+    tipEquation,
+}: {
+    title: string;
+    desc: string;
+    tipEquation?: string;
+}) {
+    const reduce = useReducedMotion();
+    const [open, setOpen] = useState(false);
+    const tipId = useId();
+
+    return (
+        <span
+            className="relative ml-2 shrink-0"
+            onMouseEnter={() => setOpen(true)}
+            onMouseLeave={() => setOpen(false)}
+        >
+            <button
+                type="button"
+                aria-label={title}
+                aria-expanded={open}
+                aria-describedby={open ? tipId : undefined}
+                onFocus={() => setOpen(true)}
+                onBlur={() => setOpen(false)}
+                className={`${MONO} flex h-5 w-5 items-center justify-center rounded-full border border-[color:var(--bigram-rule-2)] bg-bigram-surface text-[11px] font-semibold text-bigram-dim transition-colors hover:border-bigram-accent hover:text-bigram-accent focus:outline-none focus-visible:border-bigram-accent focus-visible:text-bigram-accent focus-visible:ring-2 focus-visible:ring-[color:var(--bigram-accent-soft)]`}
+            >
+                ?
+            </button>
+
+            {open && (
+                <motion.span
+                    id={tipId}
+                    role="tooltip"
+                    initial={reduce ? false : { opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={reduce ? { duration: 0 } : { duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
+                    className="absolute bottom-full right-0 z-40 mb-3 block w-72 rounded-[var(--bigram-r-md)] border border-[color:var(--bigram-rule-2)] bg-bigram-elev p-4 text-left shadow-[0_24px_60px_-30px_rgba(0,0,0,0.7)]"
+                >
+                    <span
+                        className={`${MONO} mb-2 flex items-center gap-2 text-[10.5px] uppercase tracking-[0.18em] text-bigram-accent`}
+                    >
+                        <span className="h-1.5 w-1.5 rounded-full bg-bigram-accent" />
+                        {title}
+                    </span>
+                    <span className={`${SERIF} block text-[13px] leading-relaxed text-bigram-body`}>
+                        {desc}
+                    </span>
+                    {tipEquation && (
+                        <span className="mt-3 block text-[12px] text-bigram-accent-ink [&_.katex]:text-bigram-accent-ink">
+                            <InlineMath math={tipEquation} />
+                        </span>
+                    )}
+                </motion.span>
+            )}
+        </span>
+    );
+}
+
 export function ArchitectureDeepDive({ data }: ArchitectureDeepDiveProps) {
     const { t } = useI18n();
     if (!data) return null;
-
-    const stepsList = [
-        { id: "matrixW", key: "models.bigram.architecture.stepsList.matrixW", tooltipTitle: t("models.bigram.architecture.tooltips.matrixW.title"), tooltipDesc: t("models.bigram.architecture.tooltips.matrixW.desc") },
-        { id: "softmax", key: "models.bigram.architecture.stepsList.softmax", tooltipTitle: t("models.bigram.architecture.tooltips.softmax.title"), tooltipDesc: t("models.bigram.architecture.tooltips.softmax.desc") },
-        { id: "loss", key: "models.bigram.architecture.stepsList.loss", tooltipTitle: t("models.bigram.architecture.tooltips.loss.title"), tooltipDesc: t("models.bigram.architecture.tooltips.loss.desc") }
-    ];
-
-    // Helper to detect and render LaTeX or plain text
-    const renderStep = (stepId: string, label: string, tooltipTitle: string, tooltipDesc: string) => {
-        if (stepId === "matrixW") {
-            return (
-                <div className="space-y-4">
-                    <div className="flex items-start justify-between group/tip">
-                        <p className="text-white/70">{label}</p>
-                        <div className="group relative ml-2 mt-1">
-                            <div className="flex items-center justify-center w-4 h-4 rounded-full bg-white/5 border border-white/10 cursor-help hover:bg-white/10 transition-colors">
-                                <span className="text-[10px] font-bold text-white/40 group-hover:text-white/60">?</span>
-                            </div>
-                            <div className="absolute right-0 bottom-full mb-3 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 border border-white/10 p-4 rounded-2xl z-50 w-72 text-[11px] text-slate-400 pointer-events-none shadow-2xl leading-relaxed animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                <p className="font-bold text-white mb-2 uppercase tracking-widest text-[10px]">{tooltipTitle}</p>
-                                <p>{tooltipDesc}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <BlockMath math="W \in \mathbb{R}^{|V| \times |V|}" />
-                </div>
-            );
-        }
-        if (stepId === "softmax") {
-            return (
-                <div className="space-y-4">
-                    <div className="flex items-start justify-between group/tip">
-                        <p className="text-white/70">{label}</p>
-                        <div className="group relative ml-2 mt-1">
-                            <div className="flex items-center justify-center w-4 h-4 rounded-full bg-white/5 border border-white/10 cursor-help hover:bg-white/10 transition-colors">
-                                <span className="text-[10px] font-bold text-white/40 group-hover:text-white/60">?</span>
-                            </div>
-                            <div className="absolute right-0 bottom-full mb-3 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 border border-white/10 p-4 rounded-2xl z-50 w-72 text-[11px] text-slate-400 pointer-events-none shadow-2xl leading-relaxed animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                <p className="font-bold text-white mb-2 uppercase tracking-widest text-[10px]">{tooltipTitle}</p>
-                                <p>{tooltipDesc}</p>
-                                <div className="mt-2 font-mono text-[9px] text-indigo-400/70 italic">
-                                    <InlineMath math="\sigma(z)_i = \frac{e^{z_i}}{\sum e^{z_j}}" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <BlockMath math="P(x_{t+1} | x_t) = \text{softmax}(W[idx])" />
-                </div>
-            );
-        }
-        if (stepId === "loss") {
-            return (
-                <div className="space-y-4">
-                    <div className="flex items-start justify-between group/tip">
-                        <p className="text-white/70">{label}</p>
-                        <div className="group relative ml-2 mt-1">
-                            <div className="flex items-center justify-center w-4 h-4 rounded-full bg-white/5 border border-white/10 cursor-help hover:bg-white/10 transition-colors">
-                                <span className="text-[10px] font-bold text-white/40 group-hover:text-white/60">?</span>
-                            </div>
-                            <div className="absolute right-0 bottom-full mb-3 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 border border-white/10 p-4 rounded-2xl z-50 w-72 text-[11px] text-slate-400 pointer-events-none shadow-2xl leading-relaxed animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                <p className="font-bold text-white mb-2 uppercase tracking-widest text-[10px]">{tooltipTitle}</p>
-                                <p>{tooltipDesc}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <BlockMath math="\mathcal{L} = -\sum_{i} y_i \log(\hat{y}_i)" />
-                </div>
-            );
-        }
-        return <p className="text-sm text-white/70 leading-relaxed pb-6">{label}</p>;
-    };
 
     const strengths = [
         t("models.bigram.architecture.analysis.strengths.0"),
@@ -106,118 +132,161 @@ export function ArchitectureDeepDive({ data }: ArchitectureDeepDiveProps) {
     ];
 
     return (
-        <section className="relative py-20 border-t border-white/[0.04] bg-white/[0.01]">
-            <div className="max-w-7xl mx-auto px-6">
+        <section className="relative border-t border-bigram-rule py-20">
+            <div className="mx-auto max-w-7xl px-6">
 
-                {/* Header */}
-                <div className="mb-12">
-                    <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-3">
-                        <Cpu className="text-indigo-400" />
-                        {t("models.bigram.architecture.title")}
-                    </h2>
-                    <p className="text-white/50 max-w-2xl">
+                {/* ── Section header · editorial numeral + mono label + hairline ── */}
+                <div className="mb-14 max-w-2xl">
+                    <div className="mb-5 flex items-baseline gap-3.5">
+                        <span className={`${DISPLAY} text-[22px] font-semibold italic leading-none text-bigram-accent`}>
+                            §
+                        </span>
+                        <span className={`${MONO} text-[11.5px] font-medium uppercase tracking-[0.18em] text-bigram-muted`}>
+                            {t("models.bigram.architecture.title")}
+                        </span>
+                        <span className="h-px flex-1 self-center bg-[var(--bigram-rule)]" />
+                    </div>
+                    <p className={`${SERIF} text-[clamp(19px,2vw,22px)] leading-[1.5] text-bigram-ink-2 text-pretty`}>
                         {t("models.bigram.architecture.subtitle")}
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+                <div className="grid grid-cols-1 gap-12 lg:grid-cols-3 lg:gap-14">
 
-                    {/* Column 1: Mechanism */}
-                    <FadeInView className="space-y-6">
-                        <h3 className="text-sm font-mono uppercase tracking-widest text-indigo-400 border-b border-indigo-500/20 pb-2 mb-4">
+                    {/* ── 1 · Mechanism ── */}
+                    <FadeInView className="space-y-8">
+                        <h3 className={`${MONO} flex items-center gap-3 text-[11px] uppercase tracking-[0.2em] text-bigram-accent`}>
+                            <span className="h-1.5 w-1.5 rounded-full bg-bigram-accent" />
                             {t("models.bigram.architecture.mechanism")}
                         </h3>
-                        {stepsList.map((step, i) => (
-                            <div key={step.id} className="flex gap-4 group">
-                                <div className="flex flex-col items-center">
-                                    <div className="w-6 h-6 rounded-full bg-white/[0.05] border border-white/10 flex items-center justify-center text-[10px] font-mono text-white/60 group-hover:border-indigo-500/50 group-hover:text-indigo-400 transition-colors">
-                                        {i + 1}
+
+                        <ol className="space-y-7">
+                            {STEP_DEFS.map((step, i) => (
+                                <li key={step.id} className="flex gap-4">
+                                    {/* numeral + connector spine */}
+                                    <div className="flex flex-col items-center pt-0.5">
+                                        <span
+                                            className={`${MONO} flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--bigram-rule-2)] bg-bigram-surface text-[12px] font-medium text-bigram-accent`}
+                                        >
+                                            {i + 1}
+                                        </span>
+                                        {i < STEP_DEFS.length - 1 && (
+                                            <span className="my-2 w-px flex-1 bg-[var(--bigram-rule)]" />
+                                        )}
                                     </div>
-                                    {i < stepsList.length - 1 && (
-                                        <div className="w-px h-6 bg-white/[0.05] my-2" />
-                                    )}
-                                </div>
-                                <div className="flex-grow pb-6">
-                                    {renderStep(step.id, t(step.key), step.tooltipTitle, step.tooltipDesc)}
-                                </div>
-                            </div>
-                        ))}
+
+                                    <div className="min-w-0 flex-1 space-y-3.5 pb-1">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <p className={`${SERIF} text-[16px] leading-[1.6] text-bigram-body`}>
+                                                {t(`models.bigram.architecture.stepsList.${step.id}`)}
+                                            </p>
+                                            <StepTooltip
+                                                title={t(`models.bigram.architecture.tooltips.${step.id}.title`)}
+                                                desc={t(`models.bigram.architecture.tooltips.${step.id}.desc`)}
+                                                tipEquation={step.tipEquation}
+                                            />
+                                        </div>
+
+                                        {/* formula well · sunken bg-2, rule-2 hairline, mono accent equation */}
+                                        <div className="overflow-x-auto rounded-[var(--bigram-r-md)] border border-[color:var(--bigram-rule-2)] bg-bigram-bg-2 px-5 py-4 text-center text-bigram-accent [&_.katex]:text-bigram-accent">
+                                            <BlockMath math={step.equation} />
+                                        </div>
+                                    </div>
+                                </li>
+                            ))}
+                        </ol>
                     </FadeInView>
 
-                    {/* Column 2: Analysis */}
-                    <FadeInView delay={0.1} className="space-y-8">
-                        {/* Strengths */}
+                    {/* ── 2 · Analysis · single-accent: emerald can / terracotta cannot ── */}
+                    <FadeInView delay={0.1} className="space-y-10">
+                        {/* Capabilities */}
                         <div>
-                            <h3 className="text-sm font-mono uppercase tracking-widest text-emerald-400 border-b border-emerald-500/20 pb-2 mb-4">
+                            <h3 className={`${MONO} flex items-center gap-3 border-b border-bigram-rule pb-2.5 text-[11px] uppercase tracking-[0.2em] text-bigram-accent`}>
+                                <span className="h-1.5 w-1.5 rounded-full bg-bigram-accent" />
                                 {t("models.bigram.architecture.capabilities")}
                             </h3>
-                            <ul className="space-y-3">
+                            <ul className="mt-5 space-y-4">
                                 {strengths.map((s, i) => (
-                                    <li key={i} className="flex gap-3 text-sm text-white/60">
-                                        <CheckCircle2 className="w-4 h-4 text-emerald-500/50 shrink-0 mt-0.5" />
-                                        {s}
+                                    <li key={i} className={`${SERIF} flex gap-3 text-[15px] leading-[1.55] text-bigram-body`}>
+                                        <span aria-hidden className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-bigram-accent" />
+                                        <span>{s}</span>
                                     </li>
                                 ))}
                             </ul>
                         </div>
 
-                        {/* Limitations */}
+                        {/* Constraints */}
                         <div>
-                            <h3 className="text-sm font-mono uppercase tracking-widest text-amber-400 border-b border-amber-500/20 pb-2 mb-4">
+                            <h3 className={`${MONO} flex items-center gap-3 border-b border-[color:var(--bigram-rule)] pb-2.5 text-[11px] uppercase tracking-[0.2em] text-bigram-wrong`}>
+                                <span className="h-1.5 w-1.5 rounded-full bg-bigram-wrong" />
                                 {t("models.bigram.architecture.constraints")}
                             </h3>
-                            <ul className="space-y-3">
+                            <ul className="mt-5 space-y-4">
                                 {limitations.map((l, i) => (
-                                    <li key={i} className="flex gap-3 text-sm text-white/60">
-                                        <AlertTriangle className="w-4 h-4 text-amber-500/50 shrink-0 mt-0.5" />
-                                        {l}
+                                    <li key={i} className={`${SERIF} flex gap-3 text-[15px] leading-[1.55] text-bigram-body`}>
+                                        <span aria-hidden className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-bigram-wrong" />
+                                        <span>{l}</span>
                                     </li>
                                 ))}
                             </ul>
                         </div>
                     </FadeInView>
 
-                    {/* Column 3: Model Card */}
-                    <FadeInView delay={0.2} className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 h-fit">
-                        <div className="flex items-center gap-3 mb-6">
-                            <Layers className="text-white/40" />
-                            <h3 className="text-lg font-bold text-white">{t("models.bigram.architecture.modelCard.title")}</h3>
-                        </div>
+                    {/* ── 3 · Model card · calm surface panel, rule-2 hairline ── */}
+                    <FadeInView
+                        delay={0.2}
+                        className="h-fit rounded-[var(--bigram-r-lg)] border border-[color:var(--bigram-rule-2)] bg-bigram-surface p-7"
+                    >
+                        <h3 className={`${DISPLAY} mb-7 text-[20px] font-semibold text-bigram-ink`}>
+                            {t("models.bigram.architecture.modelCard.title")}
+                        </h3>
 
-                        <div className="space-y-6">
+                        <dl className="space-y-6">
                             <div>
-                                <div className="text-[10px] uppercase tracking-widest text-white/30 mb-1">{t("models.bigram.architecture.modelCard.type")}</div>
-                                <div className="text-white font-mono">{data.type}</div>
+                                <dt className={`${MONO} mb-1.5 text-[10px] uppercase tracking-[0.18em] text-bigram-muted`}>
+                                    {t("models.bigram.architecture.modelCard.type")}
+                                </dt>
+                                <dd className={`${MONO} text-[15px] text-bigram-ink`}>{data.type}</dd>
                             </div>
 
                             <div>
-                                <div className="text-[10px] uppercase tracking-widest text-white/30 mb-1">{t("models.bigram.architecture.modelCard.complexity")}</div>
-                                <Badge variant="outline" className="border-white/10 text-white/60">
-                                    {data.complexity}
-                                </Badge>
+                                <dt className={`${MONO} mb-1.5 text-[10px] uppercase tracking-[0.18em] text-bigram-muted`}>
+                                    {t("models.bigram.architecture.modelCard.complexity")}
+                                </dt>
+                                <dd>
+                                    <span
+                                        className={`${MONO} inline-flex items-center rounded-[var(--bigram-r-pill)] border border-[color:var(--bigram-rule-2)] px-3 py-1 text-[12px] tracking-[0.04em] text-bigram-ink-2`}
+                                    >
+                                        {data.complexity}
+                                    </span>
+                                </dd>
                             </div>
 
                             <div>
-                                <div className="text-[10px] uppercase tracking-widest text-white/30 mb-1">{t("models.bigram.architecture.modelCard.useCases")}</div>
-                                <div className="flex flex-wrap gap-2 mt-2">
+                                <dt className={`${MONO} mb-2.5 text-[10px] uppercase tracking-[0.18em] text-bigram-muted`}>
+                                    {t("models.bigram.architecture.modelCard.useCases")}
+                                </dt>
+                                <dd className="flex flex-wrap gap-2">
                                     {data.use_cases.map((u, i) => (
-                                        <Badge
+                                        <span
                                             key={i}
-                                            className="bg-indigo-500/10 text-indigo-300 border-indigo-500/20 hover:bg-indigo-500/20"
+                                            className={`${MONO} inline-flex items-center rounded-[var(--bigram-r-pill)] bg-[var(--bigram-accent-soft)] px-3 py-1 text-[12px] tracking-[0.02em] text-bigram-accent-ink`}
                                         >
                                             {u}
-                                        </Badge>
+                                        </span>
                                     ))}
-                                </div>
+                                </dd>
                             </div>
 
-                            <div className="pt-6 border-t border-white/[0.06]">
-                                <div className="text-[10px] uppercase tracking-widest text-white/30 mb-2">{t("models.bigram.architecture.modelCard.description")}</div>
-                                <p className="text-xs text-white/50 leading-relaxed">
+                            <div className="border-t border-bigram-rule pt-6">
+                                <dt className={`${MONO} mb-2 text-[10px] uppercase tracking-[0.18em] text-bigram-muted`}>
+                                    {t("models.bigram.architecture.modelCard.description")}
+                                </dt>
+                                <dd className={`${SERIF} text-[14px] leading-[1.65] text-bigram-body`}>
                                     {data.description}
-                                </p>
+                                </dd>
                             </div>
-                        </div>
+                        </dl>
                     </FadeInView>
 
                 </div>

@@ -10,12 +10,46 @@ interface TermProps {
     children?: React.ReactNode;
 }
 
+/**
+ * Scoped v8 styling for the underlined term.
+ *
+ * Default (every other chapter): dotted --lab-text-muted underline + --lab-text,
+ * exactly as before. Inside the Bigram chapter ([data-bigram-theme]) the same
+ * markup opts into the editorial-green v8 ".term": a dashed --bigram-accent-2
+ * under-border on --bigram-ink. The green is gated entirely by the
+ * [data-bigram-theme] scope, so no other accent is ever touched.
+ */
+const TERM_STYLE_ID = "bigram-term-style";
+const TERM_SCOPED_CSS = `
+[data-bigram-theme] .glossary-term__underline {
+    color: var(--bigram-ink);
+    border-bottom-style: dashed;
+    border-bottom-color: var(--bigram-accent-2);
+}
+[data-bigram-theme] .glossary-term__eyebrow {
+    color: var(--bigram-accent-ink);
+}
+`;
+
+function useBigramTermStyle() {
+    useEffect(() => {
+        if (typeof document === "undefined") return;
+        if (document.getElementById(TERM_STYLE_ID)) return;
+        const el = document.createElement("style");
+        el.id = TERM_STYLE_ID;
+        el.textContent = TERM_SCOPED_CSS;
+        document.head.appendChild(el);
+    }, []);
+}
+
 export function Term({ word, children }: TermProps) {
     const { language } = useI18n();
     const [show, setShow] = useState(false);
     const [pos, setPos] = useState<"above" | "below">("above");
     const termRef = useRef<HTMLSpanElement>(null);
     const tooltipRef = useRef<HTMLDivElement>(null);
+
+    useBigramTermStyle();
 
     const entry = glossary[word.toLowerCase()];
     const definition = entry
@@ -69,7 +103,7 @@ export function Term({ word, children }: TermProps) {
             onMouseLeave={() => setShow(false)}
             onClick={handleClick}
         >
-            <span className="border-b border-dotted border-[var(--lab-text-muted)] text-[var(--lab-text)]">
+            <span className="glossary-term__underline border-b border-dotted border-[var(--lab-text-muted)] text-[var(--lab-text)]">
                 {children || word}
             </span>
 
@@ -84,7 +118,7 @@ export function Term({ word, children }: TermProps) {
                         }
                     `}
                 >
-                    <div className="font-mono text-[10px] uppercase tracking-widest text-emerald-400/70 mb-1">
+                    <div className="glossary-term__eyebrow font-mono text-[10px] uppercase tracking-widest text-emerald-400/70 mb-1">
                         {word}
                     </div>
                     <div>{definition}</div>

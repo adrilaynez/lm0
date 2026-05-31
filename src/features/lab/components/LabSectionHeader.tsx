@@ -3,7 +3,7 @@
 import { FadeInView } from "@/features/lab/components/FadeInView";
 import { cn } from "@/lib/utils";
 
-type Accent = "emerald" | "violet" | "amber" | "indigo" | "blue" | "rose";
+type Accent = "emerald" | "violet" | "amber" | "indigo" | "blue" | "rose" | "bigram";
 
 interface LabSectionHeaderProps {
     number: string;
@@ -49,6 +49,14 @@ const ACCENT_MAP: Record<Accent, { num: string; title: string; bar: string; desc
         title: "from-rose-300 to-pink-300",
         bar: "bg-gradient-to-b from-rose-400 to-pink-500",
         desc: "text-white/45",
+    },
+    // Bigram (editorial-green) — token-driven so it follows the [data-bigram-theme] scope
+    // in both dark and light, and never collides with the literal Tailwind accents above.
+    bigram: {
+        num: "bg-bigram-accent-soft border-[color-mix(in_oklab,var(--bigram-accent)_38%,transparent)] text-bigram-accent-ink",
+        title: "from-[var(--bigram-accent-ink)] to-[var(--bigram-accent-2)]",
+        bar: "bg-gradient-to-b from-[var(--bigram-accent)] to-[var(--bigram-accent-2)]",
+        desc: "text-bigram-muted",
     },
 };
 
