@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Cpu, Dices, Info, Zap } from "lucide-react";
@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { HonestBar } from "@/features/lab/components/bigram/HonestBar";
 import { Verdict } from "@/features/lab/components/bigram/Verdict";
 import type { Prediction } from "@/features/lab/types/lmLab";
 import { useI18n } from "@/i18n/context";
@@ -22,10 +21,10 @@ interface InferenceConsoleProps {
     loading: boolean;
     error: string | null;
     /**
-     * Visual language. `"bigram"` opts into the editorial-green v8 surface (HonestBar, --bigram-*
-     * tokens, sage verdict) and must be rendered under a `[data-bigram-theme]` scope. Any other value
-     * (default) keeps the original neutral console used by the n-gram chapter — so that accent never
-     * regresses. This is the additive, opt-in scoping mandated by the project direction.
+     * Visual language. `"bigram"` opts into the editorial-green v10 console (inline dst-only honest
+     * rows, --bigram-* tokens, sage verdict) and must be rendered under a `[data-bigram-theme]` scope.
+     * Any other value (default) keeps the original neutral console used by the n-gram chapter — so that
+     * accent never regresses. This is the additive, opt-in scoping mandated by the project direction.
      */
     accent?: "bigram" | "default";
 }
@@ -43,10 +42,30 @@ export function InferenceConsole(props: InferenceConsoleProps) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   v8 — editorial-green. ONE idea: enter a context, read the honest distribution
-   over next characters. The HonestBar stack is the figure; everything else is
-   quiet chrome. State is shown by fill + weight, never by piling on borders.
+   v10 — editorial-green. ONE idea, crystal-clear: type a context, the model
+   returns the HONEST next-character distribution. No surrounding panel; the
+   console lives open on the page like the other v10 widgets. The only sunk
+   well is the input. The distribution is the figure — v10 dst-only rows on a
+   FIXED honest axis (a short bar literally looks unsure). State is shown by
+   FILL + TYPOGRAPHY, never by piling on borders. The sage Verdict states the
+   conclusion in human language after a weighted dice roll.
+
+   Built inline (NOT via the v8 HonestBar primitive): the v8 bar is a src→dst
+   PAIR with an arrow + glint + 12px track — the wrong idiom here. The "src"
+   (last typed char) is already stated in the question above each row, so each
+   row carries ONLY the predicted glyph, matching the v10 HeroAutoComplete row
+   (74px label · 9px pill track · count-up · winner-last cascade · no glint).
    ───────────────────────────────────────────────────────────────────────── */
+
+/** Honest axis denominator — a 31 % bar reaches ~62 %; doubt stays visible. Mirrors v10 AXIS. */
+const AXIS = 0.5;
+const THIN_SPACE = " "; // narrow no-break space before %, per typographic convention
+
+/** "31 %" / "92 %" — one decimal, strips a trailing ".0", thin space before %. Mirrors v10 `pct`. */
+function pct(p: number): string {
+    return (p * 100).toFixed(1).replace(/\.0$/, "") + THIN_SPACE + "%";
+}
+
 function BigramInferenceConsole({
     onAnalyze,
     predictions,
@@ -73,7 +92,7 @@ function BigramInferenceConsole({
         [text, topK, onAnalyze]
     );
 
-    // Weighted sampling lands on a real candidate so the matching bar lights up.
+    // Weighted sampling lands on a real candidate so the matching row lights up.
     const handleSample = useCallback(() => {
         if (!predictions || predictions.length === 0) return;
         const total = predictions.reduce((s, p) => s + p.probability, 0);
@@ -88,16 +107,15 @@ function BigramInferenceConsole({
         setSampledToken(predictions[predictions.length - 1].token);
     }, [predictions]);
 
-    // Winner-last cascade: the runners-up fill first, the winner fills last with a glint —
-    // the eye settles on the most likely character at the end of the motion.
+    // Winner-last cascade (v10): runners-up fill first, the winner fills LAST — the eye settles on
+    // the most likely character at the end of the motion. Delay in ms, like the HeroAutoComplete row.
     const rows = useMemo(() => {
         if (!predictions) return [];
         const n = predictions.length;
         return predictions.map((p, i) => ({
             ...p,
             isTop: i === 0,
-            // i=0 (winner) gets the largest delay; the rest cascade in before it.
-            delay: reduce ? 0 : (n - 1 - i) * 0.075,
+            delayMs: reduce ? 0 : (n - 1 - i) * 90,
         }));
     }, [predictions, reduce]);
 
@@ -106,64 +124,63 @@ function BigramInferenceConsole({
     return (
         <figure
             data-console="figure"
-            className="relative m-0 overflow-hidden rounded-[var(--bigram-r-lg)] px-6 py-7 sm:px-7"
-            style={{
-                background: "color-mix(in oklab, var(--bigram-surface) 55%, var(--bigram-bg))",
-            }}
+            className="m-0"
+            style={{ fontFamily: "var(--font-source-serif)" }}
         >
-            {/* Device chip — quiet mono, top-right, no neon badge */}
-            {device && (
-                <span
-                    className="absolute right-6 top-7 inline-flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.16em]"
-                    style={{ fontFamily: MONO, color: "var(--bigram-dim)" }}
-                >
-                    <Cpu className="h-3 w-3" strokeWidth={1.75} />
-                    {device}
-                </span>
-            )}
-
             {/* ── Control: the context input + Top-K, typography-first ── */}
             <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
-                    <label
-                        className="block text-[10.5px] uppercase tracking-[0.2em]"
-                        style={{ fontFamily: MONO, color: "var(--bigram-muted)" }}
-                    >
-                        {t("models.bigram.inference.contextLabel")}
-                    </label>
-                    <div className="relative">
-                        <input
-                            type="text"
-                            value={text}
-                            onChange={(e) => setText(e.target.value)}
-                            onFocus={() => setFocused(true)}
-                            onBlur={() => setFocused(false)}
-                            placeholder={t("models.bigram.inference.form.placeholder")}
-                            aria-label={t("models.bigram.inference.contextLabel")}
-                            className="w-full rounded-[var(--bigram-r-md)] px-4 py-3 text-[16px] outline-none transition-shadow"
-                            style={{
-                                fontFamily: MONO,
-                                color: "var(--bigram-ink)",
-                                background: "var(--bigram-bg-2)",
-                                boxShadow: focused
-                                    ? "inset 0 1px 2px color-mix(in oklab, black 22%, transparent), 0 0 0 1.5px color-mix(in oklab, var(--bigram-accent) 55%, transparent)"
-                                    : "inset 0 1px 2px color-mix(in oklab, black 22%, transparent), 0 0 0 1px var(--bigram-rule-2)",
-                            }}
-                        />
+                    <div className="flex items-baseline justify-between">
+                        <label
+                            className="block text-[11px] uppercase tracking-[0.2em]"
+                            style={{ fontFamily: MONO, color: "var(--bigram-muted)" }}
+                        >
+                            {t("models.bigram.inference.contextLabel")}
+                        </label>
+                        {/* Device — quiet mono, no neon badge; sits inline with the label */}
+                        {device && (
+                            <span
+                                className="inline-flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.16em]"
+                                style={{ fontFamily: MONO, color: "var(--bigram-dim)" }}
+                            >
+                                <Cpu className="h-3 w-3" strokeWidth={1.75} />
+                                {device}
+                            </span>
+                        )}
                     </div>
+                    <input
+                        type="text"
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        onFocus={() => setFocused(true)}
+                        onBlur={() => setFocused(false)}
+                        placeholder={t("models.bigram.inference.form.placeholder")}
+                        aria-label={t("models.bigram.inference.contextLabel")}
+                        className="w-full px-4 py-3 text-[16px] outline-none"
+                        style={{
+                            fontFamily: MONO,
+                            color: "var(--bigram-ink)",
+                            background: "var(--bigram-bg-2)",
+                            borderRadius: "var(--bigram-r-md)",
+                            boxShadow: focused
+                                ? "inset 0 1px 4px rgba(0,0,0,.28), 0 0 0 2px var(--bigram-accent-soft)"
+                                : "inset 0 1px 4px rgba(0,0,0,.28)",
+                            transition: "box-shadow .2s ease",
+                        }}
+                    />
                 </div>
 
                 {/* Top-K — a quiet sunken slider, value in accent mono */}
                 <div className="space-y-2.5">
                     <div className="flex items-baseline justify-between">
                         <label
-                            className="text-[10.5px] uppercase tracking-[0.2em]"
+                            className="text-[11px] uppercase tracking-[0.2em]"
                             style={{ fontFamily: MONO, color: "var(--bigram-muted)" }}
                         >
                             {t("models.bigram.inference.form.topK")}
                         </label>
                         <span
-                            className="text-[13px] font-semibold tabular-nums"
+                            className="text-[14px] font-semibold tabular-nums"
                             style={{ fontFamily: MONO, color: "var(--bigram-accent-ink)" }}
                         >
                             {topK}
@@ -183,11 +200,12 @@ function BigramInferenceConsole({
                 <button
                     type="submit"
                     disabled={loading || !text.trim()}
-                    className="group inline-flex h-11 w-full items-center justify-center gap-2 rounded-[var(--bigram-r-md)] text-[12px] font-semibold uppercase tracking-[0.18em] transition-[filter,opacity] disabled:opacity-40"
+                    className="group inline-flex h-11 w-full items-center justify-center gap-2 text-[12px] font-semibold uppercase tracking-[0.18em] transition-[filter,opacity] disabled:opacity-40"
                     style={{
                         fontFamily: MONO,
                         color: "var(--bigram-on-accent)",
                         background: "var(--bigram-accent)",
+                        borderRadius: "var(--bigram-r-md)",
                     }}
                 >
                     {loading ? (
@@ -213,11 +231,12 @@ function BigramInferenceConsole({
                         initial={reduce ? false : { opacity: 0, y: -4 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="mt-5 flex items-center gap-2 rounded-[var(--bigram-r-sm)] px-3.5 py-2.5 text-[13px]"
+                        className="mt-5 flex items-center gap-2 px-3.5 py-2.5 text-[14px]"
                         style={{
                             fontFamily: "var(--font-source-serif)",
                             color: "var(--bigram-wrong)",
                             background: "var(--bigram-wrong-soft)",
+                            borderRadius: "var(--bigram-r-sm)",
                         }}
                     >
                         <Info className="h-4 w-4 shrink-0" strokeWidth={1.75} />
@@ -228,11 +247,11 @@ function BigramInferenceConsole({
 
             {/* ── The distribution — the single focal point ── */}
             {loading && (
-                <div className="mt-7 space-y-4">
+                <div className="mt-8 space-y-[18px]">
                     {Array.from({ length: topK }).map((_, i) => (
                         <Skeleton
                             key={i}
-                            className="h-3 rounded-full"
+                            className="h-[9px] rounded-full"
                             style={{ background: "color-mix(in oklab, var(--bigram-ink) 8%, transparent)" }}
                         />
                     ))}
@@ -246,22 +265,30 @@ function BigramInferenceConsole({
                         initial={reduce ? false : { opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="mt-7"
+                        className="mt-8"
                     >
-                        {/* Section label: the plain-language question, serif, one focal point */}
-                        <div
-                            className="mb-1 flex items-baseline justify-between border-t pt-5"
-                            style={{ borderColor: "var(--bigram-rule)" }}
-                        >
-                            <span
-                                className="text-[10.5px] uppercase tracking-[0.18em]"
-                                style={{ fontFamily: MONO, color: "var(--bigram-muted)" }}
+                        {/* The plain-language question — the one thing to read; mono lead, no box */}
+                        <div className="mb-6 flex items-baseline justify-between gap-4">
+                            <p
+                                className="text-[16.5px]"
+                                style={{
+                                    fontFamily: MONO,
+                                    fontWeight: 500,
+                                    lineHeight: 1.5,
+                                    letterSpacing: "0.005em",
+                                    color: "var(--bigram-muted)",
+                                    margin: 0,
+                                    textWrap: "pretty",
+                                }}
                             >
-                                {t("models.bigram.inference.axisLabel").replace("{char}", glyph(lastChar))}
-                            </span>
+                                {t("models.bigram.inference.axisLabel").replace(
+                                    "{char}",
+                                    glyph(lastChar)
+                                )}
+                            </p>
                             {inferenceMs !== undefined && (
                                 <span
-                                    className="text-[11px] tabular-nums"
+                                    className="shrink-0 text-[11px] tabular-nums"
                                     style={{ fontFamily: MONO, color: "var(--bigram-dim)" }}
                                 >
                                     {inferenceMs.toFixed(2)} ms
@@ -269,40 +296,38 @@ function BigramInferenceConsole({
                             )}
                         </div>
 
-                        <div className="-my-1">
-                            {rows.map((p) => {
-                                const isSampled = sampledToken === p.token;
-                                return (
-                                    <SampledRow key={p.token} active={isSampled} reduce={reduce}>
-                                        <HonestBar
-                                            src={lastChar}
-                                            dst={p.token}
-                                            value={p.probability}
-                                            top={p.isTop || isSampled}
-                                            delay={p.delay}
-                                        />
-                                    </SampledRow>
-                                );
-                            })}
+                        <div className="flex flex-col gap-[clamp(14px,2.6vw,22px)]">
+                            {rows.map((p) => (
+                                <PredictionRow
+                                    key={`${text}:${p.token}:${predictions.length}`}
+                                    glyph={p.token}
+                                    prob={p.probability}
+                                    top={p.isTop}
+                                    sampled={sampledToken === p.token}
+                                    delayMs={p.delayMs}
+                                    reduce={!!reduce}
+                                />
+                            ))}
                         </div>
 
                         {/* Honest-axis caption — explains the short-bar = uncertainty idea */}
                         <p
-                            className="mt-3 text-[13px] italic"
+                            className="mt-5 text-[15px] italic"
                             style={{ fontFamily: "var(--font-source-serif)", color: "var(--bigram-muted)" }}
                         >
                             {t("models.bigram.inference.axisHint")}
                         </p>
 
                         {/* ── Sample: roll the weighted dice ── */}
-                        <div className="mt-6 space-y-4">
+                        <div className="mt-7 space-y-4">
                             <button
                                 onClick={handleSample}
-                                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[var(--bigram-r-md)] text-[12px] font-semibold uppercase tracking-[0.16em] transition-colors"
+                                className="inline-flex h-10 w-full items-center justify-center gap-2 text-[12px] font-semibold uppercase tracking-[0.16em] transition-colors"
                                 style={{
                                     fontFamily: MONO,
                                     color: "var(--bigram-accent-ink)",
                                     background: "var(--bigram-accent-soft)",
+                                    borderRadius: "var(--bigram-r-md)",
                                     boxShadow:
                                         "inset 0 0 0 1px color-mix(in oklab, var(--bigram-accent) 26%, transparent)",
                                 }}
@@ -321,7 +346,9 @@ function BigramInferenceConsole({
                                     : t("models.bigram.inference.sampleButton")}
                             </button>
 
-                            {/* Plain-language verdict — SAGE voice, the conclusion in human words */}
+                            {/* Plain-language verdict — SAGE voice, the conclusion in human words.
+                                It reports the SAMPLED character (what the die landed on), so the verdict
+                                always matches the highlighted row. */}
                             <AnimatePresence mode="wait">
                                 {sampledToken && winner && (
                                     <motion.div
@@ -334,7 +361,7 @@ function BigramInferenceConsole({
                                             label={t("models.bigram.inference.sampledLabel")}
                                             main={
                                                 <>
-                                                    {beforeChar(
+                                                    {fillVerdict(
                                                         t("models.bigram.inference.verdictMain"),
                                                         glyph(lastChar),
                                                         glyph(sampledToken)
@@ -343,7 +370,7 @@ function BigramInferenceConsole({
                                             }
                                             sub={t("models.bigram.inference.verdictSub").replace(
                                                 "{pct}",
-                                                `${(sampledProb(predictions, sampledToken) * 100).toFixed(1)}%`
+                                                pct(sampledProb(predictions, sampledToken))
                                             )}
                                         />
                                     </motion.div>
@@ -357,11 +384,10 @@ function BigramInferenceConsole({
             {/* Empty state — calm hint, no chrome */}
             {!predictions && !loading && !error && (
                 <p
-                    className="mt-6 border-t pt-5 text-[14px] italic"
+                    className="mt-7 text-[16px] italic"
                     style={{
                         fontFamily: "var(--font-source-serif)",
                         color: "var(--bigram-muted)",
-                        borderColor: "var(--bigram-rule)",
                     }}
                 >
                     {t("models.bigram.inference.emptyHint")}
@@ -408,33 +434,150 @@ function BigramInferenceConsole({
 }
 
 /**
- * SampledRow — a thin sliding highlight that slides to whichever bar the dice landed on.
- * One persistent layout element (layoutId) rather than a per-row redraw, matching the v8
- * "sliding lens" idea: subtle accent-soft plane behind the active row, nothing else.
+ * PredictionRow — the v10 dst-only honest-axis row, built inline (NOT the v8 HonestBar pair).
+ *
+ * Grid `64px 1fr auto`: label cell = ONLY the predicted glyph (the context is stated in the
+ * question above the stack); a 9px pill track holds the fill on a FIXED axis (AXIS=0.5) so a weak
+ * guess literally looks weak; the value counts up 0→prob over 620ms (easeOutCubic) after `delayMs`.
+ *
+ * Two states, both by FILL + TYPOGRAPHY (no borders):
+ *   • winner (top)   → brightest glyph (accent), brightest fill (accent-bright)
+ *   • sampled (dice) → glyph in accent-ink, fill in accent (mid), value in accent-ink — the die's pick
+ *   • runner-up      → ink glyph, accent-2 fill, dim value
  */
-function SampledRow({
-    active,
+function PredictionRow({
+    glyph: ch,
+    prob,
+    top,
+    sampled,
+    delayMs,
     reduce,
-    children,
 }: {
-    active: boolean;
-    reduce: boolean | null;
-    children: React.ReactNode;
+    glyph: string;
+    prob: number;
+    top: boolean;
+    sampled: boolean;
+    delayMs: number;
+    reduce: boolean;
 }) {
+    const isSpace = ch === " ";
+    const targetW = Math.min(100, (prob / AXIS) * 100);
+    const [width, setWidth] = useState(reduce ? targetW : 0);
+    const [valueText, setValueText] = useState(reduce ? pct(prob) : pct(0));
+
+    useEffect(() => {
+        if (reduce) return;
+        let raf = 0;
+        const fillTimer = window.setTimeout(() => setWidth(targetW), delayMs);
+        // count-up: 0 → prob over 620ms, easeOutCubic, starting after delayMs (matches HeroAutoComplete).
+        const countTimer = window.setTimeout(() => {
+            let t0: number | null = null;
+            const dur = 620;
+            const frame = (now: number) => {
+                if (t0 == null) t0 = now;
+                const k = Math.min(1, (now - t0) / dur);
+                const e = 1 - Math.pow(1 - k, 3); // easeOutCubic
+                setValueText(pct(prob * e));
+                if (k < 1) raf = requestAnimationFrame(frame);
+                else setValueText(pct(prob));
+            };
+            raf = requestAnimationFrame(frame);
+        }, delayMs);
+        return () => {
+            window.clearTimeout(fillTimer);
+            window.clearTimeout(countTimer);
+            cancelAnimationFrame(raf);
+        };
+    }, [delayMs, prob, targetW, reduce]);
+
+    // Fill + glyph colour resolve by state — fill, not border, carries the emphasis.
+    const fillColor = sampled
+        ? "var(--bigram-accent)"
+        : top
+          ? "var(--bigram-accent-bright)"
+          : "var(--bigram-accent-2)";
+    const glyphColor = sampled
+        ? "var(--bigram-accent-ink)"
+        : top
+          ? "var(--bigram-accent)"
+          : "var(--bigram-ink)";
+    const valueColor = sampled || top ? "var(--bigram-muted)" : "var(--bigram-dim)";
+
     return (
-        <div className="relative">
-            {active && (
-                <motion.span
-                    layoutId="bigram-sampled-lens"
-                    aria-hidden
-                    transition={
-                        reduce ? { duration: 0 } : { type: "spring", stiffness: 360, damping: 32 }
-                    }
-                    className="pointer-events-none absolute inset-x-[-12px] inset-y-[3px] rounded-[var(--bigram-r-sm)]"
-                    style={{ background: "var(--bigram-sage-soft)" }}
+        <div
+            role="img"
+            aria-label={`${isSpace ? "space" : ch}, ${pct(prob)}`}
+            style={{
+                display: "grid",
+                gridTemplateColumns: "64px 1fr auto",
+                alignItems: "center",
+                gap: "clamp(14px, 2.6vw, 20px)",
+            }}
+        >
+            {/* label = ONLY the predicted glyph (dst-only, v10) */}
+            <span
+                style={{
+                    fontFamily: MONO,
+                    fontSize: "clamp(18px, 2.6vw, 21px)",
+                    lineHeight: 1,
+                    justifySelf: "end",
+                    display: "inline-flex",
+                    alignItems: "center",
+                }}
+            >
+                <span
+                    style={{
+                        color: glyphColor,
+                        fontWeight: top || sampled ? 700 : 600,
+                        transition: "color .26s ease",
+                        ...(isSpace ? { fontSize: "0.72em", letterSpacing: "0.01em" } : null),
+                    }}
+                >
+                    {isSpace ? "space" : ch}
+                </span>
+            </span>
+
+            {/* 9px sunk pill track + fill on the fixed honest axis */}
+            <span
+                style={{
+                    position: "relative",
+                    height: "9px",
+                    borderRadius: "var(--bigram-r-pill)",
+                    background: "color-mix(in oklab, var(--bigram-ink) 8%, transparent)",
+                    overflow: "hidden",
+                }}
+            >
+                <i
+                    style={{
+                        position: "absolute",
+                        inset: "0 auto 0 0",
+                        height: "100%",
+                        width: `${width}%`,
+                        borderRadius: "var(--bigram-r-pill)",
+                        background: fillColor,
+                        transition: reduce
+                            ? "background .26s ease"
+                            : "width .62s cubic-bezier(.2,.7,.2,1), background .26s ease",
+                    }}
                 />
-            )}
-            <div className="relative">{children}</div>
+            </span>
+
+            {/* count-up value pinned to the end of the track */}
+            <span
+                style={{
+                    fontFamily: MONO,
+                    fontSize: "13px",
+                    color: valueColor,
+                    fontVariantNumeric: "tabular-nums",
+                    justifySelf: "end",
+                    minWidth: "3.8em",
+                    textAlign: "right",
+                    letterSpacing: "0.01em",
+                    transition: "color .26s ease",
+                }}
+            >
+                {valueText}
+            </span>
         </div>
     );
 }
@@ -450,7 +593,7 @@ function sampledProb(preds: Prediction[] | null, token: string): number {
  * bolded — Verdict colours any <b> in accent-ink. We split on the literal placeholders so the
  * surrounding copy stays translatable.
  */
-function beforeChar(template: string, char: string, best: string): React.ReactNode {
+function fillVerdict(template: string, char: string, best: string): React.ReactNode {
     const parts = template.split(/(\{char\}|\{best\})/g);
     return parts.map((seg, i) => {
         if (seg === "{char}") return <b key={i}>{char}</b>;

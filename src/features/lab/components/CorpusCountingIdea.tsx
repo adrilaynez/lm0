@@ -11,12 +11,11 @@ import {
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-import { HonestBar } from "@/features/lab/components/bigram/HonestBar";
 import { Verdict } from "@/features/lab/components/bigram/Verdict";
 import { useI18n } from "@/i18n/context";
 
 /**
- * CorpusCountingIdea — the "bw-corpus" visualizer (Bigram chapter, v8 · editorial-green).
+ * CorpusCountingIdea — the "bw-corpus" visualizer (Bigram chapter, v10 · editorial-green).
  *
  * ONE concept: *count what follows a chosen character across real text, then bet on the most
  * frequent follower.* A calm scientific instrument — not a dashboard.
@@ -25,22 +24,23 @@ import { useI18n } from "@/i18n/context";
  *  • the training phrase is the HERO (large, centered, in a sunk --bigram-bg-2 panel);
  *  • the current pair carries TWO highlights — origin filled (hot1), follower tinted (hot2);
  *  • the scan is slow (~950ms) so the eye can follow each match; auto → pause → manual stays;
- *  • running counts render as the shared HonestBar (winner marked `top`, brighter & last);
- *  • it ends with the plain-language Verdict ("After X, the most likely is Y").
+ *  • running counts render as inline count-rows: INTEGER count `n`, width = n/max (max-normalized),
+ *    6px track, per-step `pop` bounce on the changed follower, live `top` winner;
+ *  • it ends with the plain-language Verdict ("After X, the most likely is Y") + a serif coda.
  *
- * Reads only --bigram-* tokens + the registered fonts; gated by the chapter's [data-bigram-theme] scope.
+ * Faithful port of v10 `mountCorpus` + `.bw-corpus` CSS. Reads only --bigram-* tokens + registered
+ * fonts; gated by the chapter's [data-bigram-theme] scope.
  */
 
-/* ─── Corpus text — a real English excerpt, short for visual clarity ─── */
-const CORPUS =
-    "the cat sat on the mat and the hat was flat the bat sat that the rat ate the fat cat";
+/* ─── Corpus text — exact v10 string (45 chars) ─── */
+const CORPUS = "the cat sat on the mat the rat ate the fat hat";
 
-/* ─── Characters the learner can choose ─── */
+/* ─── Characters the learner can choose (exact v10 order) ─── */
 const SELECTABLE_CHARS = ["t", "a", "e", "h", "s", " "];
 
-/* ─── Pacing ─── */
+/* ─── Pacing (exact v10) ─── */
 const SCAN_DELAY_MS = 950; // slow, legible scan — the eye follows each match
-const FIRST_STEP_MS = 480; // settle before the first match lands
+const FIRST_STEP_MS = 700; // settle before the first match lands
 const SPACE_GLYPH = "␣";
 
 /* ─── Helpers ─── */
@@ -70,6 +70,7 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
     const [scanning, setScanning] = useState(false);
     const [manualMode, setManualMode] = useState(false);
     const [tally, setTally] = useState<Tally>({});
+    const [changed, setChanged] = useState<string | null>(null); // follower bumped this step → pops
     const [done, setDone] = useState(false);
 
     // Refs the driver reads without re-creating callbacks each render — keeps the scan loop stable
@@ -90,14 +91,17 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
     /* ── Inspect match `index`: record its follower, then schedule the next (unless paused/done) ── */
     const step = useCallback((index: number) => {
         const positions = positionsRef.current;
-        if (index >= positions.length) {
+        if (index < 0 || index >= positions.length) {
             setScanning(false);
+            setScanIndex(-1);
+            setChanged(null);
             setDone(true);
             return;
         }
         setScanIndex(index);
         const follower = CORPUS[positions[index] + 1];
         setTally((prev) => ({ ...prev, [follower]: (prev[follower] ?? 0) + 1 }));
+        setChanged(follower);
 
         if (!manualRef.current) {
             timerRef.current = setTimeout(() => stepRef.current(index + 1), SCAN_DELAY_MS);
@@ -120,6 +124,7 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
             setSelectedChar(char);
             setOriginPositions(positions);
             setTally({});
+            setChanged(null);
             setScanIndex(-1);
             setManualMode(false);
 
@@ -141,15 +146,15 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
         step(scanIndex + 1);
     }, [clearTimer, step, scanIndex]);
 
-    /* ── Cleanup on unmount ── */
-    useEffect(() => clearTimer, [clearTimer]);
-
     /* ── Pause the auto-scan and hand control to the learner ── */
     const pauseScan = useCallback(() => {
         clearTimer();
         manualRef.current = true;
         setManualMode(true);
     }, [clearTimer]);
+
+    /* ── Cleanup on unmount ── */
+    useEffect(() => clearTimer, [clearTimer]);
 
     /* ── Derived view state ── */
     const currentPos =
@@ -171,19 +176,22 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
         [tally]
     );
 
-    const maxCount = ranked.length > 0 ? ranked[0][1] : 0;
-    // Honest axis: the winner's share of matches becomes the full track, so every other bar
-    // reads as its true proportion of the matches — never normalised to 100 %.
-    const axis = totalFound > 0 ? Math.max(maxCount / totalFound, 0.0001) : 0.5;
+    // Max-normalized: the leading count fills the track; every other bar is n/max — NOT n/total.
+    const maxCount = ranked.length > 0 ? ranked[0][1] : 1;
 
     const winner = ranked[0];
     const winnerPct =
         winner && totalFound > 0
-            ? `${Math.round((winner[1] / totalFound) * 100)}%`
+            ? `${Math.round((winner[1] / totalFound) * 100)} %`
             : "";
 
-    const liveFollower =
-        currentPos >= 0 ? CORPUS[currentPos + 1] : null;
+    const liveFollower = currentPos >= 0 ? CORPUS[currentPos + 1] : null;
+
+    // Banner pair "t→h" + meta + button — visible only while scanning (or paused & not done) on last.
+    const showBanner =
+        (scanning || (manualMode && !done)) &&
+        selectedChar != null &&
+        liveFollower != null;
 
     return (
         <div className="bw-corpus" style={{ maxWidth: 720, margin: "0 auto" }}>
@@ -220,15 +228,18 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
                 >
                     {SELECTABLE_CHARS.map((ch) => {
                         const active = selectedChar === ch;
-                        const locked = scanning && !active;
+                        const locked = scanning && !active; // chips disabled while scanning
                         return (
                             <button
                                 key={ch}
                                 type="button"
                                 role="radio"
                                 aria-checked={active}
-                                disabled={locked}
-                                onClick={() => startScan(ch)}
+                                aria-label={ch === " " ? "espacio" : ch}
+                                disabled={scanning}
+                                onClick={() => {
+                                    if (!scanning) startScan(ch);
+                                }}
                                 className="bw-corpus__chip"
                                 style={{
                                     position: "relative",
@@ -242,11 +253,12 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
                                     fontWeight: active ? 600 : 500,
                                     border: 0,
                                     borderRadius: "var(--bigram-r-sm)",
-                                    cursor: locked ? "default" : "pointer",
+                                    cursor: scanning ? "default" : "pointer",
                                     background: "transparent",
                                     color: active
                                         ? "var(--bigram-on-accent)"
                                         : "var(--bigram-muted)",
+                                    // inactive chips dim to .35 while scanning
                                     opacity: locked ? 0.35 : 1,
                                     transition: "color .2s ease",
                                 }}
@@ -294,7 +306,7 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
                         fontSize: 16,
                         color: "var(--bigram-muted)",
                         textAlign: "center",
-                        margin: "16px 0 4px",
+                        margin: "14px 0 4px",
                     }}
                 >
                     {t("bigramNarrative.corpusCounting.hint")}
@@ -304,126 +316,8 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
             {/* ── Stage: phrase hero + counts + verdict ── */}
             {selectedChar !== null && (
                 <div style={{ marginTop: 8 }}>
-                    {/* status line — current pair · match counter · pause/next */}
-                    <div
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 14,
-                            flexWrap: "wrap",
-                            minHeight: 26,
-                            margin: "18px 0 2px",
-                        }}
-                    >
-                        <AnimatePresence mode="wait">
-                            {scanning && liveFollower != null ? (
-                                <motion.div
-                                    key={`status-${scanIndex}`}
-                                    initial={reduce ? false : { opacity: 0, y: -3 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={reduce ? undefined : { opacity: 0, y: 3 }}
-                                    transition={{ duration: 0.18 }}
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 14,
-                                        flexWrap: "wrap",
-                                        justifyContent: "center",
-                                    }}
-                                >
-                                    <span
-                                        style={{
-                                            fontFamily: "var(--font-jetbrains-mono)",
-                                            fontSize: 19,
-                                            fontWeight: 600,
-                                            color: "var(--bigram-accent)",
-                                        }}
-                                    >
-                                        {displayChar(selectedChar)}
-                                        <span
-                                            style={{
-                                                margin: "0 4px",
-                                                color: "var(--bigram-dim)",
-                                                fontWeight: 400,
-                                                fontSize: 14,
-                                            }}
-                                        >
-                                            →
-                                        </span>
-                                        {displayChar(liveFollower)}
-                                    </span>
-                                    <span
-                                        style={{
-                                            fontFamily: "var(--font-jetbrains-mono)",
-                                            fontSize: 13,
-                                            color: "var(--bigram-muted)",
-                                            fontVariantNumeric: "tabular-nums",
-                                            whiteSpace: "nowrap",
-                                        }}
-                                    >
-                                        {t("bigramNarrative.corpusCounting.stepExplain", {
-                                            pos: scanIndex + 1,
-                                            total: originPositions.length,
-                                        })}
-                                    </span>
-                                    {!manualMode ? (
-                                        <button
-                                            type="button"
-                                            onClick={pauseScan}
-                                            style={statusBtnStyle(false)}
-                                        >
-                                            {t("bigramNarrative.corpusCounting.pauseBtn")}
-                                        </button>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            onClick={advanceManual}
-                                            style={statusBtnStyle(true)}
-                                        >
-                                            {t("bigramNarrative.corpusCounting.nextBtn")}
-                                        </button>
-                                    )}
-                                </motion.div>
-                            ) : (
-                                done && (
-                                    <motion.span
-                                        key="status-done"
-                                        initial={reduce ? false : { opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        style={{
-                                            fontFamily: "var(--font-jetbrains-mono)",
-                                            fontSize: 12.5,
-                                            color: "var(--bigram-dim)",
-                                            fontVariantNumeric: "tabular-nums",
-                                            textAlign: "center",
-                                        }}
-                                    >
-                                        {t("bigramNarrative.corpusCounting.found", {
-                                            count: totalFound,
-                                            char: displayChar(selectedChar),
-                                        })}
-                                    </motion.span>
-                                )
-                            )}
-                        </AnimatePresence>
-                    </div>
-
                     {/* THE HERO — the training phrase, large & centered in a sunk panel */}
-                    <div style={{ marginTop: 12 }}>
-                        <p
-                            style={{
-                                fontFamily: "var(--font-jetbrains-mono)",
-                                fontSize: 11,
-                                letterSpacing: ".2em",
-                                textTransform: "uppercase",
-                                color: "var(--bigram-muted)",
-                                margin: "0 0 10px",
-                                textAlign: "center",
-                            }}
-                        >
-                            {t("bigramNarrative.corpusCounting.corpusLabel")}
-                        </p>
+                    <div style={{ margin: "4px 0 0" }}>
                         <div
                             style={{
                                 fontFamily: "var(--font-jetbrains-mono)",
@@ -443,11 +337,12 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
                             {CORPUS.split("").map((char, i) => {
                                 const isOrigin = i === currentPos; // hot1
                                 const isFollower = i === currentPos + 1; // hot2
-                                const isPastOrigin =
+                                const positionIdx = originPositions.indexOf(i);
+                                const isPast =
                                     !isOrigin &&
-                                    char === selectedChar &&
-                                    originPositions.includes(i) &&
-                                    scanIndex > originPositions.indexOf(i);
+                                    !isFollower &&
+                                    positionIdx >= 0 &&
+                                    scanIndex > positionIdx;
 
                                 const isSpace = char === " ";
 
@@ -466,7 +361,7 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
                                     boxShadow =
                                         "inset 0 0 0 2px color-mix(in oklab, var(--bigram-accent) 38%, transparent)";
                                     fontWeight = 700;
-                                } else if (isPastOrigin) {
+                                } else if (isPast) {
                                     color =
                                         "color-mix(in oklab, var(--bigram-accent) 42%, var(--bigram-dim))";
                                 }
@@ -485,15 +380,68 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
                                                 "color .26s ease, background .26s ease, box-shadow .26s ease",
                                         }}
                                     >
-                                        {isSpace ? (isOrigin || isFollower ? SPACE_GLYPH : " ") : char}
+                                        {/* spaces render as a LITERAL " " in the scanned text (never ␣) */}
+                                        {char}
                                     </span>
                                 );
                             })}
                         </div>
                     </div>
 
-                    {/* RUNNING COUNTS — shared HonestBar; winner = top, brighter, last */}
-                    <div style={{ marginTop: 20, minHeight: 36 }}>
+                    {/* status line — current pair · "Match X of Y" · pause/next */}
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 14,
+                            flexWrap: "wrap",
+                            minHeight: 26,
+                            margin: "16px 0 2px",
+                            visibility: showBanner ? "visible" : "hidden",
+                        }}
+                    >
+                        {showBanner && (
+                            <>
+                                <span
+                                    style={{
+                                        fontFamily: "var(--font-jetbrains-mono)",
+                                        fontSize: 19,
+                                        fontWeight: 600,
+                                        color: "var(--bigram-accent)",
+                                    }}
+                                >
+                                    {displayChar(selectedChar)}→{displayChar(liveFollower)}
+                                </span>
+                                <span
+                                    style={{
+                                        fontFamily: "var(--font-jetbrains-mono)",
+                                        fontSize: 13,
+                                        color: "var(--bigram-muted)",
+                                        fontVariantNumeric: "tabular-nums",
+                                        whiteSpace: "nowrap",
+                                    }}
+                                >
+                                    {t("bigramNarrative.corpusCounting.stepExplain", {
+                                        pos: scanIndex + 1,
+                                        total: originPositions.length,
+                                    })}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={manualMode ? advanceManual : pauseScan}
+                                    style={statusBtnStyle(manualMode)}
+                                >
+                                    {manualMode
+                                        ? t("bigramNarrative.corpusCounting.nextBtn")
+                                        : t("bigramNarrative.corpusCounting.pauseBtn")}
+                                </button>
+                            </>
+                        )}
+                    </div>
+
+                    {/* RUNNING COUNTS — inline count-rows: integer count, max-normalized width */}
+                    <div style={{ marginTop: 18 }}>
                         <p
                             style={{
                                 fontFamily: "var(--font-jetbrains-mono)",
@@ -501,60 +449,84 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
                                 letterSpacing: ".2em",
                                 textTransform: "uppercase",
                                 color: "var(--bigram-muted)",
-                                margin: "0 0 4px",
+                                margin: "0 0 10px",
                                 textAlign: "center",
                             }}
                         >
                             {t("bigramNarrative.corpusCounting.countsLabel")}
                         </p>
-                        <AnimatePresence>
-                            {ranked.map(([follower, count], rank) => {
-                                const isWinner = done && rank === 0;
-                                const fraction = totalFound > 0 ? count / totalFound : 0;
-                                // Winner-last cascade only at the end: losers settle first, winner sweeps last.
-                                const cascadeDelay = done
-                                    ? (ranked.length - 1 - rank) * 0.08
-                                    : 0;
-                                return (
-                                    <motion.div
-                                        key={follower}
-                                        layout={!reduce}
-                                        initial={reduce ? false : { opacity: 0, y: 6 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.28, ease: [0.2, 0.8, 0.2, 1] }}
-                                    >
-                                        <HonestBar
-                                            src={selectedChar}
-                                            dst={follower}
-                                            value={fraction}
-                                            axis={axis}
-                                            top={isWinner}
-                                            glint={isWinner}
-                                            countUp={done}
-                                            delay={cascadeDelay}
-                                        />
-                                    </motion.div>
-                                );
-                            })}
-                        </AnimatePresence>
 
-                        {ranked.length === 0 && (
-                            <p
+                        <div style={{ minHeight: 36 }}>
+                            <AnimatePresence>
+                                {ranked.map(([follower, count], rank) => (
+                                    <CountRow
+                                        key={follower}
+                                        src={selectedChar}
+                                        dst={follower}
+                                        count={count}
+                                        max={maxCount}
+                                        top={rank === 0}
+                                        pop={!reduce && follower === changed}
+                                        reduce={!!reduce}
+                                    />
+                                ))}
+                            </AnimatePresence>
+
+                            {ranked.length === 0 && (
+                                <p
+                                    style={{
+                                        fontFamily: "var(--font-source-serif)",
+                                        fontStyle: "italic",
+                                        fontSize: 15,
+                                        color: "var(--bigram-dim)",
+                                        textAlign: "center",
+                                        padding: "16px 0",
+                                    }}
+                                >
+                                    {t("bigramNarrative.corpusCounting.empty")}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Total de pares — top rule, mono key + count */}
+                        {totalFound > 0 && (
+                            <div
                                 style={{
-                                    fontFamily: "var(--font-source-serif)",
-                                    fontStyle: "italic",
-                                    fontSize: 15,
-                                    color: "var(--bigram-dim)",
-                                    textAlign: "center",
-                                    padding: "16px 0",
+                                    display: "flex",
+                                    alignItems: "baseline",
+                                    justifyContent: "space-between",
+                                    margin: "14px 0 0",
+                                    paddingTop: 12,
+                                    borderTop: "1px solid var(--bigram-rule)",
                                 }}
                             >
-                                {t("bigramNarrative.corpusCounting.empty")}
-                            </p>
+                                <span
+                                    style={{
+                                        fontFamily: "var(--font-jetbrains-mono)",
+                                        fontSize: 11,
+                                        letterSpacing: ".14em",
+                                        textTransform: "uppercase",
+                                        color: "var(--bigram-muted)",
+                                    }}
+                                >
+                                    {t("bigramNarrative.corpusCounting.totalLabel")}
+                                </span>
+                                <span
+                                    style={{
+                                        fontFamily: "var(--font-jetbrains-mono)",
+                                        fontSize: 17,
+                                        fontWeight: 600,
+                                        color: "var(--bigram-ink)",
+                                        fontVariantNumeric: "tabular-nums",
+                                    }}
+                                >
+                                    {totalFound}
+                                </span>
+                            </div>
                         )}
                     </div>
 
-                    {/* VERDICT + replay — plain-language conclusion in the sage voice */}
+                    {/* VERDICT + coda + replay — plain-language conclusion in the sage voice */}
                     <AnimatePresence>
                         {done && winner && totalFound > 0 && (
                             <motion.div
@@ -566,7 +538,7 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
                                     delay: reduce ? 0 : 0.35,
                                     ease: [0.2, 0.8, 0.2, 1],
                                 }}
-                                style={{ marginTop: 24, textAlign: "center" }}
+                                style={{ marginTop: 22, textAlign: "center" }}
                             >
                                 <Verdict
                                     label={t("bigramNarrative.corpusCounting.verdictLabel")}
@@ -586,13 +558,26 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
                                     })}
                                 />
 
+                                {/* serif italic coda — the whole algorithm in one sentence */}
+                                <p
+                                    style={{
+                                        fontFamily: "var(--font-source-serif)",
+                                        fontStyle: "italic",
+                                        fontSize: 17,
+                                        color: "var(--bigram-muted)",
+                                        margin: "16px auto 18px",
+                                        maxWidth: "42ch",
+                                        textWrap: "pretty",
+                                        lineHeight: 1.5,
+                                    }}
+                                >
+                                    {t("bigramNarrative.corpusCounting.reveal")}
+                                </p>
+
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        selectedChar && startScan(selectedChar)
-                                    }
+                                    onClick={() => selectedChar && startScan(selectedChar)}
                                     style={{
-                                        marginTop: 16,
                                         display: "inline-flex",
                                         alignItems: "center",
                                         gap: 8,
@@ -608,7 +593,7 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
                                         boxShadow: "inset 0 0 0 1px var(--bigram-rule-2)",
                                     }}
                                 >
-                                    {t("bigramNarrative.corpusCounting.replay")}
+                                    ↻ {t("bigramNarrative.corpusCounting.replay")}
                                 </button>
                             </motion.div>
                         )}
@@ -616,6 +601,141 @@ export const CorpusCountingIdea = memo(function CorpusCountingIdea() {
                 </div>
             )}
         </div>
+    );
+});
+
+/* ─── Inline count-row — v10 `.bw-corpus__counts .barrow` (integer count, max-normalized) ─── */
+const CountRow = memo(function CountRow({
+    src,
+    dst,
+    count,
+    max,
+    top,
+    pop,
+    reduce,
+}: {
+    src: string;
+    dst: string;
+    count: number;
+    max: number;
+    top: boolean;
+    pop: boolean;
+    reduce: boolean;
+}) {
+    const isSpace = dst === " ";
+    const width = `${Math.round((count / Math.max(max, 1)) * 100)}%`;
+
+    return (
+        <motion.div
+            layout={!reduce}
+            initial={reduce ? false : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.28, ease: [0.2, 0.8, 0.2, 1] }}
+            style={{
+                display: "grid",
+                gridTemplateColumns: "60px 1fr 34px",
+                alignItems: "center",
+                gap: 18,
+                margin: "11px 0",
+            }}
+        >
+            {/* label — src→dst pair */}
+            <span
+                style={{
+                    fontFamily: "var(--font-jetbrains-mono)",
+                    fontSize: 17,
+                    fontWeight: 600,
+                    color: "var(--bigram-ink)",
+                    display: "inline-flex",
+                    alignItems: "baseline",
+                    gap: 2,
+                    whiteSpace: "nowrap",
+                }}
+            >
+                <span style={{ color: "var(--bigram-dim)", fontWeight: 500 }}>
+                    {displayChar(src)}
+                </span>
+                <span
+                    style={{
+                        color: "var(--bigram-dim)",
+                        fontWeight: 400,
+                        margin: "0 3px",
+                        fontSize: 14,
+                    }}
+                >
+                    →
+                </span>
+                <span
+                    style={
+                        isSpace
+                            ? {
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                  letterSpacing: ".03em",
+                                  color: "var(--bigram-dim)",
+                              }
+                            : {
+                                  color: top
+                                      ? "var(--bigram-accent-ink)"
+                                      : "var(--bigram-ink)",
+                                  fontWeight: 700,
+                                  fontSize: "1.05em",
+                              }
+                    }
+                >
+                    {displayChar(dst)}
+                </span>
+            </span>
+
+            {/* 6px sunk track + max-normalized fill */}
+            <span
+                style={{
+                    position: "relative",
+                    height: 6,
+                    borderRadius: 6,
+                    overflow: "hidden",
+                    background: "color-mix(in oklab, var(--bigram-ink) 10%, transparent)",
+                }}
+            >
+                <motion.i
+                    animate={{ width }}
+                    transition={
+                        reduce
+                            ? { duration: 0 }
+                            : { duration: 0.6, ease: [0.2, 0.7, 0.2, 1] }
+                    }
+                    style={{
+                        display: "block",
+                        height: "100%",
+                        borderRadius: 6,
+                        background: top
+                            ? "var(--bigram-accent-bright)"
+                            : "var(--bigram-accent-2)",
+                    }}
+                />
+            </span>
+
+            {/* integer count — pops every step on the changed follower */}
+            <motion.span
+                key={`${dst}-${count}`}
+                animate={pop ? { scale: [1.7, 1] } : { scale: 1 }}
+                transition={
+                    pop
+                        ? { duration: 0.44, ease: [0.2, 0.8, 0.2, 1] }
+                        : { duration: 0 }
+                }
+                style={{
+                    fontFamily: "var(--font-jetbrains-mono)",
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: top ? "var(--bigram-accent)" : "var(--bigram-muted)",
+                    textAlign: "right",
+                    fontVariantNumeric: "tabular-nums",
+                }}
+            >
+                {count}
+            </motion.span>
+        </motion.div>
     );
 });
 

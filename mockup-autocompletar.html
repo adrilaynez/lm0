@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bigrama · Autocompletar — versión nueva</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,500&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS (subconjunto del proyecto) ───────────────────────────── */
+:root{
+  --bg:oklch(0.176 0.016 193); --bg-2:oklch(0.138 0.014 195);
+  --surface:oklch(0.223 0.018 193); --elev:oklch(0.265 0.020 193);
+  --rule:oklch(0.99 0.02 195/10%); --rule-2:oklch(0.99 0.03 195/18%);
+  --ink:oklch(0.94 0.012 85); --ink-2:oklch(0.86 0.012 85);
+  --body:oklch(0.82 0.013 88); --muted:oklch(0.73 0.012 90); --dim:oklch(0.62 0.010 95);
+  --accent:oklch(0.70 0.148 164); --accent-2:oklch(0.60 0.132 166);
+  --accent-ink:oklch(0.72 0.152 163); --accent-soft:oklch(0.70 0.148 164/16%);
+  --on-accent:oklch(0.16 0.03 165);
+  --acc-l:0.70; --acc-c:0.148; --acc-h:164;
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-pill:999px;
+  --f-head:"Playfair Display",Georgia,serif;
+  --f-serif:"Source Serif 4",Georgia,serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+[data-theme="light"]{
+  --bg:#f4ecd8; --bg-2:#efe5cd; --elev:#f9f3e4; --surface:#faf5e8;
+  --ink:#20271f; --ink-2:#3c463a; --body:#46503f; --muted:#5e6b5b; --dim:#8d9684;
+  --rule:#ded3b9; --rule-2:#d2c6a8;
+  --accent:#305a3d; --accent-2:#3d6e4c; --accent-ink:#274d35; --accent-soft:#e4ecdb;
+  --on-accent:#f7f1e2; --acc-l:0.46; --acc-c:0.110; --acc-h:158;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--f-serif); font-size:20px; line-height:1.7;
+  -webkit-font-smoothing:antialiased; transition:background .4s,color .4s;
+  display:flex; flex-direction:column; min-height:100vh;
+}
+.wrap{max-width:980px; margin:0 auto; padding:64px 28px; width:100%}
+
+/* ── kicker / caption ────────────────────────────────────────────── */
+.kicker{
+  font-family:var(--f-mono); font-size:12px; font-weight:500; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--muted); margin:0 0 22px;
+}
+.kicker .dot{color:var(--accent)}
+.cap{
+  font-family:var(--f-serif); font-style:italic; font-size:16.5px;
+  color:var(--muted); text-align:center; margin:26px auto 0; max-width:46ch;
+}
+
+/* ── la zona interactiva: fondo apenas distinto, SIN borde (anti-noise) ── */
+.stage{
+  background:color-mix(in oklab, var(--surface) 55%, var(--bg));
+  border-radius:var(--r-lg); padding:40px 44px;
+}
+
+/* ── grid: keycap | predicciones ─────────────────────────────────── */
+.bw{display:grid; grid-template-columns:auto 1fr; gap:48px; align-items:center}
+@media(max-width:620px){ .bw{grid-template-columns:1fr; gap:30px} }
+
+/* keycap (tomado de la captura 1, pero tecleable de verdad) */
+.keywrap{display:flex; flex-direction:column; align-items:center; gap:16px}
+.key{
+  position:relative; width:128px; height:128px; border-radius:var(--r-md);
+  border:2px solid var(--accent-2); background:var(--accent-soft);
+  display:grid; place-items:center; transition:border-color .2s, box-shadow .2s;
+}
+.key:focus-within{border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft)}
+.key input{
+  width:100%; height:100%; text-align:center; border:0; outline:0; background:transparent;
+  font-family:var(--f-mono); font-size:66px; font-weight:600; color:var(--ink);
+  caret-color:var(--accent); padding:0;
+}
+.try{font-family:var(--f-mono); font-size:12px; letter-spacing:.04em; color:var(--dim)}
+.try b{color:var(--muted); font-weight:500; margin-right:4px}
+.try button{
+  font-family:var(--f-mono); font-size:14px; font-weight:600; color:var(--accent);
+  border:0; background:transparent; cursor:pointer; padding:2px 5px; border-radius:6px;
+  transition:background .15s;
+}
+.try button:hover{background:var(--accent-soft)}
+.try .sep{color:var(--dim); opacity:.5}
+
+/* predicciones */
+.preds{min-width:0}
+.preds__head{
+  font-family:var(--f-mono); font-size:15px; color:var(--muted); margin:0 0 22px; line-height:1.5;
+}
+.preds__head b{color:var(--accent-ink); font-weight:600}
+
+.rows{display:flex; flex-direction:column; gap:18px}
+.row{display:grid; grid-template-columns:6.4em 1fr auto; align-items:center; gap:18px}
+
+/* etiqueta del par (tomado de la captura 2: e → destino) */
+.lbl{font-family:var(--f-mono); font-size:21px; display:inline-flex; align-items:baseline; gap:3px; white-space:nowrap}
+.lbl .src{color:var(--dim); font-weight:500}
+.lbl .arr{color:var(--dim); font-weight:400; font-size:15px; margin:0 2px}
+.lbl .dst{color:var(--ink); font-weight:700}
+.lbl .dst.sp{font-size:14px; font-weight:600; color:var(--dim); letter-spacing:.02em}
+.row.top .lbl .dst{color:var(--accent-ink)}
+.row.rest .lbl .dst{font-family:var(--f-serif); font-style:italic; font-size:16px; font-weight:400; color:var(--dim)}
+
+/* barra · EJE HONESTO 0–100%: el vacío = la incertidumbre */
+.track{position:relative; height:12px; border-radius:6px; overflow:hidden;
+  background:color-mix(in oklab, var(--ink) 9%, transparent)}
+.track > i{position:absolute; inset:0 auto 0 0; height:100%; width:0; border-radius:6px;
+  background:oklch(var(--acc-l) var(--acc-c) var(--acc-h)/var(--a,1));
+  transition:width .6s cubic-bezier(.22,.8,.26,1)}
+
+.val{font-family:var(--f-mono); font-size:15px; color:var(--dim);
+  font-variant-numeric:tabular-nums; text-align:right; min-width:3.4em}
+.row.top .val{color:var(--accent); font-weight:600}
+.row.rest .val{color:var(--dim)}
+
+/* separador sutil antes de la fila resto */
+.row.rest{margin-top:4px; padding-top:16px; border-top:1px solid var(--rule)}
+
+/* toggle tema */
+.theme{
+  position:fixed; top:18px; right:18px; width:42px; height:42px; display:grid; place-items:center;
+  border:1px solid var(--rule-2); background:var(--surface); color:var(--ink);
+  border-radius:var(--r-md); cursor:pointer; font-size:18px; z-index:10;
+}
+@media(prefers-reduced-motion:reduce){ .track > i{transition:none} html{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+<button class="theme" id="theme" title="Cambiar tema">◐</button>
+<div class="wrap">
+  <p class="kicker">Interactivo <span class="dot">·</span> Escribe una letra</p>
+
+  <div class="stage">
+    <div class="bw">
+      <div class="keywrap">
+        <div class="key">
+          <input id="key" maxlength="1" value="e" aria-label="Escribe una letra" autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="try"><b>prueba:</b><button data-k="q">q</button><span class="sep">·</span><button data-k="t">t</button><span class="sep">·</span><button data-k="h">h</button></div>
+      </div>
+
+      <div class="preds">
+        <p class="preds__head">Después de <b id="ctx">«e»</b>, esto es lo que cree el modelo:</p>
+        <div class="rows" id="rows"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="cap">Esta mini-demo predice el siguiente carácter basándose en una sola letra. Cambia la letra y mira cómo cambia su apuesta — <em>¿cómo lo sabe?</em></p>
+</div>
+
+<script>
+/* distribución bigrama (top-3 + resto) — cifras ilustrativas pero plausibles */
+const DATA = {
+  e:[['e','espacio',37,1],['r','r',20,0],['n','n',13,0]],
+  t:[['h','h',40,0],['o','o',16,0],['e','espacio',11,1]],
+  h:[['e','e',48,0],['a','a',12,0],['i','i',9,0]],
+  q:[['u','u',97,0],['e','espacio',2,1],['a','a',1,0]],
+  a:[['n','n',17,0],['t','t',14,0],['l','l',12,0]],
+  s:[['e','espacio',28,1],['t','t',14,0],['e','e',11,0]],
+  o:[['n','n',20,0],['e','espacio',18,1],['r','r',14,0]],
+  i:[['n','n',24,0],['s','s',16,0],['t','t',14,0]],
+  n:[['e','espacio',30,1],['d','d',14,0],['t','t',10,0]],
+  r:[['e','e',22,0],['e','espacio',16,1],['o','o',12,0]],
+};
+
+const rowsEl = document.getElementById('rows');
+const ctxEl  = document.getElementById('ctx');
+const input  = document.getElementById('key');
+
+function render(letter){
+  const L = (letter||'').toLowerCase();
+  ctxEl.textContent = '«' + (L || '?') + '»';
+  const d = DATA[L];
+  if(!d){
+    rowsEl.innerHTML = '<p style="font-family:var(--f-serif);font-style:italic;color:var(--muted);margin:6px 0">Todavía no tengo datos para «'+(L||'?')+'». Prueba con e, t, h, q…</p>';
+    return;
+  }
+  const top = d[0][2];
+  const sum = d[0][2]+d[1][2]+d[2][2];
+  const resto = Math.max(0, 100 - sum);
+
+  let html = d.map((r,i)=>{
+    const [ch,label,pct,isSpace] = r;
+    const a = (0.42 + 0.58*(pct/top)).toFixed(3);   // densidad = confianza
+    const dst = '<span class="dst'+(isSpace?' sp':'')+'">'+label+'</span>';
+    return `<div class="row${i===0?' top':''}">
+      <div class="lbl"><span class="src">${L}</span><span class="arr">→</span>${dst}</div>
+      <div class="track"><i style="width:${pct}%; --a:${a}"></i></div>
+      <div class="val">${pct} %</div>
+    </div>`;
+  }).join('');
+
+  if(resto>0){
+    const a = (0.42 + 0.58*(resto/top)).toFixed(3);
+    html += `<div class="row rest">
+      <div class="lbl"><span class="dst">otras letras</span></div>
+      <div class="track"><i style="width:${resto}%; --a:${Math.min(a,0.5)}"></i></div>
+      <div class="val">${resto} %</div>
+    </div>`;
+  }
+  rowsEl.innerHTML = html;
+  // re-disparar la transición de ancho desde 0
+  requestAnimationFrame(()=>{ rowsEl.querySelectorAll('.track > i').forEach(i=>{ const w=i.style.width; i.style.width='0'; requestAnimationFrame(()=>i.style.width=w); }); });
+}
+
+input.addEventListener('input', e=> render(e.target.value));
+document.querySelectorAll('.try button').forEach(b=>{
+  b.addEventListener('click', ()=>{ input.value=b.dataset.k; render(b.dataset.k); input.focus(); });
+});
+document.getElementById('theme').addEventListener('click', ()=>{
+  const h=document.documentElement;
+  h.setAttribute('data-theme', h.getAttribute('data-theme')==='light' ? 'dark' : 'light');
+});
+
+render('e');
+</script>
+</body>
+</html>

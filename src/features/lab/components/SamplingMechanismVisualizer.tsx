@@ -3,24 +3,27 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Dices, RotateCcw } from "lucide-react";
 
 import { useI18n } from "@/i18n/context";
 
 /* ────────────────────────────────────────────────────────────────────────────
- * SamplingMechanismVisualizer — Bigram §5 (sampling), v8 editorial-green.
+ * SamplingMechanismVisualizer — Bigram chapter · sampling (v10 design language).
  *
- * Concept (ONE): the next character is *drawn* from the probability distribution.
- * The model lays every candidate end-to-end on a single 0→1 lane (sized by its
- * probability), throws ONE uniform-random dart, and wherever the dart lands picks
- * the character. So "h" (53 %) owns half the lane and wins half the time — likely,
- * never guaranteed. Roll again and again and the tally below visibly drifts toward
- * the true probabilities: chance, not certainty, with the law of large numbers shown.
+ * This widget has no v10 prototype counterpart, so it is brought up to the v10
+ * DESIGN LANGUAGE established by the four flagship widgets (HeroAutoComplete,
+ * CorpusCountingIdea, PairHighlighter, PredictionChallenge): a single scoped
+ * `<style>` block under a `.bw-sample` namespace, clamp() responsive type,
+ * Playfair / Source Serif / JetBrains Mono, states by FILL + typography (never
+ * chrome), one focal point, premium spring motion, fully reduced-motion safe.
+ * Token-only (--bigram-*) so it follows the chapter's [data-bigram-theme] scope.
  *
- * Surface is one calm instrument: a probability lane (the focal point), a dropping
- * dart (the verb), a quiet roll readout, and a frequency memory. State is shown by
- * fill + brightness, never chrome. Only --bigram-* tokens + registered fonts; gated
- * by the chapter's [data-bigram-theme] scope. Fully reduced-motion safe.
+ * ONE idea: the next character is *drawn* from the distribution, not always the
+ * most likely one. Every candidate is laid end-to-end on one 0→1 lane, sized by
+ * its probability. ONE uniform-random dart drops; wherever it lands is the pick.
+ * "h" (53 %) owns half the lane and wins ~half the time — likely, never
+ * guaranteed. Roll again and again and the tally below visibly drifts toward the
+ * true probabilities: the law of large numbers, made watchable. This is *why* a
+ * bigram can write fresh text every run instead of one frozen most-likely string.
  * ──────────────────────────────────────────────────────────────────────────── */
 
 interface CandidateData {
@@ -40,10 +43,13 @@ const CANDIDATES: CandidateData[] = [
 ];
 
 const SPACE_GLYPH = "␣";
+
 const MONO = "var(--font-jetbrains-mono)";
+const SERIF = "var(--font-source-serif)";
+const EASE = "cubic-bezier(.22, .8, .26, 1)";
 
 const SPIN_STEPS = 9;
-const SETTLE_MS = 640;
+const SETTLE_MS = 620;
 
 function displayChar(c: string): string {
     return c === " " ? SPACE_GLYPH : c;
@@ -174,37 +180,18 @@ export const SamplingMechanismVisualizer = memo(function SamplingMechanismVisual
 
     useEffect(() => () => clearTimer(), [clearTimer]);
 
+    const busy = phase === "spinning" || phase === "landing";
     const settled = phase === "picked";
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: "30px" }}>
-            {/* ── Context: "After t" ── */}
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "baseline", gap: "12px" }}>
-                <span
-                    style={{
-                        fontFamily: MONO,
-                        fontSize: "10.5px",
-                        letterSpacing: ".2em",
-                        textTransform: "uppercase",
-                        color: "var(--bigram-muted)",
-                    }}
-                >
-                    {t("bigramNarrative.samplingMechanism.after")}
-                </span>
-                <span
-                    style={{
-                        fontFamily: MONO,
-                        fontSize: "34px",
-                        fontWeight: 600,
-                        lineHeight: 1,
-                        color: "var(--bigram-accent-ink)",
-                    }}
-                >
-                    {EXAMPLE_CHAR}
-                </span>
-            </div>
+        <div className="bw-sample">
+            {/* ── Context: "After t" ─────────────────────────────────────────── */}
+            <p className="bw-sample__ctx">
+                <span className="lbl">{t("bigramNarrative.samplingMechanism.after")}</span>
+                <span className="char">{EXAMPLE_CHAR}</span>
+            </p>
 
-            {/* ── The probability lane (focal point): one 0→1 line, segments sized by p ── */}
+            {/* ── The probability lane (focal point) ──────────────────────────── */}
             <ProbabilityLane
                 segments={segments}
                 dartPos={dartPos}
@@ -215,7 +202,7 @@ export const SamplingMechanismVisualizer = memo(function SamplingMechanismVisual
             />
 
             {/* ── Roll readout: ties the abstract number to the landed position ── */}
-            <div style={{ minHeight: "20px", display: "flex", justifyContent: "center", alignItems: "center" }}>
+            <div className="bw-sample__readout">
                 <AnimatePresence>
                     {settled && rollValue !== null && pickedIdx !== null && (
                         <motion.p
@@ -224,58 +211,27 @@ export const SamplingMechanismVisualizer = memo(function SamplingMechanismVisual
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0 }}
                             transition={reduce ? { duration: 0 } : { duration: 0.3 }}
-                            style={{
-                                margin: 0,
-                                fontFamily: MONO,
-                                fontSize: "14px",
-                                color: "var(--bigram-muted)",
-                                display: "inline-flex",
-                                alignItems: "baseline",
-                                gap: "8px",
-                                fontVariantNumeric: "lining-nums tabular-nums",
-                            }}
                         >
-                            <span style={{ color: "var(--bigram-dim)" }}>
+                            <span className="lbl">
                                 {t("bigramNarrative.samplingMechanism.rolled")}
                             </span>
-                            <span style={{ color: "var(--bigram-ink-2)", fontWeight: 600 }}>
-                                {rollValue.toFixed(3)}
-                            </span>
-                            <span style={{ color: "var(--bigram-dim)" }}>→</span>
-                            <span style={{ color: "var(--bigram-accent-ink)", fontWeight: 700, fontSize: "16px" }}>
-                                {displayChar(CANDIDATES[pickedIdx].char)}
-                            </span>
+                            <span className="num">{rollValue.toFixed(3)}</span>
+                            <span className="arr">→</span>
+                            <span className="hit">{displayChar(CANDIDATES[pickedIdx].char)}</span>
                         </motion.p>
                     )}
                 </AnimatePresence>
             </div>
 
-            {/* ── Roll control ── */}
-            <div style={{ display: "flex", justifyContent: "center" }}>
+            {/* ── Roll control ────────────────────────────────────────────────── */}
+            <div className="bw-sample__act">
                 <motion.button
                     type="button"
+                    className="bw-sample__roll"
                     onClick={handleRoll}
-                    disabled={phase === "spinning" || phase === "landing"}
-                    whileHover={reduce ? undefined : { y: -1 }}
-                    whileTap={reduce ? undefined : { scale: 0.97 }}
-                    style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        padding: "13px 22px",
-                        border: 0,
-                        borderRadius: "var(--bigram-r-sm)",
-                        background: "var(--bigram-accent)",
-                        color: "var(--bigram-on-accent)",
-                        fontFamily: MONO,
-                        fontSize: "12px",
-                        fontWeight: 600,
-                        letterSpacing: ".1em",
-                        textTransform: "uppercase",
-                        cursor: phase === "spinning" || phase === "landing" ? "default" : "pointer",
-                        opacity: phase === "spinning" || phase === "landing" ? 0.55 : 1,
-                        transition: "opacity .2s, background .2s",
-                    }}
+                    disabled={busy}
+                    whileHover={reduce || busy ? undefined : { y: -2 }}
+                    whileTap={reduce || busy ? undefined : { scale: 0.97 }}
                     aria-label={
                         settled
                             ? t("bigramNarrative.samplingMechanism.rollAgain")
@@ -283,17 +239,16 @@ export const SamplingMechanismVisualizer = memo(function SamplingMechanismVisual
                     }
                 >
                     <motion.span
-                        animate={
-                            phase === "spinning" && !reduce ? { rotate: 360 } : { rotate: 0 }
-                        }
+                        className="dice"
+                        aria-hidden
+                        animate={busy && !reduce ? { rotate: 360 } : { rotate: 0 }}
                         transition={
-                            phase === "spinning" && !reduce
+                            busy && !reduce
                                 ? { repeat: Infinity, duration: 0.6, ease: "linear" }
                                 : { duration: 0.2 }
                         }
-                        style={{ display: "inline-flex" }}
                     >
-                        <Dices style={{ width: 16, height: 16 }} aria-hidden />
+                        <DiceGlyph />
                     </motion.span>
                     {settled
                         ? t("bigramNarrative.samplingMechanism.rollAgain")
@@ -301,7 +256,7 @@ export const SamplingMechanismVisualizer = memo(function SamplingMechanismVisual
                 </motion.button>
             </div>
 
-            {/* ── Frequency memory: rolls accumulate, counts drift toward the true p ── */}
+            {/* ── Frequency memory: rolls accumulate, counts drift toward true p ── */}
             <AnimatePresence>
                 {totalRolls > 0 && (
                     <motion.div
@@ -323,9 +278,225 @@ export const SamplingMechanismVisualizer = memo(function SamplingMechanismVisual
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <style>{`
+                .bw-sample {
+                    --ease-s: ${EASE};
+                    display: flex;
+                    flex-direction: column;
+                    gap: clamp(24px, 4vw, 34px);
+                    font-family: ${SERIF};
+                }
+
+                /* ── context line ── */
+                .bw-sample__ctx {
+                    display: flex; align-items: baseline; justify-content: center;
+                    gap: clamp(10px, 2vw, 14px); margin: 0;
+                }
+                .bw-sample__ctx .lbl {
+                    font-family: ${MONO}; font-size: 10.5px; letter-spacing: .22em;
+                    text-transform: uppercase; color: var(--bigram-muted);
+                }
+                .bw-sample__ctx .char {
+                    font-family: ${MONO}; font-size: clamp(30px, 6vw, 38px); font-weight: 600;
+                    line-height: 1; color: var(--bigram-accent-ink);
+                }
+
+                /* ── roll readout (mono, drives the convergence story) ── */
+                .bw-sample__readout {
+                    min-height: 22px; display: flex; align-items: center; justify-content: center;
+                }
+                .bw-sample__readout p {
+                    margin: 0; font-family: ${MONO}; font-size: 14px;
+                    display: inline-flex; align-items: baseline; gap: 9px;
+                    font-variant-numeric: lining-nums tabular-nums;
+                }
+                .bw-sample__readout .lbl { color: var(--bigram-dim); }
+                .bw-sample__readout .num { color: var(--bigram-ink-2); font-weight: 600; }
+                .bw-sample__readout .arr { color: var(--bigram-dim); }
+                .bw-sample__readout .hit {
+                    color: var(--bigram-accent-ink); font-weight: 700; font-size: 16px;
+                }
+
+                /* ── primary action ── */
+                .bw-sample__act { display: flex; justify-content: center; }
+                .bw-sample__roll {
+                    display: inline-flex; align-items: center; gap: 10px;
+                    padding: 13px 24px; border: 0; border-radius: var(--bigram-r-sm);
+                    background: var(--bigram-accent); color: var(--bigram-on-accent);
+                    font-family: ${MONO}; font-size: 12px; font-weight: 600;
+                    letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
+                    transition: opacity .2s, background .2s;
+                }
+                .bw-sample__roll:hover { background: var(--bigram-accent-bright); }
+                .bw-sample__roll:disabled { opacity: .55; cursor: default; }
+                .bw-sample__roll:focus-visible {
+                    outline: none; box-shadow: 0 0 0 3px var(--bigram-accent-soft);
+                }
+                .bw-sample__roll .dice { display: inline-flex; }
+
+                /* ── probability lane ── */
+                .bw-sample__lane-cap {
+                    margin: 0 0 14px; font-family: ${MONO}; font-size: 10.5px;
+                    letter-spacing: .22em; text-transform: uppercase;
+                    color: var(--bigram-muted); text-align: center;
+                }
+                .bw-sample__stage { position: relative; padding-top: 28px; }
+                .bw-sample__dart {
+                    position: absolute; top: 0; display: flex; flex-direction: column;
+                    align-items: center; z-index: 2; pointer-events: none;
+                }
+                .bw-sample__dart .head {
+                    width: 0; height: 0;
+                    border-left: 6px solid transparent; border-right: 6px solid transparent;
+                    border-top: 9px solid var(--bigram-ink-2);
+                    transition: border-top-color .25s var(--ease-s);
+                }
+                .bw-sample__dart.lit .head { border-top-color: var(--bigram-accent-bright); }
+                .bw-sample__dart .stem {
+                    width: 2px; height: 64px; margin-top: -1px;
+                    background: color-mix(in oklab, var(--bigram-ink) 45%, transparent);
+                    transition: background .25s var(--ease-s);
+                }
+                .bw-sample__dart.lit .stem { background: var(--bigram-accent-bright); }
+
+                .bw-sample__lane {
+                    display: flex; height: 58px; border-radius: var(--bigram-r-sm);
+                    overflow: hidden;
+                    background: color-mix(in oklab, var(--bigram-ink) 8%, transparent);
+                }
+                .bw-sample__seg {
+                    position: relative; height: 100%;
+                    display: flex; flex-direction: column;
+                    align-items: center; justify-content: center; gap: 2px;
+                    box-shadow: inset -1px 0 0 0 color-mix(in oklab, var(--bigram-bg) 55%, transparent);
+                    transition: background .3s var(--ease-s), opacity .3s var(--ease-s);
+                }
+                .bw-sample__seg .g {
+                    font-family: ${MONO}; font-weight: 700; line-height: 1;
+                    color: color-mix(in oklab, var(--bigram-on-accent) 78%, transparent);
+                }
+                .bw-sample__seg .p {
+                    font-family: ${MONO}; font-size: 9px; font-weight: 500; line-height: 1;
+                    color: color-mix(in oklab, var(--bigram-on-accent) 58%, transparent);
+                    font-variant-numeric: tabular-nums;
+                }
+                .bw-sample__seg.hot .g { color: var(--bigram-on-accent); }
+                .bw-sample__seg.hot .p {
+                    color: color-mix(in oklab, var(--bigram-on-accent) 80%, transparent);
+                }
+                /* glint sweep across the winning segment on land */
+                .bw-sample__seg .glint {
+                    position: absolute; inset: 0; pointer-events: none;
+                    background: linear-gradient(105deg, transparent 30%,
+                        color-mix(in oklab, var(--bigram-on-accent) 38%, transparent) 50%, transparent 70%);
+                    transform: translateX(-130%);
+                }
+                .bw-sample__seg.hot .glint { animation: bwSampleGlint .62s var(--ease-s) .04s both; }
+
+                .bw-sample__scale {
+                    display: flex; justify-content: space-between; margin-top: 8px;
+                    font-family: ${MONO}; font-size: 10px; color: var(--bigram-dim);
+                    font-variant-numeric: tabular-nums;
+                }
+
+                /* ── frequency memory (the payoff) ── */
+                .bw-sample__mem { padding-top: 6px; }
+                .bw-sample__mem-head {
+                    display: flex; align-items: baseline; justify-content: space-between;
+                    margin: 0 0 16px; padding-bottom: 11px;
+                    border-bottom: 1px solid var(--bigram-rule);
+                }
+                .bw-sample__mem-head .ttl {
+                    font-family: ${MONO}; font-size: 11px; letter-spacing: .22em;
+                    text-transform: uppercase; color: var(--bigram-muted);
+                }
+                .bw-sample__reset {
+                    display: inline-flex; align-items: center; gap: 7px;
+                    padding: 5px 12px; border: 0; border-radius: var(--bigram-r-pill);
+                    background: transparent;
+                    box-shadow: inset 0 0 0 1px var(--bigram-rule-2);
+                    color: var(--bigram-muted); font-family: ${MONO}; font-size: 10.5px;
+                    letter-spacing: .06em; cursor: pointer;
+                    font-variant-numeric: tabular-nums;
+                    transition: color .2s var(--ease-s), box-shadow .2s var(--ease-s);
+                }
+                .bw-sample__reset:hover {
+                    color: var(--bigram-accent);
+                    box-shadow: inset 0 0 0 1px var(--bigram-accent);
+                }
+                .bw-sample__reset:focus-visible {
+                    outline: none; box-shadow: 0 0 0 3px var(--bigram-accent-soft);
+                }
+
+                .bw-sample__rows { display: flex; flex-direction: column; gap: 3px; }
+                .bw-sample__row {
+                    display: grid; grid-template-columns: 28px 1fr 56px;
+                    align-items: center; gap: clamp(10px, 2.4vw, 14px); padding: 5px 0;
+                }
+                .bw-sample__row .glyph {
+                    font-family: ${MONO}; font-size: 17px; font-weight: 600;
+                    text-align: center; color: var(--bigram-ink-2);
+                    transition: color .25s var(--ease-s);
+                }
+                .bw-sample__row .glyph.space { font-size: 12px; }
+                .bw-sample__row.lit .glyph { color: var(--bigram-accent-ink); }
+
+                .bw-sample__track {
+                    position: relative; height: 8px; border-radius: var(--bigram-r-pill);
+                    background: color-mix(in oklab, var(--bigram-ink) 9%, transparent);
+                    display: block;
+                }
+                .bw-sample__track .clip {
+                    position: absolute; inset: 0; border-radius: var(--bigram-r-pill);
+                    overflow: hidden; display: block;
+                }
+                /* the true-probability target — what the observed frequency converges to */
+                .bw-sample__tick {
+                    position: absolute; top: -3px; bottom: -3px; width: 2px;
+                    margin-left: -1px; border-radius: 1px;
+                    background: var(--bigram-sage); opacity: .85;
+                }
+
+                .bw-sample__pct {
+                    font-family: ${MONO}; font-size: 12.5px; text-align: right;
+                    color: var(--bigram-muted); font-variant-numeric: tabular-nums;
+                    transition: color .25s var(--ease-s);
+                }
+                .bw-sample__row.lit .bw-sample__pct { color: var(--bigram-accent); }
+
+                @keyframes bwSampleGlint {
+                    from { transform: translateX(-130%); }
+                    to   { transform: translateX(130%); }
+                }
+
+                @media (max-width: 460px) {
+                    .bw-sample__seg .p { display: none; }
+                }
+                @media (prefers-reduced-motion: reduce) {
+                    .bw-sample__seg.hot .glint { animation: none !important; }
+                    .bw-sample__seg .glint { display: none; }
+                }
+            `}</style>
         </div>
     );
 });
+
+/* ════════════════════════════════════════════════════════════════════════════
+ * DiceGlyph — a tiny inline die (currentColor) so the control needs no icon dep.
+ * ════════════════════════════════════════════════════════════════════════════ */
+function DiceGlyph() {
+    return (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+            <rect x="1.5" y="1.5" width="13" height="13" rx="3" stroke="currentColor" strokeWidth="1.5" />
+            <circle cx="5" cy="5" r="1.15" fill="currentColor" />
+            <circle cx="11" cy="5" r="1.15" fill="currentColor" />
+            <circle cx="8" cy="8" r="1.15" fill="currentColor" />
+            <circle cx="5" cy="11" r="1.15" fill="currentColor" />
+            <circle cx="11" cy="11" r="1.15" fill="currentColor" />
+        </svg>
+    );
+}
 
 /* ════════════════════════════════════════════════════════════════════════════
  * ProbabilityLane — the single focal point. A 0→1 line cut into segments sized by
@@ -352,24 +523,15 @@ const ProbabilityLane = memo(function ProbabilityLane({
 
     return (
         <div>
-            <p
-                style={{
-                    margin: "0 0 14px",
-                    fontFamily: MONO,
-                    fontSize: "10.5px",
-                    letterSpacing: ".2em",
-                    textTransform: "uppercase",
-                    color: "var(--bigram-muted)",
-                    textAlign: "center",
-                }}
-            >
+            <p className="bw-sample__lane-cap">
                 {t("bigramNarrative.samplingMechanism.probabilitySpace")}
             </p>
 
             {/* lane + dart share one positioned box */}
-            <div style={{ position: "relative", padding: "26px 0 0" }}>
+            <div className="bw-sample__stage">
                 {/* the dart that drops onto the lane */}
                 <motion.div
+                    className={"bw-sample__dart" + (settled ? " lit" : "")}
                     aria-hidden
                     initial={false}
                     animate={{
@@ -384,58 +546,24 @@ const ProbabilityLane = memo(function ProbabilityLane({
                               : { duration: reduce ? 0 : 0.3, ease: [0.2, 0.8, 0.2, 1] }
                     }
                     style={{
-                        position: "absolute",
-                        top: 0,
                         left: `${dartPos * 100}%`,
                         transform: "translateX(-50%)",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        zIndex: 2,
-                        pointerEvents: "none",
                         opacity: phase === "idle" ? 0.55 : 1,
                     }}
                 >
-                    {/* downward triangle marker */}
-                    <span
-                        style={{
-                            width: 0,
-                            height: 0,
-                            borderLeft: "6px solid transparent",
-                            borderRight: "6px solid transparent",
-                            borderTop: `9px solid ${settled ? "var(--bigram-accent-bright)" : "var(--bigram-ink-2)"}`,
-                            transition: "border-top-color .25s",
-                        }}
-                    />
-                    {/* the dart's stem cutting through the lane */}
-                    <span
-                        style={{
-                            width: "2px",
-                            height: "62px",
-                            marginTop: "-1px",
-                            background: settled
-                                ? "var(--bigram-accent-bright)"
-                                : "color-mix(in oklab, var(--bigram-ink) 45%, transparent)",
-                            transition: "background .25s",
-                        }}
-                    />
+                    <span className="head" />
+                    <span className="stem" />
                 </motion.div>
 
                 {/* the lane itself */}
                 <div
+                    className="bw-sample__lane"
                     role="img"
                     aria-label={
                         settled && pickedIdx !== null
                             ? `Dart landed on ${segments[pickedIdx].char === " " ? "space" : segments[pickedIdx].char}`
                             : "Probability lane from 0 to 1"
                     }
-                    style={{
-                        display: "flex",
-                        height: "56px",
-                        borderRadius: "var(--bigram-r-sm)",
-                        overflow: "hidden",
-                        background: "color-mix(in oklab, var(--bigram-ink) 8%, transparent)",
-                    }}
                 >
                     {segments.map((s) => {
                         const isPicked = pickedIdx === s.idx && active;
@@ -444,55 +572,29 @@ const ProbabilityLane = memo(function ProbabilityLane({
                         return (
                             <motion.div
                                 key={s.char}
+                                className={"bw-sample__seg" + (isPicked ? " hot" : "")}
                                 animate={{ opacity: dimmed ? 0.32 : 1 }}
                                 transition={{ duration: reduce ? 0 : 0.3 }}
                                 style={{
-                                    position: "relative",
                                     width: `${s.probability * 100}%`,
-                                    height: "100%",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    gap: "2px",
-                                    // fill brightness encodes p: winner-on-landing is brightest
+                                    // fill brightness encodes p; winner-on-landing is brightest
                                     background: isPicked
                                         ? "var(--bigram-accent-bright)"
                                         : `color-mix(in oklab, var(--bigram-accent-2) ${42 + s.probability * 58}%, var(--bigram-surface))`,
-                                    boxShadow:
-                                        "inset -1px 0 0 0 color-mix(in oklab, var(--bigram-bg) 55%, transparent)",
-                                    transition: "background .3s",
                                 }}
                             >
+                                {isPicked && !reduce && <span className="glint" />}
                                 <span
+                                    className="g"
                                     style={{
-                                        fontFamily: MONO,
                                         fontSize: isSpace ? "10px" : "16px",
-                                        fontWeight: 700,
-                                        lineHeight: 1,
-                                        color: isPicked
-                                            ? "var(--bigram-on-accent)"
-                                            : "color-mix(in oklab, var(--bigram-on-accent) 78%, transparent)",
                                         letterSpacing: isSpace ? ".02em" : 0,
                                     }}
                                 >
                                     {displayChar(s.char)}
                                 </span>
                                 {s.probability >= 0.085 && (
-                                    <span
-                                        style={{
-                                            fontFamily: MONO,
-                                            fontSize: "9px",
-                                            fontWeight: 500,
-                                            lineHeight: 1,
-                                            color: isPicked
-                                                ? "color-mix(in oklab, var(--bigram-on-accent) 80%, transparent)"
-                                                : "color-mix(in oklab, var(--bigram-on-accent) 58%, transparent)",
-                                            fontVariantNumeric: "tabular-nums",
-                                        }}
-                                    >
-                                        {Math.round(s.probability * 100)}%
-                                    </span>
+                                    <span className="p">{Math.round(s.probability * 100)}%</span>
                                 )}
                             </motion.div>
                         );
@@ -500,17 +602,7 @@ const ProbabilityLane = memo(function ProbabilityLane({
                 </div>
 
                 {/* 0 → 1 scale */}
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginTop: "7px",
-                        fontFamily: MONO,
-                        fontSize: "10px",
-                        color: "var(--bigram-dim)",
-                        fontVariantNumeric: "tabular-nums",
-                    }}
-                >
+                <div className="bw-sample__scale">
                     <span>0</span>
                     <span>1</span>
                 </div>
@@ -521,8 +613,9 @@ const ProbabilityLane = memo(function ProbabilityLane({
 
 /* ════════════════════════════════════════════════════════════════════════════
  * FrequencyMemory — the payoff. Each roll adds a count; the observed frequency
- * (filled bar) drifts toward the true probability (a hairline tick) as rolls grow.
- * Honest fixed axis: the whole track is p = max(true p) so bars read as real shares.
+ * (filled bar) drifts toward the true probability (a sage hairline tick) as rolls
+ * grow. Honest FIXED axis: the whole track is p = max(true p) so bars read as real
+ * shares, never normalised to 100 %.
  * ════════════════════════════════════════════════════════════════════════════ */
 
 const FrequencyMemory = memo(function FrequencyMemory({
@@ -543,59 +636,20 @@ const FrequencyMemory = memo(function FrequencyMemory({
     onReset: () => void;
 }) {
     // Honest axis: the most-probable candidate's true p, so the lead bar can fill the
-    // track while every other bar reads as its real proportion (never normalised to 100%).
+    // track while every other bar reads as its real proportion (never normalised to 100 %).
     const axis = useMemo(() => Math.max(...candidates.map((c) => c.probability)), [candidates]);
 
     return (
-        <div style={{ paddingTop: "8px" }}>
-            <div
-                style={{
-                    display: "flex",
-                    alignItems: "baseline",
-                    justifyContent: "space-between",
-                    margin: "0 0 16px",
-                    paddingBottom: "11px",
-                    borderBottom: "1px solid var(--bigram-rule)",
-                }}
-            >
-                <span
-                    style={{
-                        fontFamily: MONO,
-                        fontSize: "11px",
-                        letterSpacing: ".2em",
-                        textTransform: "uppercase",
-                        color: "var(--bigram-muted)",
-                    }}
-                >
-                    {t("bigramNarrative.samplingMechanism.history")}
-                </span>
-                <button
-                    type="button"
-                    onClick={onReset}
-                    style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        padding: "5px 11px",
-                        border: 0,
-                        borderRadius: "var(--bigram-r-sm)",
-                        background: "transparent",
-                        boxShadow: "inset 0 0 0 1px var(--bigram-rule-2)",
-                        color: "var(--bigram-muted)",
-                        fontFamily: MONO,
-                        fontSize: "10.5px",
-                        letterSpacing: ".06em",
-                        cursor: "pointer",
-                        fontVariantNumeric: "tabular-nums",
-                        transition: "color .2s, box-shadow .2s",
-                    }}
-                >
-                    <RotateCcw style={{ width: 12, height: 12 }} aria-hidden />
+        <div className="bw-sample__mem">
+            <div className="bw-sample__mem-head">
+                <span className="ttl">{t("bigramNarrative.samplingMechanism.history")}</span>
+                <button type="button" className="bw-sample__reset" onClick={onReset}>
+                    <ResetGlyph />
                     {total}×
                 </button>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+            <div className="bw-sample__rows">
                 {candidates.map((c, idx) => {
                     const count = tally[idx];
                     const observed = count / total;
@@ -606,50 +660,15 @@ const FrequencyMemory = memo(function FrequencyMemory({
                     return (
                         <div
                             key={c.char}
-                            style={{
-                                display: "grid",
-                                gridTemplateColumns: "30px 1fr 64px",
-                                alignItems: "center",
-                                gap: "14px",
-                                padding: "5px 0",
-                            }}
+                            className={"bw-sample__row" + (isJustPicked ? " lit" : "")}
                         >
-                            {/* candidate glyph */}
-                            <span
-                                style={{
-                                    fontFamily: MONO,
-                                    fontSize: isSpace ? "12px" : "17px",
-                                    fontWeight: 600,
-                                    textAlign: "center",
-                                    color: isJustPicked
-                                        ? "var(--bigram-accent-ink)"
-                                        : "var(--bigram-ink-2)",
-                                    transition: "color .25s",
-                                }}
-                            >
+                            <span className={"glyph" + (isSpace ? " space" : "")}>
                                 {displayChar(c.char)}
                             </span>
 
                             {/* track: observed-frequency fill + a true-probability tick */}
-                            <span
-                                style={{
-                                    position: "relative",
-                                    height: "8px",
-                                    borderRadius: "4px",
-                                    overflow: "visible",
-                                    background: "color-mix(in oklab, var(--bigram-ink) 9%, transparent)",
-                                    display: "block",
-                                }}
-                            >
-                                <span
-                                    style={{
-                                        position: "absolute",
-                                        inset: 0,
-                                        borderRadius: "4px",
-                                        overflow: "hidden",
-                                        display: "block",
-                                    }}
-                                >
+                            <span className="bw-sample__track">
+                                <span className="clip">
                                     <motion.span
                                         initial={false}
                                         animate={{ width: `${fillW}%` }}
@@ -661,44 +680,25 @@ const FrequencyMemory = memo(function FrequencyMemory({
                                         style={{
                                             display: "block",
                                             height: "100%",
-                                            borderRadius: "4px",
+                                            borderRadius: "var(--bigram-r-pill)",
                                             background: isJustPicked
                                                 ? "var(--bigram-accent-bright)"
                                                 : "var(--bigram-accent-2)",
-                                            transition: "background .25s",
+                                            transition: "background .25s var(--ease-s)",
                                         }}
                                     />
                                 </span>
                                 {/* true-probability target tick — what the frequency converges to */}
                                 <span
+                                    className="bw-sample__tick"
                                     aria-hidden
-                                    style={{
-                                        position: "absolute",
-                                        top: "-3px",
-                                        bottom: "-3px",
-                                        left: `${trueW}%`,
-                                        width: "2px",
-                                        marginLeft: "-1px",
-                                        borderRadius: "1px",
-                                        background: "var(--bigram-sage)",
-                                        opacity: 0.85,
-                                    }}
+                                    style={{ left: `${trueW}%` }}
                                 />
                             </span>
 
                             {/* observed % (counts up implicitly via re-render) */}
-                            <span
-                                style={{
-                                    fontFamily: MONO,
-                                    fontSize: "12.5px",
-                                    textAlign: "right",
-                                    color: isJustPicked ? "var(--bigram-accent)" : "var(--bigram-muted)",
-                                    fontVariantNumeric: "tabular-nums",
-                                    transition: "color .25s",
-                                }}
-                            >
-                                {(observed * 100).toFixed(0)}
-                                {" "}%
+                            <span className="bw-sample__pct">
+                                {(observed * 100).toFixed(0)} %
                             </span>
                         </div>
                     );
@@ -707,3 +707,26 @@ const FrequencyMemory = memo(function FrequencyMemory({
         </div>
     );
 });
+
+/* tiny rotate-counterclockwise glyph (currentColor) for the reset control */
+function ResetGlyph() {
+    return (
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+            <path
+                d="M2.2 4.4A4 4 0 1 1 1.8 7"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+                fill="none"
+            />
+            <path
+                d="M1 2.2v2.4h2.4"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+            />
+        </svg>
+    );
+}

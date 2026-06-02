@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Playfair A/B</title>
+<!-- Mockup's CDN Playfair (exact import from styles-v8.css) -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&display=swap">
+<style>
+  /* The app's exact next/font Playfair file, under a distinct family name */
+  @font-face {
+    font-family: "PF-NEXT";
+    font-style: normal;
+    font-weight: 400 900;
+    font-display: swap;
+    src: url("/_next/static/media/2a65768255d6b625-s.p.d19752fb.woff2") format("woff2");
+  }
+  body { margin:0; background:#f4ecd8; color:#20271f; padding:60px; }
+  .row { margin-bottom:8px; }
+  .lbl { font-family: ui-monospace, monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:#5e6b5b; margin-bottom:6px; }
+  .title { font-weight:600; font-size:52px; line-height:1.08; letter-spacing:-0.012em; margin:0 0 28px; }
+  .cdn  { font-family:"Playfair Display", Georgia, serif; }
+  .next { font-family:"PF-NEXT", "Playfair Display", Georgia, serif; }
+  /* overlay test: CDN in solid, next/font in red outline on top */
+  .overlay { position:relative; height:80px; }
+  .overlay .title { position:absolute; top:0; left:0; }
+  .overlay .cdn  { color:#20271f; }
+  .overlay .next { color:transparent; -webkit-text-stroke:0.6px #c0392b; }
+</style>
+</head>
+<body>
+  <div class="row"><div class="lbl">A · CDN Playfair (mockup)</div><p class="title cdn">Adivina la Letra que Falta</p></div>
+  <div class="row"><div class="lbl">B · next/font Playfair (app)</div><p class="title next">Adivina la Letra que Falta</p></div>
+  <div class="row"><div class="lbl">Overlay · CDN negro + app contorno rojo (si difieren, verás rojo asomar)</div>
+    <div class="overlay"><p class="title cdn">Adivina la Letra que Falta</p><p class="title next">Adivina la Letra que Falta</p></div>
+  </div>
+</body>
+</html>

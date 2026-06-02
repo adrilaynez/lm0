@@ -4,20 +4,20 @@ import { lazy, Suspense, useState } from "react";
 import Link from "next/link";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Beaker, BookOpen, ChevronDown, FlaskConical, History } from "lucide-react";
+import { ArrowRight, Beaker, ChevronDown, FlaskConical } from "lucide-react";
 
+import { BigramSideRail } from "@/features/lab/components/BigramSideRail";
 import { ContinueToast } from "@/features/lab/components/ContinueToast";
 import { FadeInView } from "@/features/lab/components/FadeInView";
-import { Term } from "@/features/lab/components/GlossaryTooltip";
-import { KeyTakeaway } from "@/features/lab/components/KeyTakeaway";
 import { LazySection, SectionSkeleton } from "@/features/lab/components/LazySection";
 import { ModeToggle } from "@/features/lab/components/ModeToggle";
 import { SectionAnchor } from "@/features/lab/components/SectionAnchor";
-import { SectionProgressBar } from "@/features/lab/components/SectionProgressBar";
 import { useLabMode } from "@/features/lab/context/LabModeContext";
 import { useProgressTracker } from "@/features/lab/hooks/useProgressTracker";
 import type { TrainingViz, TransitionMatrixViz } from "@/features/lab/types/lmLab";
 import { useI18n } from "@/i18n/context";
+import { en } from "@/i18n/en";
+import { es } from "@/i18n/es";
 import { cn } from "@/lib/utils";
 
 /* Bigram type families (Playfair display · Source Serif body · JetBrains Mono data),
@@ -26,80 +26,128 @@ const BIGRAM_DISPLAY = "font-[family-name:var(--bigram-font-display)]";
 const BIGRAM_SERIF = "font-[family-name:var(--bigram-font-serif)]";
 const BIGRAM_MONO = "font-[family-name:var(--bigram-font-mono)]";
 
-/* ─── Lazy-loaded interactive visualizers ─── */
-const BigramMatrixBuilder = lazy(() => import("@/features/lab/components/BigramMatrixBuilder").then(m => ({ default: m.BigramMatrixBuilder })));
-const ContextBlindnessDemo = lazy(() => import("@/features/lab/components/ContextBlindnessDemo").then(m => ({ default: m.ContextBlindnessDemo })));
-const CorpusCountingIdea = lazy(() => import("@/features/lab/components/CorpusCountingIdea").then(m => ({ default: m.CorpusCountingIdea })));
-const GenerationPlayground = lazy(() => import("@/features/lab/components/GenerationPlayground").then(m => ({ default: m.GenerationPlayground })));
+/* ─── Lazy-loaded interactive visualizers (one concept each) ─── */
+const FillTheBlank = lazy(() => import("@/features/lab/components/FillTheBlank").then(m => ({ default: m.FillTheBlank })));
 const HeroAutoComplete = lazy(() => import("@/features/lab/components/HeroAutoComplete").then(m => ({ default: m.HeroAutoComplete })));
-
-const NormalizationVisualizer = lazy(() => import("@/features/lab/components/NormalizationVisualizer").then(m => ({ default: m.NormalizationVisualizer })));
 const PairHighlighter = lazy(() => import("@/features/lab/components/PairHighlighter").then(m => ({ default: m.PairHighlighter })));
-const PredictionChallenge = lazy(() => import("@/features/lab/components/PredictionChallenge").then(m => ({ default: m.PredictionChallenge })));
-const PredictionQueryVisualizer = lazy(() => import("@/features/lab/components/PredictionQueryVisualizer").then(m => ({ default: m.PredictionQueryVisualizer })));
-const SamplingMechanismVisualizer = lazy(() => import("@/features/lab/components/SamplingMechanismVisualizer").then(m => ({ default: m.SamplingMechanismVisualizer })));
-const StorageProblemVisualizer = lazy(() => import("@/features/lab/components/StorageProblemVisualizer").then(m => ({ default: m.StorageProblemVisualizer })));
-const TinyMatrixExample = lazy(() => import("@/features/lab/components/TinyMatrixExample").then(m => ({ default: m.TinyMatrixExample })));
-const TransitionMatrix = lazy(() => import("@/features/lab/components/TransitionMatrix").then(m => ({ default: m.TransitionMatrix })));
+const IsolateT = lazy(() => import("@/features/lab/components/IsolateT").then(m => ({ default: m.IsolateT })));const RowTally = lazy(() => import("@/features/lab/components/RowTally").then(m => ({ default: m.RowTally })));
+const GrowingMatrix27 = lazy(() => import("@/features/lab/components/GrowingMatrix27").then(m => ({ default: m.GrowingMatrix27 })));
+const TinyMatrixExample = lazy(() => import("@/features/lab/components/TinyMatrixExample").then(m => ({ default: m.TinyMatrixExample })));const DetectiveMatrix = lazy(() => import("@/features/lab/components/DetectiveMatrix").then(m => ({ default: m.DetectiveMatrix })));
+const NormalizationVisualizer = lazy(() => import("@/features/lab/components/NormalizationVisualizer").then(m => ({ default: m.NormalizationVisualizer })));
+const AlwaysMaxLoop = lazy(() => import("@/features/lab/components/AlwaysMaxLoop").then(m => ({ default: m.AlwaysMaxLoop })));
+const LoadedDie = lazy(() => import("@/features/lab/components/LoadedDie").then(m => ({ default: m.LoadedDie })));
+const LetterByLetter = lazy(() => import("@/features/lab/components/LetterByLetter").then(m => ({ default: m.LetterByLetter })));
+const TableWriter = lazy(() => import("@/features/lab/components/TableWriter").then(m => ({ default: m.TableWriter })));
+const ContextBlindnessDemo = lazy(() => import("@/features/lab/components/ContextBlindnessDemo").then(m => ({ default: m.ContextBlindnessDemo })));
+const ShannonContextLadder = lazy(() => import("@/features/lab/components/ShannonContextLadder").then(m => ({ default: m.ShannonContextLadder })));
 
 import {
-    Callout as _Callout,
-    FigureWrapper as _FigureWrapper,
-    FormulaBlock as _FormulaBlock,
-    Heading as _Heading, Highlight as _Highlight,
-    type HighlightColor,
+    Heading as _Heading,
     Lead as _Lead, type NarrativeAccent,
-    P as _P, PullQuote as _PullQuote,
-    Section, SectionBreak as _SectionBreak,
+    P as _P,
+    Section,
+    SectionBreak as _SectionBreak,
     SectionLabel as _SectionLabel,
 } from "./narrative-primitives";
 
 /* ─── Accent-bound wrappers ───
-   The Bigram chapter opts every shared primitive into the v8 editorial-green
-   accent. The green resolves through the [data-bigram-theme] scope on the page
-   wrapper, so no other chapter is affected. */
+   Every shared primitive opts into the editorial-green accent. The green resolves
+   through the [data-bigram-theme] scope on the page wrapper, so no other chapter
+   is affected. */
 const NA: NarrativeAccent = "bigram";
 const SectionLabel = (p: { number: string; label: string }) => <_SectionLabel accent={NA} {...p} />;
 const Heading = (p: { children: React.ReactNode; className?: string }) => <_Heading accent={NA} {...p} />;
 const Lead = (p: { children: React.ReactNode }) => <_Lead accent={NA} {...p} />;
-const P = (p: { children: React.ReactNode }) => <_P accent={NA} {...p} />;
-const Highlight = ({ color, ...p }: { children: React.ReactNode; color?: HighlightColor; tooltip?: string }) => <_Highlight color={color ?? NA} {...p} />;
-const Callout = ({ accent, ...p }: Parameters<typeof _Callout>[0]) => <_Callout accent={accent ?? NA} {...p} />;
-const PullQuote = ({ children }: { children: React.ReactNode }) => <_PullQuote accent={NA}>{children}</_PullQuote>;
 const SectionBreak = () => <_SectionBreak accent={NA} />;
 
-/* The editorial v8 figure: no frame, no chrome, NO traffic-light dots — it lives
-   in the shared primitive's bigram branch (numbered mono caption + single faint
-   plane). Routing the local wrapper here removes the old window-dot decoration. */
-const FigureWrapper = (p: { label: string; hint: string; children: React.ReactNode }) =>
-    <_FigureWrapper accent={NA} {...p} />;
+/* Body paragraph. Routed through innerHTML so the v2 copy's inline <strong>/<em>
+   accents (e.g. "tabla de transición", "texto de entrenamiento") render as the
+   editorial accent rather than as literal tags. The copy is authored in-repo
+   (i18n), never user input. */
+const RICH =
+    "[&_strong]:text-bigram-accent-ink [&_strong]:font-semibold [&_em]:italic [&_em]:text-bigram-accent-ink";
+function P({ html }: { html: string }) {
+    return (
+        <_P accent={NA}>
+            <span className={RICH} dangerouslySetInnerHTML={{ __html: html }} />
+        </_P>
+    );
+}
 
-/* Inline equations go through the shared FormulaBlock (v8 .formula tokens:
-   sunken bg-2 well, rule-2 hairline, mono accent equation, mono muted caption). */
-const FormulaBlock = (p: { formula: string; caption: string }) =>
-    <_FormulaBlock accent={NA} {...p} />;
+/* The Markov history, told in paragraphs (an opt-in aside, so it can run long). The paragraph
+   array is read straight from the active dictionary — t() returns strings only. */
+function MarkovStory() {
+    const { language } = useI18n();
+    const dict = (language === "es" ? es : en) as typeof en;
+    const paras = dict.bigramNarrative.v2.markov.paras;
+    return (
+        <>
+            {paras.map((para, i) => (
+                <P key={i} html={para} />
+            ))}
+        </>
+    );
+}
+
+/* The single faint interactive plane — the only "this is interactive" signal.
+   No frame, no chrome, no traffic-light dots. Self-captioning widgets render
+   their own label inside; the surrounding prose is the editorial caption. */
+function Plane({ children }: { children: React.ReactNode }) {
+    return (
+        <LazySection>
+            <div className="my-10 md:my-14 -mx-2 sm:mx-0 rounded-[var(--bigram-r-md)] bg-[color-mix(in_oklab,var(--bigram-surface)_55%,var(--bigram-bg))] px-4 py-7 sm:px-7 sm:py-8">
+                <Suspense fallback={<SectionSkeleton />}>{children}</Suspense>
+            </div>
+        </LazySection>
+    );
+}
+
+/* Skeleton marker. `ok` → the real widget; `rework` → the real widget with a small "to redo" tag;
+   `todo` → a dashed placeholder for a widget not built yet. Lets the whole chapter skeleton render
+   end-to-end so we can see exactly what is done, what is pending, and what is missing. */
+function Slot({ tag, status = "ok", children }: { tag?: string; status?: "ok" | "rework" | "todo"; children?: React.ReactNode }) {
+    if (status === "todo") {
+        return (
+            <LazySection>
+                <div className="my-10 md:my-14 rounded-[var(--bigram-r-md)] border border-dashed border-[color-mix(in_oklab,var(--bigram-accent)_38%,var(--bigram-rule))] bg-[color-mix(in_oklab,var(--bigram-accent)_5%,transparent)] px-6 py-12 text-center">
+                    <span className={cn(BIGRAM_MONO, "text-[11px] uppercase tracking-[0.2em] text-bigram-accent")}>⬜ Por resolver</span>
+                    {tag && <p className={cn(BIGRAM_SERIF, "mx-auto mt-2 max-w-[42ch] text-[15px] text-bigram-muted")}>{tag}</p>}
+                </div>
+            </LazySection>
+        );
+    }
+    return (
+        <>
+            {status === "rework" && tag && (
+                <div className={cn(BIGRAM_MONO, "mt-9 -mb-1 text-[10.5px] uppercase tracking-[0.16em] text-[color-mix(in_oklab,var(--bigram-accent)_72%,var(--bigram-muted))]")}>
+                    🔧 Rehacer · {tag}
+                </div>
+            )}
+            <Plane>{children}</Plane>
+        </>
+    );
+}
 
 /* ─────────────────────────────────────────────
-   ExpandableSection · v8 ".xpand" disclosure
-
-   The whole summary row is a card-like control (Don Norman affordance): an accent
-   dot, a Source-Serif title, and an explicit expand/collapse pill ending in a +/−
-   disc. States read by FILL, not by piling on borders. All color is --bigram-*,
-   resolved under the [data-bigram-theme] scope, so no other chapter is touched.
+   ExpandableSection · history "plegable"
+   Optional depth at the right emotional moment (Markov §4, Shannon §5). The
+   whole summary row is a card-like control: accent dot, serif title, +/− disc.
+   States read by FILL, not by piling on borders. Tokens only.
    ───────────────────────────────────────────── */
-
 function ExpandableSection({
     title,
+    kicker,
     children,
     defaultOpen = false,
 }: {
     title: string;
+    kicker?: string;
     children: React.ReactNode;
     defaultOpen?: boolean;
 }) {
     const [open, setOpen] = useState(defaultOpen);
     return (
-        <div className="my-8">
+        <div className="my-9">
             <button
                 type="button"
                 onClick={() => setOpen(o => !o)}
@@ -113,13 +161,17 @@ function ExpandableSection({
                     "focus-visible:outline-none focus-visible:border-bigram-accent focus-visible:shadow-[0_0_0_3px_var(--bigram-accent-soft)]"
                 )}
             >
-                {/* accent dot */}
                 <span className="shrink-0 w-[9px] h-[9px] rounded-full bg-bigram-accent" />
-                {/* title — Source Serif, weight 600 */}
-                <h3 className={cn(BIGRAM_SERIF, "flex-1 m-0 text-[19px] font-semibold leading-snug text-bigram-ink")}>
-                    {title}
-                </h3>
-                {/* expand / collapse pill ending in a +/− disc */}
+                <div className="flex-1 min-w-0">
+                    {kicker && (
+                        <span className={cn(BIGRAM_MONO, "block mb-1 text-[10px] uppercase tracking-[0.2em] text-bigram-accent")}>
+                            {kicker}
+                        </span>
+                    )}
+                    <h3 className={cn(BIGRAM_SERIF, "m-0 text-[18px] font-semibold leading-snug text-bigram-ink")}>
+                        {title}
+                    </h3>
+                </div>
                 <span
                     className={cn(
                         BIGRAM_MONO,
@@ -130,9 +182,9 @@ function ExpandableSection({
                         "transition-colors duration-200 group-hover:bg-[color-mix(in_oklab,var(--bigram-accent)_16%,transparent)]"
                     )}
                 >
-                    {open ? "collapse" : "expand"}
-                    <span className="inline-grid place-items-center w-[18px] h-[18px] rounded-full bg-bigram-accent text-[var(--bigram-on-accent)] text-[14px] font-bold leading-none">
-                        {open ? "−" : "+"}
+                    {open ? "cerrar" : "leer"}
+                    <span className="inline-grid place-items-center w-[18px] h-[18px] rounded-full bg-bigram-accent text-[var(--bigram-on-accent)] leading-none">
+                        <ChevronDown className={cn("w-3 h-3 transition-transform", open && "rotate-180")} />
                     </span>
                 </span>
             </button>
@@ -146,148 +198,11 @@ function ExpandableSection({
                         transition={{ duration: 0.38, ease: [0.25, 0, 0, 1] }}
                         className="overflow-hidden"
                     >
-                        <div className="pt-[22px] px-1">{children}</div>
+                        <div className="pt-[20px] px-1">{children}</div>
                     </motion.div>
                 )}
             </AnimatePresence>
         </div>
-    );
-}
-
-/* ─────────────────────────────────────────────
-   Collapsible History Sidebar
-   ───────────────────────────────────────────── */
-
-function BigramHistorySidebar({ t }: { t: (key: string) => string }) {
-    const [open, setOpen] = useState(false);
-
-    /* Rainbow → green/sage family. Each era keeps a distinct step within the
-       editorial-green scale (bright → accent → deep → sage), so the timeline still
-       reads chronologically but never leaves the bigram palette. Tokens only. */
-    const timelineEvents = [
-        { year: "1913", dot: "var(--bigram-accent-bright)", label: "Markov Chains" },
-        { year: "1948", dot: "var(--bigram-accent)", label: "Shannon's Bet" },
-        { year: "1960s", dot: "var(--bigram-accent-2)", label: "First NLP" },
-        { year: "2003", dot: "var(--bigram-sage)", label: "Neural LMs" },
-    ];
-
-    const eras = [
-        { year: "1913", label: "Markov Chains", color: "var(--bigram-accent-bright)", p: "p1" },
-        { year: "1948", label: "Shannon's Bet", color: "var(--bigram-accent)", p: "p2" },
-        { year: "1960s", label: "First NLP", color: "var(--bigram-accent-2)", p: "p3" },
-        { year: "2003", label: "Neural LMs", color: "var(--bigram-sage)", p: "p4" },
-    ];
-
-    return (
-        <aside className="my-12 rounded-[var(--bigram-r-lg)] border border-[color:var(--bigram-rule-2)] bg-bigram-surface overflow-hidden relative">
-            <button
-                onClick={() => setOpen(!open)}
-                className="w-full flex items-center gap-4 px-6 py-5 text-left group transition-colors duration-300 relative hover:bg-[var(--bigram-accent-soft)]"
-            >
-                <div className="shrink-0 grid place-items-center w-11 h-11 rounded-[var(--bigram-r-md)] bg-[var(--bigram-accent-soft)] ring-1 ring-[color-mix(in_oklab,var(--bigram-accent)_30%,transparent)] group-hover:ring-[color-mix(in_oklab,var(--bigram-accent)_50%,transparent)] transition-colors">
-                    <History className="w-5 h-5 text-bigram-accent" />
-                </div>
-                <div className="min-w-0 flex-1">
-                    <p className={cn(BIGRAM_SERIF, "text-[17px] font-semibold text-bigram-ink mb-1 leading-snug")}>
-                        {t("bigramNarrative.history.title")}
-                    </p>
-                    <p className={cn(BIGRAM_SERIF, "text-[14px] text-bigram-muted leading-relaxed")}>
-                        {t("bigramNarrative.history.summary")}
-                    </p>
-                </div>
-                <motion.div
-                    animate={{ rotate: open ? 180 : 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="shrink-0"
-                >
-                    <ChevronDown className="w-5 h-5 text-[color-mix(in_oklab,var(--bigram-accent)_70%,transparent)] group-hover:text-bigram-accent transition-colors" />
-                </motion.div>
-            </button>
-
-            <AnimatePresence>
-                {open && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-                        className="overflow-hidden bg-[color-mix(in_oklab,var(--bigram-surface)_55%,var(--bigram-bg))]"
-                    >
-                        <div className="px-6 pb-6 border-t border-[color:var(--bigram-rule)] pt-5">
-                            <p className={cn(BIGRAM_MONO, "text-[10.5px] font-medium uppercase tracking-[0.18em] text-bigram-sage mb-6 text-center")}>
-                                {t("bigramNarrative.history.subtitle")}
-                            </p>
-
-                            {/* Mini Timeline */}
-                            <div className="mb-8 px-2">
-                                <div className="relative">
-                                    <div
-                                        className="absolute left-0 right-0 top-4 h-px"
-                                        style={{ background: "linear-gradient(to right, var(--bigram-accent-bright), var(--bigram-accent-2), var(--bigram-sage))", opacity: 0.45 }}
-                                    />
-                                    <div className="relative flex justify-between items-start">
-                                        {timelineEvents.map((event, idx) => (
-                                            <motion.div
-                                                key={event.year}
-                                                initial={{ scale: 0, opacity: 0 }}
-                                                animate={{ scale: 1, opacity: 1 }}
-                                                transition={{ delay: idx * 0.1, duration: 0.3 }}
-                                                className="flex flex-col items-center"
-                                            >
-                                                <div
-                                                    className="w-8 h-8 rounded-full grid place-items-center"
-                                                    style={{
-                                                        background: event.dot,
-                                                        boxShadow: "0 0 0 4px var(--bigram-bg)",
-                                                    }}
-                                                >
-                                                    <div className="w-2 h-2 rounded-full bg-[var(--bigram-on-accent)]" />
-                                                </div>
-                                                <span className={cn(BIGRAM_MONO, "mt-2 text-[10px] font-medium text-bigram-muted whitespace-nowrap")}>
-                                                    {event.year}
-                                                </span>
-                                                <span className={cn(BIGRAM_SERIF, "mt-1 text-[9px] text-bigram-dim text-center max-w-[60px] leading-tight")}>
-                                                    {event.label}
-                                                </span>
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Story paragraphs */}
-                            <div className="space-y-5">
-                                {eras.map((era, idx) => (
-                                    <motion.div
-                                        key={era.year}
-                                        initial={{ x: -20, opacity: 0 }}
-                                        animate={{ x: 0, opacity: 1 }}
-                                        transition={{ delay: 0.1 * (idx + 1) }}
-                                        className="border-l-2 pl-4"
-                                        style={{ borderColor: `color-mix(in oklab, ${era.color} 45%, transparent)` }}
-                                    >
-                                        <div className="flex items-baseline gap-3 mb-2">
-                                            <span className={cn(BIGRAM_MONO, "text-2xl font-semibold shrink-0")} style={{ color: era.color }}>
-                                                {era.year}
-                                            </span>
-                                            <span
-                                                className={cn(BIGRAM_MONO, "text-xs uppercase tracking-wider font-medium")}
-                                                style={{ color: `color-mix(in oklab, ${era.color} 75%, transparent)` }}
-                                            >
-                                                {era.label}
-                                            </span>
-                                        </div>
-                                        <p className={cn(BIGRAM_SERIF, "text-[15px] text-bigram-body leading-relaxed")}>
-                                            {t(`bigramNarrative.history.${era.p}`)}
-                                        </p>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </aside>
     );
 }
 
@@ -306,443 +221,334 @@ interface BigramNarrativeProps {
     genError: string | null;
 }
 
-export function BigramNarrative({
-    matrixData,
-    trainingData,
-    onCellClick,
-    onGenerate,
-    generatedText,
-    genLoading,
-    genError,
-}: BigramNarrativeProps) {
+export function BigramNarrative(props: BigramNarrativeProps) {
+    // VIS 11 now generates LOCALLY (TableWriter); the page's generation props are accepted for
+    // compatibility but no longer used by the narrative.
+    void props;
     const { t } = useI18n();
     const { setMode } = useLabMode();
     const { hasStoredProgress, storedSection, clearProgress } = useProgressTracker("bigram");
 
+    /* Hero title — accent the final word ("Bigrama") in italic, per the editorial spec. */
+    const heroTitle = t("bigramNarrative.v2.hero.title");
+    const titleWords = heroTitle.split(" ");
+    const titleLast = titleWords.length > 1 ? titleWords.pop()! : heroTitle;
+    const titleFirst = titleWords.length ? titleWords.join(" ") : "";
+
     return (
-        <article className="max-w-[920px] mx-auto px-6 pt-8 pb-24">
+        <article className="relative z-[1] max-w-[880px] mx-auto px-7 pt-8 pb-24">
             <ContinueToast
                 accent="bigram"
                 hasStoredProgress={hasStoredProgress}
                 storedSection={storedSection}
                 clearProgress={clearProgress}
                 sectionNames={{
-                    "bigram-01": t("bigramNarrative.problem.label"),
-                    "bigram-02": t("bigramNarrative.coreIdea.label"),
-                    "bigram-03": t("bigramNarrative.mechanics.label"),
-                    "bigram-04": t("bigramNarrative.normalization.label"),
-                    "bigram-05": t("bigramNarrative.sampling.label"),
-                    "bigram-06": t("bigramNarrative.cliffhanger.label"),
+                    "bigram-01": t("bigramNarrative.v2.sectionNames.s01"),
+                    "bigram-02": t("bigramNarrative.v2.sectionNames.s02"),
+                    "bigram-03": t("bigramNarrative.v2.sectionNames.s03"),
+                    "bigram-04": t("bigramNarrative.v2.sectionNames.s04"),
+                    "bigram-05": t("bigramNarrative.v2.sectionNames.s05"),
+                    "bigram-06": t("bigramNarrative.v2.sectionNames.s06"),
                 }}
             />
-            <SectionProgressBar
+            <BigramSideRail
                 sections={[
-                    { id: "bigram-01", label: "01", name: t("bigramNarrative.problem.label") },
-                    { id: "bigram-02", label: "02", name: t("bigramNarrative.coreIdea.label") },
-                    { id: "bigram-03", label: "03", name: t("bigramNarrative.mechanics.label") },
-                    { id: "bigram-04", label: "04", name: t("bigramNarrative.normalization.label") },
-                    { id: "bigram-05", label: "05", name: t("bigramNarrative.sampling.label") },
-                    { id: "bigram-06", label: "06", name: t("bigramNarrative.cliffhanger.label") },
+                    { id: "bigram-01", label: "01", name: t("bigramNarrative.v2.sectionKickers.s1"), weight: 2.2 },
+                    { id: "bigram-02", label: "02", name: t("bigramNarrative.v2.sectionKickers.s2"), weight: 3.2 },
+                    { id: "bigram-03", label: "03", name: t("bigramNarrative.v2.sectionKickers.s3"), weight: 2.6 },
+                    { id: "bigram-04", label: "04", name: t("bigramNarrative.v2.sectionKickers.s4"), weight: 3.0 },
+                    { id: "bigram-05", label: "05", name: t("bigramNarrative.v2.sectionKickers.s5"), weight: 2.8 },
+                    { id: "bigram-06", label: "06", name: t("bigramNarrative.v2.sectionKickers.s6"), weight: 2.2 },
                 ]}
-                accent="bigram"
             />
 
-            {/* ───────────────────── HERO ───────────────────── */}
-            <header className="text-center mb-16 md:mb-20">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7 }}
-                >
-                    <span className={cn(BIGRAM_MONO, "inline-flex items-center gap-2.5 text-[12px] font-medium uppercase tracking-[0.18em] text-bigram-accent mb-7")}>
-                        <BookOpen className="w-3.5 h-3.5" />
-                        {t("bigramNarrative.hero.eyebrow")}
+            {/* ───────────────────── HERO · §0 Escribir es adivinar ───────────────────── */}
+            <header className="text-left pt-8 md:pt-16 mb-16 md:mb-20">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}>
+                    <span className={cn(BIGRAM_MONO, "inline-flex items-center gap-3 text-[12px] font-medium uppercase tracking-[0.18em] text-bigram-accent mb-8")}>
+                        <span className="inline-block h-px w-[34px] bg-bigram-accent opacity-60" aria-hidden />
+                        {t("bigramNarrative.v2.hero.eyebrow")}
                     </span>
 
-                    {/* Editorial Playfair hero — accent suffix italic, per the v8 spec.
-                        Color resolves through [data-bigram-theme] so other chapters are untouched. */}
-                    <h1 className={cn(BIGRAM_DISPLAY, "font-semibold text-bigram-ink tracking-[-0.018em] leading-[1.0] mb-7 text-balance", "text-[clamp(46px,7vw,92px)]")}>
-                        {t("bigramNarrative.hero.titlePrefix")}{" "}
-                        <span className="italic font-medium text-bigram-accent">
-                            {t("bigramNarrative.hero.titleSuffix")}
+                    <h1
+                        className={cn(BIGRAM_DISPLAY, "text-bigram-ink mb-7 text-balance")}
+                        style={{
+                            fontWeight: 800,
+                            fontSize: "clamp(54px, 8.6vw, 112px)",
+                            lineHeight: 0.95,
+                            letterSpacing: "clamp(-2.6px, calc(1.4px - 0.32vw), -0.5px)",
+                        }}
+                    >
+                        {titleFirst && <>{titleFirst}{" "}</>}
+                        <span className="italic text-bigram-accent" style={{ fontWeight: 600, letterSpacing: "-0.018em" }}>
+                            {titleLast}
                         </span>
                     </h1>
 
-                    <p className={cn(BIGRAM_SERIF, "text-[clamp(20px,2.1vw,24px)] font-normal text-bigram-ink-2 leading-[1.5] max-w-2xl mx-auto mb-4 text-pretty")}>
-                        {t("bigramNarrative.hero.description")}
+                    <p className={cn(BIGRAM_SERIF, "text-[clamp(21px,2.2vw,25px)] font-normal text-bigram-ink-2 leading-[1.5] max-w-[33em] mb-9 text-pretty")}>
+                        {t("bigramNarrative.v2.hero.subtitle")}
                     </p>
 
-                    <p className={cn(BIGRAM_MONO, "text-[11px] uppercase tracking-[0.14em] text-bigram-muted mb-8")}>
-                        {t("bigramNarrative.hero.readTime")}
-                    </p>
-
-                    <div className="flex justify-center">
-                        <div className="max-w-xs mx-auto">
-                            <ModeToggle />
-                        </div>
+                    <div className="flex justify-start">
+                        <div className="max-w-xs"><ModeToggle /></div>
                     </div>
                 </motion.div>
             </header>
 
-            {/* ─────────── §1 · THE CHALLENGE ─────────── */}
+            {/* ═══════════ §1 · El truco: predecir (toda la intro vive aquí) ═══════════ */}
             <Section id="bigram-01">
-                <SectionLabel number="1" label={t("bigramNarrative.problem.label")} />
-                <SectionAnchor id="bigram-01"><Heading>{t("bigramNarrative.problem.title")}</Heading></SectionAnchor>
-                <Lead>{t("bigramNarrative.problem.lead")}</Lead>
+                <SectionLabel number="01" label={t("bigramNarrative.v2.sectionKickers.s1")} />
+                <SectionAnchor id="bigram-01"><Heading>{t("bigramNarrative.v2.s1.label")}</Heading></SectionAnchor>
 
-                <P>{t("bigramNarrative.problem.heroAutoIntro")}</P>
-                <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.problem.heroAutoLabel")}
-                        hint={t("bigramNarrative.problem.heroAutoHint")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}><HeroAutoComplete /></Suspense>
-                    </FigureWrapper>
-                </LazySection>
-                <P>{t("bigramNarrative.problem.heroAutoBridge")}</P>
+                {/* Intro: teach writing to something that never lived a day. */}
+                <Lead>{t("bigramNarrative.v2.intro.p1")}</Lead>
+                <P html={t("bigramNarrative.v2.intro.p2")} />
+                <P html={t("bigramNarrative.v2.intro.p3")} />
 
+                {/* VIS 1 · the fill-the-blank keystone — the game holds the idea (no plane, full type). */}
                 <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.predictionChallenge.label")}
-                        hint={t("bigramNarrative.predictionChallenge.lead")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}><PredictionChallenge /></Suspense>
-                    </FigureWrapper>
+                    <div className="my-10 md:my-14">
+                        <Suspense fallback={<SectionSkeleton />}><FillTheBlank /></Suspense>
+                    </div>
                 </LazySection>
-                <P>
-                    {t("bigramNarrative.problem.p1")}
-                    <Highlight>{t("bigramNarrative.problem.p1Highlight")}</Highlight>
-                    {t("bigramNarrative.problem.p2")}
-                </P>
-                <P>{t("bigramNarrative.problem.p3")}</P>
-                <PullQuote>{t("bigramNarrative.problem.quote")}</PullQuote>
-                <P>
-                    {t("bigramNarrative.problem.p4")}
-                    <Highlight>{t("bigramNarrative.problem.h1")}</Highlight>,{" "}
-                    <Highlight>{t("bigramNarrative.problem.h2")}</Highlight>{t("bigramNarrative.problem.connector")}
-                    <Highlight>{t("bigramNarrative.problem.h3")}</Highlight>
-                    {t("bigramNarrative.problem.p5")}
-                </P>
+
+                {/* The reframe (predict instead of understand) + the bridge down to letters. */}
+                <P html={t("bigramNarrative.v2.fillBlank.afterPlay")} />
+                <P html={t("bigramNarrative.v2.fillBlank.reframe")} />
+                <P html={t("bigramNarrative.v2.fillBlank.toLetters")} />
+
+                {/* VIS 1.5 · the goal, shown up front: type a letter, it bets on the next. */}
+                <Lead>{t("bigramNarrative.v2.goalIntro.lead")}</Lead>
+                <Plane><HeroAutoComplete /></Plane>
+                <P html={t("bigramNarrative.v2.goalIntro.after")} />
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── §2 · THE SIMPLEST IDEA ─────────── */}
+            {/* ─────────── §2 · A la caza del patrón (la letra t) ─────────── */}
             <Section id="bigram-02">
-                <SectionLabel number="2" label={t("bigramNarrative.coreIdea.label")} />
-                <SectionAnchor id="bigram-02"><Heading>{t("bigramNarrative.coreIdea.title")}</Heading></SectionAnchor>
-                <Lead>{t("bigramNarrative.coreIdea.lead")}</Lead>
+                <SectionLabel number="02" label={t("bigramNarrative.v2.sectionKickers.s2")} />
+                <SectionAnchor id="bigram-02"><Heading>{t("bigramNarrative.v2.s2.label")}</Heading></SectionAnchor>
+                <Lead>{t("bigramNarrative.v2.s2.lead")}</Lead>
 
-                {/* DISCOVERY MOMENT: PairHighlighter first — let the learner spot patterns */}
-                <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.pairHighlighter.figureLabel")}
-                        hint={t("bigramNarrative.pairHighlighter.figureHint")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}><PairHighlighter /></Suspense>
-                    </FigureWrapper>
-                </LazySection>
+                <P html={t("bigramNarrative.v2.s2.pairPrompt")} />
+                <Plane><PairHighlighter /></Plane>
+                <P html={t("bigramNarrative.v2.s2.afterPair")} />
 
-                <P>{t("bigramNarrative.coreIdea.discoveryBridge")}</P>
+                <P html={t("bigramNarrative.v2.s2.focusTPrompt")} />
+                <Slot><IsolateT /></Slot>
+                <P html={t("bigramNarrative.v2.s2.afterCorpusCounting")} />
 
-                {/* CONFIRMATION: CorpusCountingIdea confirms the pattern at scale */}
-                <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.corpusCounting.figureLabel")}
-                        hint={t("bigramNarrative.corpusCounting.figureHint")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}><CorpusCountingIdea /></Suspense>
-                    </FigureWrapper>
-                </LazySection>
+                <P html={t("bigramNarrative.v2.s2.bookPrompt")} />
+                <Slot><RowTally /></Slot>
+                <P html={t("bigramNarrative.v2.s2.afterShakespeare")} />
+                <P html={t("bigramNarrative.v2.s2.honestyNote")} />
 
-                {/* NOW name the concept — the learner already did the pairing */}
-                <P>
-                    {t("bigramNarrative.coreIdea.namingBridge")}
-                    <Highlight><Term word="bigram">{t("bigramNarrative.coreIdea.h1")}</Term></Highlight>
-                    {t("bigramNarrative.coreIdea.namingEnd")}
-                </P>
-
-                <ExpandableSection title={t("bigramNarrative.coreIdea.formalTitle")}>
-                    <P>{t("bigramNarrative.coreIdea.formalP1")}</P>
-                    <P>{t("bigramNarrative.coreIdea.etymologyBridge")}</P>
-                    <FormulaBlock
-                        formula="P(c_n \mid c_{n-1}) = \dfrac{\text{Count}(c_{n-1},\, c_n)}{\text{Count}(c_{n-1})}"
-                        caption={t("bigramNarrative.coreIdea.formulaCaption")}
-                    />
-                    <P>{t("bigramNarrative.coreIdea.formalP2")}</P>
-                    <P>{t("bigramNarrative.coreIdea.formalP3")}</P>
+                {/* Plegable · Markov — al hilo de leer y contar */}
+                <ExpandableSection
+                    title={t("bigramNarrative.v2.markov.title")}
+                    kicker={t("bigramNarrative.v2.markov.kicker")}
+                >
+                    <MarkovStory />
                 </ExpandableSection>
-
-                <P>{t("bigramNarrative.coreIdea.p3")}</P>
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── §3 · THE FULL PICTURE: TRANSITION TABLE ─────────── */}
+            {/* ─────────── §3 · Demasiado predecible (todo aún sobre la t) ─────────── */}
             <Section id="bigram-03">
-                <SectionLabel number="3" label={t("bigramNarrative.mechanics.label")} />
-                <SectionAnchor id="bigram-03"><Heading>{t("bigramNarrative.mechanics.title")}</Heading></SectionAnchor>
-                <Lead>{t("bigramNarrative.mechanics.lead")}</Lead>
+                <SectionLabel number="03" label={t("bigramNarrative.v2.sectionKickers.s3")} />
+                <SectionAnchor id="bigram-03"><Heading>{t("bigramNarrative.v2.s5.label")}</Heading></SectionAnchor>
+                <Lead>{t("bigramNarrative.v2.s5.lead")}</Lead>
+                <P html={t("bigramNarrative.v2.s5.lead2")} />
 
-                {/* Phase 0: Interactive intro — the storage problem */}
-                <P>{t("bigramNarrative.mechanics.storageIntro")}</P>
+                {/* VIS 5 · de números a porcentajes (la misma fila de la «t», normalizada) */}
+                <Plane><NormalizationVisualizer /></Plane>
+                <P html={t("bigramNarrative.v2.s5.afterNormalization")} />
 
-                <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.storageProblem.figureLabel")}
-                        hint={t("bigramNarrative.storageProblem.figureHint")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}><StorageProblemVisualizer /></Suspense>
-                    </FigureWrapper>
-                </LazySection>
+                {/* VIS 6 · siempre el máximo → bucle «the the the» */}
+                <P html={t("bigramNarrative.v2.s5.choosePrompt")} />
+                <Plane><AlwaysMaxLoop /></Plane>
+                <P html={t("bigramNarrative.v2.s5.afterAlwaysMax")} />
 
-                {/* Phase 1: The grid idea */}
-                <P>{t("bigramNarrative.mechanics.discoveryBridge")}</P>
-                <PullQuote>{t("bigramNarrative.mechanics.bridgeQuote")}</PullQuote>
-                <P>{t("bigramNarrative.mechanics.bridgeP3")}</P>
-
-                <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.mechanics.tinyMatrixLabel")}
-                        hint={t("bigramNarrative.mechanics.tinyMatrixHint")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}><TinyMatrixExample showCounts /></Suspense>
-                    </FigureWrapper>
-                </LazySection>
-
-                {/* Phase 2: Build it yourself */}
-                <P>{t("bigramNarrative.mechanics.builderBridge")}</P>
-                <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.mechanics.builderLabel")}
-                        hint={t("bigramNarrative.mechanics.builderHint")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}><BigramMatrixBuilder /></Suspense>
-                    </FigureWrapper>
-                </LazySection>
-
-                {/* Phase 3: Scale up — the full transition matrix */}
-                <P>{t("bigramNarrative.mechanics.fullMatrixBridge")}</P>
-
-                <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.mechanics.label")}
-                        hint={t("bigramNarrative.mechanics.fullMatrixHint")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}>
-                            <TransitionMatrix
-                                data={matrixData}
-                                onCellClick={onCellClick}
-                                accent="bigram"
-                            />
-                        </Suspense>
-                    </FigureWrapper>
-                </LazySection>
-
-                <Callout title={t("bigramNarrative.mechanics.dataSourceTitle")}>
-                    <p className="mb-2">{t("bigramNarrative.mechanics.dataSourceP1")}</p>
-                    <p className="mb-2">{t("bigramNarrative.mechanics.dataSourceP2")}</p>
-                    <p>{t("bigramNarrative.mechanics.dataSourceP3")}</p>
-                </Callout>
-
-                <BigramHistorySidebar t={t} />
-
-                <P>{t("bigramNarrative.mechanics.sectionBridge")}</P>
+                {/* VIS 7 · el dado trucado (muestreo que respeta los %) */}
+                <P html={t("bigramNarrative.v2.s5.dicePrompt")} />
+                <Plane><LoadedDie /></Plane>
+                <P html={t("bigramNarrative.v2.s5.toMatrix")} />
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── §4 · FROM COUNTS TO CHANCES ─────────── */}
+            {/* ─────────── §4 · Nace la matriz ─────────── */}
             <Section id="bigram-04">
-                <SectionLabel number="4" label={t("bigramNarrative.normalization.label")} />
-                <SectionAnchor id="bigram-04"><Heading>{t("bigramNarrative.normalization.title")}</Heading></SectionAnchor>
-                <Lead>{t("bigramNarrative.normalization.lead")}</Lead>
+                <SectionLabel number="04" label={t("bigramNarrative.v2.sectionKickers.s4")} />
+                <SectionAnchor id="bigram-04"><Heading>{t("bigramNarrative.v2.s3.label")}</Heading></SectionAnchor>
+                <Lead>{t("bigramNarrative.v2.s3.lead")}</Lead>
 
-                <P>
-                    {t("bigramNarrative.normalization.p1")}
-                    <Highlight><Term word="normalization">{t("bigramNarrative.normalization.h1")}</Term></Highlight>
-                    {t("bigramNarrative.normalization.p2")}
-                </P>
+                {/* VIS 8 · mini-matriz que apila una fila por letra → cuadrícula */}
+                <Plane><TinyMatrixExample showCounts /></Plane>
+                <P html={t("bigramNarrative.v2.s3.rowByRowReveal")} />
+                <P html={t("bigramNarrative.v2.s3.rowByRowName")} />
 
-                <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.normalization.label")}
-                        hint={t("bigramNarrative.normalization.vizHint")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}><NormalizationVisualizer /></Suspense>
-                    </FigureWrapper>
-                </LazySection>
+                {/* VIS 9 · la matriz 27×27 que crece leyendo */}
+                <Plane><GrowingMatrix27 /></Plane>
 
-                <Callout title={t("bigramNarrative.normalization.plainEnglishTitle")}>
-                    <p>{t("bigramNarrative.normalization.plainEnglish")}</p>
-                </Callout>
-
-                <P>{t("bigramNarrative.normalization.queryVizBridge")}</P>
-
-                <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.queryViz.label")}
-                        hint={t("bigramNarrative.queryViz.hint")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}><PredictionQueryVisualizer /></Suspense>
-                    </FigureWrapper>
-                </LazySection>
-
-                <P>{t("bigramNarrative.normalization.p3")}</P>
-
-                <KeyTakeaway accent="bigram">
-                    {t("bigramNarrative.keyTakeaways.normalization")}
-                </KeyTakeaway>
+                {/* El giro: el mundo real es más sucio → 92×92 */}
+                <P html={t("bigramNarrative.v2.s4.charsetPrompt")} />
+                {/* El encuadre del detective va en el CUERPO (no dentro del widget): la tabla entera, las
+                    casillas negras son reglas que nadie le enseñó. */}
+                <P html={t("bigramNarrative.v2.detective.intro")} />
+                {/* VIS 10 · la matriz 92×92 detective.
+                    (El concepto «datos de entrenamiento / de dónde sale esto» YA está en §2:
+                    RowTally `payoff` + `s2.honestyNote`. No repetirlo aquí.) */}
+                <Plane><DetectiveMatrix /></Plane>
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── §5 · LET IT WRITE ─────────── */}
+            {/* ─────────── §5 · ¡Vamos a escribir! ─────────── */}
             <Section id="bigram-05">
-                <SectionLabel number="5" label={t("bigramNarrative.sampling.label")} />
-                <SectionAnchor id="bigram-05"><Heading>{t("bigramNarrative.sampling.title")}</Heading></SectionAnchor>
-                <Lead>{t("bigramNarrative.sampling.lead")}</Lead>
-                <P>
-                    {t("bigramNarrative.sampling.p1")}
-                    <Highlight><Term word="sampling">{t("bigramNarrative.sampling.h1")}</Term></Highlight>
-                    {t("bigramNarrative.sampling.p2")}
-                </P>
+                <SectionLabel number="05" label={t("bigramNarrative.v2.sectionKickers.s5")} />
+                <SectionAnchor id="bigram-05"><Heading>{t("bigramNarrative.v2.s6.label")}</Heading></SectionAnchor>
+                <Lead>{t("bigramNarrative.v2.s5.writePrompt")}</Lead>
 
-                <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.sampling.samplingMechanismLabel")}
-                        hint={t("bigramNarrative.sampling.samplingMechanismHint")}
+                {/* VIS 10.5 · una letra paso a paso (el puente: mira su fila → cuenta → % → dado → repite) */}
+                <Plane><LetterByLetter /></Plane>
+
+                {/* El logro, JUSTO tras ver a la máquina elegir letra a letra: escribe sola, desde cero */}
+                <P html={t("bigramNarrative.v2.naming.buildup")} />
+
+                {/* …y ahora a toda velocidad */}
+                <P html={t("bigramNarrative.v2.s5.toFullSpeed")} />
+
+                {/* VIS 11 · la máquina de escribir a toda velocidad (genera en local desde la matriz) */}
+                <Plane><TableWriter /></Plane>
+
+                <P html={t("bigramNarrative.v2.disappointment.text")} />
+
+                {/* El nombre, en voz baja (el título ya lo dice) */}
+                <FadeInView className="my-12 text-center">
+                    <p className={cn(BIGRAM_SERIF, "text-[clamp(19px,2vw,22px)] text-bigram-ink-2 mb-3")}>
+                        {t("bigramNarrative.v2.naming.revealLead")}
+                    </p>
+                    <p
+                        className={cn(BIGRAM_DISPLAY, "italic text-bigram-accent")}
+                        style={{ fontWeight: 600, fontSize: "clamp(40px,6.4vw,72px)", lineHeight: 1.04, letterSpacing: "-0.018em" }}
                     >
-                        <Suspense fallback={<SectionSkeleton />}><SamplingMechanismVisualizer /></Suspense>
-                    </FigureWrapper>
-                </LazySection>
+                        {t("bigramNarrative.v2.naming.revealWord")}
+                    </p>
+                    <p className={cn(BIGRAM_SERIF, "mt-5 text-[clamp(17px,1.9vw,20px)] text-bigram-body leading-relaxed max-w-[34em] mx-auto text-pretty")}>
+                        {t("bigramNarrative.v2.naming.revealCoda")}
+                    </p>
+                </FadeInView>
 
-                <ExpandableSection title={t("bigramNarrative.sampling.softmaxTitle")}>
-                    <P>{t("bigramNarrative.sampling.softmaxIntuition")}</P>
-                    <P>{t("bigramNarrative.sampling.softmaxP1")}</P>
-                    <FormulaBlock
-                        formula="\text{softmax}(z_i) = \dfrac{e^{z_i}}{\sum_j e^{z_j}}"
-                        caption={t("bigramNarrative.sampling.softmaxFormulaCaption")}
-                    />
-                    <P>{t("bigramNarrative.sampling.softmaxP2")}</P>
-                    <FormulaBlock
-                        formula="\text{softmax}(z_i / T) = \dfrac{e^{z_i / T}}{\sum_j e^{z_j / T}}"
-                        caption={t("bigramNarrative.sampling.softmaxTempCaption")}
-                    />
-                    <P>{t("bigramNarrative.sampling.softmaxP3")}</P>
+                {/* Plegable · Shannon (Historia) — el primer modelo de lenguaje de verdad */}
+                <ExpandableSection
+                    title={t("bigramNarrative.v2.shannon.title")}
+                    kicker={t("bigramNarrative.v2.shannon.kicker")}
+                >
+                    <P html={t("bigramNarrative.v2.shannon.p1")} />
+                    <P html={t("bigramNarrative.v2.shannon.p2")} />
+                    <P html={t("bigramNarrative.v2.shannon.p3")} />
+                    <P html={t("bigramNarrative.v2.shannon.quoteIntro")} />
+                    {/* La salida real de Shannon (1948) como espécimen — un elemento distinto, no más párrafo */}
+                    <blockquote
+                        className={cn(
+                            BIGRAM_MONO,
+                            "my-7 mx-auto max-w-[46ch] rounded-[var(--bigram-r-md)] bg-bigram-bg-2 px-6 py-5 text-center text-[clamp(13px,1.5vw,16px)] leading-[1.7] tracking-[0.04em] text-bigram-accent-ink",
+                        )}
+                        style={{ boxShadow: "inset 0 0 0 1px var(--bigram-rule-2)", borderLeft: "2px solid var(--bigram-accent)" }}
+                    >
+                        “{t("bigramNarrative.v2.shannon.quote")}”
+                    </blockquote>
+                    <P html={t("bigramNarrative.v2.shannon.p4")} />
+                    <P html={t("bigramNarrative.v2.shannon.p5")} />
                 </ExpandableSection>
-
-                <P>{t("bigramNarrative.sampling.playgroundBridge")}</P>
-
-                <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.sampling.playgroundLabel")}
-                        hint={t("bigramNarrative.sampling.playgroundHint")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}>
-                            <GenerationPlayground
-                                onGenerate={onGenerate}
-                                generatedText={generatedText}
-                                loading={genLoading}
-                                error={genError}
-                            />
-                        </Suspense>
-                    </FigureWrapper>
-                </LazySection>
-                <P>
-                    {t("bigramNarrative.sampling.p3")}
-                    <Highlight>{t("bigramNarrative.sampling.h2")}</Highlight>
-                    {t("bigramNarrative.sampling.p4")}
-                </P>
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── §6 · THE FATAL FLAW ─────────── */}
+            {/* ─────────── §6 · El techo (la amnesia → puente al n-gram) ─────────── */}
             <Section id="bigram-06">
-                <SectionLabel number="6" label={t("bigramNarrative.cliffhanger.label")} />
-                <SectionAnchor id="bigram-06"><Heading>{t("bigramNarrative.cliffhanger.title")}</Heading></SectionAnchor>
-                <Lead>{t("bigramNarrative.cliffhanger.lead")}</Lead>
-                <P>{t("bigramNarrative.cliffhanger.celebrationBridge")}</P>
-                <P>{t("bigramNarrative.cliffhanger.p1")}</P>
-
-                <LazySection>
-                    <FigureWrapper
-                        label={t("bigramNarrative.contextBlindness.figureLabel")}
-                        hint={t("bigramNarrative.contextBlindness.figureHint")}
-                    >
-                        <Suspense fallback={<SectionSkeleton />}><ContextBlindnessDemo /></Suspense>
-                    </FigureWrapper>
-                </LazySection>
-
-                <P>{t("bigramNarrative.cliffhanger.blindnessP1")}</P>
-
-                <PullQuote>{t("bigramNarrative.cliffhanger.hookLine")}</PullQuote>
-
-                <KeyTakeaway accent="bigram">
-                    {t("bigramNarrative.keyTakeaways.fatalFlaw")}
-                </KeyTakeaway>
+                <SectionLabel number="06" label={t("bigramNarrative.v2.sectionKickers.s6")} />
+                <SectionAnchor id="bigram-06"><Heading>{t("bigramNarrative.v2.s6.heading")}</Heading></SectionAnchor>
+                <P html={t("bigramNarrative.v2.s6.lead")} />
+                <Plane><ContextBlindnessDemo /></Plane>
+                <P html={t("bigramNarrative.v2.s6.afterBlindness")} />
+                <P html={t("bigramNarrative.v2.s6.ladderPrompt")} />
+                <Plane><ShannonContextLadder /></Plane>
+                <P html={t("bigramNarrative.v2.s6.afterLadder")} />
+                <P html={t("bigramNarrative.v2.s6.ladderCoda")} />
             </Section>
 
             <SectionBreak />
 
-            {/* ─────────── CTA (asymmetric — primary = next chapter) ───────────
-               v8 editorial-green: tokens only. Primary is a calm surface card with
-               an accent-soft icon well; the secondary is a quiet text-row. No teal,
-               no neon glow — the green resolves through [data-bigram-theme]. */}
+            {/* ─────────── CTA · puente al n-gram (asimétrico) ─────────── */}
             <Section>
-                <div className="text-center mb-10">
-                    <h2 className={cn(BIGRAM_DISPLAY, "font-semibold text-bigram-ink tracking-[-0.012em] leading-[1.08] text-[clamp(28px,3.6vw,40px)] mb-3 text-balance")}>
-                        {t("bigramNarrative.cta.title")}
-                    </h2>
-                </div>
-
                 <div className="space-y-4">
-                    {/* Primary CTA — next chapter */}
-                    <Link href="/lab/ngram">
+                    {/* Primary — the bridge to the next chapter. Editorial, inviting, alive on hover. */}
+                    <Link href={t("bigramNarrative.v2.cta.primaryHref")} className="block focus:outline-none">
                         <motion.div
-                            whileHover={{ scale: 1.01 }}
-                            whileTap={{ scale: 0.99 }}
-                            className="group relative w-full overflow-hidden rounded-[var(--bigram-r-lg)] border border-[color:var(--bigram-rule-2)] bg-bigram-surface p-8 text-left transition-colors duration-300 hover:border-[color-mix(in_oklab,var(--bigram-accent)_40%,var(--bigram-rule-2))]"
+                            whileHover={{ y: -4 }}
+                            whileTap={{ scale: 0.992 }}
+                            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+                            className="group relative w-full overflow-hidden rounded-[var(--bigram-r-lg)] border border-[color:var(--bigram-rule-2)] bg-bigram-surface px-7 py-8 sm:px-10 sm:py-10 transition-[border-color,box-shadow] duration-300 hover:border-[color-mix(in_oklab,var(--bigram-accent)_55%,transparent)] hover:shadow-[0_26px_50px_-26px_color-mix(in_oklab,var(--bigram-accent)_60%,transparent)]"
                         >
-                            <div className="absolute inset-0 bg-[linear-gradient(135deg,var(--bigram-accent-soft),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-                            <div className="relative flex items-center gap-5">
-                                <div className="shrink-0 grid place-items-center w-12 h-12 rounded-[var(--bigram-r-md)] bg-[var(--bigram-accent-soft)] ring-1 ring-[color-mix(in_oklab,var(--bigram-accent)_30%,transparent)] transition-[box-shadow] group-hover:ring-[color-mix(in_oklab,var(--bigram-accent)_50%,transparent)]">
-                                    <ArrowRight className="w-6 h-6 text-bigram-accent" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <span className={cn(BIGRAM_SERIF, "block mb-1 text-[20px] font-semibold leading-snug text-bigram-ink tracking-tight")}>
-                                        {t("bigramNarrative.cta.nextTitle")}
+                            {/* accent bloom from the top-right corner */}
+                            <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(130%_150%_at_100%_0%,var(--bigram-accent-soft),transparent_58%)] opacity-50 transition-opacity duration-500 group-hover:opacity-100" />
+                            {/* oversized faded chapter numeral, an editorial flourish */}
+                            <span aria-hidden className={cn(BIGRAM_DISPLAY, "pointer-events-none absolute -top-9 right-2 select-none text-[150px] font-bold leading-none text-[color-mix(in_oklab,var(--bigram-accent)_7%,transparent)]")}>2</span>
+                            {/* a light sheen that sweeps across on hover */}
+                            <span aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-1/4 -translate-x-[160%] -skew-x-12 bg-[linear-gradient(90deg,transparent,color-mix(in_oklab,var(--bigram-accent)_12%,transparent),transparent)] transition-transform duration-[900ms] ease-out group-hover:translate-x-[460%]" />
+
+                            <div className="relative">
+                                <div className="mb-4 flex items-center gap-3">
+                                    <span className={cn(BIGRAM_MONO, "text-[10.5px] uppercase tracking-[0.22em] text-bigram-accent")}>
+                                        {t("bigramNarrative.v2.cta.primaryKicker")}
                                     </span>
-                                    <p className={cn(BIGRAM_SERIF, "text-[15px] leading-relaxed text-bigram-muted")}>
-                                        {t("bigramNarrative.cta.nextDesc")}
-                                    </p>
+                                    <span aria-hidden className="h-px w-8 bg-[color-mix(in_oklab,var(--bigram-accent)_40%,transparent)]" />
+                                    <span className={cn(BIGRAM_MONO, "text-[10.5px] uppercase tracking-[0.14em] text-bigram-muted")}>
+                                        {t("bigramNarrative.v2.cta.primaryChapter")}
+                                    </span>
                                 </div>
-                                <ArrowRight className="w-5 h-5 shrink-0 text-[color-mix(in_oklab,var(--bigram-accent)_55%,transparent)] transition-all group-hover:translate-x-0.5 group-hover:text-bigram-accent" />
+                                <h3 className={cn(BIGRAM_SERIF, "max-w-[30ch] text-[clamp(21px,2.6vw,28px)] font-semibold leading-[1.2] tracking-tight text-bigram-ink")}>
+                                    {t("bigramNarrative.v2.cta.primaryTitle")}
+                                </h3>
+                                <p className={cn(BIGRAM_SERIF, "mt-2.5 max-w-[48ch] text-[15px] leading-relaxed text-bigram-muted")}>
+                                    {t("bigramNarrative.v2.cta.primaryDesc")}
+                                </p>
+                                <div className="mt-7 inline-flex items-center gap-3.5">
+                                    <span className="grid h-12 w-12 place-items-center rounded-full bg-[var(--bigram-accent)] text-[var(--bigram-on-accent)] shadow-[0_10px_22px_-10px_color-mix(in_oklab,var(--bigram-accent)_75%,transparent)] transition-colors duration-300 group-hover:bg-[var(--bigram-accent-bright)]">
+                                        <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-0.5" />
+                                    </span>
+                                    <span className={cn(BIGRAM_MONO, "text-[12px] font-semibold uppercase tracking-[0.16em] text-bigram-accent")}>
+                                        {t("bigramNarrative.v2.cta.primaryCue")}
+                                    </span>
+                                </div>
                             </div>
                         </motion.div>
                     </Link>
 
-                    {/* Secondary CTA — free lab */}
+                    {/* Secondary — the quiet escape to the free lab */}
                     <motion.button
-                        whileHover={{ scale: 1.005 }}
+                        whileHover={{ y: -2 }}
                         whileTap={{ scale: 0.995 }}
+                        transition={{ type: "spring", stiffness: 320, damping: 26 }}
                         onClick={() => setMode("free")}
-                        className="group relative w-full overflow-hidden rounded-[var(--bigram-r-md)] border border-[color:var(--bigram-rule)] bg-[color-mix(in_oklab,var(--bigram-ink)_3%,transparent)] p-5 text-left transition-colors duration-200 hover:border-[color-mix(in_oklab,var(--bigram-accent)_28%,var(--bigram-rule))] hover:bg-[var(--bigram-accent-soft)]"
+                        className="group relative flex w-full items-center gap-4 overflow-hidden rounded-[var(--bigram-r-md)] border border-[color:var(--bigram-rule)] bg-[color-mix(in_oklab,var(--bigram-ink)_3%,transparent)] px-5 py-4 text-left transition-colors duration-200 hover:border-[color-mix(in_oklab,var(--bigram-accent)_30%,var(--bigram-rule))] hover:bg-[var(--bigram-accent-soft)]"
                     >
-                        <div className="relative flex items-center gap-4">
-                            <div className="shrink-0 grid place-items-center w-9 h-9 rounded-[var(--bigram-r-sm)] bg-[var(--bigram-accent-soft)]">
-                                <Beaker className="w-4 h-4 text-bigram-accent" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <span className={cn(BIGRAM_SERIF, "text-[15px] font-semibold text-bigram-ink-2")}>
-                                    {t("bigramNarrative.cta.freeLabButton")}
-                                </span>
-                                <span className={cn(BIGRAM_SERIF, "ml-2 text-[13px] text-bigram-muted")}>
-                                    {t("bigramNarrative.cta.freeLabDesc")}
-                                </span>
-                            </div>
-                        </div>
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--bigram-r-sm)] bg-[var(--bigram-accent-soft)] text-bigram-accent transition-colors group-hover:bg-[color-mix(in_oklab,var(--bigram-accent)_22%,transparent)]">
+                            <Beaker className="h-4 w-4" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                            <span className={cn(BIGRAM_SERIF, "text-[15px] font-semibold text-bigram-ink-2")}>
+                                {t("bigramNarrative.v2.cta.secondaryLabel")}
+                            </span>
+                            <span className={cn(BIGRAM_SERIF, "ml-2 text-[13px] text-bigram-muted")}>
+                                {t("bigramNarrative.v2.cta.secondaryDesc")}
+                            </span>
+                        </span>
+                        <ArrowRight className="h-4 w-4 shrink-0 -translate-x-1 text-[color-mix(in_oklab,var(--bigram-accent)_50%,transparent)] opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100" />
                     </motion.button>
                 </div>
             </Section>

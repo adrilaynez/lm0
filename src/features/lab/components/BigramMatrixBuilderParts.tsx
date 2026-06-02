@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 /**
  * BigramMatrixBuilderParts — presentational pieces for the BigramMatrixBuilder visualizer
- * (Bigram chapter, v8 · editorial-green). Split out so the orchestrating component stays focused
+ * (Bigram chapter, v10 design language · editorial-green). Split out so the orchestrating component stays focused
  * and readable. Every value is a --bigram-* token, gated by the chapter's [data-bigram-theme] scope.
  * Reduced-motion is threaded down as a prop (no hook usage here) so these stay pure presentational.
  */
@@ -412,11 +412,12 @@ function MatrixCell({
         color = "var(--bigram-on-accent)";
         boxShadow = "0 4px 14px -6px color-mix(in oklab, var(--bigram-accent) 70%, transparent)";
     } else if (filled) {
-        const pct = Math.max(8, intensity * 30); // 8%..30% accent fill
+        const pct = Math.max(10, intensity * 34); // 10%..34% accent fill — honest heat, never neon
         background = `color-mix(in oklab, var(--bigram-accent) ${pct}%, var(--bigram-surface))`;
         color = intensity > 0.6 ? "var(--bigram-ink)" : "var(--bigram-ink-2)";
     } else {
-        background = "color-mix(in oklab, var(--bigram-surface) 40%, transparent)";
+        // a quiet sunk well — reads in both themes without a border
+        background = "color-mix(in oklab, var(--bigram-ink) 5%, transparent)";
         color = "var(--bigram-dim)";
     }
 
@@ -467,6 +468,126 @@ function CountValue({ value, pulse }: { value: number; pulse: boolean }) {
                 {value}
             </motion.span>
         </AnimatePresence>
+    );
+}
+
+/* ─── Running accumulator — a quiet mono chip: "N counted" ───
+   Makes the count→grid accumulation legible: every landed +1 ticks this up, so the eye sees the
+   tally grow toward the moment the whole matrix is built. Filled in the editorial-soft accent, never
+   loud — secondary to the grid. */
+export function RunningTotal({
+    count,
+    total,
+    reduce,
+}: {
+    count: number;
+    total: number;
+    reduce: boolean;
+}) {
+    return (
+        <span
+            style={{
+                display: "inline-flex",
+                alignItems: "baseline",
+                gap: 6,
+                padding: "5px 12px",
+                borderRadius: "var(--bigram-r-pill)",
+                background: "var(--bigram-accent-soft)",
+                fontFamily: "var(--font-jetbrains-mono)",
+                fontVariantNumeric: "tabular-nums",
+            }}
+        >
+            {reduce ? (
+                <span
+                    style={{
+                        display: "inline-block",
+                        fontSize: 15,
+                        fontWeight: 700,
+                        color: "var(--bigram-accent-ink)",
+                    }}
+                >
+                    {count}
+                </span>
+            ) : (
+                <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.span
+                        key={count}
+                        initial={{ y: 5, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -5, opacity: 0 }}
+                        transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
+                        style={{
+                            display: "inline-block",
+                            fontSize: 15,
+                            fontWeight: 700,
+                            color: "var(--bigram-accent-ink)",
+                        }}
+                    >
+                        {count}
+                    </motion.span>
+                </AnimatePresence>
+            )}
+            <span style={{ fontSize: 11, color: "var(--bigram-dim)" }}>/ {total}</span>
+        </span>
+    );
+}
+
+/* ─── Completion coda — a calm sage panel (editorial-insight voice) ───
+   Not the Verdict primitive (that states a single most-likely follower — the wrong conclusion here).
+   This states the builder's ONE idea in human language: every adjacent pair was counted, and the
+   grid IS the transition table. Sage gradient + inset sage ring, distinct from the emerald accent. */
+export function CompletionCoda({
+    line,
+    meta,
+    reduce,
+}: {
+    line: string;
+    meta: string;
+    reduce: boolean;
+}) {
+    return (
+        <motion.div
+            initial={reduce ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={reduce ? { duration: 0 } : { duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 8,
+                maxWidth: 460,
+                margin: "0 auto",
+                padding: "16px 22px",
+                borderRadius: "var(--bigram-r-md)",
+                background: "linear-gradient(135deg, var(--bigram-sage-soft), transparent 82%)",
+                boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--bigram-sage) 32%, transparent)",
+                textAlign: "center",
+            }}
+        >
+            <span
+                style={{
+                    fontFamily: "var(--font-source-serif)",
+                    fontStyle: "italic",
+                    fontSize: 16,
+                    lineHeight: 1.5,
+                    color: "var(--bigram-sage)",
+                    textWrap: "pretty",
+                }}
+            >
+                {line}
+            </span>
+            <span
+                style={{
+                    fontFamily: "var(--font-jetbrains-mono)",
+                    fontSize: 11,
+                    letterSpacing: ".06em",
+                    color: "var(--bigram-muted)",
+                    fontVariantNumeric: "tabular-nums",
+                }}
+            >
+                {meta}
+            </span>
+        </motion.div>
     );
 }
 

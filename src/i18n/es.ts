@@ -94,6 +94,10 @@ export const es: TranslationDictionary = {
         },
         shell: {
             allModels: "Volver al Lab",
+            chapter: "Capítulo",
+            chapterMenu: "Elegir capítulo",
+            profile: "Tu perfil",
+            toggleTheme: "Cambiar tema",
         },
         active: "Lab. Activo",
         waking: "Despertando",
@@ -2457,7 +2461,7 @@ export const es: TranslationDictionary = {
             readTime: "~10 min de lectura · 6 demos interactivas"
         },
         problem: {
-            title: "El Desafío",
+            title: "Adivina la Letra que Falta",
             lead: "Empecemos con un juego. Ves una frase con una letra que falta — ¿puedes adivinar cuál es?",
             p1: "Acabas de hacer algo increíble: has ",
             p1Highlight: "predicho la siguiente letra",
@@ -2529,6 +2533,10 @@ export const es: TranslationDictionary = {
             tinyMatrixHover: "Pasa el cursor por una celda para ver su probabilidad",
             tinyMatrixColLabel: "siguiente carácter →",
             tinyMatrixRowLabel: "carácter actual →",
+            tinyMatrixPlay: "Construir la cuadrícula",
+            tinyMatrixReplay: "Otra vez",
+            tinyMatrixBuilding: "Cada letra nueva estrena su propia fila. Apílalas y aparece la cuadrícula.",
+            tinyMatrixGrid: "Izquierda: de qué letra partes. Arriba: a cuál vas. La casilla donde se cruzan: cuántas veces pasó.",
             tinyMatrixHigh: "frecuente",
             tinyMatrixLow: "poco frecuente",
             tinyMatrixRare: "muy raro / nunca",
@@ -2562,6 +2570,7 @@ export const es: TranslationDictionary = {
             p5: " que escribiste."
         },
         normalizationViz: {
+            theRowLabel: "La fila de la «t»",
             context: "Después de '{char}', ¿cuáles son las probabilidades de cada siguiente carácter?",
             step1Title: "Paso 1: Conteos Brutos",
             step1Desc: "Cuántas veces apareció cada carácter después de '{char}' en el texto de entrenamiento",
@@ -2686,31 +2695,36 @@ export const es: TranslationDictionary = {
         predictionChallenge: {
             label: "Tu Turno",
             title: "¿Puedes Ganar al Modelo?",
-            lead: "Antes de mostrarte cómo funciona — pruébalo tú. ¿Qué letra viene después? Usa tu instinto sobre el inglés.",
-            prompt: "¿Qué carácter viene después?",
-            score: "Puntuación",
-            correct: "¡Correcto!",
-            wrong: "La respuesta era '{answer}' —",
-            next: "Siguiente →",
-            finish: "Ver resultados →",
-            perfect: "¡Puntuación perfecta! Piensas igual que el modelo.",
-            good: "Buen trabajo — tu intuición coincide con las estadísticas.",
-            tryAgain: "Los patrones del lenguaje pueden ser complicados. ¡Inténtalo de nuevo!",
-            restart: "Intentar de nuevo",
+            lead: "Antes de explicarte cómo funciona una máquina, predice tú. Usa tu instinto sobre el idioma.",
+            prompt: "¿Qué letra crees que viene después?",
+            okLabel: "✓ Tu instinto acertó",
+            almostLabel: "Casi — lo más natural es «{answer}»",
+            tally: "Tu instinto",
+            figureOf: "de",
+            resultLabel: "Ver resultado",
+            advanceLabel: "Siguiente",
+            restart: "↻ Probar otra vez",
+            thesis: "Sin reglas ni gramática, usaste el contexto — las letras anteriores — para adivinar la siguiente. La pregunta que abre este capítulo: ¿cómo le enseñamos esto a una máquina?",
+            headlineTiers: {
+                perfect: "Predijiste como un <em>lector nativo</em>.",
+                close: "Tu instinto sigue el idioma <em>muy de cerca</em>.",
+                half: "Ya predices la siguiente letra <em>sin darte cuenta</em>.",
+                low: "El idioma esconde sus patrones — <em>vuelve a probar</em>.",
+            },
             explanations: {
-                0: "'the' es la palabra más común en inglés. Después de 'th', la 'e' aparece ~49% de las veces.",
-                1: "En inglés, después de 'q' viene 'u' aproximadamente el 92% de las veces. Es una de las reglas de bigramas más fuertes.",
-                2: "'in' es extremadamente común. Después de 'i', la 'n' aparece ~36% de las veces — piensa en 'in', 'is', 'it'.",
-                3: "Después de un espacio, 't' es el carácter más probable — 'the', 'to', 'that', 'this' empiezan con ella.",
-                4: "Después de 'e', un espacio es el siguiente carácter más probable — las palabras que terminan en 'e' son muy comunes.",
+                0: "Después de «th», la «e» aparece casi la mitad de las veces — forma «the», la palabra más común del inglés.",
+                1: "La «q» arrastra a la «u» casi siempre. En inglés es prácticamente una regla, no una probabilidad.",
+                2: "«in», «ing», «ion»… después de la «i», la «n» es la continuación más frecuente, con diferencia.",
+                3: "Tras un espacio empieza palabra nueva, y muchísimas arrancan por «t»: the, to, that, this…",
+                4: "La «e» suele cerrar palabra. Lo más natural después de ella no es otra letra: es un espacio.",
             },
         },
         pairHighlighter: {
             pairFound: "Par encontrado: {first} → {second}",
             countsLabel: "Conteo de Pares",
             replay: "Repetir",
-            tryOwn: "Prueba tu propia palabra",
-            placeholder: "Escribe una palabra…",
+            tryOwn: "Prueba tu propia frase",
+            placeholder: "Escribe una frase…",
             go: "Ir",
             figureLabel: "Interactivo · ¿Puedes Encontrar el Patrón?",
             figureHint: "Haz clic en cada paso para ver cómo se cuentan los pares de caracteres. ¿Cuáles se repiten?",
@@ -2725,6 +2739,7 @@ export const es: TranslationDictionary = {
             patternLabel: "El patrón",
             patternRepeats: "estos pares aparecen más de una vez:",
             patternUnique: "casi todo es único aquí — prueba una frase más larga para verlo emerger.",
+            countAll: "Contar el resto",
         },
         corpusCounting: {
             figureLabel: "Interactivo · Contando Patrones en Texto Real",
@@ -2822,6 +2837,557 @@ export const es: TranslationDictionary = {
         footer: {
             text: "Siguiente capítulo: el modelo N-gram — qué pasa cuando le das más memoria a un contador.",
             brand: "LM-Lab · La Era del Conteo"
+        },
+        /* ═══════════════════════════════════════════════════════════════════
+           v2 · Reconstrucción de la narrativa (bigram-blueprint.md)
+           Copy ES verbatim del blueprint. Voz: 2ª persona, frases cortas, cero
+           condescendencia, casi sin guiones largos. Las claves antiguas de
+           bigramNarrative.* siguen vivas (las consume el BigramNarrative.tsx
+           actual) hasta que la Fase 2 recablee la página. Estructura nueva,
+           sin colisiones, por sección del arco (hero + §1–§6).
+           ═══════════════════════════════════════════════════════════════════ */
+        v2: {
+            /* ─── HERO · §0 Escribir es adivinar ─── */
+            hero: {
+                eyebrow: "Capítulo 1 · La era del conteo",
+                title: "El modelo bigrama",
+                subtitle: "Enseñando a escribir a una máquina, desde cero y solo contando.",
+                predict: {
+                    hintLabel: "tu palabra",
+                    exactNote: "Ya estaba en tu cabeza antes de decidir pensarla.",
+                    alsoNote: "La tuya también encaja.",
+                    commonHint: "Aquí casi todo el mundo pone «{word}».",
+                    again: "Otra",
+                    idea: "Eso es predecir: saber qué viene después sin pensarlo, porque lo has visto mil veces. Lo haces sin parar. Una máquina que escriba no necesita nada más.",
+                    rounds: [
+                        { lead: "Más vale tarde que", accept: ["nunca"], real: "nunca" },
+                        { lead: "El gato subió despacio al", accept: ["tejado", "arbol", "techo", "sofa", "mueble", "muro", "tronco", "armario"], real: "tejado" },
+                        { lead: "Y fueron felices y comieron", accept: ["perdices"], real: "perdices" },
+                    ],
+                },
+                readTime: "~12 min de lectura · 6 movimientos",
+            },
+
+            /* ═══ FASE A · nuevo arco (intro infancia + fli-fla + showpieces) ═══ */
+
+            /* ─── §0 · Intro: enseñar a escribir a algo que nunca vivió ─── */
+            intro: {
+                p1: "Cuando somos pequeños, nadie nos da un manual para aprender a hablar. Aprendemos viviendo: escuchamos a la gente, relacionamos un tono de voz con una cara que sonríe y, poco a poco, entendemos el significado de las cosas.",
+                p2: "Pero, ¿cómo le enseñas a escribir a una máquina que jamás ha vivido un solo día? Para una caja de cables y silicio, la palabra «manzana» no es dulce ni roja. No significa nada. Si no puede entender el mundo, parece imposible que escriba sobre él.",
+                p3: "Así que, antes de construir nada, un pequeño experimento.",
+            },
+
+            /* ─── VIS 1 · FillTheBlank (3 pantallas, keystone fli-fla) ─── */
+            fillBlank: {
+                label: "Termina la frase en tu cabeza",
+                hintLabel: "tu palabra",
+                again: "Otra",
+                tryAgain: "Casi. Una pista:",
+                reveal: "Ver la respuesta",
+                screens: [
+                    { lead: "En un lugar de la", accept: ["mancha"], real: "Mancha", hint: "Una región de España. La tierra de Don Quijote.", note: "Esa la tenías sin pensar." },
+                    { lead: "El perro ladra, el pájaro pía y el gato", accept: ["maulla", "maúlla", "miau", "mia"], real: "maúlla", hint: "¿Qué sonido hace un gato?", note: "Esa la has sacado de la lógica de la frase." },
+                    { lead: "Fli fli fla, fli fli fla, fli fli", accept: ["fla"], real: "fla", hint: "No significa nada. Fíjate solo en el ritmo: fli fli fla, fli fli…", note: "Y esta última no significa nada. «Fli fli fla» no es ningún idioma. No la has entendido: has visto el patrón y has seguido. En eso consiste todo el truco." },
+                ],
+                afterPlay: "Seguramente has rellenado todos los huecos sin mucho esfuerzo. Pero fíjate en el último: no tenías ni idea de qué significaba «Fli fli fla». Solo miraste lo que había escrito antes, intuiste la lógica y adivinaste lo que tocaba a continuación.",
+                reframe: "Acabas de descubrir el truco. Como los ingenieros no podían enseñar a las máquinas a entender el mundo como nosotros, cambiaron las reglas del juego. En lugar de enseñarles a reflexionar, les enseñaron a predecir.",
+                toLetters: "Hoy en día, los grandes modelos hacen esto con frases enteras. Pero para entender de verdad la magia que hay detrás, vamos a lo más básico de todo: predecir cuál es la siguiente letra.",
+            },
+
+            /* ─── VIS 1.5 · El objetivo (HeroAutoComplete reuse) ─── */
+            goalIntro: {
+                lead: "Nuestro objetivo final es conseguir construir exactamente esto: le das una letra y apuesta por la que viene después.",
+                after: "Parece magia, pero en el fondo solo son matemáticas muy básicas. Ahora la gran pregunta es: ¿cómo conseguimos construir esto desde cero, si la máquina no sabe leer?",
+            },
+
+            /* ─── VIS 4 · Caos y Orden (showpiece) ─── */
+            isolateT: {
+                label: "Interactivo · La «t» en distintos textos",
+                tab: "Texto",
+                followsLabel: "Lo que sigue a la «t»",
+                spaceWord: "el espacio",
+                start: "Leer este texto",
+                autocomplete: "Ver el total",
+                replay: "Otra vez",
+                idleHint: "Cuenta qué letra sigue a cada «t» de este texto.",
+                verdict: "Aquí, tras la «t», gana {best}. Cambia de texto y cambia la regla.",
+            },
+            chaosOrder: {
+                label: "La máquina lee",
+                playLabel: "Leer el libro entero",
+                readingHint: "Cada «t» que pasa, miramos la letra de justo después y le sumamos uno.",
+                chaosHint: "Eso es lo único que hace, una «t» tras otra. ¿La soltamos con el libro entero?",
+                orderLabel: "Leer el resto",
+                orderingHint: "Una fila: una casilla por cada letra que podría seguir.",
+                scanningHint: "Ahora el resto del libro, sin frenar. Mira cómo suben los números.",
+                readingNow: "Leyendo el libro",
+                rowLabel: "Después de «{char}»",
+                replay: "Leer otra vez",
+                pickLetter: "Prueba otra letra",
+                inspectHint: "Pasa el ratón por una casilla para ver cuántas veces pasó.",
+                rowIsTable: "La barra más alta, de lejos, es la «h»: tras una «t» casi siempre viene una «h», y lo averiguó ella sola. La segunda es el espacio, porque muchísimas palabras acaban en «t». Y los huecos cuentan lo mismo: tras una «t» casi nunca hay otra «t», ni una «z», ni una «q».",
+                payoff: "Esto que acabas de ver — darle un montón de texto y dejar que cuente — tiene nombre. Se llama datos de entrenamiento. Acabas de ver entrenar un modelo.",
+            },
+
+            /* ─── VIS 9 · Matriz 27×27 que crece (showpiece) ─── */
+            growingMatrix: {
+                label: "Una fila por letra",
+                playLabel: "Construirla",
+                lead: "Una fila bastó para la «t». Apila una fila por cada letra y la cuadrícula aparece sola.",
+                scanningHint: "Sigue leyendo. Cada letra nueva añade una fila y una columna; cada par calienta una casilla.",
+                gridCaption: "Fila: la letra de la que partes. Columna: la que podría seguir. Casilla: cuántas veces lo vimos.",
+                twist: "Y mira lo que ha salido. Nadie le dictó una sola regla, pero ahí están: las casillas encendidas son las parejas que el idioma repite, las apagadas las que casi nunca ocurren. La máquina las descubrió sola, solo contando.",
+                growToFull: "Crecer al tamaño real",
+                totalLabel: "Pares contados",
+                cellCount: "«{row}» → «{col}»: {n}",
+                hoverHint: "Cada casilla guarda cuántas veces pasó ese par.",
+            },
+
+            /* ─── VIS 10 · Matriz detective (showpiece) ─── */
+            detective: {
+                label: "La tabla entera",
+                intro: "Esta es la tabla entera, de verdad. Parece un caos de luces, pero es el manual de un idioma escrito en números. Cada casilla encendida es una regla; cada hueco negro, una pareja que casi nunca pasa. Y ninguna se la enseñó nadie.",
+                prompt: "Busca una casilla que nunca pasa.",
+                searchHint: "Resaltar un carácter",
+                cellCount: "«{row}» → «{col}» pasó {n} veces.",
+                cellNever: "«{row}» → «{col}» no pasó nunca. Ni una vez.",
+                timesLabel: "veces",
+                never: "nunca",
+                inspectHint: "El ratón revela el conteo; el clic fija la fila y la columna.",
+                rulesLabel: "Reglas del lenguaje",
+                rulesFound: "{n}/{total} encontradas",
+                regionsLabel: "O persigue una regla escondida:",
+                regions: {
+                    uppercaseDesert: { title: "El desierto de las mayúsculas", body: "Una mayúscula casi nunca sigue a una minúscula. Las mayúsculas viven al principio de palabra, no en medio.", hint: "una mayúscula no aparece en mitad de una palabra" },
+                    qCorner: { title: "El rincón de la q", body: "Tras la «q», casi siempre «u». Casi todo lo demás de esa fila está a oscuras.", hint: "tras la «q» casi siempre va una «u»" },
+                    periodJump: { title: "El salto del punto", body: "Tras un punto viene un espacio, y tras ese espacio, una mayúscula. El ritmo de una frase nueva.", hint: "tras un punto casi siempre viene un espacio" },
+                    spaceEverywhere: { title: "El espacio va con todo", body: "El espacio es la casilla más sociable: casi cualquier letra puede ir antes o después de un espacio. Por eso su fila y su columna están casi llenas.", hint: "el espacio se junta con casi cualquier letra" },
+                    numberVoid: { title: "El vacío de los números", body: "Los números viven aparte. Casi nunca se pegan a una letra: escribimos «2023» o «3.14», pero rara vez «a7» o «k9».", hint: "un número casi nunca va pegado a una letra" },
+                },
+                clear: "Quitar",
+            },
+
+            sectionNames: {
+                s01: "El truco: predecir",
+                s02: "A la caza del patrón",
+                s03: "Demasiado predecible",
+                s04: "Nace la matriz",
+                s05: "¡Vamos a escribir!",
+                s06: "El defecto fatal y ver más",
+            },
+            sectionKickers: {
+                s1: "Predecir letras",
+                s2: "El patrón",
+                s3: "Cómo elegir",
+                s4: "La matriz",
+                s5: "Escribir solo",
+                s6: "El techo",
+            },
+
+            /* ─── §1 · Tú ya predices ─── */
+            s1: {
+                label: "El truco: predecir",
+                lead: "Aquí está hacia dónde vamos: una máquina que, con una sola letra, apuesta por la siguiente. Lo mismo que acabas de hacer, en pequeño.",
+                afterChallenge: "¿Lo ves? Casi siempre aciertas. Y no porque sepas inglés de cine, sino porque tu cabeza ha visto esas combinaciones miles de veces. Tras la «q» va la «u». Tras «th», casi siempre una «e». Nadie te lo enseñó como regla. Lo viste tanto que se te quedó.",
+                bridgeToMachine: "Tú haces esto con palabras enteras. A la máquina se lo vamos a enseñar más pequeño todavía: letra a letra. Y sobre texto en inglés, que es el que le daremos. Mira, esto ya lo hace:",
+                heroAutoPrompt: "Escribe una letra y mira qué cree que viene después.",
+                afterHeroAuto: "Funciona. Pero no entiende nada. ¿Cómo sabe que tras la «t» suele ir una «h»? Nosotros no le hemos enseñado todavía. Vamos a construirlo desde cero.",
+            },
+
+            /* ─── PredictionChallenge (rework, 3-4 rondas calibradas) ─── */
+            predictionChallenge: {
+                label: "Tu turno",
+                prompt: "¿Qué letra crees que viene después?",
+                okLabel: "✓ Tu instinto acertó",
+                almostLabel: "Casi. Lo más natural es «{answer}»",
+                tally: "Tu instinto",
+                figureOf: "de",
+                resultLabel: "Ver resultado",
+                advanceLabel: "Siguiente",
+                restart: "↻ Probar otra vez",
+                headlineTiers: {
+                    perfect: "Predijiste como un <em>lector nativo</em>.",
+                    close: "Tu instinto sigue el idioma <em>muy de cerca</em>.",
+                    half: "Ya predices la siguiente letra <em>sin darte cuenta</em>.",
+                    low: "El idioma esconde sus patrones. <em>Vuelve a probar.</em>",
+                },
+                // 4 rondas calibradas (~70% acierto). Cada ronda: contexto visible + respuesta natural.
+                rounds: [
+                    { context: "th", answer: "e", explanation: "Tras «th», la «e» aparece casi la mitad de las veces. Forma «the», la palabra más común del inglés." },
+                    { context: "q", answer: "u", explanation: "La «q» arrastra a la «u» casi siempre. En inglés es prácticamente una regla, no una probabilidad." },
+                    { context: "wh", answer: "a", explanation: "«what», «when», «where»… tras «wh», la «a» y la «e» se reparten el protagonismo." },
+                    { context: "in", answer: "g", explanation: "«ing» está por todas partes: running, talking, going. Tras «in», la «g» es la continuación estrella." },
+                ],
+            },
+
+            /* ─── HeroAutoComplete (rework: marco "tu cerebro también lo hace") ─── */
+            heroAutoComplete: {
+                label: "Interactivo · El predictor",
+                prompt: "Prueba con una letra. Apuesta por la que viene después.",
+                hint: "Cualquier letra vale.",
+                after: "Después de «{input}», lo más probable",
+                bridge: "Funciona. Pero no entiende nada. ¿Cómo sabe que tras la «t» suele ir una «h»?",
+            },
+
+            /* ─── §2 · Enseñemos a contar ─── */
+            s2: {
+                label: "A la caza del patrón",
+                lead: "Nuestro idioma no es un caos. Si aporreas el teclado al azar sale algo como «asdfghjkl», y no significa nada. Escribimos siguiendo una estructura invisible: nadie te explicó que tras la «q» casi siempre va una «u», ni que es rarísimo ver tres consonantes seguidas. Tu cerebro lo fue asimilando a base de leer y escuchar.",
+                pairPrompt: "Como el lenguaje ya esconde ese patrón, solo necesitamos que la máquina lea textos y se fije en quién va de la mano de quién. Empecemos con una frase sencilla.",
+                afterPair: "Ya hemos visto cómo busca parejitas de letras. Para entenderlo a fondo, vamos a fijarnos en una sola: la «t». Le daremos distintas frases y veremos qué letra decide que es su mejor compañera.",
+                focusTPrompt: "Cambia el texto y observa qué letra gana después de la «t».",
+                afterCorpusCounting: "Según el texto que le des, aprende una regla distinta, y con tan poco texto el conteo miente. Si le damos textos muy cortos, su visión del mundo es limitada y sesgada. Para aprender las reglas de verdad, necesita muchísima más información: un texto gigante.",
+                bookPrompt: "Así que vamos a ponernos serios. Vamos a hacer que nuestra máquina lea a Shakespeare entero.",
+                afterShakespeare: "Esa fila es todo lo que hay sobre la «t» en todo Shakespeare. La máquina ha sacado ella sola todas sus relaciones, solo contando.",
+                honestyNote: "A este proceso —darle un texto gigantesco para que lo lea, lo cuente y construya sus propias tablas de reglas— se le llama texto de entrenamiento. Acabas de ver, en primera persona, cómo se entrena un modelo. (Una pega: ha aprendido de Shakespeare, así que hablará como hace 400 años. Cambia el libro y cambias la máquina.)",
+            },
+
+            /* ─── PairHighlighter (rework: "encuentra el patrón") ─── */
+            pairHighlighter: {
+                label: "Interactivo · Encuentra el patrón",
+                hint: "Recorre la frase par a par. ¿Cuáles se repiten?",
+                pairFound: "Par encontrado: {first} → {second}",
+                countsLabel: "Conteo de pares",
+                stepPrompt: "Pasa por la frase de dos en dos. Pulsa para revelar el primer par.",
+                startButton: "Empezar a contar",
+                nextStep: "Siguiente par",
+                countAll: "Contar el resto",
+                currentPairLabel: "Par actual",
+                firstTime: "primera vez",
+                seenRepeats: "visto {n}× · se repite",
+                patternLabel: "El patrón",
+                patternRepeats: "estos pares aparecen más de una vez:",
+                patternUnique: "casi todo es único aquí. Prueba una frase más larga para verlo aparecer.",
+                summaryUnique: "Pares únicos:",
+                summaryTotal: "Total de transiciones:",
+                replay: "Repetir",
+                tryOwn: "Prueba tu propia frase",
+                placeholder: "Escribe una frase…",
+                go: "Ir",
+            },
+
+            /* ─── CorpusCountingIdea (foco t) ─── */
+            corpusCounting: {
+                label: "Interactivo · Cuenta las «t»",
+                hint: "Mira cómo escaneamos la frase contando qué letra sigue a cada «t».",
+                focusChar: "t",
+                selectChar: "Letra de partida",
+                corpusLabel: "La frase",
+                countsLabel: "Lo que sigue a la «t»",
+                scanning: "Escaneando…",
+                found: "Encontradas {count} «t»",
+                totalLabel: "Total",
+                reveal: "Con tan poco texto, el conteo miente. Lo que más sale tras la «t» es un espacio.",
+                replay: "Escanear de nuevo",
+                pauseBtn: "Pausar",
+                nextBtn: "Siguiente →",
+                verdictLabel: "Lo que dice esta frase",
+                verdictMain: "Tras «t», aquí gana «{best}».",
+                verdictSub: "{n} de {total} veces",
+            },
+
+            /* ─── ShakespeareRowCounter (new) ─── */
+            shakespeareRow: {
+                label: "Interactivo · La «t» de Shakespeare",
+                hint: "Cuenta las «t» de un libro entero. Empieza a mano, luego acelera.",
+                prompt: "Vamos a contar las «t» de Shakespeare. Todas.",
+                messyHint: "Llevamos {count} pares contados a mano. Esto se vuelve un lío.",
+                organizeCta: "¿Y si lo anotamos en una tabla?",
+                rowLabel: "Después de «t» →",
+                countingManually: "Contando a mano…",
+                fillingTable: "Llenando la tabla…",
+                fullCorpus: "Shakespeare completo",
+                verdict: "Con suficiente texto, tras la «t» gana la «h».",
+                verdictSub: "{best} con {pct} de las veces",
+            },
+
+            /* ─── §3 · Nace la matriz ─── */
+            s3: {
+                label: "Nace la matriz",
+                lead: "Tenemos una fila para la «t». ¿Y la «a»? ¿Y la «h»? ¿Y todas las demás?",
+                rowByRowReveal: "Apila una fila por cada letra y mira lo que sale: una cuadrícula. Cada fila es la letra de la que partes. Cada columna, la que podría venir después. Cada casilla, cuántas veces lo vimos.",
+                rowByRowName: "Acabas de construir algo con nombre propio: una <strong>tabla de transición</strong>.",
+                tinyPrompt: "Coge una fila cualquiera. Por sí sola ya es una mini-predicción.",
+                sizePrompt: "Una cosa. Si cada letra necesita una fila, y cada fila una casilla por cada letra posible… son muchísimas casillas. ¿Cuántas exactamente? Cuenta.",
+            },
+
+            /* ─── MatrixRowByRowBuilder (new) ─── */
+            rowByRow: {
+                label: "Interactivo · Apila las filas",
+                hint: "Añade una fila por letra hasta formar la cuadrícula. Luego llénala con Shakespeare.",
+                startRow: "Fila de la «t»",
+                addRowCta: "Añadir la siguiente letra",
+                addAllCta: "Añadir todas",
+                fillCta: "Llénala con Shakespeare",
+                rowAxisLabel: "letra de partida ↓",
+                colAxisLabel: "letra siguiente →",
+                filling: "Llenando con Shakespeare…",
+                coda: "Una fila por letra. Eso es una tabla de transición.",
+                verdict: "Cada fila es una letra de partida. Cada columna, la que podría seguir.",
+            },
+
+            /* ─── StorageProblemVisualizer (marco "qué grande se hace") ─── */
+            storage: {
+                label: "Interactivo · Cuenta las casillas",
+                hint: "Elige letras y mira cómo se dispara el número de casillas.",
+                pickPrompt: "Elige una letra. ¿Qué puede seguirla?",
+                afterChar: "Tras «{char}», estas son las que pueden seguir:",
+                needSlots: "Solo «{char}» ya necesita {count} casillas, una por cada posible siguiente.",
+                charsExplored: "{count} letras exploradas",
+                slotsTotal: "{total} casillas hasta ahora",
+                growingRealization: "Has explorado {count} letras y ya van {slots} casillas. Para las {total} letras, son {total} filas por {total} columnas. Mira lo enorme que se hace.",
+                fullSize: "Tabla completa: {size} × {size} = {total} casillas",
+            },
+
+            /* ─── §4 · ¿De dónde sale lo que aprende? ─── */
+            s4: {
+                label: "¿De dónde sale lo que aprende?",
+                lead: "Acuérdate de Shakespeare. ¿Y si en vez de él le damos otro texto? ¿Aprende lo mismo?",
+                afterComparison: "No aprende lo mismo. El modelo es un espejo del texto que le diste. A ese texto lo llamamos el <strong>texto de entrenamiento</strong>. Cámbialo y cambias quién es la máquina.",
+                charsetPrompt: "Y eso es solo un rincón del idioma: minúsculas. Faltan las mayúsculas, los puntos, las comas, los números. Cuéntalos todos y la tabla crece hasta su tamaño real, con muchísimas más reglas escondidas dentro.",
+                afterCharset: "Cada carácter nuevo es otra fila y otra columna. La tabla crece, y crece, y crece.",
+                matrixGamePrompt: "Esta es la tabla de verdad, entera. Ya la entiendes de cero: filas, columnas, casillas. Ahora juega con ella. Fíjate: hay huecos en negro. Casillas que nunca pasan. ¿Por qué?",
+            },
+
+            /* ─── TrainingTextComparison (new) ─── */
+            trainingComparison: {
+                label: "Interactivo · Dos textos, dos máquinas",
+                hint: "Elige una letra y compara su fila en los dos textos.",
+                corpusA: "Shakespeare",
+                corpusB: "Texto moderno",
+                pickCharPrompt: "Elige una letra para comparar sus filas.",
+                rowFor: "Fila de «{char}»",
+                idle: "Elige una letra arriba.",
+                toggleLabel: "Cambiar de texto",
+                verdict: "Mismo algoritmo, otro texto, otra máquina.",
+                diffHint: "Fíjate en las diferencias: el texto que le das decide qué aprende.",
+            },
+
+            /* ─── CharsetGrowthMatrix (new) ─── */
+            charsetGrowth: {
+                label: "Interactivo · La tabla crece",
+                hint: "Añade tipos de carácter y mira crecer la tabla.",
+                steps: [
+                    { id: "lower", label: "Minúsculas", note: "26 letras + el espacio", size: 27 },
+                    { id: "upper", label: "+ Mayúsculas", note: "ahora también A–Z", size: 53 },
+                    { id: "digits", label: "+ Números", note: "del 0 al 9", size: 63 },
+                    { id: "punct", label: "+ Signos", note: "comas, puntos, paréntesis…", size: 92 },
+                ],
+                dimensionsLabel: "{size} × {size} casillas",
+                addNextCta: "Añadir el siguiente tipo",
+                takeaway: "Cuanto más quieras predecir, más grande la tabla.",
+            },
+
+            /* ─── TransitionMatrix (rework: juego de curiosidad) ─── */
+            matrixGame: {
+                label: "Interactivo · La tabla real",
+                hint: "Hay huecos en negro: casillas que nunca pasan. Haz clic para descubrir por qué.",
+                blackCellPrompt: "Encuentra una casilla que nunca pasa.",
+                cellAfter: "Después de «{row}»",
+                cellNext: "«{col}»",
+                curiosities: {
+                    upperAfterLower: "Una mayúscula casi nunca sigue a una minúscula. Las mayúsculas viven al principio de palabra.",
+                    qWithoutU: "Tras la «q», casi siempre «u». Casi todo lo demás es hueco negro.",
+                    digitAfterLetter: "Letras y números rara vez se tocan. Por eso casi toda esa zona está vacía.",
+                    spaceAfterSpace: "Dos espacios seguidos casi no pasan. Una palabra, un espacio, otra palabra.",
+                },
+                clickToDismiss: "Clic para cerrar",
+            },
+
+            /* ─── Plegable · Markov (1913) ─── */
+            markov: {
+                kicker: "Historia · lectura larga · opcional",
+                title: "Un señor, un libro y mucha paciencia",
+                paras: [
+                    "Esto que tu máquina acaba de hacer en un milisegundo, contar parejitas de letras, no es ningún invento moderno. La primera vez que alguien lo hizo no había ordenadores, ni internet, ni la menor intención de hacer tecnología. Ocurrió, literalmente, por una rabieta.",
+                    "Rusia, 1913. Un matemático muy respetado y muy devoto, Pável Nekrásov, anunció que había demostrado con números la existencia del libre albedrío. Su razonamiento: la estadística solo funciona cuando los sucesos son independientes, como las tiradas de un dado, donde una no afecta a la siguiente. Como las personas decidimos por libre albedrío, concluía, que la sociedad fuera predecible solo podía explicarse por un plan divino.",
+                    "Aquí entra nuestro protagonista: Andréi Márkov. Brillante, ateo de los de bandera y con un genio tan corto que sus alumnos lo apodaban «Andrés el Iracundo» (llegó a pedir por escrito que lo borraran de los registros de la Iglesia). Que alguien usara sus queridas matemáticas para hacer teología le pareció un insulto personal, y se lo tomó como tal.",
+                    "Para desmontar a su rival necesitaba demostrar que la estadística también funciona cuando los sucesos no son independientes; cuando un paso obliga al siguiente. ¿Y qué hay más encadenado que el lenguaje? Si aparece una «q», la siguiente letra no es libre: está casi obligada a ser una «u».",
+                    "Así que Márkov agarró un ejemplar de «Eugenio Oneguin», la novela en verso de Pushkin, le quitó los espacios y la puntuación, y se puso a contar a mano sus primeras 20.000 letras. Las repartió en bloques de cien y pasó meses anotando cuántas veces una vocal seguía a una consonante, y al revés. Buscaba el patrón invisible.",
+                    "Al final construyó, con papel y lápiz, una tabla de probabilidades como la que tú tienes justo arriba, y demostró que aunque cada letra dependía de la anterior, el texto entero se equilibraba en porcentajes fijos. De paso, sin pretenderlo, acababa de inventar las cadenas que hoy llevan su nombre.",
+                    "Su regla más curiosa es la que llamó «falta de memoria»: para apostar por el siguiente paso, solo importa dónde estás ahora mismo; lo de antes se borra. Es una idea con muchas más consecuencias de las que parece a primera vista.",
+                ],
+            },
+
+            /* ─── §5 · De conteos a escribir ─── */
+            s5: {
+                label: "Demasiado predecible",
+                lead: "Ahora la máquina ya sabe que, tras la «t», la «h» aparece a montones y la «o» mucho menos. Pero un puñado de conteos sueltos no sirve para escribir: 7.071 no significa nada si no sabes sobre cuántos. Hay que convertir esos números en probabilidades.",
+                lead2: "Y es una división de toda la vida: coges la fila de la «t», sumas todo lo que hay en ella y miras qué porción se lleva cada compañera.",
+                afterNormalization: "Ahí está: la misma fila, ahora en porcentajes que suman 100%. La «h» se queda con un 36%, el espacio con un 29%, la «o» con un 10%… Eso son las apuestas de la máquina.",
+                choosePrompt: "Y ahora la pregunta del millón: con esas apuestas sobre la mesa, ¿qué letra elige? Lo seguro sería quedarse siempre con la más alta. Veamos qué pasa.",
+                afterAlwaysMax: "Siempre la «h». La opción segura resulta también la más muerta: así, tras la «t» nunca aparecería nada distinto, una «h» detrás de otra. Para escribir con algo de vida hace falta una pizca de azar; pero no uno cualquiera.",
+                dicePrompt: "La idea de los ingenieros fue un dado. Eso sí, un dado trucado: con un montón de caras de «h», bastantes de espacio, alguna de «o» y casi ninguna de las raras. Así casi siempre cae lo probable, pero de vez en cuando sorprende. Tíralo tú y verás.",
+                toMatrix: "¡Fíjate! Ya tenemos el truco completo para la «t»: contarla, sacarle porcentajes y elegir con una chispa de azar. Y aquí la pregunta se cae sola: ¿y si hacemos esto mismo con todas las letras a la vez?",
+                writePrompt: "La tabla ya guarda todas las reglas que sigue el idioma. Y elegir una letra ya sabemos: se mira su fila y se tira el dado. Aquí está ese paso a cámara lenta, y cada letra que cae es el punto de partida de la siguiente.",
+                toFullSpeed: "Lo has visto a cámara lenta. A toda velocidad es esto: una letra tras otra, sin frenos, salen frases enteras de un tirón.",
+                playgroundPrompt: "Una letra basta para arrancar. A partir de ahí, escribe sola.",
+            },
+
+            /* ─── Normalización (bridges) ─── */
+            normalization: {
+                label: "De conteos a porcentajes",
+                hint: "Elige una letra y convierte sus conteos en porcentajes.",
+            },
+
+            /* ─── AlwaysMaxVsSampling (new, integra el dado) ─── */
+            alwaysMax: {
+                label: "Interactivo · ¿Siempre la más probable?",
+                hint: "Prueba los dos modos sobre la misma fila.",
+                maxModeLabel: "Siempre el máximo",
+                sampleModeLabel: "Dado ponderado",
+                maxResult: "Siempre el máximo: te atascas en la misma letra para siempre.",
+                sampleResult: "Dado ponderado: respeta los porcentajes y sale variedad.",
+                rollCta: "Tirar el dado",
+                regenerateCta: "Generar de nuevo",
+                toggleCta: "Cambiar de modo",
+                diceTrack: "0 → 1",
+                verdict: "Hace falta azar, pero del que respeta los porcentajes.",
+            },
+
+            /* ─── VIS 6 · Siempre el máximo sobre la «t» → siempre «h» ─── */
+            alwaysMaxLoop: {
+                label: "Interactivo · Siempre la más probable",
+                caption: "Estas son las apuestas de la «t». ¿Y si elegimos siempre la más alta?",
+                pickLabel: "Después de la «t» elige:",
+                play: "Elegir siempre el máximo",
+                result: "Siempre la «h». Da igual cuántas veces: con este método, tras la «t» jamás sale otra cosa. Predecible y aburridísimo.",
+                restart: "Otra vez",
+            },
+
+            /* ─── VIS 7 · El dado trucado sobre la «t» ─── */
+            loadedDie: {
+                label: "Interactivo · El dado trucado",
+                caption: "El dado saca un número del 0 al 100 y cae sobre la barra. La «h» ocupa el tramo más ancho, así que casi siempre toca «h»… pero no siempre.",
+                pickLabel: "Después de la «t» sale:",
+                lands: "saca {n} →",
+                play: "Tirar el dado",
+                rollAgain: "Tirar otra vez",
+                restart: "Empezar de nuevo",
+                rolling: "Rodando…",
+                result: "¿Lo ves? Casi siempre «h», pero de vez en cuando un espacio, una «o», una «e»… El dado respeta los porcentajes, y ese puntito de azar le da vida.",
+            },
+
+            /* ─── VIS 10.5 · Letra a letra, paso a paso (puente §4→§5) ─── */
+            letterStep: {
+                label: "Interactivo · Letra a letra",
+                lead: "Una letra escrita. Para elegir la siguiente, la máquina repite siempre el mismo gesto. Vamos a verlo a cámara lenta.",
+                seedPrompt: "Empieza por una letra y deja que siga sola.",
+                wordLabel: "Lo que lleva escrito",
+                lookCaption: "Miramos su fila: lo que vino después de esta letra, contado en todo el libro.",
+                countCaption: "Cada casilla guarda un número: cuántas veces apareció esa pareja.",
+                calcCaption: "Dividimos por el total y los conteos se vuelven porcentajes.",
+                rollCaption: "El dado saca un número del 0 al 100 y cae donde manda el porcentaje.",
+                appendCaption: "La letra que toca se une a lo escrito… y ahora es ella la que empieza el siguiente paso.",
+                rollReadout: "saca {n} →",
+                stepLook: "Mirar",
+                stepCount: "Contar",
+                stepCalc: "Repartir",
+                stepRoll: "Tirar",
+                stepAppend: "Escribir",
+                next: "Siguiente letra",
+                startStep: "Empezar el paso",
+                nextPhase: "Siguiente",
+                nextLetter: "La siguiente letra",
+                auto: "Seguir solo",
+                pause: "Parar",
+                replay: "Empezar de nuevo",
+                coda: "Eso es todo. Una letra mira su fila, tira el dado y se queda la siguiente. Repítelo sin parar y la máquina escribe sola.",
+            },
+
+            /* ─── TableWriter (VIS11) · la máquina de escribir a toda velocidad ─── */
+            tableWriter: {
+                label: "Interactivo · La máquina escribe",
+                lead: "Ya vimos un paso a cámara lenta. Quítale los frenos y déjala correr: una letra mira su fila, tira el dado, se queda la siguiente, y vuelta a empezar.",
+                seedPrompt: "Elige por dónde empieza.",
+                wordLabel: "Lo que va saliendo",
+                glimpseLabel: "De dónde sale cada letra",
+                glimpseFrom: "tras",
+                write: "Escribir",
+                again: "Otra vez",
+                coda: "De lejos casi parece un idioma. De cerca, balbuceo. Y aun así no hay magia: cada letra sale de mirar la fila de la anterior y tirar el dado. Nada más.",
+            },
+
+            /* ─── El nombre · revelación espectacular ─── */
+            naming: {
+                buildup: "Y ahí lo tienes: una máquina que escribe sola. Nadie le enseñó ortografía, ni gramática, ni una sola regla. Solo contó parejas de letras en un montón de texto, y de ahí salió todo. Lo has levantado tú, desde cero.",
+                revealLead: "Y eso que has levantado tiene un nombre:",
+                revealWord: "modelo de bigramas",
+                revealCoda: "El modelo de lenguaje más simple que existe. Y es el primer ladrillo de todo lo demás. ChatGPT incluido.",
+            },
+
+            /* ─── Plegable · Shannon (1948) ─── */
+            shannon: {
+                kicker: "Historia · lectura larga · opcional",
+                title: "El hombre que midió el lenguaje",
+                p1: "En 1948, un ingeniero llamado Claude Shannon publicó un artículo que, literalmente, encendió la era digital. Lo curioso es que no intentaba crear una inteligencia artificial ni enseñar a escribir a una máquina. Su problema era mucho más terrenal: trabajaba en los Laboratorios Bell y buscaba cómo comprimir datos para meter más llamadas y telegramas por un mismo cable.",
+                p2: "Se dio cuenta de algo fascinante: el lenguaje humano es tremendamente predecible, o como él lo llamó, redundante. Si te escribo «Ques», tu cabeza no necesita la «o» final para saber la palabra. Esa «o» no aporta casi nada nuevo, porque ya estabas seguro de que venía.",
+                p3: "Para medir cuánta «información de verdad» lleva un idioma, Shannon hizo justo lo que tú acabas de hacer: calculó las probabilidades de las letras sobre montañas de texto y dejó que las matemáticas escribieran solas, con sus tablas y una chispa de azar.",
+                quoteIntro: "Usando un modelo de bigramas —mirando solo la letra anterior, igual que tu máquina—, esto fue lo que salió en su estudio de 1948:",
+                quote: "ON IE ANTSOUTINYS ARE T INCTORE ST BE S DEAMY ACHIN D ILONASIVE TUCOWE AT TEASONARE FUSO TIZIN ANDY TOBE SEACE CTISBE",
+                p4: "Exacto: el mismo balbuceo con buen acento que acaba de soltar tu modelo. Letras que encajan de dos en dos, pero incapaces de formar palabras con sentido, porque la máquina no tiene memoria suficiente.",
+                p5: "Con ese experimento Shannon fundó la Teoría de la Información, le dio al mundo el concepto de «bit» y demostró por primera vez que el lenguaje humano se podía traducir a pura estadística. Las tablas de pares que has construido aquí son la réplica exacta del primer modelo de lenguaje de la historia. Has reinventado en una tarde el ladrillo sobre el que se sostiene todo el internet moderno.",
+            },
+
+            /* ─── La decepción · "vaya mierda" ─── */
+            disappointment: {
+                text: "Y ahora la mala noticia. Si lo lees otra vez, casi suena a un idioma de verdad: las letras encajan… pero no son palabras. Un balbuceo con buen acento. Lo hemos conseguido, escribe sola. Pero vaya mierda, ¿no? ¿Por qué escribe tan mal?",
+            },
+
+            /* ─── §6 · El defecto fatal y ver más ─── */
+            s6: {
+                label: "¡Vamos a escribir!",
+                heading: "El techo del bigrama",
+                lead: "Antes de arreglarlo, entendamos por qué escribe tan mal. ¿Qué viene tras «th»? A la máquina la «t» le da igual: solo mira la «h». Para ella, «th», «sh» y «wh» son exactamente lo mismo.",
+                afterBlindness: "No es que sea olvidadiza. Es ciega de nacimiento. Por mucho texto que le des, jamás distinguirá «th» de «sh». No es un fallo que se arregle con más datos. Es el techo del modelo.",
+                ladderPrompt: "¿Y si pudiera ver más de una letra? El turno es tuyo: una palabra se va revelando letra a letra y tú apuestas por la siguiente.",
+                afterLadder: "¿Lo notaste? Con una letra ibas a ciegas. Con casi toda la palabra delante, casi seguro. Más contexto, mejor predicción. Eso es justo lo que a nuestro modelo le falta: solo ve una pieza hacia atrás. Igual que tú con la «hola»: reacciona a lo último que oyó, sin enterarse del resto.",
+                ladderCoda: "¿Y si le enseñamos a mirar dos letras? ¿Tres? ¿Cinco? Eso ya es otro modelo. Y es el siguiente.",
+            },
+
+            /* ─── ContextBlindnessDemo (bridges) ─── */
+            contextBlindness: {
+                label: "Interactivo · El defecto fatal",
+                hint: "Cambia el prefijo y mira si la predicción se mueve.",
+                pickPrompt: "Elige un prefijo. ¿Qué predice la máquina después?",
+                modelSees: "La máquina solo ve",
+                invisible: "es invisible",
+                identical: "Los tres dan lo mismo.",
+            },
+
+            /* ─── ShannonContextLadder · adivina la palabra letra a letra («cupido») ─── */
+            shannonLadder: {
+                certaintyLabel: "Certeza",
+                progressLabel: "Aciertos",
+                roundLabel: "Ronda {n} de {total}",
+                nextLetter: "Otra letra",
+                seeWord: "Ver la palabra",
+                again: "Otra vez",
+                word: "cupido",
+                verdictLabel: "El puente",
+                // Una palabra se revela letra a letra. Las distribuciones son orientativas, no conteos
+                // reales; lo honesto es que se ESTRECHAN. Con poco contexto fallas; al final, casi seguro.
+                rounds: [
+                    { prefix: "c", answer: "u", hint: "Con una letra no hay forma: ca, co, cu, ce, ci… todas siguen vivas." },
+                    { prefix: "cu", answer: "p", hint: "Dos letras y sigue muy abierto: cua, cue, cui, cum, cup, cur…" },
+                    { prefix: "cup", answer: "i", hint: "La trampa: cupo y cupón tiran de la «o». Pero esta vez la palabra gira hacia «i»." },
+                    { prefix: "cupi", answer: "d", hint: "Ahora se cierra: la «d» destaca clarísima sobre el resto." },
+                    { prefix: "cupid", answer: "o", hint: "Con casi toda la palabra delante, la «o» es casi un hecho." },
+                ],
+                verdict: "Con una letra ibas a ciegas. Con casi toda la palabra, casi seguro. Eso es justo lo que al bigrama le falta.",
+            },
+
+            /* ─── CTA rehecha · puente al n-gram ─── */
+            cta: {
+                primaryKicker: "Capítulo siguiente",
+                primaryChapter: "02 · N-gramas",
+                primaryTitle: "El modelo solo recuerda la última letra. Vamos a darle memoria.",
+                primaryDesc: "Una letra de contexto no basta. ¿Y si mira dos? ¿Tres? Eso ya es el modelo N-gram.",
+                primaryCue: "Continuar",
+                primaryHref: "/lab/ngram",
+                secondaryLabel: "Abrir Lab Libre",
+                secondaryDesc: "Salta la historia. Todas las herramientas, sin guion.",
+            },
         }
     },
     bigramBuilder: {

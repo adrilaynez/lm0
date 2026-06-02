@@ -4,70 +4,108 @@ import {
     memo,
     useCallback,
     useEffect,
-    useMemo,
     useRef,
     useState,
 } from "react";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-import { HonestBar } from "@/features/lab/components/bigram/HonestBar";
 import { Verdict } from "@/features/lab/components/bigram/Verdict";
+import {
+    dchar,
+    MATRIX_27_COUNTS,
+    rowTotal,
+    T_INDEX,
+    topFollowers,
+} from "@/features/lab/data/bigramShakespeare27";
 import { useI18n } from "@/i18n/context";
 
 /**
- * NormalizationVisualizer — §4 of the Bigram chapter (v8 · editorial-green).
+ * NormalizationVisualizer — §4 of the Bigram chapter (editorial-green).
  *
- * ONE concept: *turning a row of raw counts into probabilities by dividing the whole row by its total.*
- * Conservation of mass — nothing is added or removed; the same row is simply re-expressed as fractions
- * of the whole. The visual carries that idea through THREE lenses on a single persistent object (the
- * row of followers of "t"):
+ * ONE concept: *take THE ROW — the row of counts for what follows «t» (the very row VIS 4 just built) —
+ * and turn raw counts into probabilities by dividing the whole row by its total.* Conservation of mass:
+ * nothing is added or removed; the same row is re-expressed as fractions of the whole.
  *
- *   1 · COUNTS    — the raw counts as shared HonestBar rows on an honest axis (true proportions, no
- *                   normalising to 100 %); a sunk "total" line states the denominator.
- *   2 · DIVIDE    — the focal point: ONE unity bar (the whole row = the total) splits into proportional
- *                   accent slices. Hover/tap a slice to read its `count ÷ total`. This is the act of
- *                   division made literal — the whole becomes its parts without changing size.
- *   3 · PROBABILITIES — the same followers as HonestBar rows, now probabilities; winner marked `top`
- *                   (brighter, glint, count-up, last), closing with the plain-language sage Verdict.
+ * The «t» row is a PERSISTENT, BIGGER hero — a strip of labelled follower cells that stays on screen the
+ * whole time as the clear protagonist. The normalization visibly acts ON that strip: each cell's value
+ * morphs counts → % as you move through the three lenses, while its fill (the share of the whole) never
+ * changes — only the units do.
  *
- * The step picker is a segmented control (sunk --bigram-bg-2 rail, active cell filled accent). The
- * surrounding figure chrome / label / hint come from FigureWrapper in BigramNarrative — this component
- * renders only the demo body.
+ *   1 · COUNTS    — the hero strip reads raw integer counts; a sunk denominator line states the total.
+ *   2 · DIVIDE    — the focal moment: ONE unity bar (the whole row = the total) splits into proportional
+ *                   slices, anchored by the `count(t→•) ⁄ total` formula well. Inspect a slice to read its
+ *                   `count ÷ total = pct`. The hero strip above shows the same act mid-flight (count→%).
+ *   3 · PROBABILITIES — the hero strip now reads percentages; the winner glows; a plain-language Verdict closes.
+ *
+ * Real data: the «t» row of the shared 27×27 Shakespeare matrix (`bigramShakespeare27`) — byte-identical
+ * to the row VIS 4 counts live. total = 19763; top follower h = 7071 (35.8 %).
  *
  * Reads only --bigram-* tokens + the registered fonts; gated by the chapter's [data-bigram-theme] scope.
  */
 
-/* ─── Data — followers of "t" (counts, deliberately summing to a clean total) ─── */
 const EXAMPLE_CHAR = "t";
-
-interface CountData {
-    char: string;
-    count: number;
-}
-
-const COUNTS: CountData[] = [
-    { char: "h", count: 520 },
-    { char: "e", count: 190 },
-    { char: "i", count: 100 },
-    { char: " ", count: 95 },
-    { char: "o", count: 85 },
-];
-const TOTAL = COUNTS.reduce((sum, c) => sum + c.count, 0);
-const MAX_COUNT = Math.max(...COUNTS.map((c) => c.count));
-
-/* Honest axis for the count/probability rows: the winner's share becomes the full track, so every
-   other bar reads as its true proportion of the row — never normalised so the winner alone hits 100 %. */
-const WINNER_FRACTION = MAX_COUNT / TOTAL;
-
-const SPACE_GLYPH = "␣";
+const TOP_K = 8; // top followers shown in detail; the long tail is a single "…" rest cell
 const EASE = [0.2, 0.8, 0.2, 1] as const;
 
-function displayChar(c: string): string {
-    return c === " " ? SPACE_GLYPH : c;
+/* ─── Real data — the «t» row, derived once from the shared matrix ─── */
+const TOTAL = rowTotal(T_INDEX); // 19763
+const TOP = topFollowers(T_INDEX, TOP_K); // [{idx,count,prob}] biggest first — h, ␣, o, e, …
+
+interface Follower {
+    idx: number;
+    glyph: string; // display glyph (space → ␣)
+    isSpace: boolean;
+    count: number;
+    fraction: number;
 }
 
+const FOLLOWERS: Follower[] = TOP.map((f) => ({
+    idx: f.idx,
+    glyph: dchar(f.idx),
+    isSpace: f.idx === 0,
+    count: f.count,
+    fraction: f.prob,
+}));
+
+const WINNER = FOLLOWERS[0]; // "h" — the highest-count follower
+// share of the row covered by the detailed top-K; the remainder is the long tail
+const TOP_COUNT = FOLLOWERS.reduce((s, f) => s + f.count, 0);
+const REST_COUNT = TOTAL - TOP_COUNT;
+const REST_FRACTION = REST_COUNT / TOTAL;
+
 type Step = 0 | 1 | 2;
+
+/* ─── Step labels (i18n keys for the segmented control) ─── */
+const STEP_LABELS = [
+    "bigramNarrative.normalizationViz.step1Title",
+    "bigramNarrative.normalizationViz.step2Title",
+    "bigramNarrative.normalizationViz.step3Title",
+] as const;
+
+function fmtPct(fraction: number): string {
+    return `${(fraction * 100).toFixed(1)}`;
+}
+
+/* ─── The FULL «t» row in fixed order [space, a..z] — the 27 columns, exactly like §2 / VIS 4. ─── */
+const ROW_27 = MATRIX_27_COUNTS[T_INDEX];
+const MAX_27 = Math.max(1, ...ROW_27);
+const WINNER_27 = (() => {
+    let w = 0;
+    for (let i = 1; i < ROW_27.length; i++) if (ROW_27[i] > ROW_27[w]) w = i;
+    return w;
+})();
+
+/** Heat ramp — identical to VIS 4: empty → bg-2, hot → accent-bright, sqrt-lifted. */
+function heat(p: number): string {
+    if (p <= 0) return "var(--bigram-bg-2)";
+    const pct = (Math.pow(p, 0.6) * 100).toFixed(1);
+    return `color-mix(in oklab, var(--bigram-accent-bright) ${pct}%, var(--bigram-bg-2))`;
+}
+/** Compact count: 7071 → "7.1k". */
+function abbr(n: number): string {
+    return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+}
 
 /* ─── Component ─── */
 export const NormalizationVisualizer = memo(function NormalizationVisualizer() {
@@ -75,52 +113,41 @@ export const NormalizationVisualizer = memo(function NormalizationVisualizer() {
     const reduce = useReducedMotion();
 
     const [step, setStep] = useState<Step>(0);
-    // which slice of the unity bar (phase 2) is being inspected; -1 = none (then "= 100%" reads)
+    // which slice of the unity bar (step 1) is being inspected; -1 = none (then "= 100%" reads)
     const [activeSlice, setActiveSlice] = useState(-1);
-
-    const followers = useMemo(
-        () =>
-            COUNTS.map((c) => ({
-                char: c.char,
-                count: c.count,
-                fraction: c.count / TOTAL,
-            })),
-        []
-    );
-
-    const winner = followers[0]; // "h" — the highest-count follower
 
     const selectStep = useCallback((next: Step) => {
         setStep(next);
         setActiveSlice(-1);
     }, []);
 
-    // Phase 2 auto-tour: gently walk the inspector across each slice once, then rest on the whole.
+    // Step 1 auto-tour: gently walk the inspector across each slice once, then rest on the whole.
     const tourRef = useRef<ReturnType<typeof setTimeout>[]>([]);
     useEffect(() => {
         tourRef.current.forEach(clearTimeout);
         tourRef.current = [];
-        // Only the auto-tour lives here; activeSlice is reset to -1 by selectStep on every step change,
-        // so the reduced-motion path simply skips scheduling (no synchronous setState in the effect body).
+        // The auto-tour is the only thing scheduled here; activeSlice is reset to -1 by selectStep on
+        // every step change, so the reduced-motion path simply skips scheduling (no synchronous setState
+        // in the effect body).
         if (step !== 1 || reduce) return;
-        const SLICE_MS = 620;
-        const FIRST_MS = 760; // let the unity bar split first
-        followers.forEach((_, i) => {
+        const SLICE_MS = 460;
+        const FIRST_MS = 720; // let the unity bar split first
+        FOLLOWERS.forEach((_, i) => {
             tourRef.current.push(
                 setTimeout(() => setActiveSlice(i), FIRST_MS + i * SLICE_MS)
             );
         });
         tourRef.current.push(
-            setTimeout(() => setActiveSlice(-1), FIRST_MS + followers.length * SLICE_MS)
+            setTimeout(() => setActiveSlice(-1), FIRST_MS + FOLLOWERS.length * SLICE_MS)
         );
         return () => {
             tourRef.current.forEach(clearTimeout);
             tourRef.current = [];
         };
-    }, [step, reduce, followers]);
+    }, [step, reduce]);
 
     return (
-        <div style={{ maxWidth: 660, margin: "0 auto" }}>
+        <div style={{ maxWidth: 680, margin: "0 auto" }}>
             {/* ── Context line — the question this whole figure answers ── */}
             <p
                 style={{
@@ -137,8 +164,21 @@ export const NormalizationVisualizer = memo(function NormalizationVisualizer() {
                 {t("bigramNarrative.normalizationViz.context", { char: EXAMPLE_CHAR })}
             </p>
 
+            {/* ── THE HERO: the «t» row, persistent across all three steps. It never unmounts — the
+                normalization visibly acts ON it as the step changes (counts → divide → %). ── */}
+            <TRowHero
+                step={step}
+                activeSlice={activeSlice}
+                reduce={!!reduce}
+                rowLabel={t("bigramNarrative.normalizationViz.theRowLabel")}
+                totalLabel={t("bigramNarrative.normalizationViz.totalLabel", {
+                    char: EXAMPLE_CHAR,
+                })}
+                sumLabel={t("bigramNarrative.normalizationViz.sumLabel")}
+            />
+
             {/* ── Step picker — segmented control: sunk rail, active cell filled accent ── */}
-            <div style={{ textAlign: "center" }}>
+            <div style={{ textAlign: "center", marginTop: 30 }}>
                 <div
                     role="radiogroup"
                     aria-label="normalization step"
@@ -208,8 +248,8 @@ export const NormalizationVisualizer = memo(function NormalizationVisualizer() {
                 </div>
             </div>
 
-            {/* ── Stage — one focal point per phase, the row persists across all three ── */}
-            <div style={{ marginTop: 26, minHeight: 312 }}>
+            {/* ── Stage — per-step detail under the persistent hero; one focal point per phase ── */}
+            <div style={{ marginTop: 24, minHeight: 264 }}>
                 <AnimatePresence mode="wait">
                     {step === 0 && (
                         <PhaseShell key="counts" reduce={reduce}>
@@ -218,21 +258,11 @@ export const NormalizationVisualizer = memo(function NormalizationVisualizer() {
                                     char: EXAMPLE_CHAR,
                                 })}
                             />
-                            <div style={{ marginTop: 18 }}>
-                                {followers.map((f) => (
-                                    <CountRow
-                                        key={f.char}
-                                        char={f.char}
-                                        count={f.count}
-                                        reduce={!!reduce}
-                                    />
-                                ))}
-                            </div>
                             <TotalLine
                                 label={t("bigramNarrative.normalizationViz.totalLabel", {
                                     char: EXAMPLE_CHAR,
                                 })}
-                                value={String(TOTAL)}
+                                value={TOTAL.toLocaleString()}
                             />
                         </PhaseShell>
                     )}
@@ -243,11 +273,17 @@ export const NormalizationVisualizer = memo(function NormalizationVisualizer() {
                                 text={t("bigramNarrative.normalizationViz.step2Desc")}
                             />
                             <UnityBar
-                                followers={followers}
                                 activeSlice={activeSlice}
                                 onInspect={setActiveSlice}
                                 reduce={!!reduce}
                                 totalLabel={t("bigramNarrative.normalizationViz.sumLabel")}
+                                formulaNumerator={t(
+                                    "bigramNarrative.normalizationViz.step2Formula",
+                                    { char: EXAMPLE_CHAR, next: "x" }
+                                )}
+                                formulaDenominator={t(
+                                    "bigramNarrative.normalizationViz.step2Total"
+                                )}
                             />
                         </PhaseShell>
                     )}
@@ -256,46 +292,15 @@ export const NormalizationVisualizer = memo(function NormalizationVisualizer() {
                         <PhaseShell key="probs" reduce={reduce}>
                             <PhaseCaption
                                 text={t("bigramNarrative.normalizationViz.step3Desc", {
-                                    total: String(TOTAL),
+                                    total: TOTAL.toLocaleString(),
                                 })}
                             />
-                            <div style={{ marginTop: 18 }}>
-                                <AnimatePresence>
-                                    {followers.map((f, rank) => {
-                                        const isWinner = rank === 0;
-                                        // winner-last cascade: losers settle first, winner sweeps last
-                                        const delay = reduce
-                                            ? 0
-                                            : (followers.length - 1 - rank) * 0.08;
-                                        return (
-                                            <motion.div
-                                                key={f.char}
-                                                initial={reduce ? false : { opacity: 0, y: 6 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ duration: 0.28, ease: EASE }}
-                                            >
-                                                <HonestBar
-                                                    src={EXAMPLE_CHAR}
-                                                    dst={f.char}
-                                                    value={f.fraction}
-                                                    axis={WINNER_FRACTION}
-                                                    top={isWinner}
-                                                    glint={isWinner}
-                                                    countUp
-                                                    delay={delay}
-                                                />
-                                            </motion.div>
-                                        );
-                                    })}
-                                </AnimatePresence>
-                            </div>
-
                             <motion.div
                                 initial={reduce ? false : { opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{
                                     duration: 0.4,
-                                    delay: reduce ? 0 : 0.55,
+                                    delay: reduce ? 0 : 0.2,
                                     ease: EASE,
                                 }}
                                 style={{ marginTop: 22 }}
@@ -307,14 +312,14 @@ export const NormalizationVisualizer = memo(function NormalizationVisualizer() {
                                             template={t(
                                                 "bigramNarrative.corpusCounting.verdictMain"
                                             )}
-                                            char={displayChar(EXAMPLE_CHAR)}
-                                            best={displayChar(winner.char)}
+                                            char={dchar(T_INDEX)}
+                                            best={WINNER.glyph}
                                         />
                                     }
                                     sub={t("bigramNarrative.corpusCounting.verdictSub", {
-                                        n: winner.count,
-                                        total: TOTAL,
-                                        pct: `${(winner.fraction * 100).toFixed(1)}%`,
+                                        n: WINNER.count.toLocaleString(),
+                                        total: TOTAL.toLocaleString(),
+                                        pct: `${fmtPct(WINNER.fraction)}%`,
                                     })}
                                 />
                             </motion.div>
@@ -326,14 +331,211 @@ export const NormalizationVisualizer = memo(function NormalizationVisualizer() {
     );
 });
 
-/* ─── Step labels (i18n keys) ─── */
-const STEP_LABELS = [
-    "bigramNarrative.normalizationViz.step1Title",
-    "bigramNarrative.normalizationViz.step2Title",
-    "bigramNarrative.normalizationViz.step3Title",
-] as const;
+/* ─────────────────────────────────────────────────────────────────────────────
+   THE HERO — the persistent, bigger «t» row.
 
-/* ─── Phase wrapper — uniform enter/exit so the row "morphs lens" rather than hard-cutting ─── */
+   A single horizontal strip of follower cells (the top followers of «t», biggest first), plus one quiet
+   "rest" cell for the long tail and one trailing total cap. It NEVER unmounts: as the step changes, each
+   cell's VALUE morphs (count → % ) while its fill height — the cell's share of the whole — stays put.
+   That is the lesson made literal: same row, same proportions, re-expressed as fractions of the total.
+   ───────────────────────────────────────────────────────────────────────────── */
+const TRowHero = memo(function TRowHero({
+    step,
+    activeSlice,
+    reduce,
+    rowLabel,
+    totalLabel,
+    sumLabel,
+}: {
+    step: Step;
+    activeSlice: number;
+    reduce: boolean;
+    rowLabel: string;
+    totalLabel: string;
+    sumLabel: string;
+}) {
+    const [hoverCol, setHoverCol] = useState(-1);
+    const asPct = step === 2;
+    // step 1 reads the denominator (we're dividing by it); steps 0/2 read the total / sum.
+    const footLabel = step === 1 ? totalLabel : asPct ? sumLabel : totalLabel;
+    const footValue = asPct ? "100.0 %" : TOTAL.toLocaleString();
+    // which column reads "hot": the hovered one, else the step-1 toured follower, else the winner (h)
+    const tourCol = step === 1 && activeSlice >= 0 ? FOLLOWERS[activeSlice].idx : -1;
+    const hiCol = hoverCol >= 0 ? hoverCol : tourCol >= 0 ? tourCol : WINNER_27;
+
+    return (
+        <div>
+            {/* row caption — the protagonist, named */}
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "baseline",
+                    justifyContent: "space-between",
+                    gap: 14,
+                    marginBottom: 12,
+                }}
+            >
+                <span
+                    style={{
+                        fontFamily: "var(--font-jetbrains-mono)",
+                        fontSize: 11,
+                        letterSpacing: ".18em",
+                        textTransform: "uppercase",
+                        color: "var(--bigram-dim)",
+                    }}
+                >
+                    {rowLabel}
+                </span>
+                <span
+                    aria-hidden
+                    style={{
+                        fontFamily: "var(--font-jetbrains-mono)",
+                        fontSize: 17,
+                        fontWeight: 700,
+                        color: "var(--bigram-accent)",
+                        letterSpacing: ".04em",
+                    }}
+                >
+                    {EXAMPLE_CHAR} →
+                </span>
+            </div>
+
+            {/* THE ROW — the full 27 fixed columns (space, a–z) + the heat row, exactly like §2 / VIS 4.
+                Bars never reorder; the winner (h) glows; hover any slot to inspect it. The printed value
+                over each tall bar morphs counts → % as you move through the steps. */}
+            <div
+                role="img"
+                aria-label={`the row of followers of ${EXAMPLE_CHAR}, ${
+                    asPct ? "as probabilities" : "as counts"
+                }`}
+            >
+                <div className="nv-bars">
+                    {ROW_27.map((count, ci) => {
+                        const prob = count / TOTAL;
+                        const h = (count / MAX_27) * 90; // headroom up top for the value
+                        const val = asPct ? `${fmtPct(prob)}%` : abbr(count);
+                        return (
+                            <div
+                                key={ci}
+                                className="nv-bar"
+                                data-win={ci === WINNER_27 && count > 0 ? "1" : "0"}
+                                data-hover={ci === hiCol && ci !== WINNER_27 ? "1" : "0"}
+                                onMouseEnter={() => setHoverCol(ci)}
+                                onMouseLeave={() => setHoverCol(-1)}
+                            >
+                                {h >= 6 && count > 0 && (
+                                    <span className="nv-barnum" style={{ bottom: `${h}%` }}>
+                                        {val}
+                                    </span>
+                                )}
+                                <motion.span
+                                    className="nv-barfill"
+                                    initial={reduce ? false : { height: 0 }}
+                                    animate={{ height: `${h}%` }}
+                                    transition={reduce ? { duration: 0 } : { duration: 0.55, ease: EASE }}
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="nv-heatrow">
+                    {ROW_27.map((count, ci) => (
+                        <span
+                            key={ci}
+                            className="nv-heatcell"
+                            data-win={ci === WINNER_27 && count > 0 ? "1" : "0"}
+                            data-hover={ci === hiCol && ci !== WINNER_27 ? "1" : "0"}
+                            style={{ background: heat(count / MAX_27) }}
+                            onMouseEnter={() => setHoverCol(ci)}
+                            onMouseLeave={() => setHoverCol(-1)}
+                            title={`${EXAMPLE_CHAR} → ${dchar(ci)}: ${count.toLocaleString()}`}
+                        />
+                    ))}
+                </div>
+                <div className="nv-heataxis" aria-hidden>
+                    {ROW_27.map((_, ci) => (
+                        <span key={ci} className="nv-heatlbl" data-hi={ci === hiCol ? "1" : "0"}>
+                            {dchar(ci)}
+                        </span>
+                    ))}
+                </div>
+
+                <style>{`
+                    .nv-bars { display: grid; grid-template-columns: repeat(27, 1fr); gap: 3px; align-items: end; height: 150px; width: 100%; margin: 0 auto 5px; }
+                    .nv-bar { position: relative; height: 100%; display: flex; align-items: flex-end; min-width: 0; cursor: default; }
+                    .nv-barfill { width: 100%; border-radius: 3px 3px 0 0; min-height: 2px; background: color-mix(in oklab, var(--bigram-accent) 46%, transparent); transition: background .2s ease; }
+                    .nv-bar[data-win="1"] .nv-barfill { background: var(--bigram-accent-bright); }
+                    .nv-bar[data-hover="1"] .nv-barfill { background: var(--bigram-accent); }
+                    .nv-barnum { position: absolute; left: -6px; right: -6px; text-align: center; font-family: var(--font-jetbrains-mono); font-size: 9px; line-height: 1; color: var(--bigram-muted); font-variant-numeric: tabular-nums; white-space: nowrap; pointer-events: none; transform: translateY(-3px); transition: color .2s ease; }
+                    .nv-bar[data-win="1"] .nv-barnum { color: var(--bigram-accent-ink); font-weight: 700; }
+                    .nv-bar[data-hover="1"] .nv-barnum { color: var(--bigram-accent-ink); }
+                    .nv-heatrow { display: grid; grid-template-columns: repeat(27, 1fr); gap: 3px; width: 100%; margin: 0 auto; }
+                    .nv-heatcell { aspect-ratio: 1; border-radius: 3px; transition: background .25s ease, box-shadow .15s ease; cursor: default; }
+                    .nv-heatcell[data-win="1"] { box-shadow: inset 0 0 0 1.5px var(--bigram-accent-bright); }
+                    .nv-heatcell[data-hover="1"] { box-shadow: inset 0 0 0 1.5px var(--bigram-accent-ink); }
+                    .nv-heataxis { display: grid; grid-template-columns: repeat(27, 1fr); gap: 3px; width: 100%; margin: 6px auto 0; }
+                    .nv-heatlbl { font-family: var(--font-jetbrains-mono); font-size: 9px; line-height: 1; color: var(--bigram-dim); text-align: center; transition: color .15s ease; }
+                    .nv-heatlbl[data-hi="1"] { color: var(--bigram-accent-ink); font-weight: 700; }
+                `}</style>
+            </div>
+
+            {/* the denominator / sum, stated plainly under the row — the thing we divide by */}
+            <div
+                style={{
+                    marginTop: 14,
+                    paddingTop: 12,
+                    borderTop: "1px solid var(--bigram-rule)",
+                    display: "flex",
+                    alignItems: "baseline",
+                    justifyContent: "space-between",
+                    gap: 14,
+                }}
+            >
+                <span
+                    style={{
+                        fontFamily: "var(--font-source-serif)",
+                        fontSize: 14.5,
+                        color: "var(--bigram-muted)",
+                    }}
+                >
+                    {footLabel}
+                </span>
+                <span
+                    style={{
+                        position: "relative",
+                        display: "inline-grid",
+                        justifyItems: "end",
+                    }}
+                >
+                    <AnimatePresence mode="popLayout" initial={false}>
+                        <motion.span
+                            key={footValue}
+                            initial={reduce ? false : { opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                            transition={{ duration: 0.26, ease: EASE }}
+                            style={{
+                                fontFamily: "var(--font-jetbrains-mono)",
+                                fontSize: 20,
+                                fontWeight: 700,
+                                color: asPct
+                                    ? "var(--bigram-sage)"
+                                    : "var(--bigram-ink)",
+                                fontVariantNumeric: "tabular-nums",
+                            }}
+                        >
+                            {footValue}
+                        </motion.span>
+                    </AnimatePresence>
+                </span>
+            </div>
+        </div>
+    );
+});
+
+
+/* ─── Phase wrapper — uniform enter/exit so the detail under the hero morphs rather than hard-cutting ─── */
 const PhaseShell = memo(function PhaseShell({
     children,
     reduce,
@@ -372,144 +574,7 @@ const PhaseCaption = memo(function PhaseCaption({ text }: { text: string }) {
     );
 });
 
-/* ─── Phase 1 row — a raw count rendered like a HonestBar, but the value is the COUNT (not a %). ───
-   We reuse the bar geometry/feel but show the integer count at the end, so it visually rhymes with
-   the probability rows of phase 3 (same object, different lens). */
-const CountRow = memo(function CountRow({
-    char,
-    count,
-    reduce,
-}: {
-    char: string;
-    count: number;
-    reduce: boolean;
-}) {
-    const isSpace = char === " ";
-    const targetW = (count / MAX_COUNT) * 100;
-    const [shown, setShown] = useState(reduce ? count : 0);
-
-    useEffect(() => {
-        if (reduce) return;
-        let cancelled = false;
-        let raf = 0;
-        let t0: number | null = null;
-        const DUR = 620;
-        const frame = (now: number) => {
-            if (cancelled) return;
-            if (t0 === null) t0 = now;
-            const k = Math.min(1, (now - t0) / DUR);
-            const eased = 1 - Math.pow(1 - k, 3);
-            setShown(Math.round(eased * count));
-            if (k < 1) raf = requestAnimationFrame(frame);
-        };
-        const timer = setTimeout(() => {
-            raf = requestAnimationFrame(frame);
-        }, 140);
-        return () => {
-            cancelled = true;
-            cancelAnimationFrame(raf);
-            clearTimeout(timer);
-        };
-    }, [count, reduce]);
-
-    return (
-        <div
-            role="img"
-            aria-label={`${char === " " ? "space" : char} appeared ${count} times`}
-            style={{
-                display: "grid",
-                gridTemplateColumns: "104px 1fr auto",
-                alignItems: "center",
-                gap: 16,
-                margin: "17px 0",
-            }}
-        >
-            {/* label = t→x pair, matching HonestBar */}
-            <span
-                style={{
-                    fontFamily: "var(--font-jetbrains-mono)",
-                    fontSize: 19,
-                    fontWeight: 600,
-                    color: "var(--bigram-ink)",
-                    display: "inline-flex",
-                    alignItems: "baseline",
-                    gap: 2,
-                    whiteSpace: "nowrap",
-                    fontVariantNumeric: "lining-nums tabular-nums",
-                }}
-            >
-                <span style={{ color: "var(--bigram-dim)", fontWeight: 500 }}>
-                    {EXAMPLE_CHAR}
-                </span>
-                <span
-                    style={{
-                        color: "var(--bigram-dim)",
-                        fontWeight: 400,
-                        margin: "0 3px",
-                        fontSize: 14,
-                    }}
-                >
-                    →
-                </span>
-                <span
-                    style={
-                        isSpace
-                            ? {
-                                  fontSize: 12,
-                                  fontWeight: 600,
-                                  letterSpacing: ".03em",
-                                  color: "var(--bigram-dim)",
-                                  textTransform: "lowercase",
-                              }
-                            : { color: "var(--bigram-ink)", fontWeight: 700, fontSize: "1.05em" }
-                    }
-                >
-                    {displayChar(char)}
-                </span>
-            </span>
-
-            {/* track + fill */}
-            <span
-                style={{
-                    position: "relative",
-                    height: 12,
-                    borderRadius: 6,
-                    overflow: "hidden",
-                    background: "color-mix(in oklab, var(--bigram-ink) 10%, transparent)",
-                    display: "block",
-                }}
-            >
-                <motion.span
-                    initial={reduce ? false : { width: "0%" }}
-                    animate={{ width: `${targetW}%` }}
-                    transition={reduce ? { duration: 0 } : { duration: 0.6, ease: [0.2, 0.7, 0.2, 1] }}
-                    style={{
-                        display: "block",
-                        height: "100%",
-                        borderRadius: 6,
-                        background: "var(--bigram-accent-2)",
-                    }}
-                />
-            </span>
-
-            {/* the raw count (integer, counting up) */}
-            <span
-                style={{
-                    fontFamily: "var(--font-jetbrains-mono)",
-                    fontSize: 14,
-                    color: "var(--bigram-dim)",
-                    textAlign: "right",
-                    fontVariantNumeric: "tabular-nums",
-                    minWidth: 46,
-                }}
-            >
-                {shown}
-            </span>
-        </div>
-    );
-});
-
-/* ─── Phase 1 total line — the denominator, stated plainly in a hairline well ─── */
+/* ─── Step 0 total line — the denominator, stated plainly in a hairline well ─── */
 const TotalLine = memo(function TotalLine({
     label,
     value,
@@ -521,15 +586,20 @@ const TotalLine = memo(function TotalLine({
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.55, duration: 0.4 }}
+            transition={{ delay: 0.25, duration: 0.4 }}
             style={{
-                marginTop: 18,
-                paddingTop: 16,
-                borderTop: "1px solid var(--bigram-rule)",
+                marginTop: 22,
+                padding: "16px 20px",
+                borderRadius: "var(--bigram-r-md)",
+                background: "var(--bigram-bg-2)",
+                boxShadow:
+                    "inset 0 1px 0 0 color-mix(in oklab, var(--bigram-ink) 6%, transparent)",
                 display: "flex",
                 alignItems: "baseline",
                 justifyContent: "space-between",
                 gap: 14,
+                maxWidth: 360,
+                margin: "22px auto 0",
             }}
         >
             <span
@@ -556,61 +626,87 @@ const TotalLine = memo(function TotalLine({
     );
 });
 
-/* ─── Phase 2 — the unity bar: the whole row (the total) splits into proportional slices. ───
-   This is the focal teaching moment: ONE bar = 100 % of the transitions, divided into named parts.
-   Conservation of mass — the bar never changes size; the division only re-expresses it. Inspect a
-   slice (hover / tap / auto-tour) to read its `count ÷ total = pct`. */
+/* ─── Step 1 — the unity bar: the whole row (the total) splits into proportional slices. ───
+   The focal teaching moment: ONE bar = 100 % of the transitions, divided into named parts. Conservation
+   of mass — the bar never changes size; the division only re-expresses it. Inspect a slice (hover / tap /
+   auto-tour) to read its `count ÷ total = pct`. Uses the SAME real followers as the hero strip. */
 const UnityBar = memo(function UnityBar({
-    followers,
     activeSlice,
     onInspect,
     reduce,
     totalLabel,
+    formulaNumerator,
+    formulaDenominator,
 }: {
-    followers: { char: string; count: number; fraction: number }[];
     activeSlice: number;
     onInspect: (i: number) => void;
     reduce: boolean;
     totalLabel: string;
+    formulaNumerator: string;
+    formulaDenominator: string;
 }) {
-    const active = activeSlice >= 0 ? followers[activeSlice] : null;
+    const active = activeSlice >= 0 ? FOLLOWERS[activeSlice] : null;
+
+    // Live numerator: at rest the formula is symbolic (count(t→x)); inspecting a slice resolves the
+    // generic "x" to that follower's glyph, so the algebra and the bar read as one object.
+    const liveNumerator = active
+        ? formulaNumerator.replace("x", active.glyph)
+        : formulaNumerator;
+
+    // include the long-tail as a final quiet slice so the bar truly sums to the whole
+    const slices = [
+        ...FOLLOWERS.map((f, i) => ({ key: String(f.idx), glyph: f.glyph, isSpace: f.isSpace, fraction: f.fraction, interactiveIndex: i })),
+        { key: "rest", glyph: "…", isSpace: false, fraction: REST_FRACTION, interactiveIndex: -1 },
+    ];
 
     return (
-        <div style={{ marginTop: 30 }}>
+        <div style={{ marginTop: 26 }}>
             {/* the unity bar — single track, slices grow from 0 to their share, staggered */}
             <div
                 style={{
                     position: "relative",
                     display: "flex",
                     width: "100%",
-                    height: 56,
+                    height: 52,
                     borderRadius: "var(--bigram-r-md)",
                     overflow: "hidden",
                     background: "var(--bigram-bg-2)",
                     boxShadow: "inset 0 2px 8px rgba(0,0,0,.30)",
                 }}
             >
-                {followers.map((f, i) => {
-                    const isActive = activeSlice === i;
+                {slices.map((s, i) => {
+                    const interactive = s.interactiveIndex >= 0;
+                    const isActive = interactive && activeSlice === s.interactiveIndex;
                     const dim = activeSlice >= 0 && !isActive;
                     return (
                         <motion.button
-                            key={f.char}
+                            key={s.key}
                             type="button"
-                            aria-label={`${f.char === " " ? "space" : f.char}: ${f.count} of ${TOTAL}, ${(
-                                f.fraction * 100
-                            ).toFixed(1)} percent`}
-                            onMouseEnter={() => onInspect(i)}
-                            onFocus={() => onInspect(i)}
-                            onClick={() => onInspect(i)}
+                            disabled={!interactive}
+                            aria-label={
+                                interactive
+                                    ? `${s.isSpace ? "space" : s.glyph}: ${(
+                                          s.fraction * 100
+                                      ).toFixed(1)} percent`
+                                    : `the rest: ${(s.fraction * 100).toFixed(1)} percent`
+                            }
+                            onMouseEnter={
+                                interactive ? () => onInspect(s.interactiveIndex) : undefined
+                            }
+                            onFocus={
+                                interactive ? () => onInspect(s.interactiveIndex) : undefined
+                            }
+                            onClick={
+                                interactive ? () => onInspect(s.interactiveIndex) : undefined
+                            }
                             initial={reduce ? false : { flexGrow: 0, opacity: 0 }}
-                            animate={{ flexGrow: f.fraction, opacity: 1 }}
+                            animate={{ flexGrow: s.fraction, opacity: 1 }}
                             transition={
                                 reduce
                                     ? { duration: 0 }
                                     : {
-                                          flexGrow: { duration: 0.7, ease: EASE, delay: 0.1 + i * 0.09 },
-                                          opacity: { duration: 0.3, delay: 0.1 + i * 0.09 },
+                                          flexGrow: { duration: 0.7, ease: EASE, delay: 0.1 + i * 0.07 },
+                                          opacity: { duration: 0.3, delay: 0.1 + i * 0.07 },
                                       }
                             }
                             style={{
@@ -618,13 +714,15 @@ const UnityBar = memo(function UnityBar({
                                 position: "relative",
                                 height: "100%",
                                 border: 0,
-                                cursor: "pointer",
+                                cursor: interactive ? "pointer" : "default",
                                 padding: 0,
-                                // alternating accent depth so adjacent slices read apart without extra chrome
-                                background:
-                                    i % 2 === 0
-                                        ? "var(--bigram-accent-2)"
-                                        : "var(--bigram-accent-deep)",
+                                // alternating accent depth so adjacent slices read apart without extra chrome;
+                                // the long tail is the quiet "everything else" wash
+                                background: !interactive
+                                    ? "color-mix(in oklab, var(--bigram-accent-2) 36%, transparent)"
+                                    : i % 2 === 0
+                                      ? "var(--bigram-accent-2)"
+                                      : "var(--bigram-accent-deep)",
                                 opacity: dim ? 0.42 : 1,
                                 boxShadow: isActive
                                     ? "inset 0 0 0 2px var(--bigram-accent-bright)"
@@ -638,28 +736,88 @@ const UnityBar = memo(function UnityBar({
                             {/* glyph inside the slice — fades in once the slice is wide enough to hold it */}
                             <motion.span
                                 initial={reduce ? false : { opacity: 0 }}
-                                animate={{ opacity: f.fraction > 0.06 ? 1 : 0 }}
-                                transition={{ delay: reduce ? 0 : 0.5 + i * 0.09, duration: 0.3 }}
+                                animate={{ opacity: s.fraction > 0.06 ? 1 : 0 }}
+                                transition={{ delay: reduce ? 0 : 0.5 + i * 0.07, duration: 0.3 }}
                                 style={{
                                     fontFamily: "var(--font-jetbrains-mono)",
-                                    fontSize: f.char === " " ? 12 : 18,
+                                    fontSize: s.isSpace ? 12 : 16,
                                     fontWeight: 700,
-                                    color: "var(--bigram-on-accent)",
+                                    color: interactive
+                                        ? "var(--bigram-on-accent)"
+                                        : "var(--bigram-dim)",
                                     lineHeight: 1,
                                     pointerEvents: "none",
                                 }}
                             >
-                                {displayChar(f.char)}
+                                {s.glyph}
                             </motion.span>
                         </motion.button>
                     );
                 })}
             </div>
 
+            {/* the rule made literal — the `.formula` well: every slice is count(t→•) over the total.
+                Symbolic at rest; the numerator resolves to the inspected follower's glyph on hover. */}
+            <div
+                style={{
+                    margin: "22px auto 0",
+                    maxWidth: 320,
+                    padding: "16px 20px",
+                    borderRadius: "var(--bigram-r-md)",
+                    background: "var(--bigram-bg-2)",
+                    boxShadow:
+                        "inset 0 1px 0 0 color-mix(in oklab, var(--bigram-ink) 6%, transparent)",
+                    textAlign: "center",
+                }}
+            >
+                <div
+                    style={{
+                        display: "inline-flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        fontFamily: "var(--font-jetbrains-mono)",
+                        fontVariantNumeric: "tabular-nums",
+                        lineHeight: 1.25,
+                    }}
+                >
+                    <AnimatePresence mode="wait" initial={false}>
+                        <motion.span
+                            key={liveNumerator}
+                            initial={reduce ? false : { opacity: 0, y: 3 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={reduce ? { opacity: 0 } : { opacity: 0, y: -3 }}
+                            transition={{ duration: 0.18 }}
+                            style={{
+                                fontSize: 15,
+                                color: active
+                                    ? "var(--bigram-accent-ink)"
+                                    : "var(--bigram-accent)",
+                                padding: "0 8px",
+                            }}
+                        >
+                            {liveNumerator}
+                        </motion.span>
+                    </AnimatePresence>
+                    <span
+                        aria-hidden
+                        style={{
+                            display: "block",
+                            width: "100%",
+                            height: 1,
+                            margin: "5px 0",
+                            background: "var(--bigram-rule-2)",
+                        }}
+                    />
+                    <span style={{ fontSize: 15, color: "var(--bigram-muted)" }}>
+                        {formulaDenominator}
+                    </span>
+                </div>
+            </div>
+
             {/* the inspector readout — `count ÷ total = pct` for the active slice, else "= 100 %" ── */}
             <div
                 style={{
-                    marginTop: 22,
+                    marginTop: 20,
                     minHeight: 44,
                     display: "flex",
                     alignItems: "center",
@@ -680,14 +838,18 @@ const UnityBar = memo(function UnityBar({
                                 gap: 10,
                                 fontFamily: "var(--font-jetbrains-mono)",
                                 fontVariantNumeric: "tabular-nums",
+                                flexWrap: "wrap",
+                                justifyContent: "center",
                             }}
                         >
-                            <span style={{ fontSize: 20, fontWeight: 700, color: "var(--bigram-ink)" }}>
-                                {active.count}
+                            <span style={{ fontSize: 19, fontWeight: 700, color: "var(--bigram-ink)" }}>
+                                {active.count.toLocaleString()}
                             </span>
-                            <span style={{ fontSize: 17, color: "var(--bigram-dim)" }}>÷</span>
-                            <span style={{ fontSize: 20, color: "var(--bigram-muted)" }}>{TOTAL}</span>
-                            <span style={{ fontSize: 17, color: "var(--bigram-dim)" }}>=</span>
+                            <span style={{ fontSize: 16, color: "var(--bigram-dim)" }}>÷</span>
+                            <span style={{ fontSize: 19, color: "var(--bigram-muted)" }}>
+                                {TOTAL.toLocaleString()}
+                            </span>
+                            <span style={{ fontSize: 16, color: "var(--bigram-dim)" }}>=</span>
                             <span
                                 style={{
                                     fontSize: 22,
@@ -695,8 +857,8 @@ const UnityBar = memo(function UnityBar({
                                     color: "var(--bigram-accent-ink)",
                                 }}
                             >
-                                {(active.fraction * 100).toFixed(1)}
-                                {" "}%
+                                {fmtPct(active.fraction)}
+                                {" "}%
                             </span>
                         </motion.div>
                     ) : (
@@ -730,7 +892,7 @@ const UnityBar = memo(function UnityBar({
                                     fontVariantNumeric: "tabular-nums",
                                 }}
                             >
-                                100{" "}%
+                                100{" "}%
                             </span>
                         </motion.div>
                     )}

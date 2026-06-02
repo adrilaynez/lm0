@@ -6,10 +6,10 @@ import { usePathname } from "next/navigation";
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-    ArrowLeft,
     Check,
     ChevronUp,
     FlaskConical,
+    Globe,
     Loader2,
     Moon,
     RefreshCw,
@@ -17,11 +17,11 @@ import {
     WifiOff,
 } from "lucide-react";
 
+import { ChapterSwitcher, accentOf } from "@/features/lab/components/ChapterSwitcher";
 import FeedbackButton from "@/features/lab/components/FeedbackButton";
 import { KeyboardShortcutsPanel } from "@/features/lab/components/KeyboardShortcutsPanel";
 import { ReadingProgressBar } from "@/features/lab/components/ReadingProgressBar";
-import { Badge } from "@/components/ui/badge";
-import { LanguageToggle } from "@/components/ui/language-toggle";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollProvider, useScrollY } from "@/context/ScrollContext";
 import { useUser } from "@/features/lab/context/UserContext";
 import { useBackendHealth } from "@/features/lab/hooks/useBackendHealth";
@@ -29,7 +29,6 @@ import { useKeyboardShortcuts } from "@/features/lab/hooks/useKeyboardShortcuts"
 import { useLabTheme } from "@/features/lab/hooks/useLabTheme";
 import { useProgressTracker } from "@/features/lab/hooks/useProgressTracker";
 import { useI18n } from "@/i18n/context";
-import { cn } from "@/lib/utils";
 
 /* ─── Avatar + Name Popover ─── */
 
@@ -73,7 +72,7 @@ function AvatarPopover() {
                 className="flex items-center gap-2 group"
                 aria-label="User profile"
             >
-                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-[var(--lab-card)] border border-[var(--lab-border)] text-[11px] font-bold text-[var(--lab-text-muted)] group-hover:text-[var(--lab-text)] transition-colors">
+                <span className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--ctl-bg)] text-[12px] font-bold text-[var(--lab-text-muted)] shadow-[inset_0_0_0_1px_var(--ctl-border),0_1px_2px_rgba(0,0,0,0.05)] transition-[color,box-shadow,transform] duration-200 group-hover:text-[var(--lab-text)] group-hover:-translate-y-px group-hover:shadow-[inset_0_0_0_1px_var(--ctl-accent),0_1px_2px_rgba(0,0,0,0.05)]">
                     {initial}
                 </span>
                 {displayName && (
@@ -134,7 +133,7 @@ export function LabShell({ children }: { children: React.ReactNode }) {
 
 function LabShellInner({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const { t } = useI18n();
+    const { t, language, setLanguage } = useI18n();
     const { status, showBanner, retry } = useBackendHealth();
     const { theme, toggle: toggleTheme } = useLabTheme();
 
@@ -183,90 +182,130 @@ function LabShellInner({ children }: { children: React.ReactNode }) {
         { id: "transformer", label: t("lab.transformer"), href: "/lab/transformer", ready: true },
     ];
 
+    // Active chapter accent (theme-aware literal) — tints the brand mark + dot.
+    const activeIdx = models.findIndex((m) => pathname?.startsWith(m.href));
+    const activeHex = accentOf(activeIdx >= 0 ? models[activeIdx].id : null, theme);
+
     return (
-        <div data-lab-theme={theme} className="min-h-screen bg-[var(--lab-bg)] text-[var(--lab-text)] font-sans">
+        <div
+            data-lab-theme={theme}
+            data-bigram-theme={isBigram ? theme : undefined}
+            className="min-h-screen bg-[var(--lab-bg)] text-[var(--lab-text)] font-sans"
+            // On the bigram chapter the whole shell frame uses the editorial content bg
+            // (not the near-black --lab-bg), so no dark/light frame shows around the content.
+            style={isBigram ? { backgroundColor: "var(--bigram-bg)" } : undefined}
+        >
             {/* Bigram (editorial-green) reading bar lives in the shared lab chrome, which is OUTSIDE
                 the page's [data-bigram-theme] wrapper. Scope it here (only on the bigram path) so the
                 fixed bar can resolve --bigram-accent; additive — never touches --lab-* or other chapters. */}
-            {isBigram ? (
-                <div data-bigram-theme={theme} className="contents">
-                    <ReadingProgressBar accent={readingAccent} />
-                </div>
-            ) : (
-                <ReadingProgressBar accent={readingAccent} />
-            )}
-            {/* Top Bar */}
-            <header className="sticky top-0 z-50 border-b border-[var(--lab-border)] bg-[var(--lab-header-bg)] backdrop-blur-sm">
-                <div className="container mx-auto flex items-center justify-between h-14 px-4 md:px-8 max-w-screen-2xl">
-                    {/* Left */}
-                    <div className="flex items-center gap-4">
-                        <Link
-                            href="/lab"
-                            className="flex items-center gap-2 text-xs text-[var(--lab-text-muted)] hover:text-[var(--lab-text)] transition-colors font-mono"
+            {/* Top scroll-progress bar removed on the bigram chapter (replaced by the
+                left side rail); kept for the other chapters. */}
+            {!isBigram && <ReadingProgressBar accent={readingAccent} />}
+            {/* Top Bar — editorial chrome. The `data-bigram-theme` scope is added only on
+                the bigram path (additive; never touches --lab-*), kept for parity with the
+                reading bar; the accent itself is driven by theme-aware literals (activeHex). */}
+            <header
+                data-bigram-theme={isBigram ? theme : undefined}
+                className="sticky top-0 z-50 border-b border-[var(--lab-border)] bg-[var(--lab-header-bg)] backdrop-blur-md"
+                // On the bigram chapter the chrome blends into the editorial content bg
+                // (v8 topbar idiom: translucent page bg) instead of the generic --lab-* chrome,
+                // so the header matches the content in BOTH themes (cream / teal-slate).
+                style={isBigram ? { backgroundColor: "color-mix(in oklab, var(--bigram-bg) 92%, transparent)" } : undefined}
+            >
+                <TooltipProvider delayDuration={300}>
+                    <div className="relative container mx-auto flex items-center justify-between h-[72px] px-4 md:px-8 max-w-screen-2xl">
+                        {/* Left — brand (links back to the lab index) */}
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Link
+                                    href="/lab"
+                                    aria-label={t("lab.shell.allModels")}
+                                    className="flex items-center gap-2"
+                                >
+                                    <FlaskConical className="h-4 w-4 shrink-0 transition-colors" style={{ color: activeHex }} />
+                                    <span className="font-bold text-[15px] tracking-tight text-[var(--lab-text)]">
+                                        LM<span style={{ color: activeHex }}>·</span>LAB
+                                    </span>
+                                </Link>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom">{t("lab.shell.allModels")}</TooltipContent>
+                        </Tooltip>
+
+                        {/* Center — single chapter switcher (the one focal point).
+                            Absolutely centered on md+; normal flow on mobile to avoid overlap. */}
+                        <div className="md:absolute md:left-1/2 md:-translate-x-1/2">
+                            <ChapterSwitcher
+                                models={models}
+                                pathname={pathname}
+                                theme={theme}
+                                chapterWord={t("lab.shell.chapter")}
+                                menuLabel={t("lab.shell.chapterMenu")}
+                            />
+                        </div>
+
+                        {/* Right — control cluster. Elevated v8 .icon-btn style: faint
+                            surface fill + hairline border, hover lifts to the chapter accent
+                            (--ctl-accent). Theme toggle swaps sun/moon with a rotate+fade. */}
+                        <div
+                            className="flex items-center gap-2"
+                            style={{
+                                "--ctl-accent": activeHex,
+                                // v8 light --surface (warm off-white, not stark #fff) + --rule-2 hairline.
+                                "--ctl-bg": theme === "light" ? "#faf5e8" : "rgba(255,255,255,0.05)",
+                                "--ctl-border": theme === "light" ? "#d2c6a8" : "rgba(255,255,255,0.08)",
+                            } as React.CSSProperties}
                         >
-                            <ArrowLeft className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">{t("lab.shell.allModels")}</span>
-                        </Link>
-
-                        <div className="h-4 w-px bg-[var(--lab-border)]" />
-
-                        <div className="flex items-center gap-2">
-                            <FlaskConical className="h-4 w-4 text-emerald-400" />
-                            <span className="font-bold text-sm tracking-tight text-[var(--lab-text)]">LM-Lab</span>
-                            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] font-mono uppercase tracking-widest">
-                                v1.0
-                            </Badge>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        onClick={() => setLanguage(language === "en" ? "es" : "en")}
+                                        className="flex h-10 items-center gap-1.5 rounded-xl bg-[var(--ctl-bg)] px-2.5 text-[var(--lab-text-muted)] shadow-[inset_0_0_0_1px_var(--ctl-border),0_1px_2px_rgba(0,0,0,0.05)] transition-[color,box-shadow,transform] duration-200 hover:-translate-y-px hover:text-[var(--ctl-accent)] hover:shadow-[inset_0_0_0_1px_var(--ctl-accent),0_1px_2px_rgba(0,0,0,0.05)]"
+                                        aria-label={t("common.toggleLanguage")}
+                                    >
+                                        <Globe className="h-4 w-4" />
+                                        <span className="font-mono text-[11px] font-semibold uppercase tracking-wider">
+                                            {language}
+                                        </span>
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom">{t("common.toggleLanguage")}</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        onClick={toggleTheme}
+                                        className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-xl bg-[var(--ctl-bg)] text-[var(--lab-text-muted)] shadow-[inset_0_0_0_1px_var(--ctl-border),0_1px_2px_rgba(0,0,0,0.05)] transition-[color,box-shadow,transform] duration-200 hover:-translate-y-px hover:text-[var(--ctl-accent)] hover:shadow-[inset_0_0_0_1px_var(--ctl-accent),0_1px_2px_rgba(0,0,0,0.05)]"
+                                        aria-label={t("lab.shell.toggleTheme")}
+                                    >
+                                        {/* Sun (dark) + Moon (light) stacked; cross-fade + rotate on
+                                            toggle via CSS transitions on inline style (deterministic,
+                                            unaffected by the Radix Slot wrapper). */}
+                                        <span
+                                            className="grid place-items-center [grid-area:1/1] transition-[opacity,transform] duration-[320ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:transition-none"
+                                            style={{
+                                                opacity: theme === "dark" ? 1 : 0,
+                                                transform: theme === "dark" ? "rotate(0deg) scale(1)" : "rotate(-90deg) scale(0.5)",
+                                            }}
+                                        >
+                                            <Sun className="h-4 w-4" />
+                                        </span>
+                                        <span
+                                            className="grid place-items-center [grid-area:1/1] transition-[opacity,transform] duration-[320ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:transition-none"
+                                            style={{
+                                                opacity: theme === "dark" ? 0 : 1,
+                                                transform: theme === "dark" ? "rotate(90deg) scale(0.5)" : "rotate(0deg) scale(1)",
+                                            }}
+                                        >
+                                            <Moon className="h-4 w-4" />
+                                        </span>
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom">{t("lab.shell.toggleTheme")}</TooltipContent>
+                            </Tooltip>
+                            <AvatarPopover />
                         </div>
                     </div>
-
-                    {/* Center — Model Tabs */}
-                    <nav className="flex items-center gap-1">
-                        {models.map((model) => {
-                            const isActive = pathname?.startsWith(model.href);
-                            return (
-                                <Link
-                                    key={model.id}
-                                    href={model.href}
-                                    className={cn(
-                                        "relative px-4 py-2 text-xs font-mono uppercase tracking-widest transition-colors rounded-md",
-                                        isActive
-                                            ? "text-[var(--lab-text)]"
-                                            : model.ready
-                                                ? "text-[var(--lab-text-muted)] hover:text-[var(--lab-text)]"
-                                                : "text-[var(--lab-text-subtle)] pointer-events-none"
-                                    )}
-                                >
-                                    {model.label}
-                                    {!model.ready && (
-                                        <Badge className="ml-1.5 bg-[var(--lab-card)] text-[var(--lab-text-subtle)] border-[var(--lab-border)] text-[8px] font-mono py-0 px-1">
-                                            Soon
-                                        </Badge>
-                                    )}
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="labTab"
-                                            className="absolute inset-0 bg-[var(--lab-surface)] rounded-md -z-10"
-                                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                        />
-                                    )}
-                                </Link>
-                            );
-                        })}
-                    </nav>
-
-                    <div className="flex items-center gap-3">
-                        <LanguageToggle />
-                        <button
-                            onClick={toggleTheme}
-                            className="p-1.5 rounded-md hover:bg-[var(--lab-surface)] transition-colors text-[var(--lab-text-subtle)] hover:text-[var(--lab-text-muted)]"
-                            aria-label="Toggle lab theme"
-                        >
-                            {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-                        </button>
-                        <div className="h-4 w-px bg-[var(--lab-border)]" />
-                        <AvatarPopover />
-                    </div>
-                </div>
+                </TooltipProvider>
             </header>
 
             {/* Backend status banner */}

@@ -8,19 +8,23 @@ import { AlertCircle, Check, Copy } from "lucide-react";
 import { useI18n } from "@/i18n/context";
 
 /**
- * GenerationPlayground — v8 editorial-green (Bigram chapter).
+ * GenerationPlayground — text generation visualizer (Bigram chapter; shared component).
  *
- * ONE concept: the bigram model *writes* by sampling the next character, again and again. The hero is
- * the manuscript panel where text streams in one glyph at a time — each freshly-sampled character lands
- * bright (accent) and then "settles" into ink, so you literally watch the model choose-then-commit. The
- * controls (seed letter, length, temperature) are quiet, typographic, and secondary: no dashboard, no
- * boxes competing with the page being written.
+ * ONE concept: the model *writes* by sampling the next character, again and again. The hero is the
+ * manuscript — a calm well where text streams in one glyph at a time. Each freshly-sampled character
+ * lands bright (accent) and then "settles" into ink, so you literally watch the model choose-then-commit.
+ * The controls (seed letter, length, temperature) are quiet, typographic, and secondary: no dashboard,
+ * no boxes competing with the page being written. Temperature is named as the model's *voice*
+ * (Focused → Chaotic), because that — not the number — is the idea that should click.
  *
- * Colour is gated behind the consumer's [data-bigram-theme] scope — every accent reads a --bigram-* token
- * via inline style, so it resolves green inside the chapter and never leaks elsewhere. An explicit
- * `accent="neutral"` escape hatch falls back to the original emerald palette so any non-bigram reuse is
- * completely unchanged. Reduced-motion safe: streaming, blink, and ink-settle all collapse to a clean
- * instant render.
+ * SHARING / SCOPING — this component is reused by N-gram (and free-lab), which own different accents.
+ *   • `accent="neutral"` (DEFAULT) keeps a fully self-contained emerald palette so every non-Bigram
+ *     caller renders byte-identically to before and never depends on a chapter scope.
+ *   • `accent="bigram"` (opt-in) reads the editorial-green `--bigram-*` tokens, which resolve ONLY
+ *     inside the chapter's `[data-bigram-theme]` scope and never leak elsewhere.
+ *   The Bigram call sites (BigramNarrative.tsx, /lab/bigram page) must pass `accent="bigram"`.
+ *
+ * Reduced-motion safe: streaming, blink, ink-settle, and count-ups all collapse to an instant render.
  */
 
 /* ── Temperature presets: the model's "voice", named in plain language ── */
@@ -42,18 +46,26 @@ const INK_TRAIL = 6;
 
 const SPACE_GLYPH = "·";
 
+/* v10 easings — the standard "settle" curve and a crisp count-up. */
+const SETTLE_EASE: [number, number, number, number] = [0.2, 0.7, 0.2, 1];
+
 function displayChar(c: string) {
     return c === " " ? SPACE_GLYPH : c;
 }
 
-/** Map a temperature to a 0..1 "wildness" position for the quiet calm→wild track caption. */
+/** Map a temperature to a 0..1 "wildness" position for the calm→wild voice track. */
 function tempPosition(t: number) {
     return Math.min(1, Math.max(0, (t - 0.1) / (3.0 - 0.1)));
 }
 
 type Accent = "bigram" | "neutral";
 
-/* Token resolver — bigram reads --bigram-* (theme-scoped); neutral keeps the original emerald. */
+/**
+ * Token resolver.
+ *  • neutral — a self-contained emerald palette (no chapter scope needed). This is the unchanged look
+ *    every non-Bigram caller has always gotten; kept byte-identical on purpose.
+ *  • bigram — the editorial-green `--bigram-*` tokens, valid only inside `[data-bigram-theme]`.
+ */
 function palette(accent: Accent) {
     if (accent === "neutral") {
         return {
@@ -114,7 +126,10 @@ interface GenerationPlaygroundProps {
     generatedText: string | null;
     loading: boolean;
     error: string | null;
-    /** "bigram" (default) reads editorial-green tokens; "neutral" keeps the original emerald palette. */
+    /**
+     * "neutral" (default) keeps the original self-contained emerald palette for non-Bigram reuse.
+     * "bigram" opts into the editorial-green `--bigram-*` tokens (only valid inside `[data-bigram-theme]`).
+     */
     accent?: Accent;
 }
 
@@ -250,7 +265,7 @@ export const GenerationPlayground = memo(function GenerationPlayground({
     generatedText,
     loading,
     error,
-    accent = "bigram",
+    accent = "neutral",
 }: GenerationPlaygroundProps) {
     const { t } = useI18n();
     const reduce = useReducedMotion();
@@ -521,8 +536,22 @@ export const GenerationPlayground = memo(function GenerationPlayground({
                     })}
                 </div>
 
-                {/* calm → wild caption: a hairline gradient track showing where temperature sits */}
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                {/* calm → wild voice track: a hairline gradient showing where temperature sits, anchored by
+                    two quiet typographic poles so the *meaning* of the dial reads instantly. */}
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <span
+                        style={{
+                            fontFamily: p.fontMono,
+                            fontSize: "9px",
+                            fontWeight: 500,
+                            letterSpacing: "0.16em",
+                            textTransform: "uppercase",
+                            color: tPos < 0.5 ? p.accent : p.dim,
+                            transition: "color .25s ease",
+                        }}
+                    >
+                        {t("models.bigram.generation.form.presets.focused")}
+                    </span>
                     <span
                         style={{
                             position: "relative",
@@ -540,14 +569,27 @@ export const GenerationPlayground = memo(function GenerationPlayground({
                             style={{
                                 position: "absolute",
                                 top: "50%",
-                                width: "8px",
-                                height: "8px",
+                                width: "9px",
+                                height: "9px",
                                 borderRadius: "999px",
                                 transform: "translate(-50%, -50%)",
                                 background: p.ink,
                                 boxShadow: `0 0 0 3px ${p.surface}`,
                             }}
                         />
+                    </span>
+                    <span
+                        style={{
+                            fontFamily: p.fontMono,
+                            fontSize: "9px",
+                            fontWeight: 500,
+                            letterSpacing: "0.16em",
+                            textTransform: "uppercase",
+                            color: tPos >= 0.5 ? p.wrong : p.dim,
+                            transition: "color .25s ease",
+                        }}
+                    >
+                        {t("models.bigram.generation.form.presets.chaotic")}
                     </span>
                 </div>
 
@@ -645,7 +687,7 @@ export const GenerationPlayground = memo(function GenerationPlayground({
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        transition={reduce ? { duration: 0 } : { duration: 0.35, ease: [0.2, 0.7, 0.2, 1] }}
+                        transition={reduce ? { duration: 0 } : { duration: 0.35, ease: SETTLE_EASE }}
                         style={{ position: "relative" }}
                     >
                         <div
@@ -702,7 +744,7 @@ export const GenerationPlayground = memo(function GenerationPlayground({
                             <span style={{ color: p.faint }}>{remainder}</span>
                         </div>
 
-                        {/* Copy — revealed on hover, no chrome at rest */}
+                        {/* Copy — quiet at rest, accent on success */}
                         <button
                             onClick={handleCopy}
                             aria-label={t("models.bigram.generation.copyToClipboard")}

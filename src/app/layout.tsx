@@ -25,13 +25,22 @@ const sourceSerif = Source_Serif_4({
   variable: "--font-source-serif",
   subsets: ["latin"],
   display: "swap",
-  weight: ["200", "300", "400", "600", "700"],
+  // Expose the `opsz` optical-sizing axis (omitting `weight` only makes `wght`
+  // variable — secondary axes must be requested explicitly via `axes`). Without
+  // it, font-optical-sizing:auto has nothing to act on and the lead renders at a
+  // single fixed optical master instead of the display cut the mockup uses.
+  axes: ["opsz"],
+  // Also pull in true italic for captions/hints.
+  style: ["normal", "italic"],
 });
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
   display: "swap",
+  // Load TRUE italic (and the full variable weight axis) so the editorial hero
+  // accent ("Bigrama") renders real Playfair italic, not a synthesised oblique.
+  style: ["normal", "italic"],
 });
 
 const jetbrainsMono = JetBrains_Mono({

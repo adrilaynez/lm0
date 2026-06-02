@@ -6,7 +6,6 @@ import { BlockMath } from "react-katex";
 import { Lightbulb } from "lucide-react";
 
 import { FadeInView } from "@/features/lab/components/FadeInView";
-
 import { cn } from "@/lib/utils";
 
 /* ─────────────────────────────────────────────
@@ -112,15 +111,18 @@ export function SectionLabel({
     variant?: "simple" | "gradient";
 }) {
     if (accent === "bigram") {
+        // A big numeral + a short two-word kicker. The Heading below carries the full title, so the
+        // kicker is a distinct label, never a repeat of it. No hairline — typography carries it.
         return (
-            <div className="flex items-baseline gap-3.5 mb-4">
-                <span className={cn(BIGRAM_DISPLAY, "italic font-semibold text-[22px] leading-none text-bigram-accent")}>
+            <div className="flex items-baseline gap-3.5 mb-5">
+                <span className={cn(BIGRAM_DISPLAY, "italic font-semibold text-[26px] leading-none text-bigram-accent")}>
                     {number}
                 </span>
-                <span className={cn(BIGRAM_MONO, "text-[11.5px] font-medium uppercase tracking-[0.18em] text-bigram-muted")}>
-                    {label}
-                </span>
-                <span className="flex-1 self-center h-px bg-[var(--bigram-rule)]" />
+                {label && (
+                    <span className={cn(BIGRAM_MONO, "text-[11.5px] font-medium uppercase tracking-[0.18em] text-bigram-muted")}>
+                        {label}
+                    </span>
+                )}
             </div>
         );
     }
@@ -173,9 +175,14 @@ export function Heading({
     if (accent === "bigram") {
         return (
             <h2
+                // line-height set inline: tailwind-merge drops `leading-[1.08]` when it
+                // collides with the arbitrary `text-[clamp(...)]` size, so we pin it here
+                // to match the v8 `.section h2` (line-height 1.08). max-w-[74ch] mirrors
+                // v8's `.reader .section > :not(.figure)` editorial measure.
+                style={{ lineHeight: 1.08 }}
                 className={cn(
                     BIGRAM_DISPLAY,
-                    "font-semibold text-bigram-ink tracking-[-0.012em] leading-[1.08] mb-8 text-balance",
+                    "font-semibold text-bigram-ink tracking-[-0.012em] mb-8 text-balance max-w-[74ch]",
                     "text-[clamp(34px,4.8vw,52px)]",
                     className
                 )}
@@ -189,6 +196,49 @@ export function Heading({
         <h2 className={cn("text-2xl md:text-[2rem] font-bold text-[var(--lab-text)] tracking-tight mb-6 leading-tight", className)}>
             {children}
         </h2>
+    );
+}
+
+/* ─────────────────────────────────────────────
+   Subheading (h3)
+
+   Bridges the type-scale gap between the §-level h2 (clamp 34→52px) and the
+   body P (20.5px) inside long sections. v8 (bigram): a Playfair display
+   subtitle ~31px — clearly subordinate to the h2 yet still display-weight,
+   so sub-sections read as structure, not body. (Earlier subtitles fell to
+   19px serif, leaving a flat 52→27px gap.)
+   ───────────────────────────────────────────── */
+
+export function Subheading({
+    children,
+    className,
+    accent,
+}: {
+    children: React.ReactNode;
+    className?: string;
+    accent?: NarrativeAccent;
+}) {
+    if (accent === "bigram") {
+        return (
+            <h3
+                // line-height pinned inline for the same tailwind-merge reason as Heading.
+                style={{ lineHeight: 1.2 }}
+                className={cn(
+                    BIGRAM_DISPLAY,
+                    "font-semibold text-bigram-ink tracking-[-0.008em] mt-12 mb-4 text-balance max-w-[67ch]",
+                    "text-[clamp(27px,2.6vw,31px)]",
+                    className
+                )}
+            >
+                {children}
+            </h3>
+        );
+    }
+
+    return (
+        <h3 className={cn("text-xl md:text-2xl font-bold text-[var(--lab-text)] tracking-tight mt-10 mb-4 leading-snug", className)}>
+            {children}
+        </h3>
     );
 }
 
@@ -207,7 +257,7 @@ export function Lead({
 }) {
     if (accent === "bigram") {
         return (
-            <p className={cn(BIGRAM_SERIF, "text-[clamp(22px,2.3vw,27px)] font-normal leading-[1.45] text-bigram-ink-2 mb-10 text-pretty")}>
+            <p className={cn(BIGRAM_SERIF, "text-[clamp(22px,2.3vw,27px)] font-normal leading-[1.5] text-bigram-ink-2 mb-10 text-pretty max-w-[74ch]")}>
                 {children}
             </p>
         );
@@ -235,7 +285,7 @@ export function P({
 }) {
     if (accent === "bigram") {
         return (
-            <p className={cn(BIGRAM_SERIF, "text-[20.5px] leading-[1.7] text-bigram-body mb-[1.32em] last:mb-0 text-pretty")}>
+            <p className={cn(BIGRAM_SERIF, "text-[20.5px] leading-[1.7] text-bigram-body mb-[1.66em] last:mb-0 text-pretty max-w-[67ch]")}>
                 {children}
             </p>
         );
@@ -335,7 +385,7 @@ export function Callout({
         return (
             <FadeInView as="aside" margin="-40px" className="relative my-9 rounded-[var(--bigram-r-md)] border border-[color:var(--bigram-rule-2)] bg-bigram-surface p-6">
                 {title && (
-                    <p className={cn(BIGRAM_MONO, "flex items-center gap-2.5 text-[11px] uppercase tracking-[0.2em] text-bigram-accent mb-3")}>
+                    <p className={cn(BIGRAM_MONO, "flex items-center gap-2.5 text-[11px] uppercase tracking-[0.18em] text-bigram-accent mb-3")}>
                         <span className="w-1.5 h-1.5 rounded-full bg-bigram-accent" />
                         {title}
                     </p>
@@ -398,7 +448,7 @@ export function FormulaBlock({
                 <div className={cn("rounded-[var(--bigram-r-md)] px-7 py-6 text-bigram-accent", s.bg, "border", s.border)}>
                     <BlockMath math={formula} />
                 </div>
-                <p className={cn(BIGRAM_MONO, "mt-4 text-[11px] uppercase tracking-[0.14em] text-bigram-muted")}>
+                <p className={cn(BIGRAM_MONO, "mt-4 text-[11px] uppercase tracking-[0.18em] text-bigram-muted")}>
                     {caption}
                 </p>
             </FadeInView>
@@ -434,7 +484,7 @@ export function PullQuote({
 }) {
     if (accent === "bigram") {
         return (
-            <FadeInView as="blockquote" margin="-40px" className="my-11 md:my-12 pl-7 border-l-[3px] border-bigram-accent">
+            <FadeInView as="blockquote" margin="-40px" className="my-11 md:my-12 pl-7 border-l-[3px] border-bigram-accent max-w-[74ch]">
                 <p className={cn(BIGRAM_DISPLAY, "font-semibold text-[clamp(26px,3.2vw,38px)] leading-[1.2] tracking-[-0.01em] text-bigram-ink text-balance")}>
                     {children}
                 </p>
@@ -459,7 +509,8 @@ export function PullQuote({
 
 export function SectionBreak({ accent }: { accent?: NarrativeAccent } = {}) {
     if (accent === "bigram") {
-        return <div className="h-px bg-[var(--bigram-rule)] my-16 md:my-20" />;
+        // Minimalist: no divider rule between sections — whitespace carries the break.
+        return <div className="my-12 md:my-16" aria-hidden />;
     }
 
     return (
@@ -510,7 +561,7 @@ export function FigureWrapper({
         return (
             <figure className="my-11 md:my-14 -mx-2 sm:mx-0">
                 {/* Numbered mono caption — no underline, separated by space (no chrome). */}
-                <figcaption className={cn(BIGRAM_MONO, "px-1 pb-3 text-[12.5px] uppercase tracking-[0.16em] text-bigram-muted")}>
+                <figcaption className={cn(BIGRAM_MONO, "px-1 pb-3 text-[12.5px] uppercase tracking-[0.18em] text-bigram-muted")}>
                     {label}
                 </figcaption>
                 {/* The single faint plane: the only "this is interactive" signal. */}

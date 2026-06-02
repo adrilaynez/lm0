@@ -1,8 +1,11 @@
-# Bigram Chapter — Canonical Design Spec (editorial-green, v8)
+# Bigram Chapter — Canonical Design Spec (editorial-green)
 
-> Source of truth for the Bigram redesign. Every downstream agent reads this. Derived verbatim
-> from `styles-v8.css` / `bigram-widgets-v8.js` and the approved plan. Bigram = **editorial-green**;
-> cyan stays with Transformers. Aesthetic = v8, one notch more premium (finish, not more elements).
+> **Authoritative on Bigram visual tokens** (the `--bigram-*` catalog), typography, and the shared
+> primitives below. Bigram = **editorial-green**; cyan stays with Transformers. These tokens are current
+> and in use. (Historical lineage: first derived from the v8 prototype; the *look* is now set by the §1/§2
+> React components + `src/features/lab/components/bigram/kit/` — read `kit/AGENTS.md`. Don't chase v8/v10
+> fidelity; the old port notes live in `docs/archive/bigram-v8-v10-aesthetic-and-port-notes.md`.)
+> Quality bar → `CLAUDE.md`; motion → `docs/bigram-motion-bible.md`; narrative → `narrative-guidelines.md`.
 
 ---
 
@@ -206,24 +209,9 @@ centered column. May alternatively ship as `variant="verdict"` of `KeyTakeaway` 
 
 ## 7. Visualizer Quality Protocol (the mandatory bar)
 
-Every new/redesigned visualizer must clear this bar — **flagship: simple in appearance, sophisticated underneath.**
-
-- **Execution** — work strictly step by step; focus only on the current task; decompose the complex; re-read
-  the task before implementing; correctness + clarity + design quality over speed; never shallow fixes.
-- **Design objective** — React + TS + Framer Motion that feels visually simple, conceptually crystal-clear,
-  premium, smooth, elegant; obsessive detail. Refs: Apple product films, editorial premium, luxury edu tools.
-- **Primary goal** — teach exactly **ONE** concept extremely well; understood almost instantly.
-- **Philosophy** — simple surface / deep execution; strong hierarchy; **typography-first**; minimal chrome;
-  smooth transitions; premium motion; dark-mode elegance; calm, confident layout; **one focal point at a time**.
-- **Engineering** — Framer Motion only where it adds; responsive; no horizontal scroll; production-ready, clean structure.
-- **Avoid** — neon overload, noisy UIs, dashboard layouts, too many borders/cards, default charts, label
-  excess, hacky interactions, generic patterns, competing ideas.
-- **Interaction** — direct manipulation; hover/tap reveals meaning; **motion that EXPLAINS, never decorates**;
-  glows/panels/connectors subtle and secondary; use the project token system (editorial-green for Bigram).
-- **Motion budget is NOT limited** — spring, smooth transitions, even canvas are welcome where they elevate the
-  idea. The limit is **visual cleanliness**, not animation count.
-- **Output** — (1) design direction (5–10 bullets), (2) interaction model (3–6 bullets), (3) implementation,
-  (4) ambitious solution, (5) ~300+ lines of considered code, (6) no superficial patches.
+> **Single-sourced in `CLAUDE.md`.** This protocol used to be duplicated here; it now lives in one place —
+> `CLAUDE.md` → "Visualizer quality protocol (mandatory bar)" — and is operationalized as hard gates in
+> `src/features/lab/components/bigram/kit/AGENTS.md`. Follow it there so the two can't drift.
 
 ---
 

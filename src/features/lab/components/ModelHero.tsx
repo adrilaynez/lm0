@@ -38,10 +38,17 @@ export const ModelHero = memo(function ModelHero(props: ModelHeroProps) {
 });
 
 /* ============================================================
-   BIGRAM · editorial-green hero (v8)
-   Calm, confident, typography-first. One Playfair title with an
-   accent word; a single faint --bigram-accent glow instead of the
-   old indigo/violet blob soup; mono kicker with a hairline rule.
+   BIGRAM · editorial-green hero (v10 design language)
+   --------------------------------------------------------------
+   Calm, confident, typography-first — the chapter's opening page,
+   not a dashboard. ONE focal point: a Playfair title whose accent
+   word is the thesis, paired with a single quiet figure that states
+   the whole idea of the chapter in the v10 honest-row idiom — the
+   conditional p(next | prev), with the predicted glyph filling a
+   fixed honest track. Mono kicker with a hairline rule; no blobs,
+   no neon, states by fill + typography (not borders). Reads only
+   --bigram-* tokens via the page's [data-bigram-theme] scope, so
+   no other accent is ever touched.
    ============================================================ */
 
 /** Split the title so the final word carries the accent (e.g. "Bigram Language" · "Model"). */
@@ -55,6 +62,14 @@ function splitAccentTitle(title: string): { lead: string; accent: string } {
         accent: words[words.length - 1],
     };
 }
+
+/** The hero figure: a frozen still from `t → h`, the model's strongest single bigram.
+ *  Mirrors v10's honest-row look (74px glyph · 9px pill track · mono % on a fixed axis)
+ *  so the chapter's idea is legible before a single interaction. Decorative but true. */
+const HERO_PREV = "t";
+const HERO_NEXT = "h";
+const HERO_P = 0.52; // p(h | t) from the v10 BIGRAMS table
+const HERO_AXIS = 0.6; // honest axis: a strong-but-not-certain guess reads as strong, not full
 
 function BigramHero({ title, description }: ModelHeroProps) {
     const { t } = useI18n();
@@ -73,6 +88,9 @@ function BigramHero({ title, description }: ModelHeroProps) {
                   transition: { duration: 0.7, delay, ease: [0.2, 0.7, 0.2, 1] as const },
               };
 
+    const fillW = Math.min(100, (HERO_P / HERO_AXIS) * 100);
+    const pctText = `${Math.round(HERO_P * 100)} %`; // thin space before % (v10 `pct`)
+
     return (
         <section className="relative overflow-hidden pt-16 pb-20 md:pt-24 md:pb-28">
 
@@ -86,7 +104,7 @@ function BigramHero({ title, description }: ModelHeroProps) {
                     className="absolute -left-[6%] -top-[18%] h-[460px] w-[560px] rounded-full blur-[120px]"
                     style={{
                         background:
-                            "radial-gradient(circle, color-mix(in oklab, var(--bigram-accent) 16%, transparent), transparent 70%)",
+                            "radial-gradient(circle, color-mix(in oklab, var(--bigram-accent) 14%, transparent), transparent 70%)",
                     }}
                 />
             </div>
@@ -123,10 +141,10 @@ function BigramHero({ title, description }: ModelHeroProps) {
                     className="text-bigram-ink"
                     style={{
                         fontFamily: "var(--bigram-font-display)",
-                        fontWeight: 600,
-                        fontSize: "clamp(46px, 7vw, 92px)",
-                        lineHeight: 1.0,
-                        letterSpacing: "-0.018em",
+                        fontWeight: 700,
+                        fontSize: "clamp(48px, 7.4vw, 96px)",
+                        lineHeight: 0.98,
+                        letterSpacing: "-0.022em",
                         textWrap: "balance",
                         margin: 0,
                     }}
@@ -134,7 +152,7 @@ function BigramHero({ title, description }: ModelHeroProps) {
                     {lead && <span>{lead} </span>}
                     <span
                         className="text-bigram-accent"
-                        style={{ fontStyle: "italic", fontWeight: 500 }}
+                        style={{ fontStyle: "italic", fontWeight: 600, letterSpacing: "-0.018em" }}
                     >
                         {accent}
                     </span>
@@ -157,14 +175,114 @@ function BigramHero({ title, description }: ModelHeroProps) {
                     {displayDesc}
                 </motion.p>
 
+                {/* ── The idea, stated once · p(next | prev) in the v10 honest-row idiom.
+                       A frozen still of the model's strongest bigram (t → h), so the whole
+                       chapter is legible before any interaction. Aria-described as one image. ── */}
+                <motion.figure
+                    {...rise(0.24)}
+                    aria-label={`p(${HERO_NEXT} | ${HERO_PREV}) = ${pctText}`}
+                    className="mt-11"
+                    style={{ margin: "44px 0 0", maxWidth: "30em" }}
+                >
+                    {/* prev → next, the conditional, in mono — the bigram's whole claim */}
+                    <figcaption
+                        className="mb-4 flex items-baseline gap-2.5"
+                        style={{
+                            fontFamily: "var(--bigram-font-mono)",
+                            fontSize: "13px",
+                            letterSpacing: "0.04em",
+                            color: "var(--bigram-dim)",
+                        }}
+                    >
+                        <span style={{ color: "var(--bigram-muted)" }}>p(</span>
+                        <span
+                            className="text-bigram-accent"
+                            style={{ fontWeight: 600, fontSize: "15px" }}
+                        >
+                            {HERO_NEXT}
+                        </span>
+                        <span style={{ color: "var(--bigram-muted)" }}>|</span>
+                        <span style={{ color: "var(--bigram-ink-2)", fontWeight: 600, fontSize: "15px" }}>
+                            {HERO_PREV}
+                        </span>
+                        <span style={{ color: "var(--bigram-muted)" }}>)</span>
+                    </figcaption>
+
+                    {/* the honest row · 74px glyph · 9px pill track · mono % on a fixed axis */}
+                    <div
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "auto 1fr auto",
+                            alignItems: "center",
+                            gap: "clamp(16px, 2.6vw, 22px)",
+                        }}
+                    >
+                        <span
+                            className="text-bigram-accent"
+                            style={{
+                                fontFamily: "var(--bigram-font-mono)",
+                                fontSize: "clamp(20px, 2.6vw, 24px)",
+                                fontWeight: 700,
+                                lineHeight: 1,
+                                justifySelf: "end",
+                                minWidth: "1.4em",
+                                textAlign: "right",
+                            }}
+                        >
+                            {HERO_NEXT}
+                        </span>
+
+                        <span
+                            style={{
+                                position: "relative",
+                                height: "9px",
+                                borderRadius: "var(--bigram-r-pill)",
+                                background: "color-mix(in oklab, var(--bigram-ink) 8%, transparent)",
+                                overflow: "hidden",
+                            }}
+                        >
+                            <motion.i
+                                initial={reduceMotion ? false : { width: 0 }}
+                                animate={{ width: `${fillW}%` }}
+                                transition={
+                                    reduceMotion
+                                        ? { duration: 0 }
+                                        : { duration: 0.9, delay: 0.5, ease: [0.2, 0.7, 0.2, 1] as const }
+                                }
+                                style={{
+                                    position: "absolute",
+                                    inset: "0 auto 0 0",
+                                    height: "100%",
+                                    width: `${fillW}%`,
+                                    borderRadius: "var(--bigram-r-pill)",
+                                    background: "var(--bigram-accent-bright)",
+                                }}
+                            />
+                        </span>
+
+                        <span
+                            style={{
+                                fontFamily: "var(--bigram-font-mono)",
+                                fontSize: "13px",
+                                color: "var(--bigram-muted)",
+                                fontVariantNumeric: "tabular-nums",
+                                justifySelf: "end",
+                                letterSpacing: "0.01em",
+                            }}
+                        >
+                            {pctText}
+                        </span>
+                    </div>
+                </motion.figure>
+
                 {/* ── Mode toggle ── */}
-                <motion.div {...rise(0.26)} className="mt-12 flex">
+                <motion.div {...rise(0.34)} className="mt-12 flex">
                     <ModeToggle />
                 </motion.div>
 
                 {/* ── Scroll cue · quiet, accent-tinted ── */}
                 <motion.div
-                    {...rise(0.36)}
+                    {...rise(0.44)}
                     className="mt-16 flex"
                     aria-hidden
                 >

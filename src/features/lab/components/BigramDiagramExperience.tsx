@@ -1,25 +1,48 @@
 "use client";
 
-import { useEffect,useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 
-import { Info } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
+import { Verdict } from "@/features/lab/components/bigram/Verdict";
 import { BigramMatrixBuilder } from "@/features/lab/components/BigramMatrixBuilder";
 import { TransitionMatrix } from "@/features/lab/components/TransitionMatrix";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
+import type { TrainingViz, TransitionMatrixViz } from "@/features/lab/types/lmLab";
 import { useI18n } from "@/i18n/context";
-import { cn } from "@/lib/utils";
-import type { TrainingViz,TransitionMatrixViz } from "@/features/lab/types/lmLab";
+
+/**
+ * BigramDiagramExperience — the chapter's central visualization (v10, editorial-green).
+ *
+ * ONE idea, shown crystal-clear: *a row of raw counts becomes a probability distribution you can
+ * sample from.* The full TransitionMatrix gives you the counts (delegated, accent="bigram"); the
+ * Probability Flow figure below turns ONE row into a real distribution and lets the learner roll a
+ * weighted die against it.
+ *
+ * Bigram-only widget (rendered solely at /lab/bigram, under the page's [data-bigram-theme] scope),
+ * so it restyles directly with --bigram-* tokens. No hardcoded colors, no shadcn chrome, no traffic
+ * dots. States read from fill + typography; motion is premium and reduced-motion safe. The flow
+ * figure is the single focal point; the matrix and the framing notes are quiet around it.
+ *
+ * The math is preserved verbatim from the prior implementation (educational counts → normalize /
+ * temperature-scaled softmax → weighted sampling). Only the surface is redesigned to v10.
+ */
+
+const MONO = "var(--font-jetbrains-mono)";
+const SERIF = "var(--font-source-serif)";
+
+/* Shared style fragments — keep the v10 vocabulary in one place (mono eyebrow label + hairline rule). */
+const eyebrowLabel: React.CSSProperties = {
+    fontFamily: MONO,
+    fontSize: 11,
+    letterSpacing: ".2em",
+    textTransform: "uppercase",
+    whiteSpace: "nowrap",
+};
+const hairline: React.CSSProperties = {
+    flex: 1,
+    height: 1,
+    background: "var(--bigram-rule)",
+};
 
 type DiagramMode = "story" | "lab";
 type ProbabilityMethod = "normalize" | "softmax";
@@ -29,6 +52,15 @@ interface BigramDiagramExperienceProps {
     matrixData: TransitionMatrixViz | null;
     trainingData?: TrainingViz | null;
     onCellClick?: (row: string, col: string) => void;
+}
+
+function glyph(ch: string): string {
+    return ch === " " ? "␣" : ch;
+}
+
+/** "31.2 %" — one decimal, thin space before %, matching the chapter's number format. */
+function pct(p: number): string {
+    return `${(p * 100).toFixed(1)} %`;
 }
 
 function sampleIndex(probabilities: number[]): { index: number; roll: number } {
@@ -50,22 +82,95 @@ export function BigramDiagramExperience({
     onCellClick,
 }: BigramDiagramExperienceProps) {
     const { t } = useI18n();
-    // const [storyStep, setStoryStep] = useState(0); // REMOVED
-    const [selectedRow, setSelectedRow] = useState<string>("");
+
+    const renderMatrix = () => (
+        <TransitionMatrix
+            data={matrixData}
+            accent="bigram"
+            onCellClick={onCellClick}
+            datasetMeta={{
+                corpusName: "Paul Graham essays (paulgraham.com)",
+                rawTextSize: trainingData?.raw_text_size,
+                trainDataSize: trainingData?.train_data_size,
+                vocabSize: trainingData?.unique_characters,
+            }}
+        />
+    );
+
+    // Story mode is not currently mounted by any chapter (the page always passes mode="lab"); it
+    // shares the lab core (matrix → flow → constraint) and prepends the narrative-builder step so the
+    // prop contract is preserved without 250 lines of redesigned-but-dead scaffolding.
+    const gap = mode === "story" ? 56 : 40;
+
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap }}>
+            {mode === "story" && (
+                <div>
+                    <StoryEyebrow label={t("models.bigram.matrix.storySteps.solution.title")} />
+                    <p
+                        style={{
+                            fontFamily: SERIF,
+                            fontSize: 18,
+                            lineHeight: 1.6,
+                            color: "var(--bigram-body)",
+                            margin: "0 0 18px",
+                            textWrap: "pretty",
+                        }}
+                    >
+                        {t("models.bigram.matrix.storySteps.solution.body")}
+                    </p>
+                    <p
+                        style={{
+                            fontFamily: MONO,
+                            fontSize: 11,
+                            letterSpacing: ".2em",
+                            textTransform: "uppercase",
+                            color: "var(--bigram-muted)",
+                            margin: "0 0 14px",
+                        }}
+                    >
+                        {t("models.bigram.matrix.builderLabel")}
+                    </p>
+                    <BigramMatrixBuilder />
+                </div>
+            )}
+            {renderMatrix()}
+            <ProbabilityFlow matrixData={matrixData} />
+            <ConstraintNote text={t("models.bigram.matrix.limitationGuide")} />
+        </div>
+    );
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   PROBABILITY FLOW — the figure. ONE row of counts → a distribution → a roll.
+   ════════════════════════════════════════════════════════════════════════ */
+
+const ProbabilityFlow = memo(function ProbabilityFlow({
+    matrixData,
+}: {
+    matrixData: TransitionMatrixViz | null;
+}) {
+    const { t, language } = useI18n();
+    const reduce = useReducedMotion();
+    // No dedicated "space" word key under probFlow (i18n owned elsewhere this round); derive it from
+    // the active language, mirroring HeroAutoComplete's approach.
+    const SPACE_WORD = language === "es" ? "espacio" : "space";
+
+    // `pickedRow` is the learner's explicit choice (empty until they pick). The row actually shown is
+    // DERIVED at render — falling back to the first available label — so no state is synced in an
+    // effect (which the React-compiler lint rule forbids and which caused cascading renders).
+    const [pickedRow, setPickedRow] = useState("");
     const [method, setMethod] = useState<ProbabilityMethod>("normalize");
     const [temperature, setTemperature] = useState(1);
     const [sampledToken, setSampledToken] = useState<string | null>(null);
     const [sampleRoll, setSampleRoll] = useState<number | null>(null);
+    // bumped on each Sample so the winner row re-keys and its highlight replays
+    const [sampleNonce, setSampleNonce] = useState(0);
 
-    useEffect(() => {
-        if (matrixData?.row_labels.length) {
-            setSelectedRow((prev) =>
-                prev && matrixData.row_labels.includes(prev)
-                    ? prev
-                    : matrixData.row_labels[0]
-            );
-        }
-    }, [matrixData]);
+    const selectedRow =
+        pickedRow && matrixData?.row_labels.includes(pickedRow)
+            ? pickedRow
+            : (matrixData?.row_labels[0] ?? "");
 
     const rowIndex = useMemo(() => {
         if (!matrixData || !selectedRow) return -1;
@@ -120,351 +225,775 @@ export function BigramDiagramExperience({
         return probabilities
             .map((probability, index) => ({
                 token: matrixData.col_labels[index],
-                count: educationalCounts[index] ?? 0,
                 probability,
             }))
             .sort((a, b) => b.probability - a.probability);
-    }, [matrixData, probabilities, educationalCounts]);
+    }, [matrixData, probabilities]);
 
-    const visibleCandidates = sortedCandidates.slice(0, 15);
+    const visibleCandidates = sortedCandidates.slice(0, 12);
+    const maxProb = visibleCandidates.length > 0 ? visibleCandidates[0].probability : 1;
     const hiddenMass = Math.max(
         0,
-        sortedCandidates
-            .slice(15)
-            .reduce((acc, candidate) => acc + candidate.probability, 0)
+        sortedCandidates.slice(12).reduce((acc, c) => acc + c.probability, 0)
     );
     const topCandidate = sortedCandidates[0] ?? null;
 
-    const runSampling = () => {
+    const onPickRow = useCallback(
+        (raw: string) => {
+            if (!raw) return;
+            const char = raw.slice(-1);
+            if (matrixData?.row_labels.includes(char)) {
+                setPickedRow(char);
+                setSampledToken(null);
+                setSampleRoll(null);
+            }
+        },
+        [matrixData]
+    );
+
+    const runSampling = useCallback(() => {
         if (!matrixData || probabilities.length === 0) return;
         const { index, roll } = sampleIndex(probabilities);
         setSampledToken(matrixData.col_labels[index]);
         setSampleRoll(roll);
-    };
+        setSampleNonce((n) => n + 1);
+    }, [matrixData, probabilities]);
 
+    const ready = !!matrixData && probabilities.length > 0;
 
-
-    const renderMatrix = () => (
-        <TransitionMatrix
-            data={matrixData}
-            onCellClick={onCellClick}
-            datasetMeta={{
-                corpusName: "Paul Graham essays (paulgraham.com)",
-                rawTextSize: trainingData?.raw_text_size,
-                trainDataSize: trainingData?.train_data_size,
-                vocabSize: trainingData?.unique_characters,
-            }}
-        />
-    );
-
-    const renderProbabilityFlow = () => (
-        <Card className="bg-slate-950/60 border border-emerald-500/20 p-4 md:p-5">
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-                <Badge variant="outline" className="border-emerald-500/30 text-emerald-300 bg-emerald-500/10">
+    return (
+        <figure style={{ margin: 0 }}>
+            {/* eyebrow — mono uppercase label, hairline rule, no box (v10 figure label) */}
+            <figcaption
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 14,
+                    marginBottom: 22,
+                }}
+            >
+                <span style={{ ...eyebrowLabel, color: "var(--bigram-accent-ink)" }}>
                     {t("models.bigram.matrix.probFlow.badge")}
-                </Badge>
+                </span>
+                <span style={hairline} />
                 {looksNormalized && (
-                    <span className="text-[11px] text-amber-200/80">
+                    <span
+                        style={{
+                            fontFamily: MONO,
+                            fontSize: 10.5,
+                            letterSpacing: ".04em",
+                            color: "var(--bigram-dim)",
+                            whiteSpace: "nowrap",
+                        }}
+                    >
                         {t("models.bigram.matrix.probFlow.alreadyNormalized")}
                     </span>
                 )}
-            </div>
+            </figcaption>
 
-            <p className="text-sm text-white/65 leading-relaxed mb-4">
-                {t("models.bigram.matrix.probFlow.description")}
-            </p>
+            {/* the demo plane — a single faint surface, the only "this is interactive" signal */}
+            <div
+                style={{
+                    background:
+                        "color-mix(in oklab, var(--bigram-surface) 55%, var(--bigram-bg))",
+                    borderRadius: "var(--bigram-r-lg)",
+                    padding: "clamp(20px, 4vw, 34px)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 26,
+                }}
+            >
+                {/* ── controls: context keycap · method segmented control · sample ── */}
+                <div
+                    style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        alignItems: "flex-start",
+                        gap: "clamp(20px, 4vw, 40px)",
+                    }}
+                >
+                    {/* context keycap — the focal point */}
+                    <div style={{ flex: "0 0 auto" }}>
+                        <ControlLabel>
+                            {t("models.bigram.matrix.probFlow.currentToken")}
+                        </ControlLabel>
+                        <Keycap value={selectedRow} onPick={onPickRow} reduce={!!reduce} />
+                        <p
+                            style={{
+                                fontFamily: SERIF,
+                                fontStyle: "italic",
+                                fontSize: 13.5,
+                                color: "var(--bigram-dim)",
+                                margin: "12px 0 0",
+                                textAlign: "center",
+                                maxWidth: 132,
+                            }}
+                        >
+                            {t("models.bigram.matrix.probFlow.typeToChange")}
+                        </p>
+                    </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-                <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                    <p className="text-[11px] uppercase tracking-widest text-white/40 mb-2">
-                        {t("models.bigram.matrix.probFlow.step1")}
-                    </p>
-                    <label className="text-xs text-white/60 block mb-2">
-                        {t("models.bigram.matrix.probFlow.currentToken")}
-                    </label>
-                    <div className="relative flex justify-center">
-                        <div className="relative group">
-                            <div className="absolute -inset-0.5 bg-emerald-500/20 rounded-lg blur opacity-30 group-hover:opacity-60 transition duration-200" />
-                            <Input
-                                value={selectedRow}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (!val) return;
-                                    const char = val.slice(-1);
-                                    if (matrixData?.row_labels.includes(char)) {
-                                        setSelectedRow(char);
-                                    }
-                                }}
-                                className="relative w-16 h-16 bg-slate-900 border-white/10 text-center font-mono text-3xl text-white focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all uppercase"
-                                placeholder="?"
-                            />
-                            {selectedRow === " " && (
-                                <span className="absolute inset-0 flex items-center justify-center text-white/20 pointer-events-none font-mono text-xs uppercase tracking-widest">
-                                    SPACE
-                                </span>
+                    {/* method + temperature */}
+                    <div style={{ flex: "1 1 220px", minWidth: 220 }}>
+                        <ControlLabel>
+                            {t("models.bigram.matrix.probFlow.step2")}
+                        </ControlLabel>
+                        <Segmented
+                            value={method}
+                            reduce={!!reduce}
+                            options={[
+                                {
+                                    id: "normalize",
+                                    label: t("models.bigram.matrix.probFlow.normalize"),
+                                },
+                                {
+                                    id: "softmax",
+                                    label: t("models.bigram.matrix.probFlow.softmax"),
+                                },
+                            ]}
+                            onChange={(id) => setMethod(id as ProbabilityMethod)}
+                        />
+                        <p
+                            style={{
+                                fontFamily: SERIF,
+                                fontSize: 14,
+                                lineHeight: 1.5,
+                                color: "var(--bigram-muted)",
+                                margin: "12px 0 0",
+                                textWrap: "pretty",
+                            }}
+                        >
+                            {method === "softmax"
+                                ? t("models.bigram.matrix.probFlow.educational.softmaxDesc")
+                                : t("models.bigram.matrix.probFlow.educational.normDesc")}
+                        </p>
+
+                        <AnimatePresence initial={false}>
+                            {method === "softmax" && (
+                                <motion.div
+                                    initial={reduce ? false : { opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    exit={reduce ? { opacity: 0 } : { opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.28, ease: [0.2, 0.8, 0.2, 1] }}
+                                    style={{ overflow: "hidden" }}
+                                >
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
+                                            margin: "16px 0 6px",
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                fontFamily: MONO,
+                                                fontSize: 11,
+                                                letterSpacing: ".14em",
+                                                textTransform: "uppercase",
+                                                color: "var(--bigram-muted)",
+                                            }}
+                                        >
+                                            {t("models.bigram.matrix.probFlow.temperature")}
+                                        </span>
+                                        <span
+                                            style={{
+                                                fontFamily: MONO,
+                                                fontSize: 14,
+                                                fontWeight: 600,
+                                                color: "var(--bigram-accent)",
+                                                fontVariantNumeric: "tabular-nums",
+                                            }}
+                                        >
+                                            {temperature.toFixed(1)}
+                                        </span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min={0.5}
+                                        max={2}
+                                        step={0.1}
+                                        value={temperature}
+                                        onChange={(e) =>
+                                            setTemperature(Number(e.target.value))
+                                        }
+                                        aria-label={t(
+                                            "models.bigram.matrix.probFlow.temperature"
+                                        )}
+                                        className="bigram-flow-range"
+                                        style={{ width: "100%" }}
+                                    />
+                                </motion.div>
                             )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* sample */}
+                    <div style={{ flex: "0 0 auto", minWidth: 168 }}>
+                        <ControlLabel>
+                            {t("models.bigram.matrix.probFlow.step3")}
+                        </ControlLabel>
+                        <button
+                            type="button"
+                            onClick={runSampling}
+                            disabled={!ready}
+                            style={{
+                                width: "100%",
+                                fontFamily: MONO,
+                                fontSize: 12,
+                                fontWeight: 600,
+                                letterSpacing: ".06em",
+                                padding: "12px 18px",
+                                border: 0,
+                                borderRadius: "var(--bigram-r-sm)",
+                                cursor: ready ? "pointer" : "default",
+                                background: ready
+                                    ? "var(--bigram-accent)"
+                                    : "var(--bigram-bg-2)",
+                                color: ready
+                                    ? "var(--bigram-on-accent)"
+                                    : "var(--bigram-dim)",
+                                boxShadow: ready
+                                    ? "0 6px 18px -8px color-mix(in oklab, var(--bigram-accent) 70%, transparent)"
+                                    : "none",
+                                transition: "background .2s ease",
+                            }}
+                        >
+                            {t("models.bigram.matrix.probFlow.sample")}
+                        </button>
+                        <div
+                            style={{
+                                minHeight: 40,
+                                marginTop: 12,
+                                fontFamily: MONO,
+                                fontSize: 12.5,
+                                lineHeight: 1.5,
+                                color: "var(--bigram-muted)",
+                            }}
+                        >
+                            <AnimatePresence mode="wait">
+                                {sampledToken ? (
+                                    <motion.div
+                                        key={`sampled-${sampleNonce}`}
+                                        initial={reduce ? false : { opacity: 0, y: 4 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.26 }}
+                                    >
+                                        <span style={{ color: "var(--bigram-dim)" }}>
+                                            {t("models.bigram.matrix.probFlow.sampled")} ·{" "}
+                                        </span>
+                                        <span
+                                            style={{
+                                                color: "var(--bigram-accent)",
+                                                fontWeight: 600,
+                                            }}
+                                        >
+                                            {glyph(sampledToken)}
+                                        </span>
+                                        {sampleRoll !== null && (
+                                            <span
+                                                style={{
+                                                    color: "var(--bigram-dim)",
+                                                    fontVariantNumeric: "tabular-nums",
+                                                }}
+                                            >
+                                                {"  ↺ "}
+                                                {sampleRoll.toFixed(3)}
+                                            </span>
+                                        )}
+                                    </motion.div>
+                                ) : topCandidate ? (
+                                    <motion.div
+                                        key="top"
+                                        initial={false}
+                                        animate={{ opacity: 1 }}
+                                    >
+                                        <span style={{ color: "var(--bigram-dim)" }}>
+                                            {t("models.bigram.matrix.probFlow.topCandidate")} ·{" "}
+                                        </span>
+                                        <span style={{ color: "var(--bigram-ink)" }}>
+                                            {glyph(topCandidate.token)}
+                                        </span>{" "}
+                                        <span style={{ color: "var(--bigram-dim)" }}>
+                                            {pct(topCandidate.probability)}
+                                        </span>
+                                    </motion.div>
+                                ) : null}
+                            </AnimatePresence>
                         </div>
                     </div>
-                    <p className="text-[10px] text-white/40 mt-3 text-center font-mono">
-                        {t("models.bigram.matrix.probFlow.typeToChange") || "Type to change context"}
-                    </p>
                 </div>
 
-                <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                    <p className="text-[11px] uppercase tracking-widest text-white/40 mb-2">
-                        {t("models.bigram.matrix.probFlow.step2")}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        type="button"
-                                        size="sm"
-                                        variant={method === "normalize" ? "secondary" : "outline"}
-                                        onClick={() => setMethod("normalize")}
-                                    >
-                                        {t("models.bigram.matrix.probFlow.normalize")}
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs p-3 bg-zinc-900 border-zinc-800 text-zinc-300">
-                                    <p className="font-bold text-emerald-400 mb-1">{t("models.bigram.matrix.probFlow.educational.normTitle")}</p>
-                                    <p className="text-xs leading-relaxed">{t("models.bigram.matrix.probFlow.educational.normDesc")}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        type="button"
-                                        size="sm"
-                                        variant={method === "softmax" ? "secondary" : "outline"}
-                                        onClick={() => setMethod("softmax")}
-                                    >
-                                        {t("models.bigram.matrix.probFlow.softmax")}
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs p-3 bg-zinc-900 border-zinc-800 text-zinc-300">
-                                    <p className="font-bold text-indigo-400 mb-1">{t("models.bigram.matrix.probFlow.educational.softmaxTitle")}</p>
-                                    <p className="text-xs leading-relaxed">{t("models.bigram.matrix.probFlow.educational.softmaxDesc")}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </div>
-
-                    {method === "softmax" && (
-                        <div>
-                            <div className="flex items-center gap-2 mb-1">
-                                <label className="text-xs text-white/55">
-                                    {t("models.bigram.matrix.probFlow.temperature")}: {temperature.toFixed(1)}
-                                </label>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger>
-                                            <Info className="w-3 h-3 text-white/40 hover:text-white/80 transition-colors" />
-                                        </TooltipTrigger>
-                                        <TooltipContent side="right" className="max-w-xs p-3 bg-zinc-900 border-zinc-800 text-zinc-300">
-                                            <p className="font-bold text-amber-400 mb-1">{t("models.bigram.matrix.probFlow.educational.tempTitle")}</p>
-                                            <p className="text-xs leading-relaxed">{t("models.bigram.matrix.probFlow.educational.tempDesc")}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                {/* ── the distribution: max-normalized honest stack, winner brightest ── */}
+                <div>
+                    {ready && selectedRow ? (
+                        <>
+                            <p
+                                style={{
+                                    fontFamily: MONO,
+                                    fontWeight: 500,
+                                    fontSize: 15,
+                                    letterSpacing: ".005em",
+                                    color: "var(--bigram-muted)",
+                                    margin: "0 0 20px",
+                                    textWrap: "pretty",
+                                }}
+                            >
+                                {t("models.bigram.inference.axisLabel").replace(
+                                    "{char}",
+                                    selectedRow === " " ? SPACE_WORD : selectedRow
+                                )}
+                            </p>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 14,
+                                }}
+                            >
+                                {visibleCandidates.map((c, i) => (
+                                    <DistRow
+                                        key={`${selectedRow}:${c.token}`}
+                                        token={c.token}
+                                        prob={c.probability}
+                                        max={maxProb}
+                                        top={i === 0}
+                                        sampled={sampledToken === c.token}
+                                        delayMs={
+                                            reduce
+                                                ? 0
+                                                : (visibleCandidates.length - 1 - i) * 55
+                                        }
+                                        reduce={!!reduce}
+                                    />
+                                ))}
                             </div>
-                            <input
-                                type="range"
-                                min={0.5}
-                                max={2}
-                                step={0.1}
-                                value={temperature}
-                                onChange={(e) => setTemperature(Number(e.target.value))}
-                                className="w-full accent-emerald-400"
-                            />
-                        </div>
-                    )}
-                </div>
+                            {hiddenMass > 0.0005 && (
+                                <p
+                                    style={{
+                                        fontFamily: MONO,
+                                        fontSize: 11.5,
+                                        color: "var(--bigram-dim)",
+                                        margin: "16px 0 0",
+                                        fontVariantNumeric: "tabular-nums",
+                                    }}
+                                >
+                                    {/* inline copy: no dedicated i18n key (i18n owned elsewhere this round) */}
+                                    + {pct(hiddenMass)}
+                                </p>
+                            )}
 
-                <div className="rounded-lg border border-white/10 bg-black/20 p-3">
-                    <p className="text-[11px] uppercase tracking-widest text-white/40 mb-2">
-                        {t("models.bigram.matrix.probFlow.step3")}
-                    </p>
-                    <Button
-                        type="button"
-                        className="w-full mb-2"
-                        onClick={runSampling}
-                        disabled={!matrixData || probabilities.length === 0}
-                    >
-                        {t("models.bigram.matrix.probFlow.sample")}
-                    </Button>
-                    <p className="text-xs text-white/55">
-                        {topCandidate
-                            ? `${t("models.bigram.matrix.probFlow.topCandidate")}: '${topCandidate.token === " " ? "space" : topCandidate.token}' (${(topCandidate.probability * 100).toFixed(1)}%)`
-                            : t("models.bigram.matrix.runInference")}
-                    </p>
-                    {sampledToken && (
-                        <p className="text-xs text-emerald-200 mt-1">
-                            {t("models.bigram.matrix.probFlow.sampled")}: '{sampledToken === " " ? "space" : sampledToken}'
-                            {sampleRoll !== null && ` (${sampleRoll.toFixed(3)})`}
+                            <AnimatePresence>
+                                {topCandidate && (
+                                    <motion.div
+                                        key={`${selectedRow}-${method}`}
+                                        initial={reduce ? false : { opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{
+                                            duration: 0.4,
+                                            delay: reduce ? 0 : 0.2,
+                                            ease: [0.2, 0.8, 0.2, 1],
+                                        }}
+                                        style={{ marginTop: 26 }}
+                                    >
+                                        <Verdict
+                                            label={t(
+                                                "models.bigram.inference.verdictLabel"
+                                            )}
+                                            main={
+                                                <VerdictLine
+                                                    template={t(
+                                                        "models.bigram.inference.verdictMain"
+                                                    )}
+                                                    src={
+                                                        selectedRow === " "
+                                                            ? SPACE_WORD
+                                                            : selectedRow
+                                                    }
+                                                    best={
+                                                        topCandidate.token === " "
+                                                            ? SPACE_WORD
+                                                            : topCandidate.token
+                                                    }
+                                                />
+                                            }
+                                            sub={t(
+                                                "models.bigram.matrix.probFlow.stochasticNote"
+                                            )}
+                                        />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </>
+                    ) : (
+                        <p
+                            style={{
+                                fontFamily: SERIF,
+                                fontStyle: "italic",
+                                fontSize: 16,
+                                color: "var(--bigram-muted)",
+                                margin: 0,
+                            }}
+                        >
+                            {t("models.bigram.matrix.runInference")}
                         </p>
                     )}
                 </div>
             </div>
 
-            <ScrollArea className="h-[300px] w-full rounded-md border border-white/5 bg-black/20 p-4">
-                <div className="space-y-2 pr-4">
-                    {visibleCandidates.map((candidate) => (
-                        <div key={candidate.token} className="flex items-center gap-3 group/item">
-                            <span className="w-8 font-mono text-xs text-white/50 group-hover/item:text-white transition-colors">
-                                '{candidate.token === " " ? "⎵" : candidate.token}'
-                            </span>
-                            <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
-                                <div
-                                    className={cn(
-                                        "h-full bg-gradient-to-r from-emerald-500/80 to-teal-400/80 transition-all",
-                                        sampledToken === candidate.token && "from-amber-400 to-orange-300"
-                                    )}
-                                    style={{ width: `${Math.max(0, candidate.probability * 100)}%` }}
-                                />
-                            </div>
-                            <span className="w-16 text-right text-xs text-white/40 group-hover/item:text-white/80 tabular-nums transition-colors">
-                                {(candidate.probability * 100).toFixed(1)}%
-                            </span>
-                        </div>
-                    ))}
-                </div>
-            </ScrollArea>
-
-            <p className="text-xs text-white/50 leading-relaxed mt-4">
-                {t("models.bigram.matrix.probFlow.stochasticNote")}
-            </p>
-        </Card>
+            {/* scoped range styling — token-driven, never leaks (no global selector reuse) */}
+            <style>{`
+                .bigram-flow-range { -webkit-appearance: none; appearance: none; height: 4px; border-radius: var(--bigram-r-pill); background: color-mix(in oklab, var(--bigram-ink) 14%, transparent); outline: none; }
+                .bigram-flow-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--bigram-accent); border: 0; cursor: pointer; box-shadow: 0 2px 6px -2px color-mix(in oklab, var(--bigram-accent) 80%, transparent); }
+                .bigram-flow-range::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--bigram-accent); border: 0; cursor: pointer; }
+            `}</style>
+        </figure>
     );
+});
 
-    if (mode === "lab") {
-        return (
-            <div className="space-y-6">
-                <Card className="bg-emerald-950/30 border border-emerald-500/30 p-4">
-                    <p className="text-sm text-emerald-100/85 leading-relaxed">
-                        {t("models.bigram.matrix.labModeGuide")}
-                    </p>
-                </Card>
-                {renderMatrix()}
-                {renderProbabilityFlow()}
-                <Card className="bg-rose-950/20 border border-rose-500/20 p-4">
-                    <p className="text-sm text-rose-100/80 leading-relaxed">
-                        {t("models.bigram.matrix.limitationGuide")}
-                    </p>
-                </Card>
-            </div>
-        );
-    }
+/* ── one distribution row: max-normalized fill, winner brightest, sampled glows ── */
+const DistRow = memo(function DistRow({
+    token,
+    prob,
+    max,
+    top,
+    sampled,
+    delayMs,
+    reduce,
+}: {
+    token: string;
+    prob: number;
+    max: number;
+    top: boolean;
+    sampled: boolean;
+    delayMs: number;
+    reduce: boolean;
+}) {
+    const isSpace = token === " ";
+    const targetW = Math.min(100, (prob / Math.max(max, 1e-6)) * 100);
 
-    // EDUCATIONAL / NARRATIVE MODE — original colored sections
+    const fill = sampled
+        ? "var(--bigram-accent-bright)"
+        : top
+          ? "var(--bigram-accent-bright)"
+          : "var(--bigram-accent-2)";
+
     return (
-        <div className="space-y-12">
+        <div
+            role="img"
+            aria-label={`${isSpace ? "space" : token}, ${pct(prob)}`}
+            style={{
+                display: "grid",
+                gridTemplateColumns: "56px 1fr auto",
+                alignItems: "center",
+                gap: 18,
+            }}
+        >
+            <span
+                style={{
+                    fontFamily: MONO,
+                    fontSize: isSpace ? 13 : 18,
+                    fontWeight: top || sampled ? 700 : 600,
+                    lineHeight: 1,
+                    justifySelf: "end",
+                    color: sampled
+                        ? "var(--bigram-accent)"
+                        : top
+                          ? "var(--bigram-accent-ink)"
+                          : "var(--bigram-ink)",
+                    letterSpacing: isSpace ? ".03em" : undefined,
+                }}
+            >
+                {glyph(token)}
+            </span>
 
-            {/* 1. THE PROBLEM */}
-            <section className="space-y-4">
-                <div className="border-l-2 border-emerald-500 pl-4">
-                    <h4 className="text-lg font-bold text-emerald-400">
-                        {t("models.bigram.matrix.storySteps.problem.title")}
-                    </h4>
-                </div>
-                <Card className="bg-emerald-950/20 border border-emerald-500/20 p-5 md:p-6">
-                    <p className="text-sm md:text-base text-white/80 leading-relaxed">
-                        {t("models.bigram.matrix.storySteps.problem.body")}
-                    </p>
-                </Card>
-            </section>
+            <span
+                style={{
+                    position: "relative",
+                    height: 9,
+                    borderRadius: "var(--bigram-r-pill)",
+                    overflow: "hidden",
+                    background: "color-mix(in oklab, var(--bigram-ink) 8%, transparent)",
+                    boxShadow: sampled
+                        ? "0 0 0 2px color-mix(in oklab, var(--bigram-accent) 30%, transparent)"
+                        : "none",
+                    transition: "box-shadow .26s ease",
+                }}
+            >
+                <motion.i
+                    initial={reduce ? false : { width: 0 }}
+                    animate={{ width: `${targetW}%` }}
+                    transition={
+                        reduce
+                            ? { duration: 0 }
+                            : {
+                                  width: {
+                                      duration: 0.58,
+                                      delay: delayMs / 1000,
+                                      ease: [0.2, 0.7, 0.2, 1],
+                                  },
+                              }
+                    }
+                    style={{
+                        position: "absolute",
+                        inset: "0 auto 0 0",
+                        height: "100%",
+                        borderRadius: "var(--bigram-r-pill)",
+                        background: fill,
+                        transition: "background .26s ease",
+                    }}
+                />
+            </span>
 
-            {/* 2. REPRESENTATION */}
-            <section className="space-y-4">
-                <div className="border-l-2 border-indigo-500 pl-4">
-                    <h4 className="text-lg font-bold text-indigo-400">
-                        {t("models.bigram.matrix.storySteps.representation.title")}
-                    </h4>
-                </div>
-                <Card className="bg-indigo-500/[0.05] border border-indigo-500/20 p-5 md:p-6">
-                    <p className="text-sm text-white/80 leading-relaxed mb-6 whitespace-pre-line">
-                        {t("models.bigram.matrix.storySteps.representation.body")}
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="rounded-xl border border-indigo-500/20 bg-black/20 p-4">
-                            <p className="font-bold text-indigo-300 mb-2">{t("models.bigram.matrix.representation.charTitle")}</p>
-                            <p className="text-sm text-white/60 leading-relaxed">{t("models.bigram.matrix.representation.charBody")}</p>
-                        </div>
-                        <div className="rounded-xl border border-amber-500/20 bg-black/20 p-4">
-                            <p className="font-bold text-amber-300 mb-2">{t("models.bigram.matrix.representation.wordTitle")}</p>
-                            <p className="text-sm text-white/60 leading-relaxed">{t("models.bigram.matrix.representation.wordBody")}</p>
-                        </div>
-                    </div>
-                </Card>
-            </section>
-
-            {/* 3. SOLUTION */}
-            <section className="space-y-4">
-                <div className="border-l-2 border-cyan-500 pl-4">
-                    <h4 className="text-lg font-bold text-cyan-400">
-                        {t("models.bigram.matrix.storySteps.solution.title")}
-                    </h4>
-                </div>
-                <Card className="bg-cyan-950/20 border border-cyan-500/20 p-5 md:p-6">
-                    <p className="text-sm text-white/80 leading-relaxed mb-4">
-                        {t("models.bigram.matrix.storySteps.solution.body")}
-                    </p>
-                    <div className="bg-black/30 rounded-xl p-4 border border-white/5">
-                        <p className="text-xs uppercase tracking-widest text-white/40 mb-3 font-semibold">{t("models.bigram.matrix.builderLabel")}</p>
-                        <BigramMatrixBuilder />
-                    </div>
-                </Card>
-            </section>
-
-            {/* 4. THE MATRIX */}
-            <section className="space-y-4">
-                <div className="border-l-2 border-fuchsia-500 pl-4">
-                    <h4 className="text-lg font-bold text-fuchsia-400">
-                        {t("models.bigram.matrix.storySteps.matrix.title")}
-                    </h4>
-                </div>
-                <Card className="bg-fuchsia-950/10 border border-fuchsia-500/20 p-5 md:p-6">
-                    <p className="text-sm text-white/80 leading-relaxed mb-6">
-                        {t("models.bigram.matrix.storySteps.matrix.body")}
-                    </p>
-                    {renderMatrix()}
-                </Card>
-            </section>
-
-            {/* 5. PROBABILITIES */}
-            <section className="space-y-4">
-                <div className="border-l-2 border-emerald-500 pl-4">
-                    <h4 className="text-lg font-bold text-emerald-400">
-                        {t("models.bigram.matrix.storySteps.probabilities.title")}
-                    </h4>
-                </div>
-                <div className="space-y-4">
-                    <Card className="bg-emerald-950/10 border border-emerald-500/20 p-5 md:p-6">
-                        <p className="text-sm text-white/80 leading-relaxed">
-                            {t("models.bigram.matrix.storySteps.probabilities.body")}
-                        </p>
-                    </Card>
-                    {renderProbabilityFlow()}
-                </div>
-            </section>
-
-            {/* 6. LIMITATIONS */}
-            <section className="space-y-4 pb-12">
-                <div className="border-l-2 border-rose-500 pl-4">
-                    <h4 className="text-lg font-bold text-rose-400">
-                        {t("models.bigram.matrix.storySteps.limitation.title")}
-                    </h4>
-                </div>
-                <Card className="bg-rose-950/20 border border-rose-500/20 p-5 md:p-6">
-                    <p className="text-sm text-rose-100/90 leading-relaxed">
-                        {t("models.bigram.matrix.storySteps.limitation.body")}
-                    </p>
-                </Card>
-            </section>
-
+            <span
+                style={{
+                    fontFamily: MONO,
+                    fontSize: 13,
+                    color: sampled
+                        ? "var(--bigram-accent)"
+                        : top
+                          ? "var(--bigram-muted)"
+                          : "var(--bigram-dim)",
+                    fontWeight: sampled ? 600 : 400,
+                    fontVariantNumeric: "tabular-nums",
+                    justifySelf: "end",
+                    minWidth: "3.8em",
+                    textAlign: "right",
+                    letterSpacing: ".01em",
+                }}
+            >
+                {pct(prob)}
+            </span>
         </div>
+    );
+});
+
+/* ════════════════════════════════════════════════════════════════════════
+   Small token-only primitives — keycap, segmented control, labels, notes.
+   ════════════════════════════════════════════════════════════════════════ */
+
+function ControlLabel({ children }: { children: React.ReactNode }) {
+    return (
+        <p style={{ ...eyebrowLabel, color: "var(--bigram-muted)", margin: "0 0 12px" }}>
+            {children}
+        </p>
+    );
+}
+
+const Keycap = memo(function Keycap({
+    value,
+    onPick,
+    reduce,
+}: {
+    value: string;
+    onPick: (raw: string) => void;
+    reduce: boolean;
+}) {
+    const [focused, setFocused] = useState(false);
+    const isSpace = value === " ";
+
+    return (
+        <div
+            style={{
+                position: "relative",
+                width: "clamp(76px, 18vw, 96px)",
+                height: "clamp(76px, 18vw, 96px)",
+            }}
+        >
+            <input
+                type="text"
+                maxLength={1}
+                inputMode="text"
+                autoComplete="off"
+                autoCapitalize="off"
+                spellCheck={false}
+                value={isSpace ? "" : value}
+                onChange={(e) => onPick(e.target.value)}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                aria-label="Context character"
+                className="text-center focus:outline-none"
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    fontFamily: MONO,
+                    fontSize: "clamp(40px, 11vw, 52px)",
+                    fontWeight: 600,
+                    lineHeight: 1,
+                    textTransform: "lowercase",
+                    borderRadius: "var(--bigram-r-md)",
+                    border: `2px solid ${focused ? "var(--bigram-accent)" : "var(--bigram-accent-2)"}`,
+                    background: "var(--bigram-accent-soft)",
+                    color: "var(--bigram-ink)",
+                    caretColor: "var(--bigram-accent)",
+                    boxShadow: focused ? "0 0 0 3px var(--bigram-accent-soft)" : "none",
+                    transition: reduce
+                        ? "none"
+                        : "border-color .2s ease, box-shadow .2s ease",
+                }}
+            />
+            {isSpace && (
+                <span
+                    aria-hidden
+                    style={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "grid",
+                        placeItems: "center",
+                        pointerEvents: "none",
+                        fontFamily: MONO,
+                        fontSize: 12,
+                        letterSpacing: ".18em",
+                        textTransform: "uppercase",
+                        color: "var(--bigram-dim)",
+                    }}
+                >
+                    ␣
+                </span>
+            )}
+        </div>
+    );
+});
+
+const Segmented = memo(function Segmented({
+    value,
+    options,
+    onChange,
+    reduce,
+}: {
+    value: string;
+    options: { id: string; label: string }[];
+    onChange: (id: string) => void;
+    reduce: boolean;
+}) {
+    return (
+        <div
+            role="radiogroup"
+            style={{
+                display: "inline-flex",
+                gap: 4,
+                padding: 5,
+                borderRadius: "var(--bigram-r-md)",
+                background: "var(--bigram-bg-2)",
+                boxShadow: "inset 0 1px 4px rgba(0,0,0,.28)",
+            }}
+        >
+            {options.map((opt) => {
+                const active = value === opt.id;
+                return (
+                    <button
+                        key={opt.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        onClick={() => onChange(opt.id)}
+                        style={{
+                            position: "relative",
+                            minWidth: 96,
+                            height: 38,
+                            padding: "0 16px",
+                            display: "grid",
+                            placeItems: "center",
+                            fontFamily: MONO,
+                            fontSize: 12,
+                            fontWeight: active ? 600 : 500,
+                            letterSpacing: ".02em",
+                            border: 0,
+                            borderRadius: "var(--bigram-r-sm)",
+                            cursor: "pointer",
+                            background: "transparent",
+                            color: active
+                                ? "var(--bigram-on-accent)"
+                                : "var(--bigram-muted)",
+                            transition: "color .2s ease",
+                        }}
+                    >
+                        {active && (
+                            <motion.span
+                                layoutId="bigram-flow-seg"
+                                aria-hidden
+                                transition={
+                                    reduce
+                                        ? { duration: 0 }
+                                        : { type: "spring", stiffness: 520, damping: 38 }
+                                }
+                                style={{
+                                    position: "absolute",
+                                    inset: 0,
+                                    borderRadius: "var(--bigram-r-sm)",
+                                    background: "var(--bigram-accent)",
+                                    boxShadow:
+                                        "0 5px 14px -5px color-mix(in oklab, var(--bigram-accent) 65%, transparent)",
+                                    zIndex: 0,
+                                }}
+                            />
+                        )}
+                        <span style={{ position: "relative", zIndex: 1 }}>{opt.label}</span>
+                    </button>
+                );
+            })}
+        </div>
+    );
+});
+
+/** Quiet sage "constraint" note — the chapter's single-token limitation, in the insight voice. */
+function ConstraintNote({ text }: { text: string }) {
+    return (
+        <div
+            style={{
+                padding: "16px 22px",
+                borderRadius: "var(--bigram-r-md)",
+                background: "linear-gradient(135deg, var(--bigram-sage-soft), transparent 82%)",
+                boxShadow:
+                    "inset 0 0 0 1px color-mix(in oklab, var(--bigram-sage) 28%, transparent)",
+            }}
+        >
+            <p
+                style={{
+                    fontFamily: SERIF,
+                    fontSize: 16.5,
+                    lineHeight: 1.55,
+                    color: "var(--bigram-body)",
+                    margin: 0,
+                    textWrap: "pretty",
+                }}
+            >
+                {text}
+            </p>
+        </div>
+    );
+}
+
+/** Story-mode eyebrow — mono uppercase label + hairline rule (v10 section vocabulary, no box). */
+function StoryEyebrow({ label }: { label: string }) {
+    return (
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
+            <span style={{ ...eyebrowLabel, color: "var(--bigram-accent-ink)" }}>
+                {label}
+            </span>
+            <span style={hairline} />
+        </div>
+    );
+}
+
+/** Verdict sentence from an i18n template with {char}/{best} → accent bold spans. */
+function VerdictLine({
+    template,
+    src,
+    best,
+}: {
+    template: string;
+    src: string;
+    best: string;
+}) {
+    const parts = template.split(/(\{best\}|\{char\})/g);
+    return (
+        <>
+            {parts.map((part, i) => {
+                if (part === "{char}") return <b key={i}>{src}</b>;
+                if (part === "{best}") return <b key={i}>{best}</b>;
+                return <span key={i}>{part}</span>;
+            })}
+        </>
     );
 }

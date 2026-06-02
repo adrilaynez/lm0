@@ -5,8 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Search, X } from "lucide-react";
 
-import { bigramDatasetLookup, datasetLookup } from "@/features/lab/lib/lmLabClient";
 import { useLabTheme } from "@/features/lab/hooks/useLabTheme";
+import { bigramDatasetLookup, datasetLookup } from "@/features/lab/lib/lmLabClient";
 import type { DatasetLookupResponse } from "@/features/lab/types/lmLab";
 import { useI18n } from "@/i18n/context";
 
@@ -32,12 +32,14 @@ function glyph(ch: string): string {
 }
 
 /**
- * DatasetExplorerModal — "Corpus Evidence" for the Bigram chapter (v8, editorial-green).
+ * DatasetExplorerModal — "Corpus Evidence" for the Bigram chapter (v10, editorial-green).
  *
- * Pedagogy: it answers ONE question — *why* did the model learn this transition? The whole panel
- * leads the eye to a single focal point (the raw occurrence count) and then grounds it in real
- * corpus snippets, the matched pair highlighted by a calm sage lens. No dashboard, no neon, no
- * traffic-light dots — an editorial card on a soft scrim.
+ * Pedagogy — ONE idea: the model didn't *reason* about this transition, it COUNTED it. The panel
+ * leads the eye to a single focal point (the raw occurrence count, sitting in a sunk well like the
+ * corpus-counting hero) and then grounds it in real corpus snippets, each showing the exact pair the
+ * count is made of — origin char filled (hot1), follower char tinted (hot2), the same in-text
+ * highlight voice as the corpus/pair widgets. No card-on-card chrome, no neon, no traffic dots:
+ * states read by fill + typography on a calm editorial scrim.
  *
  * Scoping: when `modelType === "bigram"` the panel opens its own `[data-bigram-theme]` scope (it is
  * rendered as a fixed overlay outside the page's theme wrapper) so every `--bigram-*` token resolves
@@ -206,6 +208,10 @@ export function DatasetExplorerModal({
                             context={displayContext}
                             next={nextChar}
                             title={t("datasetExplorer.title")}
+                            subtitle={t("datasetExplorer.subtitle", {
+                                context: glyph(displayContext),
+                                next: glyph(nextChar),
+                            })}
                             onClose={onClose}
                         />
 
@@ -280,16 +286,22 @@ export function DatasetExplorerModal({
    Bigram sub-components (editorial-green)
    ───────────────────────────────────────────────────────────────────────── */
 
-/** Header: editorial title + the literal bigram pair as the lede ("why did c → n get learned?"). */
+/**
+ * Header: mono eyebrow + the literal bigram pair as the lede, then a serif subtitle that names the
+ * ONE idea in plain language ("why did the model learn c → n?"). The close control is a sunk well
+ * (no border box) so the chrome stays quiet and the pair is the only thing that reads loud.
+ */
 function Header({
     context,
     next,
     title,
+    subtitle,
     onClose,
 }: {
     context: string;
     next: string;
     title: string;
+    subtitle: string;
     onClose: () => void;
 }) {
     return (
@@ -312,14 +324,21 @@ function Header({
                     <span className="text-bigram-dim text-[15px]" aria-hidden>→</span>
                     <span className="text-bigram-ink" style={{ fontWeight: 700 }}>{glyph(next)}</span>
                 </h3>
+                <p
+                    className="mt-2 text-[15px] leading-snug text-bigram-muted"
+                    style={{ fontFamily: "var(--font-source-serif)" }}
+                >
+                    {subtitle}
+                </p>
             </div>
             <button
                 onClick={onClose}
+                aria-label="Close"
                 className="flex-none grid place-items-center w-9 h-9 text-bigram-muted transition-colors hover:text-bigram-ink"
                 style={{
                     borderRadius: "var(--bigram-r-sm)",
-                    border: "1px solid var(--bigram-rule)",
-                    background: "color-mix(in oklab, var(--bigram-ink) 3%, transparent)",
+                    background: "var(--bigram-bg-2)",
+                    boxShadow: "inset 0 1px 3px rgba(0,0,0,.22)",
                 }}
             >
                 <X className="w-4 h-4" />
@@ -344,8 +363,10 @@ function SectionLabel({ text }: { text: string }) {
 }
 
 /**
- * The single focal point: the raw occurrence count, counted up, with the source as a quiet caption.
- * One big honest number — this is the evidence the model counted, not a normalized score.
+ * The single focal point: the raw occurrence count, counted up, sitting in a SUNK well (the same
+ * `--bigram-bg-2` + inset-shadow plane as the corpus-counting hero) — fill, not a bordered card. One
+ * big honest number; the source is a quiet mono caption beneath it. This is the evidence the model
+ * literally counted, never a normalized score.
  */
 function EvidenceFocus({
     count,
@@ -362,14 +383,14 @@ function EvidenceFocus({
 }) {
     return (
         <div
-            className="flex items-end justify-between gap-6 px-6 py-6"
+            className="flex items-center justify-between gap-6 px-7 py-7"
             style={{
-                borderRadius: "var(--bigram-r-md)",
+                borderRadius: "var(--bigram-r-lg)",
                 background: "var(--bigram-bg-2)",
-                border: "1px solid var(--bigram-rule-2)",
+                boxShadow: "inset 0 2px 8px rgba(0,0,0,.30)",
             }}
         >
-            <div>
+            <div className="min-w-0">
                 <div
                     className="text-[10.5px] font-medium uppercase text-bigram-muted"
                     style={{ fontFamily: "var(--font-jetbrains-mono)", letterSpacing: ".18em" }}
@@ -377,10 +398,10 @@ function EvidenceFocus({
                     {occurrencesLabel}
                 </div>
                 <div
-                    className="mt-1.5 leading-none text-bigram-accent-bright"
+                    className="mt-2 leading-none text-bigram-accent-bright"
                     style={{
                         fontFamily: "var(--font-jetbrains-mono)",
-                        fontSize: "clamp(40px, 8vw, 56px)",
+                        fontSize: "clamp(44px, 9vw, 60px)",
                         fontWeight: 600,
                         fontVariantNumeric: "lining-nums tabular-nums",
                     }}
@@ -388,14 +409,19 @@ function EvidenceFocus({
                     <CountUp value={count} reduce={reduce} />
                 </div>
             </div>
-            <div className="text-right">
+            <div className="text-right flex-none">
                 <div
                     className="text-[10.5px] font-medium uppercase text-bigram-dim"
                     style={{ fontFamily: "var(--font-jetbrains-mono)", letterSpacing: ".18em" }}
                 >
                     {sourceLabel}
                 </div>
-                <div className="mt-1.5 text-[16px] text-bigram-body">{source}</div>
+                <div
+                    className="mt-1.5 text-[15px] text-bigram-body"
+                    style={{ fontFamily: "var(--font-jetbrains-mono)" }}
+                >
+                    {source}
+                </div>
             </div>
         </div>
     );
@@ -430,9 +456,11 @@ function CountUp({ value, reduce }: { value: number; reduce: boolean }) {
 }
 
 /**
- * Bigram corpus snippet. Snippet format is "pre[[match]]post". The matched pair is lifted by a
- * single calm sage lens (accent-soft fill) — the same "sliding lens" voice as the pair highlighter,
- * not a heavy neon pill. Staggered reveal so the evidence reads in sequence.
+ * Bigram corpus snippet. Snippet format is "pre[[match]]post"; `match` is the matched bigram pair, so
+ * we split it into the ORIGIN char (filled accent — hot1) and its FOLLOWER (soft accent tint with an
+ * inset ring — hot2), the exact in-text highlight voice the corpus-counting + pair widgets use. The
+ * surrounding text recedes to `--bigram-dim`. Rows are quiet sunk wells (fill, no border). Staggered
+ * reveal so the evidence reads in sequence.
  */
 function BigramSnippet({
     snippet,
@@ -445,11 +473,15 @@ function BigramSnippet({
 }) {
     const { pre, match, post, valid } = useMemo(() => parseSnippet(snippet), [snippet]);
 
+    // The matched pair is origin + follower; split so each carries its own v10 highlight role.
+    const origin = match.slice(0, 1);
+    const follower = match.slice(1);
+
     const baseStyle = {
         fontFamily: "var(--font-jetbrains-mono)",
         borderRadius: "var(--bigram-r-sm)",
-        background: "var(--bigram-bg)",
-        border: "1px solid var(--bigram-rule)",
+        background: "var(--bigram-bg-2)",
+        boxShadow: "inset 0 1px 4px rgba(0,0,0,.18)",
     } as const;
 
     const inner = !valid ? (
@@ -457,15 +489,29 @@ function BigramSnippet({
     ) : (
         <>
             <span className="text-bigram-dim">{pre}</span>
+            {/* origin char — filled accent (hot1) */}
             <span
-                className="mx-px px-1 py-0.5 font-semibold text-bigram-accent-ink"
+                className="font-bold"
                 style={{
-                    borderRadius: "4px",
-                    background: "var(--bigram-accent-soft)",
-                    boxShadow: "inset 0 0 0 1px color-mix(in oklab, var(--bigram-accent) 26%, transparent)",
+                    padding: "2px 3px",
+                    borderRadius: "5px",
+                    background: "var(--bigram-accent)",
+                    color: "var(--bigram-on-accent)",
                 }}
             >
-                {match}
+                {glyph(origin)}
+            </span>
+            {/* follower char — soft accent tint + inset ring (hot2) */}
+            <span
+                className="font-bold text-bigram-accent-ink"
+                style={{
+                    padding: "2px 3px",
+                    borderRadius: "5px",
+                    background: "var(--bigram-accent-soft)",
+                    boxShadow: "inset 0 0 0 2px color-mix(in oklab, var(--bigram-accent) 38%, transparent)",
+                }}
+            >
+                {glyph(follower)}
             </span>
             <span className="text-bigram-dim">{post}</span>
         </>
@@ -473,7 +519,7 @@ function BigramSnippet({
 
     return (
         <motion.div
-            className="px-3.5 py-3 text-[13px] leading-relaxed"
+            className="px-4 py-3 text-[13px] leading-relaxed"
             style={baseStyle}
             initial={reduce ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}

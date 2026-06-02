@@ -151,7 +151,7 @@
 }
 
 [data-lab-theme="light"] {
-  --lab-bg: #fafafa;
+  --lab-bg: #f4ecd8;
   --lab-text: #1a1a1a;
   --lab-text-muted: rgba(0, 0, 0, 0.6);
   --lab-text-subtle: rgba(0, 0, 0, 0.35);
@@ -159,7 +159,7 @@
   --lab-card: rgba(0, 0, 0, 0.03);
   --lab-surface: rgba(0, 0, 0, 0.04);
   --lab-viz-bg: #0f0f14;
-  --lab-header-bg: rgba(250, 250, 250, 0.95);
+  --lab-header-bg: rgba(244, 236, 216, 0.92); /* cream chrome (matches content) */
 }
 
 /* ─── Bigram chapter tokens (editorial-green, v8) ───
@@ -210,7 +210,9 @@
   --bigram-ink-2: #3c463a;
   --bigram-body: oklch(0.43 0.013 145);
   --bigram-muted: #5e6b5b;
-  --bigram-dim: #8d9684;
+  /* Darkened from #8d9684 (~2.6:1 on cream, failed) → ~3.95:1 so the tiniest
+     labels/footer stay legible in light. Same warm-green hue, just deeper. */
+  --bigram-dim: #6e7863; /* hmr */
   --bigram-rule: #ded3b9;
   --bigram-rule-2: #d2c6a8;
   --bigram-accent: #305a3d;
@@ -225,6 +227,79 @@
   --bigram-wrong: #b1492f;
   --bigram-wrong-soft: #eedacf;
 }
+
+/* Bigram serif prose uses old-style figures like the v8 ("1948" sits in the line).
+   Monospace has no oldstyle glyphs and data rows set lining-tabular inline, so this
+   only touches the Playfair / Source-Serif prose. */
+[data-bigram-theme] {
+    font-variant-numeric: oldstyle-nums proportional-nums;
+    /* Match the v8 body exactly: optical-sizing + legibility kerning/ligatures so
+       Playfair display + Source Serif render with the same refined letterfit. */
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Document scrollbar (Bigram chapter only) ──
+   The page scrollbar lives on <html> (the viewport), so it can't read the
+   --bigram-* tokens (those sit on a descendant wrapper) — hence literals, and
+   :has() to scope it to the bigram route so no other chapter's chrome changes.
+   `color-scheme` tints the native bar to stop the default WHITE gutter on the
+   dark field; the ::-webkit rules refine the thumb to match the bigram palette.
+   The thumb's border is the page bg, which insets the thumb so it reads as a
+   slim floating pill rather than a full-width bar. */
+html:has([data-bigram-theme="dark"]) {
+  color-scheme: dark;
+  scrollbar-color: oklch(0.42 0.02 193) transparent; /* Firefox */
+}
+html:has([data-bigram-theme="light"]) {
+  color-scheme: light;
+  scrollbar-color: #cdbf9d transparent; /* Firefox */
+}
+html:has([data-bigram-theme="dark"])::-webkit-scrollbar,
+html:has([data-bigram-theme="light"])::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+html:has([data-bigram-theme="dark"])::-webkit-scrollbar-track,
+html:has([data-bigram-theme="light"])::-webkit-scrollbar-track {
+  background: transparent;
+}
+html:has([data-bigram-theme="dark"])::-webkit-scrollbar-thumb {
+  background: oklch(0.42 0.02 193);
+  border-radius: 9999px;
+  border: 3px solid oklch(0.176 0.016 193); /* = --bigram-bg (dark) */
+}
+html:has([data-bigram-theme="dark"])::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.52 0.02 193);
+}
+html:has([data-bigram-theme="light"])::-webkit-scrollbar-thumb {
+  background: #cdbf9d;
+  border-radius: 9999px;
+  border: 3px solid #f4ecd8; /* = --bigram-bg (light) */
+}
+html:has([data-bigram-theme="light"])::-webkit-scrollbar-thumb:hover {
+  background: #bcae8a;
+}
+
+/* Bigram page grain + vignette (v8 .page-grain) — subtle depth on the cream / slate field. */
+.bigram-grain { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+[data-bigram-theme="dark"] .bigram-grain {
+  background: radial-gradient(135% 105% at 50% 0%, transparent 60%, oklch(0 0 0 / 0.18) 100%);
+}
+[data-bigram-theme="light"] .bigram-grain {
+  background: radial-gradient(130% 100% at 50% 0%, transparent 62%, oklch(0.3 0.03 70 / 0.10) 100%);
+}
+.bigram-grain::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+}
+[data-bigram-theme="light"] .bigram-grain::before { opacity: 0.025; mix-blend-mode: multiply; }
 
 /* ─── Latent Space tokens (Essays = light editorial / Mind = dark warm) ─── */
 [data-ls-mode="essays"] {

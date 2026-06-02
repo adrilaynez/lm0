@@ -3,36 +3,38 @@
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Divide, RotateCcw } from "lucide-react";
 
 import { HonestBar } from "@/features/lab/components/bigram/HonestBar";
 import { Verdict } from "@/features/lab/components/bigram/Verdict";
 import { useI18n } from "@/i18n/context";
 
 /**
- * PredictionQueryVisualizer — Section 4 "How a bigram predicts" (v8 · editorial-green).
+ * PredictionQueryVisualizer — Bigram chapter · "How a bigram predicts" (v10 design language).
  *
- * ONE concept: *querying a single row of the count matrix and normalizing it into a
- * next-character distribution.* Not a multi-screen wizard, not a casino — a single calm
- * instrument that reveals the pipeline in place:
+ * ONE idea, shown almost instantly: *querying the model is just looking up ONE row of the count
+ * table and reading off the distribution.* Indexing by the starting character pulls a single row
+ * out of the table; dividing that row by its own total turns counts into probabilities.
  *
- *   1 · PICK     — segmented control (sunk --bigram-bg-2 rail, active cell filled accent);
- *   2 · LOOKUP   — the chosen row of the matrix as ONE horizontal strip of count cells,
- *                  bracketed and summed to a row total (this is "querying one row");
- *   3 · COUNTS   — the row's followers as shared HonestBars, scaled to the largest count;
- *   4 · NORMALIZE— the SAME bars morph in place (count ÷ total) onto the honest fixed axis,
- *                  with a formula well — the single act the section is about;
- *   5 · PREDICT  — the plain-language Verdict ("After X, the most likely is Y").
+ * This is a redesign into the v10 editorial-green vocabulary (not the old 5-eyebrow stack):
  *
- * The two redundant raw/normalized bar charts of the old wizard are fused into one set that
- * transforms; the weighted-dice step is dropped because sampling has its own dedicated widget
- * later in the chapter, and a second concept here would compete with normalization.
+ *   • PICK   — segmented control (sunk --bigram-bg-2 rail, active cell rides on a spring layoutId).
+ *   • LOOKUP — THE HERO. The chosen row is pulled out of the table into one sunk panel: the row key
+ *              in accent, its followers as count cells, bracketed to a Σ total. A mono micro-label
+ *              ("query · row {char}") narrates it the way the flagships narrate, not a big numeral.
+ *   • READ   — the row's distribution as shared HonestBars (bigram accent). One act — "Normalize" —
+ *              morphs the SAME bars in place from max-normalized counts onto the honest fixed axis
+ *              (0.5), winner-last cascade + glint. A formula well names the division.
+ *   • VERDICT— the plain-language Verdict + a serif italic coda (the whole mechanism in one line),
+ *              matching CorpusCountingIdea's close.
  *
- * Reads only --bigram-* tokens + the registered fonts; gated by the chapter's [data-bigram-theme]
- * scope. All copy through i18n (bigramNarrative.queryViz.*). Reduced-motion safe throughout.
+ * Calm, one focal point at a time: while idle, only the picker + a faint invitation strip; the row
+ * hero appears on pick; the bars + verdict appear in sequence. States read by fill + typography, not
+ * borders. Reuses the shared HonestBar / Verdict primitives via their --bigram-* accent (no primitive
+ * edits). Token-only (--bigram-* / --bigram-r-*), gated by the chapter's [data-bigram-theme] scope,
+ * all copy through existing i18n keys, reduced-motion safe throughout.
  */
 
-/* ─── Realistic bigram frequencies (unchanged) ─── */
+/* ─── Realistic bigram frequencies (unchanged data — verbatim from prior version) ─── */
 const QUERY_DATA: Record<string, Record<string, number>> = {
     h: { e: 3481, i: 1892, a: 1544, o: 987, " ": 432, t: 201 },
     e: { " ": 4012, r: 2156, n: 1423, s: 1198, d: 987, a: 654 },
@@ -49,6 +51,9 @@ const CHARS = Object.keys(QUERY_DATA);
 const SPACE_GLYPH = "␣";
 const PROB_AXIS = 0.5; // honest fixed axis — doubt stays visible, winner never normalises to 100%
 const EASE = [0.2, 0.8, 0.2, 1] as const;
+
+const MONO = "var(--font-jetbrains-mono)";
+const SERIF = "var(--font-source-serif)";
 
 function displayChar(c: string): string {
     return c === " " ? SPACE_GLYPH : c;
@@ -85,7 +90,7 @@ export const PredictionQueryVisualizer = memo(function PredictionQueryVisualizer
           keeps the model's doubt visible. ── */
     const axis = normalized ? PROB_AXIS : 1;
     const winner = rowData[0];
-    const winnerPct = winner && total > 0 ? `${((winner.count / total) * 100).toFixed(0)}%` : "";
+    const winnerPct = winner && total > 0 ? `${((winner.count / total) * 100).toFixed(0)} %` : "";
 
     /* ── Selection (resets the morph) ── */
     const selectChar = useCallback((ch: string) => {
@@ -99,10 +104,9 @@ export const PredictionQueryVisualizer = memo(function PredictionQueryVisualizer
     }, []);
 
     return (
-        <div style={{ maxWidth: 640, margin: "0 auto" }}>
-            {/* ─── 1 · PICK — segmented control ─── */}
-            <Eyebrow num={1} label={t("bigramNarrative.queryViz.step0Label")} />
-            <p style={leadHintStyle}>{t("bigramNarrative.queryViz.pickChar")}</p>
+        <div style={{ maxWidth: 640, margin: "0 auto", fontFamily: SERIF }}>
+            {/* ─── PICK — segmented control · the single focal point while idle ─── */}
+            <MicroLabel>{t("bigramNarrative.queryViz.pickChar")}</MicroLabel>
 
             <div style={{ textAlign: "center", marginTop: 14 }}>
                 <div
@@ -127,7 +131,7 @@ export const PredictionQueryVisualizer = memo(function PredictionQueryVisualizer
                                 type="button"
                                 role="radio"
                                 aria-checked={active}
-                                aria-label={`${ch === " " ? "space" : ch}`}
+                                aria-label={ch === " " ? "espacio" : ch}
                                 onClick={() => selectChar(ch)}
                                 style={{
                                     position: "relative",
@@ -136,7 +140,7 @@ export const PredictionQueryVisualizer = memo(function PredictionQueryVisualizer
                                     padding: "0 12px",
                                     display: "grid",
                                     placeItems: "center",
-                                    fontFamily: "var(--font-jetbrains-mono)",
+                                    fontFamily: MONO,
                                     fontSize: 21,
                                     fontWeight: active ? 600 : 500,
                                     border: 0,
@@ -174,34 +178,51 @@ export const PredictionQueryVisualizer = memo(function PredictionQueryVisualizer
                 </div>
             </div>
 
-            {/* ─── idle invitation ─── */}
             <AnimatePresence mode="wait">
                 {selectedChar === null ? (
+                    /* ─── idle invitation — a calm serif line + faint placeholder strip ─── */
                     <motion.div
                         key="idle"
                         initial={reduce ? false : { opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={reduce ? undefined : { opacity: 0 }}
-                        style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            gap: 12,
-                            margin: "32px 0 4px",
-                        }}
-                        aria-hidden
                     >
-                        {/* a calm, faint placeholder strip — the only "this is interactive" cue while idle */}
-                        {[0, 1, 2, 3].map((i) => (
-                            <span
-                                key={i}
-                                style={{
-                                    width: i === 1 ? 96 : 56,
-                                    height: 12,
-                                    borderRadius: 6,
-                                    background: "color-mix(in oklab, var(--bigram-ink) 6%, transparent)",
-                                }}
-                            />
-                        ))}
+                        <p
+                            style={{
+                                fontFamily: SERIF,
+                                fontStyle: "italic",
+                                fontSize: 16,
+                                lineHeight: 1.55,
+                                color: "var(--bigram-muted)",
+                                textAlign: "center",
+                                margin: "20px auto 0",
+                                maxWidth: "40ch",
+                                textWrap: "pretty",
+                            }}
+                        >
+                            {t("bigramNarrative.queryViz.hint")}
+                        </p>
+                        <div
+                            aria-hidden
+                            style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                gap: 12,
+                                margin: "26px 0 4px",
+                            }}
+                        >
+                            {[0, 1, 2, 3].map((i) => (
+                                <span
+                                    key={i}
+                                    style={{
+                                        width: i === 1 ? 96 : 56,
+                                        height: 12,
+                                        borderRadius: 6,
+                                        background: "color-mix(in oklab, var(--bigram-ink) 6%, transparent)",
+                                    }}
+                                />
+                            ))}
+                        </div>
                     </motion.div>
                 ) : (
                     <motion.div
@@ -210,28 +231,42 @@ export const PredictionQueryVisualizer = memo(function PredictionQueryVisualizer
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, ease: EASE }}
                     >
-                        {/* ─── 2 · LOOKUP — the queried row as one horizontal strip ─── */}
-                        <div style={{ marginTop: 38 }}>
-                            <Eyebrow num={2} label={t("bigramNarrative.queryViz.step1Label")} />
-                            <p style={leadHintStyle}>
+                        {/* ─── LOOKUP — THE HERO: the indexed row pulled out of the table ─── */}
+                        <div style={{ marginTop: 34 }}>
+                            <MicroLabel>
                                 {t("bigramNarrative.queryViz.lookingUp", {
                                     char: displayChar(selectedChar),
                                 })}
-                            </p>
-                            <RowStrip row={rowData} src={selectedChar} total={total} reduce={!!reduce} t={t} />
+                            </MicroLabel>
+                            <RowStrip
+                                row={rowData}
+                                src={selectedChar}
+                                total={total}
+                                reduce={!!reduce}
+                                rowLabel={t("bigramNarrative.queryViz.step0Label")}
+                            />
                         </div>
 
-                        {/* ─── 3 · COUNTS → 4 · NORMALIZE — one bar stack that morphs ─── */}
-                        <div style={{ marginTop: 40 }}>
-                            <Eyebrow
-                                num={normalized ? 4 : 3}
-                                label={t(
-                                    normalized
-                                        ? "bigramNarrative.queryViz.step3Label"
-                                        : "bigramNarrative.queryViz.step2Label"
-                                )}
-                            />
-                            <p style={leadHintStyle}>
+                        {/* ─── READ — one bar stack that morphs counts → probabilities ─── */}
+                        <div style={{ marginTop: 38 }}>
+                            <MicroLabel>
+                                {normalized
+                                    ? t("bigramNarrative.queryViz.step3Label")
+                                    : t("bigramNarrative.queryViz.step2Label")}
+                            </MicroLabel>
+
+                            <p
+                                style={{
+                                    fontFamily: SERIF,
+                                    fontSize: 16,
+                                    lineHeight: 1.6,
+                                    color: "var(--bigram-body)",
+                                    textAlign: "center",
+                                    margin: "10px auto 0",
+                                    maxWidth: "46ch",
+                                    textWrap: "pretty",
+                                }}
+                            >
                                 {normalized
                                     ? t("bigramNarrative.queryViz.normalizeIntro")
                                     : t("bigramNarrative.queryViz.rawCountsIntro", {
@@ -286,7 +321,7 @@ export const PredictionQueryVisualizer = memo(function PredictionQueryVisualizer
                                 })}
                             </div>
 
-                            {/* total / normalize control */}
+                            {/* total / normalize control — top hairline rule, fill-not-border button */}
                             <div
                                 style={{
                                     display: "flex",
@@ -301,7 +336,7 @@ export const PredictionQueryVisualizer = memo(function PredictionQueryVisualizer
                             >
                                 <span
                                     style={{
-                                        fontFamily: "var(--font-jetbrains-mono)",
+                                        fontFamily: MONO,
                                         fontSize: 11.5,
                                         letterSpacing: ".14em",
                                         textTransform: "uppercase",
@@ -315,35 +350,17 @@ export const PredictionQueryVisualizer = memo(function PredictionQueryVisualizer
                                 </span>
 
                                 {!normalized && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setNormalized(true)}
-                                        style={{
-                                            display: "inline-flex",
-                                            alignItems: "center",
-                                            gap: 9,
-                                            fontFamily: "var(--font-jetbrains-mono)",
-                                            fontSize: 12,
-                                            letterSpacing: ".1em",
-                                            textTransform: "uppercase",
-                                            fontWeight: 600,
-                                            padding: "11px 18px",
-                                            border: 0,
-                                            borderRadius: "var(--bigram-r-sm)",
-                                            cursor: "pointer",
-                                            background: "var(--bigram-accent)",
-                                            color: "var(--bigram-on-accent)",
-                                            transition: "background .2s ease",
-                                        }}
-                                    >
-                                        <Divide style={{ width: 15, height: 15 }} aria-hidden />
+                                    <NormalizeButton onClick={() => setNormalized(true)}>
+                                        <span aria-hidden style={{ fontSize: "1.15em", lineHeight: 1 }}>
+                                            ÷
+                                        </span>
                                         {t("bigramNarrative.queryViz.step3Label")}
-                                    </button>
+                                    </NormalizeButton>
                                 )}
                             </div>
                         </div>
 
-                        {/* ─── 5 · PREDICT — the plain-language verdict ─── */}
+                        {/* ─── VERDICT — plain-language conclusion + serif italic coda ─── */}
                         <AnimatePresence>
                             {normalized && winner && (
                                 <motion.div
@@ -355,51 +372,43 @@ export const PredictionQueryVisualizer = memo(function PredictionQueryVisualizer
                                         delay: reduce ? 0 : 0.35,
                                         ease: EASE,
                                     }}
-                                    style={{ marginTop: 34 }}
+                                    style={{ marginTop: 30, textAlign: "center" }}
                                 >
-                                    <Eyebrow num={5} label={t("bigramNarrative.queryViz.step4Label")} />
-                                    <div style={{ marginTop: 14 }}>
-                                        <Verdict
-                                            label={t("bigramNarrative.corpusCounting.verdictLabel")}
-                                            main={
-                                                <VerdictSentence
-                                                    template={t("bigramNarrative.corpusCounting.verdictMain")}
-                                                    char={displayChar(selectedChar)}
-                                                    best={displayChar(winner.char)}
-                                                />
-                                            }
-                                            sub={t("bigramNarrative.corpusCounting.verdictSub", {
-                                                n: winner.count.toLocaleString(),
-                                                total: total.toLocaleString(),
-                                                pct: winnerPct,
-                                            })}
-                                        />
-                                    </div>
+                                    <Verdict
+                                        label={t("bigramNarrative.corpusCounting.verdictLabel")}
+                                        main={
+                                            <VerdictSentence
+                                                template={t("bigramNarrative.corpusCounting.verdictMain")}
+                                                char={displayChar(selectedChar)}
+                                                best={displayChar(winner.char)}
+                                            />
+                                        }
+                                        sub={t("bigramNarrative.corpusCounting.verdictSub", {
+                                            n: winner.count.toLocaleString(),
+                                            total: total.toLocaleString(),
+                                            pct: winnerPct,
+                                        })}
+                                    />
 
-                                    <div style={{ textAlign: "center", marginTop: 18 }}>
-                                        <button
-                                            type="button"
-                                            onClick={reset}
-                                            style={{
-                                                display: "inline-flex",
-                                                alignItems: "center",
-                                                gap: 8,
-                                                fontFamily: "var(--font-jetbrains-mono)",
-                                                fontSize: 11,
-                                                letterSpacing: ".06em",
-                                                padding: "7px 14px",
-                                                border: 0,
-                                                borderRadius: "var(--bigram-r-sm)",
-                                                cursor: "pointer",
-                                                background: "transparent",
-                                                color: "var(--bigram-muted)",
-                                                boxShadow: "inset 0 0 0 1px var(--bigram-rule-2)",
-                                            }}
-                                        >
-                                            <RotateCcw style={{ width: 13, height: 13 }} aria-hidden />
-                                            {t("bigramNarrative.queryViz.tryAnother")}
-                                        </button>
-                                    </div>
+                                    {/* serif italic coda — the whole query mechanism in one sentence */}
+                                    <p
+                                        style={{
+                                            fontFamily: SERIF,
+                                            fontStyle: "italic",
+                                            fontSize: 17,
+                                            lineHeight: 1.5,
+                                            color: "var(--bigram-muted)",
+                                            margin: "16px auto 18px",
+                                            maxWidth: "42ch",
+                                            textWrap: "pretty",
+                                        }}
+                                    >
+                                        {t("bigramNarrative.corpusCounting.reveal")}
+                                    </p>
+
+                                    <GhostButton onClick={reset}>
+                                        ↻ {t("bigramNarrative.queryViz.tryAnother")}
+                                    </GhostButton>
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -414,56 +423,42 @@ export const PredictionQueryVisualizer = memo(function PredictionQueryVisualizer
    Sub-components
    ───────────────────────────────────────────── */
 
-/** Section eyebrow — italic Playfair numeral (accent) + mono uppercase label + hairline rule. */
-const Eyebrow = memo(function Eyebrow({ num, label }: { num: number; label: string }) {
+/** MicroLabel — centered mono uppercase tracked label (v10 section-label idiom, no big numeral). */
+const MicroLabel = memo(function MicroLabel({ children }: { children: React.ReactNode }) {
     return (
-        <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 6 }}>
-            <span
-                style={{
-                    fontFamily: "var(--font-playfair)",
-                    fontStyle: "italic",
-                    fontWeight: 600,
-                    fontSize: 18,
-                    color: "var(--bigram-accent)",
-                    lineHeight: 1,
-                }}
-            >
-                {num}
-            </span>
-            <span
-                style={{
-                    fontFamily: "var(--font-jetbrains-mono)",
-                    fontSize: 11,
-                    fontWeight: 500,
-                    letterSpacing: ".2em",
-                    textTransform: "uppercase",
-                    color: "var(--bigram-muted)",
-                }}
-            >
-                {label}
-            </span>
-            <span style={{ flex: 1, height: 1, background: "var(--bigram-rule)" }} />
-        </div>
+        <p
+            style={{
+                fontFamily: MONO,
+                fontSize: 11,
+                letterSpacing: ".2em",
+                textTransform: "uppercase",
+                color: "var(--bigram-muted)",
+                textAlign: "center",
+                margin: "0 0 2px",
+            }}
+        >
+            {children}
+        </p>
     );
 });
 
 /**
- * RowStrip — the queried row as one horizontal strip of count cells, bracketed under a single
- * row label and summing to the row total. This makes "look up the row of the matrix" literal:
- * a row pulled out of the table, with its members and its sum.
+ * RowStrip — THE HERO. The indexed row pulled out of the table into ONE sunk panel: the row key
+ * (the starting char) in accent, an arrow, the followers as count cells (winner tinted), bracketed
+ * to a Σ total. This makes "query = look up one row of the table" literal and is the focal point.
  */
 const RowStrip = memo(function RowStrip({
     row,
     src,
     total,
     reduce,
-    t,
+    rowLabel,
 }: {
     row: Row[];
     src: string;
     total: number;
     reduce: boolean;
-    t: (key: string, params?: Record<string, string | number>) => string;
+    rowLabel: string;
 }) {
     return (
         <div
@@ -472,28 +467,37 @@ const RowStrip = memo(function RowStrip({
                 alignItems: "center",
                 gap: 14,
                 marginTop: 16,
-                padding: "18px 18px",
-                borderRadius: "var(--bigram-r-md)",
-                background: "color-mix(in oklab, var(--bigram-surface) 55%, var(--bigram-bg))",
+                padding: "20px 18px",
+                borderRadius: "var(--bigram-r-lg)",
+                background: "var(--bigram-bg-2)",
+                boxShadow: "inset 0 2px 8px rgba(0,0,0,.30)",
                 overflowX: "auto",
             }}
         >
             {/* row key — the starting character, in accent */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flex: "none" }}>
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 6,
+                    flex: "none",
+                }}
+            >
                 <span
                     style={{
-                        fontFamily: "var(--font-jetbrains-mono)",
+                        fontFamily: MONO,
                         fontSize: 9.5,
                         letterSpacing: ".18em",
                         textTransform: "uppercase",
                         color: "var(--bigram-dim)",
                     }}
                 >
-                    {t("bigramNarrative.queryViz.step0Label")}
+                    {rowLabel}
                 </span>
                 <span
                     style={{
-                        fontFamily: "var(--font-jetbrains-mono)",
+                        fontFamily: MONO,
                         fontSize: 30,
                         fontWeight: 700,
                         color: "var(--bigram-accent)",
@@ -504,10 +508,7 @@ const RowStrip = memo(function RowStrip({
                 </span>
             </div>
 
-            <span
-                aria-hidden
-                style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 18, color: "var(--bigram-dim)" }}
-            >
+            <span aria-hidden style={{ fontFamily: MONO, fontSize: 18, color: "var(--bigram-dim)" }}>
                 →
             </span>
 
@@ -530,14 +531,14 @@ const RowStrip = memo(function RowStrip({
                             background:
                                 i === 0
                                     ? "var(--bigram-accent-soft)"
-                                    : "color-mix(in oklab, var(--bigram-ink) 4%, transparent)",
+                                    : "color-mix(in oklab, var(--bigram-ink) 5%, transparent)",
                         }}
                     >
                         <span
                             style={{
-                                fontFamily: "var(--font-jetbrains-mono)",
+                                fontFamily: MONO,
                                 fontSize: 17,
-                                fontWeight: 600,
+                                fontWeight: i === 0 ? 700 : 600,
                                 color: i === 0 ? "var(--bigram-accent-ink)" : "var(--bigram-ink-2)",
                                 lineHeight: 1,
                             }}
@@ -546,9 +547,9 @@ const RowStrip = memo(function RowStrip({
                         </span>
                         <span
                             style={{
-                                fontFamily: "var(--font-jetbrains-mono)",
+                                fontFamily: MONO,
                                 fontSize: 11,
-                                color: "var(--bigram-dim)",
+                                color: i === 0 ? "var(--bigram-accent)" : "var(--bigram-dim)",
                                 fontVariantNumeric: "lining-nums tabular-nums",
                             }}
                         >
@@ -559,10 +560,18 @@ const RowStrip = memo(function RowStrip({
             </div>
 
             {/* row total — the denominator we are about to divide by */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, flex: "none" }}>
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 6,
+                    flex: "none",
+                }}
+            >
                 <span
                     style={{
-                        fontFamily: "var(--font-jetbrains-mono)",
+                        fontFamily: MONO,
                         fontSize: 9.5,
                         letterSpacing: ".18em",
                         textTransform: "uppercase",
@@ -573,7 +582,7 @@ const RowStrip = memo(function RowStrip({
                 </span>
                 <span
                     style={{
-                        fontFamily: "var(--font-jetbrains-mono)",
+                        fontFamily: MONO,
                         fontSize: 16,
                         fontWeight: 700,
                         color: "var(--bigram-ink)",
@@ -588,7 +597,7 @@ const RowStrip = memo(function RowStrip({
     );
 });
 
-/** FormulaWell — the normalization equation, v8 formula block (bg-2 well, centered, mono accent). */
+/** FormulaWell — the normalization equation in a sunk well (mono accent, centered). */
 const FormulaWell = memo(function FormulaWell({
     total,
     t,
@@ -602,13 +611,13 @@ const FormulaWell = memo(function FormulaWell({
                 padding: "16px 20px",
                 borderRadius: "var(--bigram-r-md)",
                 background: "var(--bigram-bg-2)",
-                border: "1px solid var(--bigram-rule-2)",
+                boxShadow: "inset 0 1px 4px rgba(0,0,0,.26)",
                 textAlign: "center",
             }}
         >
             <span
                 style={{
-                    fontFamily: "var(--font-jetbrains-mono)",
+                    fontFamily: MONO,
                     fontSize: 15,
                     color: "var(--bigram-accent)",
                     fontVariantNumeric: "lining-nums tabular-nums",
@@ -620,7 +629,7 @@ const FormulaWell = memo(function FormulaWell({
             <p
                 style={{
                     margin: "8px 0 0",
-                    fontFamily: "var(--font-jetbrains-mono)",
+                    fontFamily: MONO,
                     fontSize: 10.5,
                     letterSpacing: ".14em",
                     textTransform: "uppercase",
@@ -632,6 +641,87 @@ const FormulaWell = memo(function FormulaWell({
         </div>
     );
 });
+
+/* ─── Buttons (token-only, v10 .btn vocabulary) ─── */
+
+function NormalizeButton({
+    children,
+    onClick,
+}: {
+    children: React.ReactNode;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 9,
+                fontFamily: MONO,
+                fontSize: 12,
+                letterSpacing: ".1em",
+                textTransform: "uppercase",
+                fontWeight: 600,
+                padding: "11px 18px",
+                border: 0,
+                borderRadius: "var(--bigram-r-sm)",
+                cursor: "pointer",
+                background: "var(--bigram-accent)",
+                color: "var(--bigram-on-accent)",
+                transition: "background .2s ease",
+            }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.background = "var(--bigram-accent-bright)";
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.background = "var(--bigram-accent)";
+            }}
+        >
+            {children}
+        </button>
+    );
+}
+
+function GhostButton({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                fontFamily: MONO,
+                fontSize: 12,
+                letterSpacing: ".14em",
+                textTransform: "uppercase",
+                fontWeight: 600,
+                padding: "11px 18px",
+                border: 0,
+                borderRadius: "var(--bigram-r-sm)",
+                cursor: "pointer",
+                background: "transparent",
+                color: "var(--bigram-muted)",
+                boxShadow: "inset 0 0 0 1px var(--bigram-rule-2)",
+                transition: "color .2s ease, box-shadow .2s ease, background .2s ease",
+            }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.color = "var(--bigram-accent)";
+                e.currentTarget.style.boxShadow = "inset 0 0 0 1px var(--bigram-accent)";
+                e.currentTarget.style.background = "var(--bigram-accent-soft)";
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.color = "var(--bigram-muted)";
+                e.currentTarget.style.boxShadow = "inset 0 0 0 1px var(--bigram-rule-2)";
+                e.currentTarget.style.background = "transparent";
+            }}
+        >
+            {children}
+        </button>
+    );
+}
 
 /**
  * VerdictSentence — fills the i18n template, replacing {char}/{best} with bold spans. Verdict
@@ -657,14 +747,3 @@ function VerdictSentence({
         </>
     );
 }
-
-/* ─── shared lead-hint style (editorial caption under each eyebrow) ─── */
-const leadHintStyle: React.CSSProperties = {
-    fontFamily: "var(--font-source-serif)",
-    fontSize: 16,
-    lineHeight: 1.6,
-    color: "var(--bigram-body)",
-    textAlign: "center",
-    margin: "0 auto",
-    maxWidth: "44ch",
-};

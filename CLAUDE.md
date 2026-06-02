@@ -4,6 +4,30 @@ Permanent direction for this project. Every contributor and agent follows it. It
 
 ---
 
+## Document map & authority hierarchy
+
+This project's direction is split across a few focused files. **Each topic has exactly one owner**; the others
+link to it instead of repeating it. Start here, then go to the owner for your task.
+
+| Document | Owns (authoritative on) |
+|---|---|
+| `CLAUDE.md` (this file) | Product north star, design philosophy, per-chapter identity, the quality bar, anti-noise. |
+| `narrative-guidelines.md` | Chapter-agnostic narrative & pedagogy: the 18 pillars, voice, failure patterns, critique protocol. |
+| `bigram-narrative-guidelines.md` | Bigram entry point: pointers into the generic guidelines + Bigram-specific authorities. |
+| `bigram-design-spec.md` | Bigram **visual tokens**: the `--bigram-*` catalog, typography, shared primitives. |
+| `docs/bigram-motion-bible.md` | Bigram **motion**: easings, durations, scan/count/heat idioms, reduced-motion contract. |
+| `src/features/lab/components/bigram/kit/AGENTS.md` | Bigram **build process**: the build contract + hard gates. **Read first before building a Bigram widget.** |
+| `src/features/lab/data/bigramSpine.ts` | Bigram **beat structure**: what each beat teaches, assumes, and hands off. |
+| `bigram-changelog.md` | Living log of Bigram decisions and **what did NOT work** — read before repeating mistakes in n-gram/MLP. |
+| `docs/archive/` | Historical, **non-normative** notes (superseded approaches, kept for the record). |
+| `bigram-redesign/` | Historical per-widget redesign reports (**non-normative**). |
+
+**Precedence when two docs disagree:** `CLAUDE.md` (principles) > the topic owner above (e.g. `bigram-design-spec.md`
+for tokens, `bigram-motion-bible.md` for motion, `narrative-guidelines.md` for story, `kit/AGENTS.md` for build).
+Anything under `docs/archive/` or `bigram-redesign/` is **never** authoritative.
+
+---
+
 ## North star
 
 **Build the best app in the world to learn about AI.**
@@ -48,11 +72,17 @@ Each chapter **owns one accent**. Never mix accents across chapters.
   `GenerationPlayground`, `TransitionMatrix`, …) must keep their original accents everywhere outside the
   chapter that opted in.
 - The shared `LabShell` chrome (`--lab-*`) is not retheme-able by a chapter.
-- The canonical Bigram tokens, primitives, and i18n keys live in `bigram-design-spec.md`.
+- The canonical Bigram tokens, primitives, and i18n keys live in `bigram-design-spec.md`. The **look & feel**
+  is set by the current §1/§2 React components + `src/features/lab/components/bigram/kit/` (read `kit/AGENTS.md`).
+  Narrative, structure, and copy follow `bigram-narrative-guidelines.md`. (The old v8/v10 prototypes are
+  historical — see `docs/archive/bigram-v8-v10-aesthetic-and-port-notes.md`; do not chase v10/v8 fidelity.)
 
 ---
 
 ## Visualizer quality protocol (mandatory bar)
+
+> **Canonical copy.** This protocol is mirrored in `bigram-design-spec.md §7` and operationalized as hard
+> gates in `kit/AGENTS.md`. If they ever diverge, **this section wins**.
 
 Any new or redesigned visualizer must clear this bar. **Flagship: simple in appearance, sophisticated underneath.**
 
@@ -73,9 +103,62 @@ Any new or redesigned visualizer must clear this bar. **Flagship: simple in appe
 - **Interaction** — prefer direct manipulation; hover/tap reveals meaning; motion that EXPLAINS ideas (not
   decoration); highlights/glows/panels/connectors stay subtle, intentional, secondary to the concept; use the
   project's color and language system (editorial-green for Bigram).
+- **Motion budget is NOT limited** — spring, smooth transitions, even canvas are welcome where they elevate
+  the idea. The limit is **visual cleanliness**, not animation count.
 - **Output expected from each visualizer agent** — (1) design direction (5–10 bullets), (2) interaction model
   (3–6 bullets), (3) implementation, (4) an ambitious solution, (5) ~300+ lines of considered code,
   (6) no superficial patches.
+
+---
+
+## Bigram build method — the kit (mandatory)
+
+For the **Bigram** chapter, every visualizer is **assembled from `src/features/lab/components/bigram/kit/`**,
+never coded from scratch. Before building or reworking a Bigram widget you MUST read
+**`src/features/lab/components/bigram/kit/AGENTS.md`** and follow its build contract. The kit (`MarkedText`,
+`ParchmentReader`, `FixedAlphabetRow`, `heat`, `Readout`, `CountUpNumber`, `Tabs`, `PlayButton`/`GhostButton`,
+`CaptionLine` + `HonestBar`/`PairChip`/`Verdict`) is extracted from the §1/§2 widgets the user approved as
+"the level", so a widget made of it cannot drift off-style. A widget = `kit primitives + its one unique mechanic`.
+
+- **See it before you ship it.** Validate at `/lab/bench?w=<slug>&theme=light|dark` — it renders ONE widget
+  isolated (no lazy-load, no backend, no LabShell banner). `tsc` green is not "done"; the bench checklist is.
+- **No widget built blind or out of context.** Each is built from its `bigram-spine` beat WITH the preceding
+  narrative in hand (what the reader already knows), so it teaches exactly its one new idea and is never
+  "pegado sin contexto" — the failure mode this method exists to kill.
+
+> **Superseded note:** the v8/v10 "aesthetic reference" and "faithful port" guidance is **obsolete for
+> Bigram**. Do NOT chase v10/v8 fidelity; the current §1/§2 components + the kit are the source of the look.
+> Those notes are preserved verbatim (for the record) in
+> `docs/archive/bigram-v8-v10-aesthetic-and-port-notes.md`. (User memory: `v10-prototype-not-source-of-truth.md`.)
+
+---
+
+## Historical: v8/v10 aesthetic & port notes (moved)
+
+The "Aesthetic reference — v10 prototype" and "Porting a visualizer — faithful port" sections that used to
+live here are **superseded** and have been moved **verbatim** to
+`docs/archive/bigram-v8-v10-aesthetic-and-port-notes.md` (kept for the record, non-normative). The current
+source of the look is the §1/§2 React components + the kit — see "Bigram build method" above.
+
+## Parallelization protocol (multi-agent visualizer work)
+
+> The "v10 target spec" wording below is historical, from the first port. For current Bigram work the
+> per-widget "target" is the **spine beat** (`bigramSpine.ts`) + the **kit**; the workflow itself
+> (pre-pass → disjoint per-widget agents → browser-validation gate) still stands.
+
+The first workflow failed because agents received prose + v8 and never validated. A correct parallel run:
+
+1. **Pre-pass (one agent, sequential — shared files only):** confirm tokens (`--bigram-*` ↔ v10 `:root`),
+   add the i18n keys, and write a per-widget **gap dossier** (v10 target spec + file paths + reuse-or-inline
+   decision). Touch `globals.css` / `i18n` / shared primitives **only here**.
+2. **Per-widget agents (parallel, disjoint files — one `.tsx` each):** each gets the FULL v10 source for its
+   widget (`mount<X>` + `.bw-<x>` CSS), the target `.tsx`, its gap dossier, and the faithful-port mandate.
+3. **Browser-validation gate (per widget):** render and diff against v10 — layout, states, motion, copy, both
+   themes, reduced-motion. Not merged until it matches.
+4. **Disjoint-file rule:** widget agents never edit shared files in parallel (that is the collision the
+   pre-pass exists to prevent).
+5. **No silent scope cuts:** if a widget cannot match v10 without changing a shared primitive, the agent
+   *reports it* — it does not quietly substitute a different primitive or drop a feature.
 
 ---
 

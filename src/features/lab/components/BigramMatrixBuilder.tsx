@@ -12,12 +12,14 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { FastForward, Pause, Play, RotateCcw, SkipForward } from "lucide-react";
 
 import {
+    CompletionCoda,
     EditPanel,
     glyph,
     IconBtn,
     MatrixGrid,
     PhrasePanel,
     primaryBtnStyle,
+    RunningTotal,
     SpeedControl,
     type Step,
 } from "@/features/lab/components/BigramMatrixBuilderParts";
@@ -25,7 +27,7 @@ import { useI18n } from "@/i18n/context";
 
 /**
  * BigramMatrixBuilder — the "build the transition matrix yourself" visualizer
- * (Bigram chapter, §3 mechanics · v8 · editorial-green).
+ * (Bigram chapter, §3 mechanics · v10 design language · editorial-green).
  *
  * ONE concept: *every adjacent pair in the text drops a +1 into one cell of the grid — count them
  * all and the transition matrix builds itself.* The grid is the single focal point: a calm,
@@ -39,9 +41,11 @@ import { useI18n } from "@/i18n/context";
  *    pair straight to its address (from, to) in the grid;
  *  • cell heat is honest — tint scales with the cell's share of the running maximum, capped so a busy
  *    cell glows without ever screaming neon;
+ *  • a quiet accumulator chip (`counted / total`) grows beside the pair so "count them ALL" is visible;
  *  • controls are minimal & premium: one accent Start, then quiet inset-ring icon controls; speed is a
- *    sunk segmented control (the established v8 pattern), not a ghost toggle;
- *  • completion reads as a calm sage line (editorial-insight voice), not a loud banner.
+ *    sunk segmented control, not a ghost toggle;
+ *  • completion lands as a calm sage coda panel (editorial-insight voice) restating the ONE idea —
+ *    every adjacent pair counted, and the grid IS the transition table — not a loud banner.
  *
  * Reads only --bigram-* tokens + the registered fonts; gated by the chapter's [data-bigram-theme] scope.
  * Reduced-motion safe (no fly / pulse / glint; final states shown instantly).
@@ -129,6 +133,15 @@ export function BigramMatrixBuilder() {
         return mx;
     }, [matrix]);
 
+    // Pairs counted so far (= landed steps) and distinct cells now filled — the running story of
+    // "count them all and the matrix builds itself", surfaced as a quiet accumulator + completion meta.
+    const counted = started ? Math.min(stepIdx + 1, steps.length) : 0;
+    const filledCells = useMemo(() => {
+        let n = 0;
+        for (const r of matrix) for (const v of r) if (v > 0) n += 1;
+        return n;
+    }, [matrix]);
+
     /* handlers */
     const applyText = useCallback(() => {
         const n = normalize(inputText);
@@ -210,13 +223,15 @@ export function BigramMatrixBuilder() {
                 />
             )}
 
-            {/* ── Current pair · step counter (the "what just happened" line) ── */}
+            {/* ── Current pair (+1) · running tally (the "what just happened" line) ── */}
             <div
                 style={{
                     minHeight: 34,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    gap: 16,
+                    flexWrap: "wrap",
                 }}
             >
                 <AnimatePresence mode="wait">
@@ -230,23 +245,9 @@ export function BigramMatrixBuilder() {
                             style={{
                                 display: "inline-flex",
                                 alignItems: "center",
-                                gap: 14,
-                                flexWrap: "wrap",
-                                justifyContent: "center",
+                                gap: 12,
                             }}
                         >
-                            <span
-                                style={{
-                                    fontFamily: "var(--font-jetbrains-mono)",
-                                    fontSize: 11,
-                                    letterSpacing: ".2em",
-                                    textTransform: "uppercase",
-                                    color: "var(--bigram-dim)",
-                                    fontVariantNumeric: "tabular-nums",
-                                }}
-                            >
-                                {stepIdx + 1}/{steps.length}
-                            </span>
                             <span
                                 style={{
                                     fontFamily: "var(--font-jetbrains-mono)",
@@ -283,22 +284,12 @@ export function BigramMatrixBuilder() {
                             </span>
                         </motion.div>
                     )}
-                    {done && (
-                        <motion.span
-                            key="done"
-                            initial={reduce ? false : { opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            style={{
-                                fontFamily: "var(--font-source-serif)",
-                                fontSize: 16,
-                                fontStyle: "italic",
-                                color: "var(--bigram-sage)",
-                            }}
-                        >
-                            {t("bigramBuilder.complete")}
-                        </motion.span>
-                    )}
                 </AnimatePresence>
+
+                {/* persistent accumulator — the running tally that grows toward "all pairs counted" */}
+                {started && (
+                    <RunningTotal count={counted} total={steps.length} reduce={!!reduce} />
+                )}
             </div>
 
             {/* ── Controls + speed ── */}
@@ -421,6 +412,16 @@ export function BigramMatrixBuilder() {
                 active={active}
                 reduce={!!reduce}
             />
+
+            {/* ── Completion coda — the ONE idea, in the calm sage voice (not the Verdict primitive) ── */}
+            {done && (
+                <CompletionCoda
+                    line={t("bigramBuilder.complete")}
+                    // language-neutral meta: Σ pairs counted · filled cells (symbols, no new i18n keys)
+                    meta={`Σ ${counted}  ·  ▦ ${filledCells}`}
+                    reduce={!!reduce}
+                />
+            )}
         </div>
     );
 }

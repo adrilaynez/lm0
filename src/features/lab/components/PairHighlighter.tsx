@@ -1,210 +1,172 @@
 "use client";
 
-import {
-    memo,
-    useCallback,
-    useEffect,
-    useLayoutEffect,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-import { PairChip } from "@/features/lab/components/bigram/PairChip";
+import { ANCHOR_SENTENCE, SPACE_GLYPH } from "@/features/lab/data/bigramCorpora";
 import { useI18n } from "@/i18n/context";
 
-/* ─── Types ─── */
-type PairTally = { src: string; dst: string; key: string; count: number };
-type LensRect = { left: number; top: number; width: number; height: number };
-
-/* ─── Defaults ─── */
-const DEFAULT_TEXT = "the cat sat";
-const SPACE_GLYPH = "·"; // matches PairChip's space rendering
+/* ─── Default phrase (§2 anchor coherence) ───
+   The §2 anchor is ANCHOR_SENTENCE ("the cat sat on the mat …"), the same corpus
+   CorpusCountingIdea counts. To keep the example thread coherent (narrative pillar
+   16) we walk the *opening* of that very sentence — not a separate toy string. The
+   first 14 chars give a short phrase ("the cat sat on") with two clear repeats —
+   `a→t` and `t→␣` — both touching the letter «t», so the eye is already on «t»
+   right before the narrative pivots to "fijémonos en la «t»". Derived, never
+   invented inline. Space renders as the glyph ␣ (U+2423), the dataset convention. */
+const DEFAULT_TEXT = ANCHOR_SENTENCE.slice(0, 14); // "the cat sat on"
+const MULT = "×"; // ×
 
 const disp = (ch: string): string => (ch === " " ? SPACE_GLYPH : ch);
+const keyOf = (a: string, b: string): string => `${a}→${b}`;
 
-/* Lens glide — sage frame slides pair→pair (the model's gaze moving forward). */
-const LENS_EASE = [0.4, 0.85, 0.3, 1] as const;
+/* tallyUpTo — counts pairs keyed a→b in first-appearance order, up to `step`. */
+function tallyUpTo(
+    step: number,
+    text: string,
+): { counts: Record<string, number>; order: string[] } {
+    const counts: Record<string, number> = {};
+    const order: string[] = [];
+    for (let i = 0; i <= step && i < text.length - 1; i++) {
+        const k = keyOf(text[i], text[i + 1]);
+        if (!(k in counts)) order.push(k);
+        counts[k] = (counts[k] ?? 0) + 1;
+    }
+    return { counts, order };
+}
 
 /**
- * PairHighlighter — a meditative walk through a phrase, two letters at a time.
+ * PairHighlighter — §2 "encuentra el patrón" (rework).
  *
- * ONE concept: scanning a phrase pair by pair, some pairs start *repeating*.
+ * ONE concept: walking a phrase two letters at a time, some pairs start *repeating*
+ * — and a repeated pair is the whole secret of "what usually comes next".
  *
- * A single persistent sage LENS glides from one pair to the next, framing the two
- * active characters (measured live from their span refs). A narrated line names the
- * current pair and whether it is new or a repeat. The running tally renders as
- * PairChips that tint the instant a pair appears a second time — so the pattern
- * pops out on its own. A closing summary names the repeated pairs explicitly.
+ * §2 rework (vs. the earlier port):
+ *   • Anchor coherence — the walked phrase is the OPENING of the §2 anchor sentence
+ *     (ANCHOR_SENTENCE, the corpus CorpusCountingIdea counts), not a separate toy
+ *     string. The repeats it surfaces (`a→t`, `t→␣`) both touch «t», priming the
+ *     immediate pivot to the t-focus widget that follows.
+ *   • Copy reads from the Phase-1 keys `bigramNarrative.v2.pairHighlighter.*`.
  *
- * Replaces the old per-character connection line + sweeping "+1" badge with the
- * single sliding lens called for by the v8 spec ("bw-pairs").
+ * The current pair is highlighted IN the sentence: the origin char gets a filled
+ * accent chip (hot1), the next char a soft accent tint with an inset ring (hot2). A
+ * narrated line names the pair and whether it is new or a repeat. The running tally
+ * renders as pills (appearance order) that tint the instant a pair appears a second
+ * time — with a whole-pill heartbeat (bwPairCelebrate) at the 1→2 instant and a
+ * count bounce (bwCountPop) on the current pair. A closing summary names the
+ * repeated pairs explicitly.
  *
- * Reads only --bigram-* tokens (gated by the chapter's [data-bigram-theme] scope)
- * and the registered fonts. Reduced-motion safe.
+ * Self-mounting: no required props. Reads its data from the dataset and its copy via
+ * useI18n. `accent` is accepted for call-site parity but the widget is already
+ * fully scoped to --bigram-* (gated by [data-bigram-theme]); it never restyles.
+ *
+ * Reads only --bigram-* tokens and registered fonts. Reduced-motion disables the
+ * heartbeat/pop beats and the layout animation.
  */
-export const PairHighlighter = memo(function PairHighlighter() {
+export interface PairHighlighterProps {
+    /** Call-site parity only — the widget is permanently bigram-scoped. */
+    accent?: "bigram";
+}
+export const PairHighlighter = memo(function PairHighlighter(
+    // accent is accepted for call-site parity; the widget is already bigram-scoped.
+    {}: PairHighlighterProps = {},
+) {
     const { t } = useI18n();
     const reduce = useReducedMotion();
 
     const [text, setText] = useState(DEFAULT_TEXT);
-    const [step, setStep] = useState(-1); // -1 = not started · 0..totalPairs-1 = current pair index
+    const [step, setStep] = useState(-1); // -1 = prompt · 0..total-1 = current pair index
     const [finished, setFinished] = useState(false);
     const [showCustomInput, setShowCustomInput] = useState(false);
     const [customText, setCustomText] = useState("");
 
+    /* freshPair — true only when this exact step was reached via advance/start
+       (v10's `freshPair` arg to update()). Drives the heartbeat + count pop. We
+       record the step that was *freshly* advanced to; an incidental re-render at
+       the same step does not match because it does not re-run the click handler.
+       finish / count-all / replay / custom set freshStep = -1 (update(false)). */
+    const [freshStep, setFreshStep] = useState(-1);
+
     const chars = useMemo(() => text.split(""), [text]);
-    const totalPairs = chars.length - 1;
+    const total = chars.length - 1;
+    const cur = step >= 0 && step < total ? step : -1;
 
-    /* ── Active pair indices ── */
-    const currentPairIdx = step >= 0 && step < totalPairs ? step : -1;
-
-    /* ── Tally accumulated up to (and including) the current step ──
-       Insertion order preserved; count tracked per pair key. */
-    const { tally, currentKey, currentSeenCount } = useMemo(() => {
-        if (step < 0) {
-            return { tally: [] as PairTally[], currentKey: "", currentSeenCount: 0 };
-        }
-        const counts: Record<string, number> = {};
-        const order: string[] = [];
-        let curKey = "";
-        let curSeen = 0;
-        for (let i = 0; i <= step && i < totalPairs; i++) {
-            const src = chars[i];
-            const dst = chars[i + 1];
-            const key = `${src}→${dst}`;
-            if (!(key in counts)) order.push(key);
-            counts[key] = (counts[key] ?? 0) + 1;
-            if (i === step) {
-                curKey = key;
-                curSeen = counts[key];
-            }
-        }
-        const built: PairTally[] = order.map((key) => {
-            const [src, dst] = key.split("→");
-            return { src, dst, key, count: counts[key] };
-        });
-        return { tally: built, currentKey: curKey, currentSeenCount: curSeen };
-    }, [chars, step, totalPairs]);
-
-    /* ── Final pattern: which pairs repeat (count >= 2), in first-seen order ── */
-    const repeatedPairs = useMemo(
-        () => tally.filter((p) => p.count >= 2),
-        [tally],
+    const { counts, order } = useMemo(
+        () => tallyUpTo(step, text),
+        [step, text],
     );
 
-    /* ───────────────────────── Sliding lens ─────────────────────────
-       The lens is ONE absolutely-positioned element. We measure the two
-       active character spans relative to the rail and place the lens to
-       frame them. First appearance snaps into place (no slide from 0,0);
-       every advance after that glides via CSS transition. */
-    const railRef = useRef<HTMLDivElement | null>(null);
-    const charRefs = useRef<Array<HTMLSpanElement | null>>([]);
-    const [lens, setLens] = useState<LensRect | null>(null);
-    // Whether the lens has been placed once — kept in state (not a ref) so the
-    // render stays pure. Suppresses the slide on first placement.
-    const [hasPlacedLens, setHasPlacedLens] = useState(false);
+    const curKey = cur >= 0 ? keyOf(chars[cur], chars[cur + 1]) : null;
+    const curSeen = curKey ? counts[curKey] : 0;
+    const freshPair = !finished && cur >= 0 && cur === freshStep;
 
-    const measureLens = useCallback(() => {
-        const rail = railRef.current;
-        if (!rail || currentPairIdx < 0) {
-            setLens(null);
-            setHasPlacedLens(false);
-            return;
-        }
-        const a = charRefs.current[currentPairIdx];
-        const b = charRefs.current[currentPairIdx + 1];
-        if (!a || !b) return;
-
-        const railBox = rail.getBoundingClientRect();
-        const aBox = a.getBoundingClientRect();
-        const bBox = b.getBoundingClientRect();
-
-        const padX = 8; // breathing room so the frame hugs, not clips
-        const padY = 6;
-        const left = aBox.left - railBox.left - padX;
-        const top = Math.min(aBox.top, bBox.top) - railBox.top - padY;
-        const width = bBox.right - aBox.left + padX * 2;
-        const height = Math.max(aBox.height, bBox.height) + padY * 2;
-
-        // Mark "placed" only after the first real placement so the very first
-        // appearance snaps in (no slide) and every subsequent move glides.
-        setLens((prev) => {
-            if (prev === null) setHasPlacedLens(true);
-            return { left, top, width, height };
-        });
-    }, [currentPairIdx]);
-
-    // Measure after layout commits (fonts/wrap settled) and on resize. Reading
-    // the rendered span geometry and storing it in state is the canonical
-    // "synchronize with the DOM layout" effect — there is no pure alternative,
-    // since the lens position is only known once the characters have laid out.
-    useLayoutEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- layout measurement, see above
-        measureLens();
-    }, [measureLens, text]);
-
-    useEffect(() => {
-        if (currentPairIdx < 0) return;
-        const onResize = () => measureLens();
-        window.addEventListener("resize", onResize);
-        return () => window.removeEventListener("resize", onResize);
-    }, [measureLens, currentPairIdx]);
-
-    // First placement = lens exists but has not yet been marked placed, so the
-    // initial frame disables the slide transition (it snaps into position).
-    const lensFirstPlacement = lens !== null && !hasPlacedLens;
-
-    /* ── Controls ── */
-    const advance = useCallback(() => {
-        setStep((prev) => {
-            const next = prev + 1;
-            if (next >= totalPairs) {
-                setFinished(true);
-                return prev;
-            }
-            return next;
-        });
-    }, [totalPairs]);
-
+    /* ── Controls (v10 advance / start / replay / count-all / custom) ── */
     const start = useCallback(() => {
-        setHasPlacedLens(false);
+        setFreshStep(0);
         setStep(0);
         setFinished(false);
     }, []);
 
-    const reset = useCallback(() => {
-        setHasPlacedLens(false);
+    const advance = useCallback(() => {
+        const nx = step + 1;
+        if (nx >= total) {
+            setFinished(true); // freshPair stays false on finish (matches update())
+            setFreshStep(-1);
+        } else {
+            setFreshStep(nx);
+            setStep(nx);
+        }
+    }, [step, total]);
+
+    const countAll = useCallback(() => {
+        setFreshStep(-1);
+        setStep(total - 1);
+        setFinished(true);
+    }, [total]);
+
+    const replay = useCallback(() => {
+        setFreshStep(-1);
         setStep(-1);
         setFinished(false);
-        setLens(null);
+        setShowCustomInput(false);
     }, []);
 
     const handleCustomSubmit = useCallback(() => {
-        const cleaned = customText.trim().toLowerCase().slice(0, 16);
-        if (cleaned.length >= 2) {
-            setHasPlacedLens(false);
-            setText(cleaned);
-            setShowCustomInput(false);
-            setCustomText("");
+        const v = customText.trim().toLowerCase().slice(0, 18);
+        if (v.length >= 2) {
+            setText(v);
+            setFreshStep(-1);
             setStep(-1);
             setFinished(false);
-            setLens(null);
+            setShowCustomInput(false);
+            setCustomText("");
         }
     }, [customText]);
 
-    /* ── Token style helpers (inline so they follow [data-bigram-theme]) ── */
+    /* repeated pairs for the closing summary, in first-seen order */
+    const repeats = useMemo(
+        () => order.filter((k) => counts[k] >= 2),
+        [order, counts],
+    );
+
     const monoFont = "var(--font-jetbrains-mono)";
     const serifFont = "var(--font-source-serif)";
 
-    const lensTransition = reduce || lensFirstPlacement
-        ? { duration: 0 }
-        : { duration: 0.46, ease: LENS_EASE };
-
     return (
         <div style={{ maxWidth: 580, margin: "0 auto" }}>
+            {/* Component-scoped keyframes (cannot edit globals.css). Reduced-motion
+                disables their use at the call sites below. */}
+            <style>{`
+@keyframes bwPairCelebrate {
+  0% { transform: scale(1); }
+  32% { transform: scale(1.2); }
+  62% { transform: scale(.97); }
+  100% { transform: scale(1); }
+}
+@keyframes bwCountPop { from { transform: scale(1.7); } to { transform: scale(1); } }
+`}</style>
+
             {/* ── Opening prompt + start ── */}
             <AnimatePresence>
                 {step === -1 && !finished && (
@@ -227,80 +189,73 @@ export const PairHighlighter = memo(function PairHighlighter() {
                                 textWrap: "pretty",
                             }}
                         >
-                            {t("bigramNarrative.pairHighlighter.stepPrompt")}
+                            {t("bigramNarrative.v2.pairHighlighter.stepPrompt")}
                         </p>
                         <StartButton onClick={start}>
-                            {t("bigramNarrative.pairHighlighter.startButton")}
+                            {t("bigramNarrative.v2.pairHighlighter.startButton")}
                         </StartButton>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* ── The phrase, with the sliding lens ── */}
+            {/* ── RAIL · the phrase; current pair highlighted in place (hot1 + hot2) ── */}
             {step >= 0 && (
                 <div
-                    ref={railRef}
                     style={{
-                        position: "relative",
                         display: "flex",
                         flexWrap: "wrap",
                         justifyContent: "center",
                         alignItems: "center",
-                        gap: 0,
-                        padding: "34px 10px 18px",
+                        gap: 3,
+                        padding: "14px 10px 20px",
                     }}
                 >
-                    {/* Persistent sage lens (one element, glides pair→pair) */}
-                    {lens && (
-                        <motion.div
-                            aria-hidden
-                            initial={false}
-                            animate={{
-                                left: lens.left,
-                                top: lens.top,
-                                width: lens.width,
-                                height: lens.height,
-                                opacity: 1,
-                            }}
-                            transition={lensTransition}
-                            style={{
-                                position: "absolute",
-                                borderRadius: 14,
-                                background: "var(--bigram-sage-soft)",
-                                boxShadow:
-                                    "inset 0 0 0 1px color-mix(in oklab, var(--bigram-sage) 32%, transparent)",
-                                pointerEvents: "none",
-                                zIndex: 0,
-                            }}
-                        />
-                    )}
-
                     {chars.map((char, i) => {
-                        const isActive = i === currentPairIdx || i === currentPairIdx + 1;
-                        const isDone = i < currentPairIdx;
-                        const color = isActive
-                            ? "var(--bigram-accent-ink)"
-                            : isDone
-                                ? "color-mix(in oklab, var(--bigram-ink) 40%, var(--bigram-dim))"
-                                : "color-mix(in oklab, var(--bigram-dim) 52%, transparent)";
+                        const isSpace = char === " ";
+                        const isHot1 = cur >= 0 && i === cur;
+                        const isHot2 = cur >= 0 && i === cur + 1;
+                        const isDone = cur >= 0 && i < cur;
+                        const isAhead = cur >= 0 && i > cur + 1;
+
+                        let color = "var(--bigram-dim)";
+                        let background = "transparent";
+                        let boxShadow: string | undefined;
+                        let fontWeight = 500;
+
+                        if (isHot1) {
+                            color = "var(--bigram-on-accent)";
+                            background = "var(--bigram-accent)";
+                            fontWeight = 700;
+                        } else if (isHot2) {
+                            color = "var(--bigram-accent-ink)";
+                            background = "var(--bigram-accent-soft)";
+                            boxShadow =
+                                "inset 0 0 0 2px color-mix(in oklab, var(--bigram-accent) 38%, transparent)";
+                            fontWeight = 700;
+                        } else if (isDone) {
+                            color =
+                                "color-mix(in oklab, var(--bigram-ink) 40%, var(--bigram-dim))";
+                        } else if (isAhead) {
+                            color =
+                                "color-mix(in oklab, var(--bigram-dim) 52%, transparent)";
+                        }
 
                         return (
                             <span
                                 key={`${text}-${i}`}
-                                ref={(el) => {
-                                    charRefs.current[i] = el;
-                                }}
                                 style={{
-                                    position: "relative",
-                                    zIndex: 1,
                                     fontFamily: monoFont,
-                                    fontSize: "clamp(40px, 8vw, 58px)",
-                                    fontWeight: isActive ? 600 : 500,
+                                    fontSize: "clamp(38px, 7.6vw, 54px)",
+                                    fontWeight,
                                     lineHeight: 1,
                                     color,
-                                    padding: "7px 3px",
+                                    background,
+                                    boxShadow,
+                                    padding: isSpace ? "5px 7px" : "5px 4px",
+                                    borderRadius: 10,
                                     userSelect: "none",
-                                    transition: "color .3s ease, font-weight .3s ease",
+                                    transition:
+                                        "color .26s ease, background .26s ease, box-shadow .26s ease, font-weight .26s",
                                 }}
                             >
                                 {disp(char)}
@@ -310,154 +265,149 @@ export const PairHighlighter = memo(function PairHighlighter() {
                 </div>
             )}
 
-            {/* ── Narrated current pair: "Current pair  t→h  · seen 2× · it repeats!" ── */}
+            {/* ── Narrated current pair: "Par actual  t→h  · visto 2× · ¡se repite!" ── */}
             {step >= 0 && (
                 <div
                     style={{
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        gap: 16,
+                        gap: 14,
                         flexWrap: "wrap",
-                        minHeight: 30,
-                        margin: "0 0 30px",
+                        minHeight: 26,
+                        margin: "0 0 20px",
+                        opacity: cur >= 0 ? 1 : 0,
                     }}
                 >
-                    <AnimatePresence mode="wait">
-                        {currentPairIdx >= 0 && (
-                            <motion.div
-                                key={`now-${currentPairIdx}-${currentKey}`}
-                                initial={reduce ? false : { opacity: 0, y: 4 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.28 }}
+                    {cur >= 0 ? (
+                        <>
+                            <span
                                 style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 16,
-                                    flexWrap: "wrap",
-                                    justifyContent: "center",
+                                    fontFamily: monoFont,
+                                    fontSize: 10.5,
+                                    letterSpacing: ".2em",
+                                    textTransform: "uppercase",
+                                    color: "var(--bigram-muted)",
                                 }}
                             >
-                                <span
-                                    style={{
-                                        fontFamily: monoFont,
-                                        fontSize: 10.5,
-                                        letterSpacing: ".2em",
-                                        textTransform: "uppercase",
-                                        color: "var(--bigram-muted)",
-                                    }}
-                                >
-                                    {t("bigramNarrative.pairHighlighter.currentPairLabel")}
-                                </span>
+                                {t("bigramNarrative.v2.pairHighlighter.currentPairLabel")}
+                            </span>
 
-                                {/* the pair itself: src dim → dst accent */}
+                            {/* the pair itself: src dim → dst accent-ink */}
+                            <span
+                                style={{
+                                    fontFamily: monoFont,
+                                    fontSize: 24,
+                                    display: "inline-flex",
+                                    alignItems: "baseline",
+                                }}
+                            >
+                                <span style={{ color: "var(--bigram-dim)" }}>
+                                    {disp(chars[cur])}
+                                </span>
                                 <span
                                     style={{
-                                        fontFamily: monoFont,
-                                        fontSize: 24,
-                                        display: "inline-flex",
-                                        alignItems: "baseline",
+                                        color: "var(--bigram-dim)",
+                                        fontSize: 15,
+                                        margin: "0 4px",
                                     }}
                                 >
-                                    <span style={{ color: "var(--bigram-dim)" }}>
-                                        {disp(chars[currentPairIdx])}
-                                    </span>
-                                    <span
-                                        style={{
-                                            color: "var(--bigram-dim)",
-                                            fontSize: 15,
-                                            margin: "0 4px",
-                                        }}
-                                    >
-                                        →
-                                    </span>
-                                    <span
-                                        style={{
-                                            color: "var(--bigram-accent-ink)",
-                                            fontWeight: 600,
-                                        }}
-                                    >
-                                        {disp(chars[currentPairIdx + 1])}
-                                    </span>
+                                    →
                                 </span>
+                                <span
+                                    style={{
+                                        color: "var(--bigram-accent-ink)",
+                                        fontWeight: 600,
+                                    }}
+                                >
+                                    {disp(chars[cur + 1])}
+                                </span>
+                            </span>
 
-                                {/* first time / it repeats */}
-                                <span
-                                    style={{
-                                        fontFamily: monoFont,
-                                        fontSize: 12.5,
-                                        fontWeight: currentSeenCount >= 2 ? 600 : 400,
-                                        color:
-                                            currentSeenCount >= 2
-                                                ? "var(--bigram-accent)"
-                                                : "var(--bigram-dim)",
-                                    }}
-                                >
-                                    {currentSeenCount >= 2
-                                        ? t("bigramNarrative.pairHighlighter.seenRepeats").replace(
-                                            "{n}",
-                                            String(currentSeenCount),
-                                        )
-                                        : t("bigramNarrative.pairHighlighter.firstTime")}
-                                </span>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                            {/* first time / it repeats */}
+                            <span
+                                style={{
+                                    fontFamily: monoFont,
+                                    fontSize: 12.5,
+                                    fontWeight: curSeen >= 2 ? 600 : 400,
+                                    color:
+                                        curSeen >= 2
+                                            ? "var(--bigram-accent)"
+                                            : "var(--bigram-dim)",
+                                }}
+                            >
+                                {curSeen >= 2
+                                    ? t("bigramNarrative.v2.pairHighlighter.seenRepeats", {
+                                        n: curSeen,
+                                    })
+                                    : t("bigramNarrative.v2.pairHighlighter.firstTime")}
+                            </span>
+                        </>
+                    ) : (
+                        <span aria-hidden>&nbsp;</span>
+                    )}
                 </div>
             )}
 
-            {/* ── Running tally ── */}
+            {/* ── Count header (no bottom border) ── */}
             {step >= 0 && (
-                <div>
-                    <div
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "baseline",
+                        justifyContent: "space-between",
+                        margin: "0 0 14px",
+                    }}
+                >
+                    <span
                         style={{
-                            display: "flex",
-                            alignItems: "baseline",
-                            justifyContent: "space-between",
-                            margin: "0 0 18px",
-                            paddingBottom: 11,
-                            borderBottom: "1px solid var(--bigram-rule)",
+                            fontFamily: monoFont,
+                            fontSize: 11,
+                            letterSpacing: ".2em",
+                            textTransform: "uppercase",
+                            color: "var(--bigram-muted)",
                         }}
                     >
-                        <span
-                            style={{
-                                fontFamily: monoFont,
-                                fontSize: 11,
-                                letterSpacing: ".2em",
-                                textTransform: "uppercase",
-                                color: "var(--bigram-muted)",
-                            }}
-                        >
-                            {t("bigramNarrative.pairHighlighter.countsLabel")}
-                        </span>
-                        <span
-                            style={{
-                                fontFamily: monoFont,
-                                fontSize: 12,
-                                color: "var(--bigram-dim)",
-                                fontVariantNumeric: "tabular-nums",
-                            }}
-                        >
-                            {Math.min(step + 1, totalPairs)} / {totalPairs}
-                        </span>
-                    </div>
+                        {t("bigramNarrative.v2.pairHighlighter.countsLabel")}
+                    </span>
+                    <span
+                        style={{
+                            fontFamily: monoFont,
+                            fontSize: 12,
+                            color: "var(--bigram-dim)",
+                            fontVariantNumeric: "tabular-nums",
+                        }}
+                    >
+                        {step >= 0 ? Math.min(step + 1, total) : 0} / {total}
+                    </span>
+                </div>
+            )}
 
-                    <motion.div
-                        layout={!reduce}
-                        style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            gap: 10,
-                            minHeight: 44,
-                        }}
-                    >
-                        <AnimatePresence initial={false}>
-                            {tally.map(({ key, src, dst, count }) => (
+            {/* ── Running tally · pills in appearance order ── */}
+            {step >= 0 && (
+                <motion.div
+                    layout={!reduce}
+                    style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: 10,
+                        minHeight: 44,
+                    }}
+                >
+                    <AnimatePresence initial={false}>
+                        {order.map((k) => {
+                            const n = counts[k];
+                            const [src, dst] = k.split("→");
+                            const isCur = k === curKey && freshPair;
+                            const justRep = isCur && n === 2; // the 1→2 instant: the heartbeat
+                            const popCount = isCur; // count bounce on the current pair
+                            const rep = n >= 2;
+
+                            return (
                                 <motion.div
-                                    key={key}
+                                    key={k}
                                     layout={!reduce}
                                     transition={
                                         reduce
@@ -465,21 +415,93 @@ export const PairHighlighter = memo(function PairHighlighter() {
                                             : { duration: 0.35, ease: [0.2, 0.8, 0.2, 1] }
                                     }
                                     style={{
-                                        // gently lift the just-touched pair
-                                        zIndex: key === currentKey ? 1 : 0,
+                                        zIndex: k === curKey ? 1 : 0,
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: 11,
+                                        padding: "7px 8px 7px 15px",
+                                        borderRadius: "var(--bigram-r-pill)",
+                                        background: rep
+                                            ? "var(--bigram-accent-soft)"
+                                            : "color-mix(in oklab, var(--bigram-ink) 5%, transparent)",
+                                        boxShadow: rep
+                                            ? "inset 0 0 0 1px color-mix(in oklab, var(--bigram-accent) 26%, transparent)"
+                                            : undefined,
+                                        animation:
+                                            justRep && !reduce
+                                                ? "bwPairCelebrate .64s cubic-bezier(.2,.8,.2,1)"
+                                                : undefined,
                                     }}
                                 >
-                                    <PairChip
-                                        src={src}
-                                        dst={dst}
-                                        count={count}
-                                        repeated={count >= 2}
-                                    />
+                                    <span
+                                        style={{
+                                            fontFamily: monoFont,
+                                            fontSize: 18,
+                                            display: "inline-flex",
+                                            alignItems: "baseline",
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                color: rep
+                                                    ? "color-mix(in oklab, var(--bigram-accent) 60%, var(--bigram-dim))"
+                                                    : "var(--bigram-dim)",
+                                            }}
+                                        >
+                                            {disp(src)}
+                                        </span>
+                                        <span
+                                            style={{
+                                                color: rep
+                                                    ? "color-mix(in oklab, var(--bigram-accent) 60%, var(--bigram-dim))"
+                                                    : "var(--bigram-dim)",
+                                                fontSize: 13,
+                                                margin: "0 3px",
+                                            }}
+                                        >
+                                            →
+                                        </span>
+                                        <span
+                                            style={{
+                                                color: rep
+                                                    ? "var(--bigram-accent-ink)"
+                                                    : "var(--bigram-ink)",
+                                                fontWeight: rep ? 600 : 500,
+                                            }}
+                                        >
+                                            {disp(dst)}
+                                        </span>
+                                    </span>
+                                    <span
+                                        style={{
+                                            fontFamily: monoFont,
+                                            fontSize: 12.5,
+                                            fontWeight: 700,
+                                            color: rep
+                                                ? "var(--bigram-on-accent)"
+                                                : "var(--bigram-dim)",
+                                            fontVariantNumeric: "tabular-nums",
+                                            minWidth: 23,
+                                            height: 23,
+                                            borderRadius: "50%",
+                                            display: "inline-grid",
+                                            placeItems: "center",
+                                            background: rep
+                                                ? "var(--bigram-accent)"
+                                                : "color-mix(in oklab, var(--bigram-ink) 9%, transparent)",
+                                            animation:
+                                                popCount && !reduce
+                                                    ? "bwCountPop .44s cubic-bezier(.2,.8,.2,1)"
+                                                    : undefined,
+                                        }}
+                                    >
+                                        {n}
+                                    </span>
                                 </motion.div>
-                            ))}
-                        </AnimatePresence>
-                    </motion.div>
-                </div>
+                            );
+                        })}
+                    </AnimatePresence>
+                </motion.div>
             )}
 
             {/* ── Closing pattern summary ── */}
@@ -517,21 +539,30 @@ export const PairHighlighter = memo(function PairHighlighter() {
                                 color: "var(--bigram-accent)",
                             }}
                         >
-                            {t("bigramNarrative.pairHighlighter.patternLabel")}
+                            {t("bigramNarrative.v2.pairHighlighter.patternLabel")}
                         </span>
 
-                        {repeatedPairs.length > 0 ? (
+                        {repeats.length > 0 ? (
                             <>
                                 <span>
-                                    {t("bigramNarrative.pairHighlighter.patternRepeats")}
+                                    {t("bigramNarrative.v2.pairHighlighter.patternRepeats")}
                                 </span>
-                                {repeatedPairs.map(({ key, src, dst }) => (
-                                    <RepeatToken key={key} src={src} dst={dst} mono={monoFont} />
-                                ))}
+                                {repeats.map((k) => {
+                                    const [src, dst] = k.split("→");
+                                    return (
+                                        <RepeatToken
+                                            key={k}
+                                            src={src}
+                                            dst={dst}
+                                            count={counts[k]}
+                                            mono={monoFont}
+                                        />
+                                    );
+                                })}
                             </>
                         ) : (
                             <span>
-                                {t("bigramNarrative.pairHighlighter.patternUnique")}
+                                {t("bigramNarrative.v2.pairHighlighter.patternUnique")}
                             </span>
                         )}
                     </motion.div>
@@ -546,36 +577,36 @@ export const PairHighlighter = memo(function PairHighlighter() {
                         alignItems: "center",
                         justifyContent: "center",
                         gap: 14,
-                        marginTop: 34,
+                        marginTop: 22,
                         flexWrap: "wrap",
                     }}
                 >
                     {!finished ? (
-                        <StartButton onClick={advance}>
-                            {t("bigramNarrative.pairHighlighter.nextStep")}
-                            <span
-                                style={{
-                                    marginLeft: 9,
-                                    opacity: 0.55,
-                                    fontSize: 11,
-                                    fontWeight: 500,
-                                }}
-                            >
-                                {step + 1} / {totalPairs}
-                            </span>
-                        </StartButton>
+                        <>
+                            <StartButton onClick={advance}>
+                                {t("bigramNarrative.v2.pairHighlighter.nextStep")}
+                                <span
+                                    style={{
+                                        marginLeft: 9,
+                                        opacity: 0.55,
+                                        fontSize: 11,
+                                        fontWeight: 500,
+                                    }}
+                                >
+                                    {step + 1}/{total}
+                                </span>
+                            </StartButton>
+                            <GhostButton onClick={countAll}>
+                                {t("bigramNarrative.v2.pairHighlighter.countAll")} →
+                            </GhostButton>
+                        </>
                     ) : (
                         <>
-                            <GhostButton
-                                onClick={() => {
-                                    reset();
-                                    setTimeout(start, 60);
-                                }}
-                            >
-                                {t("bigramNarrative.pairHighlighter.replay")}
+                            <GhostButton onClick={replay}>
+                                ↻ {t("bigramNarrative.v2.pairHighlighter.replay")}
                             </GhostButton>
                             <GhostButton onClick={() => setShowCustomInput((v) => !v)}>
-                                {t("bigramNarrative.pairHighlighter.tryOwn")}
+                                {t("bigramNarrative.v2.pairHighlighter.tryOwn")}
                             </GhostButton>
                         </>
                     )}
@@ -603,9 +634,11 @@ export const PairHighlighter = memo(function PairHighlighter() {
                             <input
                                 type="text"
                                 value={customText}
-                                onChange={(e) => setCustomText(e.target.value.slice(0, 16))}
+                                maxLength={18}
+                                onChange={(e) => setCustomText(e.target.value.slice(0, 18))}
                                 onKeyDown={(e) => e.key === "Enter" && handleCustomSubmit()}
-                                placeholder={t("bigramNarrative.pairHighlighter.placeholder")}
+                                placeholder={t("bigramNarrative.v2.pairHighlighter.placeholder")}
+                                aria-label={t("bigramNarrative.v2.pairHighlighter.tryOwn")}
                                 autoFocus
                                 style={{
                                     fontFamily: monoFont,
@@ -625,7 +658,7 @@ export const PairHighlighter = memo(function PairHighlighter() {
                                 onClick={handleCustomSubmit}
                                 disabled={customText.trim().length < 2}
                             >
-                                {t("bigramNarrative.pairHighlighter.go")}
+                                {t("bigramNarrative.v2.pairHighlighter.go")}
                             </StartButton>
                         </div>
                     </motion.div>
@@ -635,7 +668,7 @@ export const PairHighlighter = memo(function PairHighlighter() {
     );
 });
 
-/* ─────────────── Local buttons (token-only, v8 .btn vocabulary) ─────────────── */
+/* ─────────────── Local buttons (token-only, v10 .btn vocabulary) ─────────────── */
 
 function StartButton({
     children,
@@ -716,14 +749,17 @@ function GhostButton({
     );
 }
 
-/* Repeated-pair token used in the closing summary (mirrors .bw-pairs__summary .rp). */
+/* Repeated-pair token used in the closing summary (mirrors .bw-pairs__summary .rp,
+   including the ×N count). */
 function RepeatToken({
     src,
     dst,
+    count,
     mono,
 }: {
     src: string;
     dst: string;
+    count: number;
     mono: string;
 }) {
     return (
@@ -761,6 +797,8 @@ function RepeatToken({
                 →
             </span>
             <span>{disp(dst)}</span>
+            {MULT}
+            {count}
         </span>
     );
 }

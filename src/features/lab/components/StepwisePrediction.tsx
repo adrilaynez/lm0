@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
@@ -10,28 +10,38 @@ import type { StepDetail } from "@/features/lab/types/lmLab";
 import { useI18n } from "@/i18n/context";
 
 /**
- * StepwisePrediction — Bigram chapter, v8 editorial-green.
+ * StepwisePrediction — Bigram chapter, editorial-green (v10 design language).
  *
  * ONE concept: a language model writes one character at a time, and *each prediction becomes the
- * context for the next one*. The learner watches a seed phrase grow, character by character, while
- * every step shows — honestly — how sure the model was about that single choice.
+ * context for the next one*. The redesign teaches that feedback loop with MOTION rather than prose —
+ * when the result arrives it is *played back* step by step: the sentence grows one glyph at a time,
+ * and each glyph's honest-probability bar lands in sync. The eye literally watches the output feed
+ * back as the next input.
  *
- * Design (simple surface, deep execution):
- *  - No card chrome. A single faint plane marks "this is interactive" (editorial figure, spec §5).
- *  - The focal point is the growing sequence ribbon: the seed in dim ink, each new char arriving in
- *    accent, so the eye reads the sentence extending. The per-step bars are secondary evidence.
- *  - Each step is a HonestBar (src→dst pair, fixed 0.5 axis): the fill literally shows the model's
- *    certainty for that one character — never normalised to 100 %.
- *  - The chain is made visible: step N's source char IS step N−1's prediction (highlighted in the
- *    ribbon as each bar reveals), reinforcing "the output feeds back as input".
- *  - A sage Verdict closes the loop in plain language: from "<seed>" it continued with "<tail>".
+ * Design direction (v10 flagship bar — simple surface, deep execution):
+ *  - No card-on-card chrome: one faint plane marks "interactive figure" (spec §5). States by fill +
+ *    typography, never by piled borders.
+ *  - ONE focal point: the growing sequence ribbon. Seed in dim ink; each prediction arrives in accent;
+ *    the *just-written* glyph is brightest, and the glyph that fed it (its source) glows in tandem —
+ *    the chain made visible, not merely asserted.
+ *  - The per-step HonestBars are secondary evidence on a fixed honest 0.5 axis: a weak guess looks
+ *    weak. Each bar reveals only when the playback reaches it, so the column reads as *writing*, not a
+ *    pre-rendered list.
+ *  - A sage Verdict closes the loop in plain language once the playback settles.
  *
- * Tokens only (--bigram-*) + registered fonts; lives inside the page's [data-bigram-theme] scope.
- * Reduced-motion safe throughout (cascade collapses, glints/count-ups suppressed by HonestBar).
+ * Interaction model:
+ *  - Type a seed, pick a length, press Predict → the model replies, then the chain plays back.
+ *  - Playback is automatic and paced (≈260ms/char) so each step is followable; it lands the whole
+ *    chain, then the Verdict resolves. A "replay" affordance re-runs the writing.
+ *  - Reduced-motion: playback collapses to the full chain instantly — no caret, no cascade, no glints
+ *    (HonestBar already suppresses its own).
+ *
+ * Tokens only (--bigram-*) + --bigram-r-* radii + registered fonts; lives inside [data-bigram-theme].
  */
 
 const SPACE_GLYPH = "␣";
-const STEP_STAGGER_S = 0.14; // gap between successive step reveals — paced so the chain reads
+const PLAYBACK_MS = 260; // per-character writing pace — slow enough to follow the loop
+const FIRST_STEP_MS = 380; // settle before the first glyph is written
 const MIN_STEPS = 1;
 const MAX_STEPS = 10;
 
@@ -104,17 +114,22 @@ const SectionLabel = memo(function SectionLabel({
 const SequenceRibbon = memo(function SequenceRibbon({
     seed,
     chain,
-    activeIndex,
+    written,
     seedLabel,
     sequenceLabel,
+    building,
 }: {
     seed: string;
     chain: { dst: string }[];
-    activeIndex: number;
+    /** how many predictions have been written so far (0..chain.length) */
+    written: number;
     seedLabel: string;
     sequenceLabel: string;
+    /** true while playback is still extending the sentence (drives the caret) */
+    building: boolean;
 }) {
     const reduce = useReducedMotion();
+    const activeIndex = written - 1; // the just-written glyph (brightest)
 
     return (
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -158,23 +173,33 @@ const SequenceRibbon = memo(function SequenceRibbon({
                 }}
             >
                 {/* seed — the text the learner gave, calm and dim */}
-                {seed.split("").map((c, i) => (
-                    <span
-                        key={`seed-${i}`}
-                        style={{
-                            color: "var(--bigram-muted)",
-                            whiteSpace: "pre",
-                        }}
-                    >
-                        {c === " " ? " " : c}
-                    </span>
-                ))}
+                {seed.split("").map((c, i) => {
+                    // the last seed char is the *source* of step 1: it glows while step 1 is current
+                    const isSource = i === seed.length - 1 && activeIndex === 0;
+                    return (
+                        <motion.span
+                            key={`seed-${i}`}
+                            animate={{
+                                color: isSource
+                                    ? "var(--bigram-accent-ink)"
+                                    : "var(--bigram-muted)",
+                            }}
+                            transition={reduce ? { duration: 0 } : { duration: 0.25 }}
+                            style={{ whiteSpace: "pre" }}
+                        >
+                            {c === " " ? " " : c}
+                        </motion.span>
+                    );
+                })}
 
-                {/* predictions — each one arrives in accent; the current step pulses brighter */}
+                {/* predictions — each arrives in accent; the just-written one is brightest, and the
+                    glyph that *fed* it (the prior prediction) glows in tandem to show the chain. */}
                 <AnimatePresence initial={false}>
                     {chain.map((step, i) => {
-                        if (i > activeIndex) return null;
+                        if (i >= written) return null;
                         const isCurrent = i === activeIndex;
+                        // this glyph is the SOURCE of the glyph currently being written → glows too
+                        const isSource = i === activeIndex - 1;
                         return (
                             <motion.span
                                 key={`pred-${i}`}
@@ -185,7 +210,9 @@ const SequenceRibbon = memo(function SequenceRibbon({
                                     scale: 1,
                                     color: isCurrent
                                         ? "var(--bigram-accent-bright)"
-                                        : "var(--bigram-accent)",
+                                        : isSource
+                                          ? "var(--bigram-accent-ink)"
+                                          : "var(--bigram-accent)",
                                 }}
                                 transition={
                                     reduce
@@ -194,14 +221,14 @@ const SequenceRibbon = memo(function SequenceRibbon({
                                 }
                                 style={{ whiteSpace: "pre" }}
                             >
-                                {step.dst === " " ? " " : step.dst}
+                                {step.dst === " " ? " " : step.dst}
                             </motion.span>
                         );
                     })}
                 </AnimatePresence>
 
-                {/* a soft caret while the chain is still building */}
-                {activeIndex < chain.length - 1 && !reduce && (
+                {/* a soft caret while the chain is still being written */}
+                {building && !reduce && (
                     <motion.span
                         aria-hidden
                         animate={{ opacity: [0.15, 0.7, 0.15] }}
@@ -227,8 +254,8 @@ interface StepwisePredictionProps {
     steps: StepDetail[] | null;
     /**
      * The API's single most-likely next char after the whole sequence. Retained for API
-     * compatibility, but the v8 verdict shows the *full* continuation (derived from `steps`),
-     * which is the pedagogically truthful "what the model wrote", so this is no longer consumed.
+     * compatibility, but the verdict shows the *full* continuation (derived from `steps`), which is
+     * the pedagogically truthful "what the model wrote", so this is no longer consumed.
      */
     finalPrediction?: string | null;
     loading: boolean;
@@ -262,9 +289,56 @@ export function StepwisePrediction({
         [steps, submittedSeed]
     );
 
-    // chain is fully revealed once steps arrive; the ribbon's "active" char is the last one
-    const activeIndex = chain.length - 1;
     const tail = useMemo(() => chain.map((c) => c.dst).join(""), [chain]);
+
+    // ── Staged playback ──────────────────────────────────────────────────────────────────────
+    // `written` = how many predictions have been revealed so far. The chain plays back one glyph at a
+    // time (ribbon grows + matching bar lands), then settles. A `runId` lets "replay" re-run it.
+    const [written, setWritten] = useState(0);
+    const [runId, setRunId] = useState(0);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+            timerRef.current = null;
+        }
+        // Every state write below lives inside a timer callback — never synchronously in the effect
+        // body — so the playback never triggers a cascading render (mirrors CorpusCountingIdea).
+        if (chain.length === 0) {
+            timerRef.current = setTimeout(() => setWritten(0), 0);
+        } else if (reduce) {
+            // Reduced motion: reveal the whole chain at once, no cascade.
+            timerRef.current = setTimeout(() => setWritten(chain.length), 0);
+        } else {
+            // Otherwise: write character by character on a timer (the first tick also resets to 0
+            // by writing 1; the pre-roll keeps the ribbon empty for FIRST_STEP_MS).
+            let i = 0;
+            const reset = setTimeout(() => setWritten(0), 0);
+            const tick = () => {
+                i += 1;
+                setWritten(i);
+                if (i < chain.length) {
+                    timerRef.current = setTimeout(tick, PLAYBACK_MS);
+                }
+            };
+            timerRef.current = setTimeout(tick, FIRST_STEP_MS);
+            return () => {
+                clearTimeout(reset);
+                if (timerRef.current) clearTimeout(timerRef.current);
+            };
+        }
+        return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+        };
+        // re-runs whenever a fresh chain arrives or the learner asks to replay
+    }, [chain, reduce, runId]);
+
+    // Clamp so a stale (larger) count from a previous run can never over-reveal a new, shorter chain
+    // before the reset timer fires.
+    const writtenClamped = Math.min(written, chain.length);
+    const building = writtenClamped < chain.length;
+    const settled = chain.length > 0 && writtenClamped >= chain.length;
 
     const rangePct = ((numSteps - MIN_STEPS) / (MAX_STEPS - MIN_STEPS)) * 100;
 
@@ -481,56 +555,129 @@ export function StepwisePrediction({
                         <SequenceRibbon
                             seed={submittedSeed}
                             chain={chain}
-                            activeIndex={activeIndex}
+                            written={writtenClamped}
+                            building={building}
                             seedLabel={t("models.bigram.stepwise.seedLabel")}
                             sequenceLabel={t("models.bigram.stepwise.sequenceLabel")}
                         />
 
-                        {/* per-step honest bars — the evidence behind each character */}
+                        {/* per-step honest bars — the evidence behind each character. Each bar reveals
+                            only when the playback has *written* its glyph, so the column reads as the
+                            sentence being composed rather than a pre-rendered table. */}
                         <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                             <SectionLabel
                                 numeral="ii."
                                 label={t("models.bigram.stepwise.feedsNext")}
                             />
-                            <div style={{ marginTop: "6px" }}>
-                                {chain.map((row, i) => (
-                                    <HonestBar
-                                        key={`${row.step}-${row.src}-${row.dst}`}
-                                        src={row.src}
-                                        dst={row.dst}
-                                        value={row.probability}
-                                        top={i === activeIndex}
-                                        delay={reduce ? 0 : i * STEP_STAGGER_S}
-                                        ariaLabel={`${t("models.bigram.stepwise.stepLabel").replace(
-                                            "{n}",
-                                            String(row.step)
-                                        )}: ${glyph(row.src)} → ${glyph(row.dst)}, ${(
-                                            row.probability * 100
-                                        ).toFixed(1)}%`}
-                                    />
-                                ))}
+                            <div style={{ marginTop: "6px", minHeight: "1px" }}>
+                                <AnimatePresence initial={false}>
+                                    {chain.map((row, i) => {
+                                        if (i >= writtenClamped) return null;
+                                        const isLatest = i === writtenClamped - 1;
+                                        return (
+                                            <motion.div
+                                                key={`${row.step}-${row.src}-${row.dst}`}
+                                                initial={
+                                                    reduce
+                                                        ? false
+                                                        : { opacity: 0, y: 8 }
+                                                }
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={
+                                                    reduce
+                                                        ? { duration: 0 }
+                                                        : {
+                                                              duration: 0.32,
+                                                              ease: [0.2, 0.8, 0.2, 1],
+                                                          }
+                                                }
+                                            >
+                                                <HonestBar
+                                                    src={row.src}
+                                                    dst={row.dst}
+                                                    value={row.probability}
+                                                    top={isLatest}
+                                                    ariaLabel={`${t(
+                                                        "models.bigram.stepwise.stepLabel"
+                                                    ).replace(
+                                                        "{n}",
+                                                        String(row.step)
+                                                    )}: ${glyph(row.src)} → ${glyph(
+                                                        row.dst
+                                                    )}, ${(row.probability * 100).toFixed(1)}%`}
+                                                />
+                                            </motion.div>
+                                        );
+                                    })}
+                                </AnimatePresence>
                             </div>
                         </div>
 
-                        {/* sage verdict — the conclusion in human language */}
-                        {tail.length > 0 && (
-                            <Verdict
-                                label={t("models.bigram.stepwise.verdictLabel")}
-                                main={
-                                    <>
-                                        {renderVerdictMain(
-                                            t("models.bigram.stepwise.verdictMain"),
-                                            submittedSeed,
-                                            tail
+                        {/* sage verdict + replay — the conclusion, once the chain has settled */}
+                        <AnimatePresence>
+                            {settled && tail.length > 0 && (
+                                <motion.div
+                                    key="settled"
+                                    initial={reduce ? false : { opacity: 0, y: 8 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={
+                                        reduce
+                                            ? { duration: 0 }
+                                            : { duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }
+                                    }
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: "16px",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <Verdict
+                                        label={t("models.bigram.stepwise.verdictLabel")}
+                                        main={
+                                            <>
+                                                {renderVerdictMain(
+                                                    t("models.bigram.stepwise.verdictMain"),
+                                                    submittedSeed,
+                                                    tail
+                                                )}
+                                            </>
+                                        }
+                                        sub={t("models.bigram.stepwise.verdictSub").replace(
+                                            "{n}",
+                                            String(chain.length)
                                         )}
-                                    </>
-                                }
-                                sub={t("models.bigram.stepwise.verdictSub").replace(
-                                    "{n}",
-                                    String(chain.length)
-                                )}
-                            />
-                        )}
+                                    />
+
+                                    {/* replay — re-runs the writing (suppressed under reduced motion,
+                                        where there is no cascade to replay) */}
+                                    {!reduce && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setRunId((n) => n + 1)}
+                                            style={{
+                                                display: "inline-flex",
+                                                alignItems: "center",
+                                                gap: "8px",
+                                                fontFamily: "var(--font-jetbrains-mono)",
+                                                fontSize: "11px",
+                                                letterSpacing: ".06em",
+                                                padding: "7px 14px",
+                                                border: 0,
+                                                borderRadius: "var(--bigram-r-sm)",
+                                                cursor: "pointer",
+                                                background: "transparent",
+                                                color: "var(--bigram-muted)",
+                                                boxShadow:
+                                                    "inset 0 0 0 1px var(--bigram-rule-2)",
+                                            }}
+                                        >
+                                            ↻ {t("bigramNarrative.pairHighlighter.replay")}
+                                        </button>
+                                    )}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </motion.div>
                 )}
             </AnimatePresence>

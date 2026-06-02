@@ -87,6 +87,7 @@ function BigramPageContent() {
                 data-bigram-theme={theme}
                 className="bg-bigram-bg text-bigram-ink min-h-screen"
             >
+            <div className="bigram-grain" aria-hidden />
             {isEducational ? (
                 /* ═══════════════════════════════════════════
                    EDUCATIONAL MODE — Narrative blog layout
@@ -106,7 +107,7 @@ function BigramPageContent() {
                 /* ═══════════════════════════════════════════
                    FREE LAB MODE — Full interactive playground
                    ═══════════════════════════════════════════ */
-                <div className="max-w-7xl mx-auto pb-24">
+                <div className="relative z-[1] max-w-7xl mx-auto pb-24">
 
                     {/* ─── HERO ─── */}
                     <ModelHero accent="bigram" />
@@ -185,6 +186,7 @@ function BigramPageContent() {
                                 accent="bigram"
                             />
                             <GenerationPlayground
+                                accent="bigram"
                                 onGenerate={gen.generate}
                                 generatedText={gen.data?.generated_text ?? null}
                                 loading={gen.loading}
@@ -212,6 +214,7 @@ function BigramPageContent() {
                     {viz.data?.historical_context && (
                         <FadeInView margin="-60px" className="max-w-5xl mx-auto px-6 mt-28">
                             <HistoricalContextPanel
+                                accent="bigram"
                                 data={{
                                     description: t("models.bigram.historicalContext.description"),
                                     limitations: [
