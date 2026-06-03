@@ -83,6 +83,22 @@
   topFollowers, contextRow, predictAt, diagnostics (contextSpace 27^k, observedContexts, sparsity),
   generateLocal (con backoff + temperatura), validateAgainstBigram.
 
+## Fase D (composición) — en curso
+- **NgramNarrative.tsx reescrito**: nuevo arco de 7 secciones, scope `[data-ngram-theme]` + `bg-ngram-bg` +
+  ngram-grain, primitivas `accent="ngram"` (Heading/Lead/P/Callout/PullQuote/SectionLabel/SectionBreak/
+  FigureWrapper/KeyTakeaway), hero editorial (Playfair «Una ventana ancha»), los 9 widgets del kit
+  lazy-cargados en `<Figure>`, plegable Historia (IBM/Jelinek/«no hay mejor dato que más dato»), CTA →
+  /lab/neural-networks. Validado en navegador (hero+§1+§2, widgets in-page montan dentro de la figura).
+- **i18n**: `ngramNarrative.v2.*` añadido en es.ts Y en.ts (en sync) con toda la prosa auditada.
+- **Compartidos**: `accent="ngram"` aditivo en ContinueToast + SectionProgressBar (espejo de bigram).
+- **gen-ngram-prose.mjs** → `ngram-narrative.md` (mirror). FLOW GATE pasado: arco sube, puentes «¿y si?»,
+  cero duplicación dura, descubrir-no-definir, voz humana.
+- **ESLINT baseline**: el repo tiene **139 errores `react-hooks/set-state-in-effect` PRE-EXISTENTES**
+  (i18n/context, ContinueToast, widgets viejos…), ajenos a este trabajo. TODOS mis archivos nuevos
+  (ngram/*, NgramNarrative, ngramData, ngramSpine) están **eslint-limpios (0)**. tsc --noEmit: 0.
+- **Pendiente Fase D**: re-skin free-lab `page.tsx` (scope ámbar; NO borrar widgets, backend OK);
+  regresión bigram/transformers; verificación final temas.
+
 ## Estado por visualizador (se actualiza en build)
 | § | Widget | Origen | Estado |
 |---|---|---|---|

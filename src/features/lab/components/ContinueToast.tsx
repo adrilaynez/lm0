@@ -8,7 +8,7 @@ import { BookOpen, X } from "lucide-react";
 interface ContinueToastProps {
     /** Human-readable section names keyed by section id */
     sectionNames: Record<string, string>;
-    accent?: "rose" | "emerald" | "amber" | "violet" | "cyan" | "bigram";
+    accent?: "rose" | "emerald" | "amber" | "violet" | "cyan" | "bigram" | "ngram";
     hasStoredProgress: boolean;
     storedSection: string;
     clearProgress: () => void;
@@ -43,6 +43,15 @@ const ACCENT: Record<string, AccentStyle> = {
         btn: "bg-[var(--bigram-accent-soft)] hover:bg-[color-mix(in_oklab,var(--bigram-accent)_22%,transparent)] border-[color-mix(in_oklab,var(--bigram-accent)_30%,transparent)] text-bigram-accent-ink",
         body: "text-bigram-ink-2",
         fresh: "border-[var(--bigram-rule)] bg-[color-mix(in_oklab,var(--bigram-ink)_4%,transparent)] hover:bg-[color-mix(in_oklab,var(--bigram-ink)_8%,transparent)] text-bigram-dim",
+    },
+    // N-gram (editorial-amber) — token-driven mirror of the bigram entry under [data-ngram-theme].
+    ngram: {
+        border: "border-[color-mix(in_oklab,var(--ngram-accent)_30%,transparent)]",
+        bg: "bg-[color-mix(in_oklab,var(--ngram-accent)_8%,var(--ngram-surface))]",
+        icon: "text-ngram-accent",
+        btn: "bg-[var(--ngram-accent-soft)] hover:bg-[color-mix(in_oklab,var(--ngram-accent)_22%,transparent)] border-[color-mix(in_oklab,var(--ngram-accent)_30%,transparent)] text-ngram-accent-ink",
+        body: "text-ngram-ink-2",
+        fresh: "border-[var(--ngram-rule)] bg-[color-mix(in_oklab,var(--ngram-ink)_4%,transparent)] hover:bg-[color-mix(in_oklab,var(--ngram-ink)_8%,transparent)] text-ngram-dim",
     },
 };
 
