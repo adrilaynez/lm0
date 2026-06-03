@@ -42,8 +42,8 @@ export const TypoBreaker = memo(function TypoBreaker({ accent }: { accent?: "ngr
                 value={raw}
                 onChange={(e) => setRaw(e.target.value)}
                 spellCheck={false}
-                aria-label="Escribe algo"
-                placeholder="escribe algo…"
+                aria-label="una palabra"
+                placeholder="una palabra…"
             />
 
             {/* what the model actually looks at */}
@@ -57,7 +57,7 @@ export const TypoBreaker = memo(function TypoBreaker({ accent }: { accent?: "ngr
                 <span className="nw-tb__chance" style={{ left: `${w(CHANCE)}%` }} title="azar" />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontFamily: MONO, fontSize: 10.5, color: "var(--ngram-dim)", marginTop: -8 }}>
-                <span>azar ≈ 4%</span>
+                <span>azar ≈ {(CHANCE * 100).toFixed(0)}%</span>
                 <span>seguro</span>
             </div>
 

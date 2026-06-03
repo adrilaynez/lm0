@@ -105,9 +105,11 @@ export const ContextWindow = memo(function ContextWindow({ accent }: { accent?: 
                     <span>
                         después de «{context.split("").map(displayChar).join("")}»
                     </span>
-                    <span style={{ color: "var(--ngram-accent-ink)" }}>
-                        {(topProb * 100).toFixed(0)}% de confianza
-                    </span>
+                    {top.length > 0 && (
+                        <span style={{ color: "var(--ngram-accent-ink)" }}>
+                            {(topProb * 100).toFixed(0)}% de confianza
+                        </span>
+                    )}
                 </div>
 
                 {top.map((f, i) => (

@@ -17,8 +17,8 @@ kit ARE the aesthetic baseline; this kit is a fork of it.
 
 **Assemble from the kit. Do not re-code the look.** A widget is `kit primitives + its one unique mechanic`.
 If you find yourself writing letter-marking, a 27-slot row, a count-up, a heat ramp, a pill tab bar, a play
-button, a parchment reader, a sliding context window, or an explosion grid from scratch — stop, you are
-about to reinvent a kit piece and it will come out mediocre and inconsistent. Import it instead.
+button, or a parchment reader from scratch — stop, you are about to reinvent a kit piece and it will come
+out mediocre and inconsistent. Import it instead. (A widget's ONE unique mechanic IS coded in the widget.)
 
 ```ts
 import {
@@ -26,7 +26,6 @@ import {
   MarkedText, CaptionLine, Tabs,
   PlayButton, GhostButton, CountUpNumber, Readout,
   FixedAlphabetRow, ParchmentReader,
-  ContextWindow, ExplosionGrid,               // NEW ngram primitives
 } from "@/features/lab/components/ngram/kit";
 // also available from "@/features/lab/components/ngram": HonestBar, PairChip, Verdict
 ```
@@ -88,11 +87,12 @@ Same as bigram/kit (forked), reading `--ngram-*`:
 - **`CaptionLine`** — the mono uppercase eyebrow (never a heading).
 - **`HonestBar` / `PairChip` / `Verdict`** (in `../`) — honest fixed-axis bar, pair chip, sage verdict panel.
 
-NEW ngram primitives (added for this chapter — keep them blessed, don't inline):
-- **`ContextWindow`** — a sliding window of the last n chars over a real text: past chars dim, the n-char
-  window highlighted (the context), a cursor at the prediction point. Drives §1 (predict game) and reusable.
-- **`ExplosionGrid`** — a grid/number that multiplies ×27 per step to visualize 27^(n-1) combinatorial growth.
-  Drives §4. Ordered, count-idiom, heat. (If a new beat needs a new reusable piece, ADD it here + document.)
+Per-widget UNIQUE mechanics (built inside their `.tsx`, NOT kit primitives — they're each used once):
+- §1 ContextWindow's sliding context-window is just `MarkedText` (mark the last n chars `hot1`/`hot2`) + a
+  cursor span — no new primitive needed.
+- §4 ContextExplosion's ×27 grid is a small inline grid in the widget (one-off).
+If a future beat needs a genuinely REUSABLE piece, ADD it to the kit (export from `index.ts`) and document
+it here — do not advertise a primitive that doesn't exist.
 
 ---
 

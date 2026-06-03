@@ -71,7 +71,7 @@ export const ContextCounter = memo(function ContextCounter({ accent }: { accent?
                     counts={row1}
                     winner={win1}
                     hoverIdx={sel}
-                    onHover={(i) => { if (i != null && row1[i] > 0) setSel(i); }}
+                    onHover={(i) => { if (i != null) setSel(i); }}
                     height={120}
                 />
                 <WinLine ctx={BASE} ch={ALPHA[win1]} pct={(row1[win1] / (t1 || 1)) * 100} note="repartido entre muchas" />

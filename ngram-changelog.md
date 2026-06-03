@@ -99,6 +99,19 @@
 - **Pendiente Fase D**: re-skin free-lab `page.tsx` (scope ámbar; NO borrar widgets, backend OK);
   regresión bigram/transformers; verificación final temas.
 
+## Pase de crítico severo (agente) — hecho + correcciones aplicadas
+Veredicto: sólido, on-token, datos honestos, tsc limpio. CERO colores hardcodeados en los 9 widgets.
+Hallazgos aplicados:
+- (med) kit/AGENTS.md prometía primitivas `ContextWindow`/`ExplosionGrid` inexistentes → corregido: son
+  mecánicas únicas dentro de su widget (MarkedText + cursor; grid inline), no primitivas del kit.
+- (med) TypoBreaker: voz imperativa («Escribe algo») → placeholder/aria «una palabra».
+- (low) TypoBreaker: «azar ≈ 4%» literal → derivado de `CHANCE`.
+- (low) ContextWindow: ocultar «0% de confianza» cuando no hay datos.
+- (low) ContextCounter: hover en slot vacío ahora selecciona → muestra honestamente «no aparece nunca».
+- (low) HonestBar glint `rgba(255,255,255)`: moot (glint={false} en todos los usos ngram).
+Verificación visual: SimilarityBridge reflow OK (capturado), ContextExplosion grid = ilustración (el nº es
+el dato real). Sin más hallazgos.
+
 ## Estado por visualizador (se actualiza en build)
 | § | Widget | Origen | Estado |
 |---|---|---|---|
