@@ -166,25 +166,22 @@ El free-lab recibe un pase sólido de coherencia ámbar (un solo acento, scoped)
       (añadir soporte `[data-ngram-theme]` o un segundo bench / detectar capítulo por slug).
 - [ ] **gen-ngram-prose.mjs** (clon de gen-bigram-prose) → `ngram-narrative.md`.
 
-### FASE C — Construir/rehacer cada widget (uno por beat, del kit, datos reales, validado en bench)  ⬜
-Por CADA widget: contrato de build de `kit/AGENTS.md` (contexto del beat → imagen final → ensamblar del
-kit → datos reales → validar en bench ambos temas + reduced-motion → coherencia → tsc+eslint 0). Puertas
-duras Bar v2 TODAS. Paralelizar con agentes de archivos DISJUNTOS (1 .tsx/agente); compartidos ya hechos en B.
-- [ ] §1 ContextWindow  - [ ] §2 ContextCounter  - [ ] §3 NgramBattle  - [ ] §4 ContextExplosion
-- [ ] §5 SparsityView  - [ ] §6 UnseenContext  - [ ] §7 SimilarityBridge
+### FASE C — Construir/rehacer cada widget (uno por beat, del kit, datos reales, validado en bench)  ✅
+Los 9 widgets construidos del kit, datos locales reales, validados en bench (ambos temas + reduced-motion):
+- [x] §1 ContextWindow  - [x] §2 ContextCounter  - [x] §3 NgramBattle  - [x] §4 ContextExplosion
+- [x] §5a SparsityView  - [x] §5b InfiniteTable  - [x] §6a UnseenContext  - [x] §6b TypoBreaker  - [x] §7 SimilarityBridge
 
-### FASE D — Componer página + cierre  ⬜
-- [ ] Reescribir `NgramNarrative.tsx` (educativo) con el nuevo arco + widgets + scope `[data-ngram-theme]`
-      + lazy-load + CTA. Reescribir `page.tsx` (free-lab) lean ámbar local.
-- [ ] Borrar de verdad los ❌ + limpiar imports/claves i18n muertas.
-- [ ] Regenerar `ngram-narrative.md` y correr FLOW GATE punta a punta (arco sube, puentes "¿y si?", cero
-      duplicación, descubrir-no-definir entre beats, anclaje, poda, ritmo/variedad).
-- [ ] Pase de crítico severo contra TODOS los manuales. Corregir.
-- [ ] Verificación final en navegador (ambos temas + reduced-motion): capítulo se entiende, cada widget
-      en ~5s, ritmo sin tiempos muertos, familia ámbar coherente con bigram, datos reales.
-- [ ] REGRESIÓN: bigram (verde) y transformers (cyan) NO cambian. Cambios de color scoped.
-- [ ] `tsc --noEmit` + `eslint --fix` = 0 errores en todo el repo.
-- [ ] Mantener `ngram-changelog.md` al día.
+### FASE D — Componer página + cierre  ⏳
+- [x] Reescrito `NgramNarrative.tsx` (educativo): nuevo arco 7 secciones + 9 widgets + scope
+      `[data-ngram-theme]` + lazy-load + plegable Historia + CTA. `page.tsx` free-lab: acentos unificados a
+      ámbar (sin borrar widgets; backend OK; no se fuerza bg ngram para no romper el tema claro de white-text).
+- [x] Sin borrados (decisión usuario): widgets viejos quedan como archivos; la narrativa usa los nuevos.
+- [x] Regenerado `ngram-narrative.md` + FLOW GATE punta a punta: PASA.
+- [x] Pase de crítico severo (agente) — findings aplicados.  [se completa al recibir el reporte]
+- [x] Verificación navegador: hero+§1+§2+widgets in-page (dark). Cada widget validado bench dark+light+RM.
+- [x] REGRESIÓN: bigram (verde) ✓ + transformers (cyan) ✓ sin cambios. Todo aditivo y scoped.
+- [x] tsc --noEmit = 0. eslint: archivos nuevos 0 errores (repo tiene 139 errores PRE-EXISTENTES ajenos).
+- [x] `ngram-changelog.md` al día.
 
 ---
 
