@@ -353,7 +353,7 @@ function AdvancedMetricsCollapsible({
                                     icon={Gauge}
                                     title={t("models.ngram.lab.performanceSummary.title")}
                                     description={t("models.ngram.lab.performanceSummary.description")}
-                                    accent="emerald"
+                                    accent="amber"
                                 >
                                     <NgramPerformanceSummary
                                         inferenceMs={nGramData?.metadata.inference_time_ms}
@@ -371,7 +371,7 @@ function AdvancedMetricsCollapsible({
                                     icon={TrendingDown}
                                     title={t("models.ngram.lab.sections.trainingQuality")}
                                     description={t("models.ngram.lab.sections.trainingQualityDesc").replace("{n}", String(contextSize))}
-                                    accent="emerald"
+                                    accent="amber"
                                 >
                                     <NgramLossChart
                                         trainLossHistory={displayedLossHistory}
@@ -632,7 +632,7 @@ function NgramPageContent() {
                             icon={BarChart3}
                             title={t("models.ngram.lab.sparsity.title")}
                             description={t("models.ngram.lab.sparsity.description")}
-                            accent="red"
+                            accent="amber"
                         >
                             <NgramSparsityIndicator training={training} diagnostics={diagnostics} />
                         </LabSection>
@@ -641,7 +641,7 @@ function NgramPageContent() {
                             icon={Layers}
                             title={t("models.ngram.lab.comparison.title")}
                             description={t("models.ngram.lab.comparison.description")}
-                            accent="violet"
+                            accent="amber"
                         >
                             <NgramComparisonDashboard metrics={comparisonMetrics} currentN={viz.contextSize} />
                         </LabSection>
@@ -689,7 +689,7 @@ function NgramPageContent() {
                                     icon={Activity}
                                     title={t("models.ngram.lab.sections.stepwise")}
                                     description={t("models.ngram.lab.sections.stepwiseDesc")}
-                                    accent="violet"
+                                    accent="amber"
                                 >
                                     <StepwisePrediction
                                         onPredict={stepwise.predict}
@@ -740,7 +740,7 @@ function NgramPageContent() {
                     </p>
                     <Link
                         href="/lab/neural-networks"
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 hover:border-rose-500/40 text-rose-300 hover:text-rose-200 text-sm font-semibold transition-colors"
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 hover:border-amber-500/40 text-amber-300 hover:text-amber-200 text-sm font-semibold transition-colors"
                     >
                         {t("ngramNarrative.cta.neuralButton")}
                         <ArrowRight className="w-4 h-4" />
