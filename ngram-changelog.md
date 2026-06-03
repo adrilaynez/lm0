@@ -86,9 +86,9 @@
 ## Estado por visualizador (se actualiza en build)
 | § | Widget | Origen | Estado |
 |---|---|---|---|
-| §1 | ContextWindow | ContextWindowVisualizer | ⬜ rebuild |
-| §2 | ContextCounter | NgramMiniTransitionTable (+ideas) | ⬜ rework/rebuild |
-| §3 | NgramBattle | NgramGenerationBattle | ⬜ rework (local) |
+| §1 | ContextWindow | ContextWindowVisualizer | ✅ build (kit, real data; k=1 flat→k=4 sharp; bench dark+light OK) |
+| §2 | ContextCounter | NgramMiniTransitionTable (+ideas) | ✅ build (kit, real; t-row spread vs th-row spike, hover-drill; bench dark+light OK; deviación reportada: contraste interactivo en vez de re-scan papiro para no duplicar RowTally) |
+| §3 | NgramBattle | NgramGenerationBattle | ✅ build (kit, LOCAL gen con backoff; k=1 sopa→k=4 casi frases con nombres; typewriter; bench dark+light OK) |
 | §4 | ContextExplosion | ExponentialGrowthAnimator (+FiveGram) | ⬜ rework |
 | §5a | SparsityView | SparsityHeatmap | ⬜ rework |
 | §5b | InfiniteTable | InfiniteTableThoughtExperiment | ⬜ rework |

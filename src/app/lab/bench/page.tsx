@@ -33,6 +33,11 @@ const ContextBlindnessDemo = lazy(() => import("@/features/lab/components/Contex
 const ShannonContextLadder = lazy(() => import("@/features/lab/components/ShannonContextLadder").then(m => ({ default: m.ShannonContextLadder })));
 const KitShowcase = lazy(() => import("@/features/lab/components/bigram/kit/KitShowcase").then(m => ({ default: m.KitShowcase })));
 
+/* ─── N-gram chapter widgets (amber, [data-ngram-theme]) ─── */
+const ContextWindow = lazy(() => import("@/features/lab/components/ngram/ContextWindow").then(m => ({ default: m.ContextWindow })));
+const ContextCounter = lazy(() => import("@/features/lab/components/ngram/ContextCounter").then(m => ({ default: m.ContextCounter })));
+const NgramBattle = lazy(() => import("@/features/lab/components/ngram/NgramBattle").then(m => ({ default: m.NgramBattle })));
+
 /** slug → { label, node, chapter }. Order here is the chapter order, for the picker. */
 const WIDGETS: { slug: string; label: string; node: React.ReactNode; chapter?: "bigram" | "ngram" }[] = [
     { slug: "fill-the-blank", label: "VIS1 · FillTheBlank", node: <FillTheBlank /> },
@@ -51,6 +56,10 @@ const WIDGETS: { slug: string; label: string; node: React.ReactNode; chapter?: "
     { slug: "context-blindness", label: "— · ContextBlindness", node: <ContextBlindnessDemo /> },
     { slug: "shannon-ladder", label: "— · ShannonLadder", node: <ShannonContextLadder /> },
     { slug: "kit-showcase", label: "KIT · showcase", node: <KitShowcase /> },
+    // ── N-gram (amber) ──
+    { slug: "ng-context-window", label: "NG§1 · ContextWindow", node: <ContextWindow />, chapter: "ngram" },
+    { slug: "ng-context-counter", label: "NG§2 · ContextCounter", node: <ContextCounter />, chapter: "ngram" },
+    { slug: "ng-battle", label: "NG§3 · NgramBattle", node: <NgramBattle />, chapter: "ngram" },
 ];
 
 const MONO = "var(--bigram-font-mono)";
