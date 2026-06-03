@@ -94,6 +94,51 @@ export interface Follower {
     prob: number;
 }
 
+/**
+ * Light distinct-context stats for level k (a Set of contexts, no follower maps) — cheaper than getCounts
+ * for high k, which is all the sparsity view needs. distinct = how many k-char contexts actually appear.
+ */
+const _statsCache = new Map<number, { distinct: number; total: number }>();
+export function contextStats(k: number): { distinct: number; total: number } {
+    const cached = _statsCache.get(k);
+    if (cached) return cached;
+    const s = ngramStream();
+    const set = new Set<string>();
+    let totalN = 0;
+    for (let i = k; i < s.length; i++) {
+        set.add(s.slice(i - k, i));
+        totalN++;
+    }
+    const r = { distinct: set.size, total: totalN };
+    _statsCache.set(k, r);
+    return r;
+}
+
+/**
+ * Distribution after ONE specific context, found by a single linear scan of the stream (no full getCounts
+ * map). Use for high-k probes (the §6 seen-vs-unseen demos) where only a couple of contexts are queried —
+ * avoids materializing the entire k-gram table. Returns null if the context never occurs.
+ */
+export function scanContext(context: string): { followers: Follower[]; total: number } | null {
+    const k = context.length;
+    if (k === 0) return contextDistribution(0, "");
+    const s = ngramStream();
+    const row = new Map<string, number>();
+    let total = 0;
+    for (let i = k; i < s.length; i++) {
+        if (s[i - k] === context[0] && s.slice(i - k, i) === context) {
+            const ch = s[i];
+            row.set(ch, (row.get(ch) ?? 0) + 1);
+            total++;
+        }
+    }
+    if (total === 0) return null;
+    const followers: Follower[] = [];
+    for (const [ch, count] of row) followers.push({ ch, count, prob: count / total });
+    followers.sort((a, b) => b.count - a.count);
+    return { followers, total };
+}
+
 /** Row total (denominator) for a context, or 0 if unseen. */
 export function contextTotal(k: number, context: string): number {
     const row = getCounts(k).get(context);
@@ -155,17 +200,17 @@ export interface NgramDiagnostics {
 }
 
 export function diagnostics(k: number): NgramDiagnostics {
-    const counts = getCounts(k);
-    const contextSpace = Math.pow(NGRAM_ALPHABET.length, k);
-    let totalNgrams = 0;
-    for (const row of counts.values()) for (const v of row.values()) totalNgrams += v;
+    // contextStats (a Set) is far lighter than getCounts (Map of Maps) for high k, and gives the same
+    // distinct-context count + total the diagnostics need.
+    const { distinct, total } = contextStats(k);
+    const space = Math.pow(NGRAM_ALPHABET.length, k);
     return {
         k,
         vocab: NGRAM_ALPHABET.length,
-        contextSpace,
-        observedContexts: counts.size,
-        sparsity: contextSpace > 0 ? 1 - counts.size / contextSpace : 0,
-        totalNgrams,
+        contextSpace: space,
+        observedContexts: distinct,
+        sparsity: space > 0 ? 1 - distinct / space : 0,
+        totalNgrams: total,
     };
 }
 

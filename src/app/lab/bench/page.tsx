@@ -37,6 +37,9 @@ const KitShowcase = lazy(() => import("@/features/lab/components/bigram/kit/KitS
 const ContextWindow = lazy(() => import("@/features/lab/components/ngram/ContextWindow").then(m => ({ default: m.ContextWindow })));
 const ContextCounter = lazy(() => import("@/features/lab/components/ngram/ContextCounter").then(m => ({ default: m.ContextCounter })));
 const NgramBattle = lazy(() => import("@/features/lab/components/ngram/NgramBattle").then(m => ({ default: m.NgramBattle })));
+const ContextExplosion = lazy(() => import("@/features/lab/components/ngram/ContextExplosion").then(m => ({ default: m.ContextExplosion })));
+const SparsityView = lazy(() => import("@/features/lab/components/ngram/SparsityView").then(m => ({ default: m.SparsityView })));
+const InfiniteTable = lazy(() => import("@/features/lab/components/ngram/InfiniteTable").then(m => ({ default: m.InfiniteTable })));
 
 /** slug → { label, node, chapter }. Order here is the chapter order, for the picker. */
 const WIDGETS: { slug: string; label: string; node: React.ReactNode; chapter?: "bigram" | "ngram" }[] = [
@@ -60,6 +63,9 @@ const WIDGETS: { slug: string; label: string; node: React.ReactNode; chapter?: "
     { slug: "ng-context-window", label: "NG§1 · ContextWindow", node: <ContextWindow />, chapter: "ngram" },
     { slug: "ng-context-counter", label: "NG§2 · ContextCounter", node: <ContextCounter />, chapter: "ngram" },
     { slug: "ng-battle", label: "NG§3 · NgramBattle", node: <NgramBattle />, chapter: "ngram" },
+    { slug: "ng-explosion", label: "NG§4 · ContextExplosion", node: <ContextExplosion />, chapter: "ngram" },
+    { slug: "ng-sparsity", label: "NG§5a · SparsityView", node: <SparsityView />, chapter: "ngram" },
+    { slug: "ng-infinite", label: "NG§5b · InfiniteTable", node: <InfiniteTable />, chapter: "ngram" },
 ];
 
 const MONO = "var(--bigram-font-mono)";

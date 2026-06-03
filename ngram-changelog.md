@@ -89,9 +89,9 @@
 | §1 | ContextWindow | ContextWindowVisualizer | ✅ build (kit, real data; k=1 flat→k=4 sharp; bench dark+light OK) |
 | §2 | ContextCounter | NgramMiniTransitionTable (+ideas) | ✅ build (kit, real; t-row spread vs th-row spike, hover-drill; bench dark+light OK; deviación reportada: contraste interactivo en vez de re-scan papiro para no duplicar RowTally) |
 | §3 | NgramBattle | NgramGenerationBattle | ✅ build (kit, LOCAL gen con backoff; k=1 sopa→k=4 casi frases con nombres; typewriter; bench dark+light OK) |
-| §4 | ContextExplosion | ExponentialGrowthAnimator (+FiveGram) | ⬜ rework |
-| §5a | SparsityView | SparsityHeatmap | ⬜ rework |
-| §5b | InfiniteTable | InfiniteTableThoughtExperiment | ⬜ rework |
+| §4 | ContextExplosion | ExponentialGrowthAnimator (+FiveGram) | ✅ build (kit, 27^k real; nº trepa + grid satura; manual +×27; bench dark+light, reduced-motion OK) |
+| §5a | SparsityView | SparsityHeatmap | ✅ build (kit, REAL counts; mismo grid 27×27, heatmap real a k=2 con bandas q/x/z, colapsa a 99.7% vacío a k=5; hover; bench OK) |
+| §5b | InfiniteTable | InfiniteTableThoughtExperiment | ✅ build (kit, modelo honesto calibrado al corpus real; slider datos→fill por k; 5 letras nunca llena; bench OK) |
 | §6a | UnseenContext | GeneralizationFailureDemo | ⬜ rework |
 | §6b | TypoBreaker | TypoWordBreaker | ⬜ rework |
 | §7 | SimilarityBridge | SimilarityBlindSpot | ⬜ rework |
