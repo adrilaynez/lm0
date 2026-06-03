@@ -92,7 +92,7 @@
 | §4 | ContextExplosion | ExponentialGrowthAnimator (+FiveGram) | ✅ build (kit, 27^k real; nº trepa + grid satura; manual +×27; bench dark+light, reduced-motion OK) |
 | §5a | SparsityView | SparsityHeatmap | ✅ build (kit, REAL counts; mismo grid 27×27, heatmap real a k=2 con bandas q/x/z, colapsa a 99.7% vacío a k=5; hover; bench OK) |
 | §5b | InfiniteTable | InfiniteTableThoughtExperiment | ✅ build (kit, modelo honesto calibrado al corpus real; slider datos→fill por k; 5 letras nunca llena; bench OK) |
-| §6a | UnseenContext | GeneralizationFailureDemo | ⬜ rework |
-| §6b | TypoBreaker | TypoWordBreaker | ⬜ rework |
-| §7 | SimilarityBridge | SimilarityBlindSpot | ⬜ rework |
+| §6a | UnseenContext | GeneralizationFailureDemo | ✅ build (kit, REAL pairs verificados: natur→e vs natus UNSEEN; bars + nada + Verdict; bench dark+light OK) |
+| §6b | TypoBreaker | TypoWordBreaker | ✅ build (kit, REAL scanContext; escribe→confianza vs línea de azar; typo→nada; chips; bench OK) |
+| §7 | SimilarityBridge | SimilarityBlindSpot | ✅ build (kit, concepto; IDs aislados→clusters por similitud con framer layout; un solo acento; bench OK) |
 | §7 | Historia (plegable) | StatisticalEraTimeline? | ⬜ decidir |

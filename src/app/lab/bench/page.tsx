@@ -40,6 +40,9 @@ const NgramBattle = lazy(() => import("@/features/lab/components/ngram/NgramBatt
 const ContextExplosion = lazy(() => import("@/features/lab/components/ngram/ContextExplosion").then(m => ({ default: m.ContextExplosion })));
 const SparsityView = lazy(() => import("@/features/lab/components/ngram/SparsityView").then(m => ({ default: m.SparsityView })));
 const InfiniteTable = lazy(() => import("@/features/lab/components/ngram/InfiniteTable").then(m => ({ default: m.InfiniteTable })));
+const UnseenContext = lazy(() => import("@/features/lab/components/ngram/UnseenContext").then(m => ({ default: m.UnseenContext })));
+const TypoBreaker = lazy(() => import("@/features/lab/components/ngram/TypoBreaker").then(m => ({ default: m.TypoBreaker })));
+const SimilarityBridge = lazy(() => import("@/features/lab/components/ngram/SimilarityBridge").then(m => ({ default: m.SimilarityBridge })));
 
 /** slug → { label, node, chapter }. Order here is the chapter order, for the picker. */
 const WIDGETS: { slug: string; label: string; node: React.ReactNode; chapter?: "bigram" | "ngram" }[] = [
@@ -66,6 +69,9 @@ const WIDGETS: { slug: string; label: string; node: React.ReactNode; chapter?: "
     { slug: "ng-explosion", label: "NG§4 · ContextExplosion", node: <ContextExplosion />, chapter: "ngram" },
     { slug: "ng-sparsity", label: "NG§5a · SparsityView", node: <SparsityView />, chapter: "ngram" },
     { slug: "ng-infinite", label: "NG§5b · InfiniteTable", node: <InfiniteTable />, chapter: "ngram" },
+    { slug: "ng-unseen", label: "NG§6a · UnseenContext", node: <UnseenContext />, chapter: "ngram" },
+    { slug: "ng-typo", label: "NG§6b · TypoBreaker", node: <TypoBreaker />, chapter: "ngram" },
+    { slug: "ng-similarity", label: "NG§7 · SimilarityBridge", node: <SimilarityBridge />, chapter: "ngram" },
 ];
 
 const MONO = "var(--bigram-font-mono)";
