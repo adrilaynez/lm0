@@ -1,194 +1,196 @@
 # N-gram — narrativa definitiva del capítulo (blueprint)
 
 > El capítulo entero, en orden, con la **prosa escrita** (borrador es, calidad de publicación → se porta a
-> i18n) y **cada visualizador marcado**. Esto es lo que se construye; el diseño no se inventa por el camino.
-> Método: **narrativa primero, visualizadores después** (mostrar > contar; maximizar visualizadores,
-> minimizar texto; reusar/rehacer, borrar sólo dupes y cromo de dashboard). Revisar mil veces, sección a sección.
+> i18n es+en en sync) y **cada visualizador marcado**. Método: **narrativa primero, visualizadores después**
+> (mostrar > contar; maximizar visualizadores, minimizar texto; reusar/rehacer, no borrar por backend).
+> Voz: aplicar los pilares + «No suenes a IA — los 7 delatores» (`narrative-guidelines.md`). Tras escribir,
+> auditar la prosa con un agente. Revisar mil veces, sección a sección.
 >
 > **Leyenda:** ✅ vale · 🔧 rehacer (re-skin kit ámbar + faked→real, misma mecánica) · ♻️ rebuild (mecánica
-> nueva) · ⬜ construir · ❌ quitar.
+> nueva) · ⬜ construir · (free-lab) = se mantiene en el modo playground, re-skin ámbar.
 >
-> **Objetivo:** el lector, que llega de bigram con la AMNESIA (la máquina sólo veía una letra atrás; «th»,
-> «sh», «wh» le parecían iguales), descubre que **ampliar la ventana de contexto mejora la predicción**…
-> y luego SIENTE el coste: la tabla explota (~27^n), se vacía (sparsity), y nunca generaliza (un contexto
-> no visto, aunque casi idéntico a uno visto, la deja muda). Ese fallo es la puerta a las redes neuronales.
-> Acento ÁMBAR con el MISMO sistema visual de bigram. Humor por todo (la máquina que predice sin entender).
+> **Objetivo:** el lector llega de bigram con la AMNESIA (la máquina sólo veía una letra atrás; «th», «sh»,
+> «wh» le parecían iguales). Descubre que ampliar la ventana de contexto mejora la predicción, y luego siente
+> el coste: la tabla explota (~27^n), se vacía (sparsity) y nunca generaliza (un contexto no visto, aunque
+> casi idéntico a uno visto, la deja muda). Ese fallo es la puerta a las redes neuronales. Acento ÁMBAR con
+> el mismo sistema visual de bigram. Humor por todo (la máquina que predice sin entender).
 >
-> **Arco emocional:** curiosidad → triunfo → triunfo mayor → muro → decepción → nueva curiosidad.
-> **Continuidad:** la «t»/«th» de bigram se arrastra; callbacks a la amnesia y al «fli fla».
+> **Arco:** curiosidad → triunfo → triunfo mayor → muro → decepción → nueva curiosidad. Triunfo (§3) ANTES
+> del muro (§4). Bookends: abre con la amnesia, cierra con «predice sin entender» (callback al «fli fla»).
 
 ---
 
 ## HERO
-- Eyebrow: **«Capítulo 2 · La era del conteo»** (sigue la misma era que bigram)
-- **Título: «Una ventana más *ancha*»** (acento en «ancha»). *(Alternativas a sopesar: «Más memoria»,
-  «Mirar más atrás». No nombrar «n-grama» en el hero: se gana en §1.)*
-- **Subtítulo:** «El bigrama recordaba una sola letra. Vamos a darle un poco más.»
-- *(Sin widget. Hereda el cierre de bigram con un golpe limpio.)*
+- Eyebrow: **«Capítulo 2 · La era del conteo»**
+- **Título: «Una ventana más *ancha*»** (acento en «ancha»). *(No nombrar «n-grama» en el hero; se gana en §1.)*
+- **Subtítulo:** «El bigrama solo recordaba la última letra que escribías. Vamos a darle algo más de memoria.»
+- *(Sin widget.)*
 
 ---
 
 ## §1 · Mirar más atrás   *(curiosidad → primer triunfo)*
 
-**Prosa (recap-amnesia in media res, sin lección).** ⬜ escribir
-> «Al final, el bigrama se quedó corto. Escribía letra a letra, pero solo se acordaba de la última. Para
-> él, «th», «sh» y «wh» eran la misma cosa: acababan en h, y punto.»
+**Prosa (recap de la amnesia, entrando en materia).** ⬜
+> «El bigrama se quedó a medias. Escribía bien, letra a letra, pero tenía la memoria de un pez: en cuanto
+> ponía una letra se olvidaba de todo lo de antes y solo le quedaba esa, la última, para decidir la
+> siguiente. Por eso «th», «sh» y «wh» le daban igual. Las tres acaban en h, y ahí se le acababa la historia.»
 >
-> «Tú no funcionas así. Cuando lees «th», no empiezas de cero: arrastras la t. Llevas un trozo de frase en
-> la cabeza, no una letra suelta.»
+> «Tú no lees así. Cuando llevas escrito «th» no arrancas de cero, todavía tienes la t metida en la cabeza, y
+> el trozo de palabra entero, y por eso hueles lo que viene aunque nadie te enseñara la regla. Eso que
+> arrastras tiene nombre, y lo vas a reconocer en cuanto lo veas: el contexto.»
 >
-> «Eso que arrastras ya lo intuyes: es el **contexto**. Y la pregunta es tonta de lo evidente que parece.
-> ¿Y si le dejamos mirar más de una letra atrás?»
+> «Así que la pregunta se cae sola. ¿Y si le dejamos mirar más de una letra atrás?»
 
 **VIS §1 · ContextWindow** — el juego de adivinar con contexto creciente. ♻️ **rebuild** (de
-`ContextWindowVisualizer`, que está inline y con datos inventados).
+`ContextWindowVisualizer`, inline + faked + trivial).
 - *Idea (una):* con poco contexto vas a ciegas; con más, casi cantas la respuesta.
-- *Qué muestra:* un texto real revelado letra a letra. Con UNA letra de contexto, la distribución de «qué
-  viene después» es plana (un volado entre muchas). Al ampliar la ventana a 2, 3, 4 letras, la apuesta se
-  concentra hasta volverse casi segura. El lector **apuesta antes de revelar** (pilar 10).
-- *Caso DIFÍCIL (pilar 10+11):* una palabra rara revelada letra a letra, donde con poca pista NO se acierta
-  y solo el contexto tardío fuerza la respuesta. Un caso que se clava a la primera mata la lección.
-- *Mecánica:* ventana deslizante de n + barras honestas (`HonestBar`) con prob REAL + adivina→revela.
-- *Datos:* `SHAKESPEARE_TEXT` (fragmento elegido) + `ngramData` counts n=1..4 reales.
-- *Temperatura:* quiet (avance manual).
+- *Qué muestra:* texto real revelado letra a letra. Con UNA letra de contexto la distribución de «qué viene
+  después» es plana (un volado). Al ampliar la ventana a 2, 3, 4, la apuesta se concentra hasta casi
+  certeza. El lector **apuesta antes de revelar** (pilar 10).
+- *Caso DIFÍCIL (pilar 10+11):* una palabra rara letra a letra, donde con poca pista no se acierta y solo el
+  contexto tardío fuerza la respuesta. Etiquetar «1/2/3/4 letras de memoria», NO «trigrama» (eso se gana después).
+- *Mecánica:* ventana deslizante de n + `HonestBar` con prob REAL + adivina→revela.
+- *Datos:* `SHAKESPEARE_TEXT` (fragmento elegido) + `ngramData` n=1..4 reales. *Temperatura:* quiet.
 
-**Prosa (payoff + se gana «n-grama»).** ⬜ escribir
-> «Con una letra, ibas a ciegas. Con cuatro, casi cantabas la respuesta. La diferencia no es magia, es
-> contexto.»
+**Prosa (payoff + se gana «n-grama»).** ⬜
+> «Con una sola letra de pista ibas a ciegas, y lo sabías. Con cuatro casi cantabas la respuesta antes de que
+> apareciera. Lo único que cambió fue cuánto le dejaste recordar.»
 >
-> «El bigrama miraba una letra. Mira dos y es un trigrama; tres, un 4-grama; n letras, un **n-grama**. El
-> bigrama no era otro modelo: era el n-grama más pequeño, con n igual a dos.»
+> «Y resulta que eso tiene nombres, uno por cada tamaño de memoria. Mirar dos letras atrás ya tiene nombre:
+> trigrama. Tres, 4-grama. Y así hacia arriba, hasta el n-grama, que mira n. Lo bonito es lo que significa
+> hacia atrás: el bigrama nunca fue un modelo aparte, era el más pequeño de la familia, un n-grama con n
+> igual a dos.»
 
-**Frase destacada (pull-quote, bookend).** «El bigrama no era un modelo aparte. Era un n-grama diminuto.»
+**Frase destacada (pull-quote):** «El bigrama no era un modelo aparte. Era un n-grama diminuto.»
 
-**Puente → §2:** «Mirar más atrás ayuda. ¿Pero cómo aprende a hacerlo una máquina que solo sabe contar?»
+**Puente → §2:** «Vale, mirar atrás ayuda. ¿Pero cómo aprende a hacer eso una máquina, si lo único que sabe
+hacer es contar?»
 
 ---
 
 ## §2 · Contar con contexto   *(el cómo: misma mecánica, llave más larga)*
 
-**Prosa.** ⬜ escribir
-> «Buenas noticias: no hay truco nuevo. Es el mismo de antes, contar. Solo cambia una cosa.»
+**Prosa.** ⬜
+> «Lo mejor es que no hay truco nuevo. Es el mismo de siempre, contar, y solo cambia una cosa de nada.»
 >
-> «Antes guardaba una fila por cada letra: lo que viene después de la t. Ahora guarda una fila por cada par
-> de letras: lo que viene después de t-h. La llave de la fila es más larga, nada más.»
->
-> «Y eso lo cambia todo, porque una llave más larga es una llave más específica.»
+> «Antes la máquina guardaba una fila por cada letra, la lista de lo que suele venir después de la t. Ahora
+> guarda una fila por cada pareja: lo que viene después de t-h, que no es lo mismo que lo que viene después
+> de una h suelta cualquiera. La llave del cajón es más larga, eso es todo. Pero una llave más larga abre un
+> cajón más concreto.»
 
 **VIS §2 · ContextCounter** — lee el libro y construye la fila de un contexto de 2 letras. 🔧/♻️ **rework**
-(de `NgramMiniTransitionTable`; absorbe la idea de `ConcreteImprovementExample`/`CountingComparisonWidget`).
+(de `NgramMiniTransitionTable`; absorbe ideas de `ConcreteImprovementExample`/`CountingComparisonWidget`).
 - *Idea (una):* un contexto más largo afila la distribución (de «de todo un poco» a «casi siempre esto»).
 - *Qué muestra:* lee el libro (papiro, MISMO idioma que bigram VIS4) contando «lo que sigue a TH». Sale una
   fila ESTRECHA, casi toda la probabilidad en la e. Al lado, la fila ANCHA de «H» del bigrama (de todo un
-  poco). El contraste salta a la vista. El % del ganador sube en su sitio.
-- *Mecánica:* `ParchmentReader` + `FixedAlphabetRow` (fila «th» afilada) + comparación con la fila «h» ancha
-  + `Readout`.
-- *Datos:* `ngramData` n=2 (fila «h») vs n=3 (fila «th») reales sobre Shakespeare.
-- *Temperatura:* showpiece tranquilo (lectura).
+  poco). El contraste salta a la vista; el % del ganador sube en su sitio.
+- *Mecánica:* `ParchmentReader` + `FixedAlphabetRow` (fila «th» afilada) vs fila «h» ancha + `Readout`.
+- *Datos:* `ngramData` n=2 (fila «h») vs n=3 (fila «th») reales. *Temperatura:* showpiece tranquilo.
 
-**Prosa (payoff).** ⬜ escribir
-> «La fila de la t apostaba por la h, pero a medias: ganaba con holgura y aun así había vida en muchas otras
-> casillas. La fila de t-h no duda. Después de «th» viene «e», y casi nada más. Más contexto, menos dudas.»
+**Prosa (payoff).** ⬜
+> «La fila de la t apostaba por la h, sí, pero con la boca pequeña: ganaba y aun así quedaba vida repartida
+> por media docena de casillas más. La fila de t-h no tiene esas dudas. Después de «th», la «e» se lo come
+> casi todo y al resto le deja las migajas.»
 
-**Puente → §3:** «Si cada letra de contexto afila la apuesta, ¿qué pasa si la dejamos escribir párrafos
-enteros recordando dos, tres, cuatro letras?»
+**Puente → §3:** «Si cada letra extra afila tanto la apuesta, la pregunta es inevitable: ¿qué sale si la
+dejamos escribir de verdad, párrafos enteros, recordando dos letras, o tres, o cuatro?»
 
 ---
 
 ## §3 · El salto se siente   *(clímax / triunfo mayor)*
 
-**Prosa (corta, monta el showpiece).** ⬜ escribir
-> «Lo justo es verlo. Cuatro máquinas, la misma semilla, y a cada una le dejamos recordar un poco más que a
-> la anterior.»
+**Prosa (corta, monta el showpiece).** ⬜
+> «Lo justo es verlo en marcha. Cuatro máquinas idénticas salvo en una cosa: a cada una le dejamos recordar
+> una letra más que a la de su izquierda. Misma semilla para todas, y a escribir.»
 
 **VIS §3 · NgramBattle** — n=1..4 generan a la vez, en LOCAL. 🔧 **rework** (de `NgramGenerationBattle`:
-datos locales + kit + ámbar; sin backend, sin texto de error en inglés hardcodeado).
+datos locales para paridad con el bench; kit + ámbar; sin texto de error en inglés). *(Su gemelo con backend
+se queda en el free-lab.)*
 - *Idea (una):* más contexto → texto legible. El salto se SIENTE de izquierda a derecha.
-- *Qué muestra:* 4 columnas (n=1,2,3,4), misma semilla. n=1 escupe sopa de letras; n=2 tiene sílabas; n=3
-  suelta palabras reconocibles; n=4 casi frases.
-- *Mecánica:* `MarkedText` typewriter por columna + reveal escalonado + generación local con backoff. El
-  lector cambia la semilla (el «tú prueba» va integrado, no es widget aparte → absorbe `NgramInteractiveGenerator`).
-- *Datos:* `ngramData.generateLocal(seed, len, temp, n)` n=1..4.
-- *Temperatura:* showpiece (PLAY).
+- *Qué muestra:* 4 columnas (n=1..4), misma semilla. n=1 sopa de letras; n=2 sílabas; n=3 palabras; n=4 casi frases.
+- *Mecánica:* `MarkedText` typewriter por columna + reveal escalonado + generación local con backoff. La
+  semilla la cambia el lector (el «tú prueba» va integrado).
+- *Datos:* `ngramData.generateLocal(seed, len, temp, n)` n=1..4. *Temperatura:* showpiece (PLAY).
 
-**Prosa (triunfo + semilla de la duda; celebrar ANTES del muro, pilar 13).** ⬜ escribir
-> «De sopa de letras a casi-palabras, solo por recordar tres letras más. Acabas de hacer que escriba mejor
-> sin enseñarle ni una palabra nueva. Solo le diste memoria.»
+**Prosa (triunfo + semilla de la duda; celebrar ANTES del muro, pilar 13).** ⬜
+> «La de la izquierda escupe sopa de letras y la de la derecha casi hila frases, y entre una y otra no hay ni
+> un solo truco nuevo, solo tres letras más de memoria. Acabas de hacer que una máquina escriba mejor sin
+> enseñarle una palabra, ni una regla, ni nada. Solo le diste un poco de pasado.»
 >
-> «Y la tentación es inmediata. Si cuatro es mejor que uno, ¿por qué parar? ¿Por qué no diez letras de
-> memoria? ¿Por qué no cien?»
+> «Y ahí salta la tentación. Si cuatro va mejor que uno, ¿por qué parar? ¿Por qué no diez letras de memoria?
+> ¿Por qué no cien?»
 
 ---
 
 ## §4 · El coste   *(empieza el muro)*
 
-**Prosa.** ⬜ escribir
-> «Aquí la idea, tan buena, se da contra un muro. Y el muro es de matemáticas, no de ingenio.»
+**Prosa.** ⬜
+> «Aquí es donde la idea, que venía tan bien, se estampa contra un muro que no es de ingenio sino de
+> aritmética pura.»
 >
-> «La tabla del bigrama tenía una fila por letra. Veintisiete filas, manejable. El trigrama necesita una por
-> cada par de letras: veintisiete por veintisiete, setecientas veintinueve. El 4-grama, una por cada trío:
-> casi veinte mil. Cada letra de memoria que añades multiplica la tabla por veintisiete.»
+> «La tabla del bigrama tenía una fila por letra. Veintisiete filas, algo que cabe en una hoja. El trigrama
+> ya necesita una fila por cada pareja posible de letras, veintisiete por veintisiete: setecientas
+> veintinueve. El 4-grama, una por cada trío: casi veinte mil. Cada letra de memoria que le sumas no añade
+> unas pocas filas, multiplica la tabla entera por veintisiete.»
 
 **VIS §4a · ContextExplosion** — el número de filas posibles trepa hasta lo absurdo. 🔧 **rework** (de
 `ExponentialGrowthAnimator`; absorbe `NgramFiveGramScale`).
 - *Idea (una):* cada letra de contexto multiplica las filas por 27 (~27^n).
-- *Qué muestra:* 27 → 729 → 19.683 → 531.441 → 14M… un número que crece con el idioma de conteo (odómetro)
+- *Qué muestra:* 27 → 729 → 19.683 → 531.441 → 14M… un número que trepa con el idioma de conteo (odómetro)
   y una rejilla que se multiplica ×27 por paso.
-- *Mecánica:* avanza n (manual) + `Readout`/`CountUpNumber` trepando + `ExplosionGrid`.
-- *Datos:* 27^(n-1) real.
-- *Temperatura:* showpiece.
+- *Mecánica:* avanza n (manual) + `Readout`/`CountUpNumber` + `ExplosionGrid`.
+- *Datos:* 27^(n-1) real. *Temperatura:* showpiece.
 
-**Prosa.** ⬜ escribir
+**Prosa.** ⬜
 > «Diez letras de memoria no son diez veces más tabla. Son billones de filas.»
 
-**§4b · ¿y con palabras?** — *(decidir en build):* callout breve O un toggle char/palabra dentro de
-ContextExplosion, absorbiendo `CombinatoricExplosionTable`. Texto callout:
-> «Y eso contando solo letras. Con palabras enteras el vocabulario no es de veintisiete símbolos, sino de
-> decenas de miles. La tabla no explotaría: se saldría de cualquier escala imaginable.»
+**§4b · ¿y con palabras?** — callout breve (absorbe `CombinatoricExplosionTable`; o toggle char/palabra en
+ContextExplosion):
+> «Y todo esto contando solo letras, que son veintisiete. Si la máquina fuera con palabras enteras, el
+> abecedario pasaría a tener decenas de miles de piezas, y estos números de ahora parecerían de juguete.»
 
-**Puente → §5:** «Gigantesca no es imposible: hay discos enormes. El problema de verdad es otro, y es peor.»
+**Puente → §5:** «Pero una tabla gigante, por gigante que sea, se puede guardar en algún disco. El problema
+de verdad es otro, y es bastante peor.»
 
 ---
 
 ## §5 · El muro   *(sparsity — la decepción se asienta)*
 
-**Prosa.** ⬜ escribir
-> «Una tabla de veinte mil filas no sirve de nada si está vacía.»
+**Prosa.** ⬜
+> «Una tabla de veinte mil filas no vale nada si está vacía.»
 >
-> «Para llenar la fila de t-h-e necesitas haber visto «the» en el texto. Sale en todas partes. ¿Pero «zxq»?
-> ¿«qjp»? Esas filas existen en la tabla, esperando, y nunca se llenan. Nadie escribe así.»
+> «Para rellenar la fila de t-h-e hace falta haber visto antes «the» en algún sitio, y eso pasa a cada paso,
+> así que esa fila se llena sola. Pero la tabla guarda también un hueco para «zxq», y otro para «qjp», y para
+> miles de combinaciones que no escribe nadie nunca. Ahí están, reservadas, esperando una visita que no llega.»
 >
-> «Cuantas más letras de memoria pides, más filas raras aparecen y menos llegas a ver. La tabla crece, pero
-> se vacía.»
+> «Y cuanto más larga haces la memoria, más se llena la tabla de filas rarísimas que jamás vas a ver. Crece y
+> se vacía a la vez.»
 
 **VIS §5a · SparsityView** — la tabla n=4 casi toda negra, conteos reales. 🔧/♻️ **rework** (de
 `SparsityHeatmap`: datos reales, kit heat ámbar, sin traffic-lights).
 - *Idea (una):* la mayoría de contextos posibles nunca se vieron.
-- *Qué muestra:* rejilla de contextos posibles para n=4, abrumadoramente negra; solo unas pocas casillas
-  encendidas (las vistas de verdad). Número honesto: «de X posibles, solo Y aparecieron». Hover → «visto N
-  veces» / «nunca».
+- *Qué muestra:* rejilla de contextos posibles para n=4, casi toda negra; pocas casillas encendidas (las
+  vistas de verdad). Número honesto: «de X posibles, solo Y aparecieron». Hover → «visto N veces» / «nunca».
 - *Mecánica:* `heat` real (rampa ámbar) + grid + `Readout` observados/total + hover.
-- *Datos:* `ngramData` diagnostics reales (observedContexts vs contextSpace).
-- *Temperatura:* showpiece detective.
+- *Datos:* `ngramData` diagnostics reales. *Temperatura:* showpiece detective.
 
-**Prosa.** ⬜ escribir
-> «Casi todo negro. Esas casillas vacías no son un error: son contextos que el idioma no usa nunca. Pero hay
-> un problema más fino escondido ahí.»
+**Prosa (+ puente al infinito).** ⬜
+> «Casi todo negro. Y esos huecos no son un fallo del dibujo, son combinaciones que no se usan jamás.»
 >
-> «Quizá pienses: pues le doy más texto. Más libros, más datos, hasta llenarla.»
+> «Llegados aquí casi todo el mundo piensa lo mismo: vale, pues le doy más texto. Más libros, más datos, lo
+> que haga falta hasta llenarla.»
 
 **VIS §5b · InfiniteTable** — ni con datos infinitos se llena. 🔧 **rework** (de
 `InfiniteTableThoughtExperiment`: kit ámbar).
 - *Idea (una):* la sparsity no se vence con más datos.
 - *Qué muestra:* un control para subir los datos de entrenamiento (mil → millón → billón de letras). Para n
-  bajo, la tabla se llena. Para n alto, por mucho que subas, sigue casi vacía.
+  bajo la tabla se llena; para n alto, por mucho que subas, sigue casi vacía.
 - *Mecánica:* slider + barras de % de llenado por n que recalculan.
-- *Datos:* modelo de llenado honesto (coupon-collector), etiquetado como aproximación.
-- *Temperatura:* quiet (manipulación directa).
+- *Datos:* modelo de llenado honesto (coupon-collector), etiquetado como aproximación. *Temperatura:* quiet.
 
-**Prosa (honesta con el límite, pilar 15).** ⬜ escribir
-> «Por mucho dato que le eches, las ventanas grandes nunca se llenan. Hay más frases posibles que segundos
-> ha vivido el universo. No es cuestión de esforzarse más: es imposible por diseño.»
+**Prosa (honesta con el límite, pilar 15).** ⬜
+> «No hay manera. Por mucho texto que le metas, las ventanas grandes siguen casi vacías, porque hay más
+> combinaciones posibles que segundos lleva existiendo el universo. No es que falte esfuerzo. Es que no cabe.»
 
 **Puente → §6:** «Y aun así, lo peor no es la tabla vacía. Es lo que la máquina hace al toparse con una
 casilla en blanco.»
@@ -197,98 +199,97 @@ casilla en blanco.»
 
 ## §6 · No generaliza   *(el fallo de fondo)*
 
-**Prosa.** ⬜ escribir
-> «Pregúntale qué viene después de algo que vio mil veces y responde sin pestañear. Cámbiale una sola letra,
-> por algo que nunca vio, y se queda en blanco. Literalmente.»
+**Prosa.** ⬜
+> «Le das un contexto que ha visto mil veces y contesta sin pestañear, segurísima. Le cambias una sola letra,
+> una, por algo que no vio nunca, y se queda en blanco. En blanco de verdad, sin media palabra que ofrecer.»
 
 **VIS §6a · UnseenContext** — visto → seguro; cambia una letra → mudo. 🔧 **rework** (de
 `GeneralizationFailureDemo`: datos reales, kit).
 - *Idea (una):* no generaliza a contextos no vistos.
 - *Qué muestra:* dos contextos casi idénticos. Uno que el libro vio (apuesta segura, barra alta). Otro con
-  UNA letra cambiada, que no vio nunca (nada, mudo). La diferencia entre saber y no saber es una letra.
+  UNA letra cambiada, que no vio nunca (nada). La diferencia entre saber y no saber es una letra.
 - *Mecánica:* `MarkedText` (marca la letra cambiada) + `HonestBar` (apuesta vs nada) + `Verdict`.
-- *Datos:* `ngramData` real (contexto existe / no existe).
-- *Temperatura:* quiet.
+- *Datos:* `ngramData` real (contexto existe / no existe). *Temperatura:* quiet.
 
-**Prosa.** ⬜ escribir
-> «Y aquí está lo absurdo. Los dos contextos se parecen como dos gotas de agua. Tú responderías igual a los
-> dos. La máquina no, porque para ella no se parecen en nada: o vio esa fila exacta, o no la vio. No hay
-> punto medio.»
+**Prosa (+ puente al typo).** ⬜
+> «Y lo absurdo es que esos dos contextos se parecen como dos gotas de agua. Tú contestarías lo mismo a los
+> dos sin pensarlo, porque para ti se parecen. Para la máquina no se parecen en nada: o vio esa fila clavada,
+> letra por letra, o no la vio, y entre esas dos opciones no hay término medio.»
 >
-> «Y no hace falta rebuscar palabras raras. Un dedo torpe basta.»
+> «Lo peor es que ni siquiera hace falta rebuscar palabras raras. Un dedo torpe sobra.»
 
 **VIS §6b · TypoBreaker** — escribe lo que quieras y rómpelo. 🔧 **rework** (de `TypoWordBreaker`: datos
 reales, kit).
-- *Idea (una):* tu typo cotidiano también lo rompe (interacción de verdad, lo rompes tú).
+- *Idea (una):* tu typo cotidiano también lo rompe, y lo rompes tú.
 - *Qué muestra:* un campo libre. Algo común → apuesta con confianza. Un typo, una palabra inventada, un
   nombre raro → la confianza se desploma a la del azar puro.
 - *Mecánica:* input + marca conocido/desconocido + barra de confianza vs línea de azar.
-- *Datos:* `ngramData` real (subcadenas vistas / no vistas).
-- *Temperatura:* quiet (interacción libre).
+- *Datos:* `ngramData` real (subcadenas vistas / no vistas). *Temperatura:* quiet.
 
-**Prosa (diagnóstico de fondo + bookend al «fli fla» de bigram).** ⬜ escribir
-> «El bigrama predecía sin entender. Su nieto, el n-grama, predice mejor, pero sigue sin entender nada. Solo
-> que ahora lo disimula, hasta que le cambias una letra.»
+**Prosa (diagnóstico de fondo, bookend al «fli fla»).** ⬜
+> «El bigrama predecía sin entender una palabra de lo que hacía. Su versión grande, el n-grama, predice
+> bastante mejor, pero entender, lo que se dice entender, sigue sin entender nada. La diferencia es que ahora
+> lo disimula. Hasta que le cambias una letra.»
 
-**KeyTakeaway (sage):** «El n-grama no aprende reglas. Memoriza trozos. Y lo que no memorizó, no existe para él.»
+**KeyTakeaway (sage):** «El n-grama no aprende reglas, memoriza trozos. Y lo que no memorizó no existe para él.»
 
-**Puente → §7:** «El fallo tiene una raíz. Y nombrarla es ya medio camino hacia lo que viene.»
+**Puente → §7:** «El fallo tiene una raíz concreta, y ponerle nombre es ya medio camino hacia el capítulo
+siguiente.»
 
 ---
 
 ## §7 · El puente   *(nueva curiosidad → CTA)*
 
-**Prosa.** ⬜ escribir
-> «Para la máquina, «gato» y «perro» no se parecen en nada. Tampoco «the cat» y «the dog». Cada contexto es
-> una etiqueta, un número, una fila. Y dos filas distintas son tan parecidas como dos números de teléfono.»
+**Prosa.** ⬜
+> «Para la máquina, «gato» y «perro» no tienen nada que ver el uno con el otro. Son dos filas distintas de la
+> tabla, dos etiquetas, dos números sin más, y dos números distintos se parecen entre sí lo mismo que dos
+> teléfonos cualesquiera: nada.»
 
 **VIS §7 · SimilarityBridge** — palabras parecidas como IDs sin relación → toggle → se agrupan. 🔧 **rework**
 (de `SimilarityBlindSpot`: kit ámbar, un solo acento).
 - *Idea (una):* le falta entender la similitud → eso es lo que viene.
 - *Qué muestra:* palabras claramente parecidas (gato/perro/ratón; lunes/martes) como IDs aislados, sin
-  relación. Un toggle revela cómo se AGRUPARÍAN si la máquina entendiera que se parecen. El «antes» es el
-  n-grama; el «después», el siguiente capítulo.
+  relación. Un toggle revela cómo se agruparían si entendiera que se parecen. El «antes» es el n-grama; el
+  «después», el siguiente capítulo.
 - *Mecánica:* chips/IDs dispersos → toggle → se acercan/agrupan.
-- *Datos:* ejemplos conceptuales fijos (sin números inventados).
-- *Temperatura:* quiet.
+- *Datos:* ejemplos conceptuales fijos. *Temperatura:* quiet.
 
-**Prosa.** ⬜ escribir
-> «Si entendiera que «gato» y «perro» se parecen, lo que aprende de uno valdría para el otro. No tendría que
-> ver cada contexto: le bastaría ver contextos parecidos. Dejaría de memorizar y empezaría a generalizar.»
+**Prosa.** ⬜
+> «Si la máquina supiera que «gato» y «perro» van juntos, lo que aprende de uno le serviría para el otro de
+> regalo, y no necesitaría haber visto cada contexto del mundo, solo unos cuantos parecidos. Dejaría de
+> memorizar de carrerilla y empezaría a entender de verdad.»
 >
-> «Eso ya no se hace contando. Hace falta otra cosa.»
+> «Eso ya no se consigue contando. Hace falta otra cosa, y esa otra cosa es el capítulo que viene.»
 
 **Plegable · Historia (opt-in, máx 1).** 🔧 rework `StatisticalEraTimeline` o ⬜ prosa nueva.
-- Contenido: la era en que los n-gramas REINARON de verdad (reconocimiento de voz / traducción, IBM-Jelinek,
-  «no hay mejor dato que más dato», años 80-2000). No eran un juguete; movieron la industria hasta que las
-  redes neuronales cruzaron el muro. *(Alternativa: Shannon 1951 y sus aproximaciones n-grama de letras —
-  pero bigram ya tiene un plegable de Shannon; mejor no duplicar.)*
+- Contenido: la época en que los n-gramas mandaron de verdad (reconocimiento de voz, traducción, la gente de
+  IBM con Jelinek, los años 80 y 90, aquello de «no hay mejor dato que más dato»). No eran un juguete, movían
+  la industria, hasta que las redes neuronales cruzaron el muro. *(Bigram ya tiene un plegable de Shannon; no
+  duplicar.)*
 
 **CTA · puente al siguiente capítulo (→ `/lab/neural-networks`).** 🔧 rework (ámbar, con oficio).
-- Momento cinemático + frase: «Contar nos trajo hasta aquí. Para cruzar el muro, hay que dejar de contar.»
-- Hook: «La máquina necesita una idea nueva: que las cosas parecidas se traten parecido. Eso hacen las redes
+- Momento cinemático + frase: «Contar nos trajo hasta aquí. Para cruzar el muro hay que dejar de contar.»
+- Hook: «Hace falta una idea nueva: que las cosas que se parecen se traten parecido. De eso van las redes
   neuronales.»
 - Botón: → «Las redes neuronales».
 
 ---
 
-## ❌ Widgets que se QUITAN (cromo dashboard / backend / verdaderos dupes — NO enseñan)
-- ❌ `NgramComparisonDashboard`, `NgramSparsityIndicator`, `NgramPerformanceSummary`, `NgramLossChart`,
-  `NgramTechnicalExplanation` — volcados de métricas de backend / fichas técnicas, no enseñan una idea.
-- ❌ `NgramStepwisePrediction` — cyan, backend, redundante con la batalla.
-- ❌ `NgramContextDrilldown` — backend; su idea (entrar en la distribución de un contexto) la cubre ContextCounter.
-- ❌ `NgramInteractiveGenerator` — 3er generador; el «tú prueba» se integra en NgramBattle (cambiar semilla).
-- *Merges (no borrar a la ligera; sus ideas se absorben):* `CountingComparisonWidget`,
-  `ConcreteImprovementExample` → ContextCounter · `GrowingTablesComparison`, `NgramFiveGramScale` →
-  ContextExplosion+SparsityView · `CombinatoricExplosionTable` → §4b.
+## Reparto por modos — NO se borra NADA por el backend (mejor sin backend, pero no es razón para descartar)
+La NARRATIVA usa los 9 widgets de enseñanza del kit (tabla), con datos locales reales (paridad con el bench,
+igual que la narrativa de bigram). El **FREE-LAB** mantiene TODO su set interactivo/instrumento, re-skin a
+ámbar bajo `[data-ngram-theme]` (arreglando el caos multi-acento cyan/esmeralda/violeta/rojo → ámbar):
+- `ContextControl`, `TransitionMatrix` (ámbar), `InferenceConsole` (path ngram/ámbar), `NgramStepwisePrediction`
+  (ámbar, no cyan), `GenerationPlayground` (path ngram/ámbar), `NgramContextDrilldown` (ámbar),
+  `NgramGenerationBattle` (ámbar), `NgramComparisonDashboard`, `NgramSparsityIndicator`, `NgramPerformanceSummary`,
+  `NgramLossChart`, `NgramTechnicalExplanation`, `NgramInteractiveGenerator`.
+- *Merges suaves (solo si son duplicado real de IDEA y no se pierde nada):* `CountingComparisonWidget`,
+  `ConcreteImprovementExample` → ContextCounter · `GrowingTablesComparison`, `NgramFiveGramScale`,
+  `CombinatoricExplosionTable` → ContextExplosion+SparsityView. Ante la duda, se quedan. `lmLabClient.ts` intacto.
 
-## Resumen de trabajo
-- ♻️ **Rebuild:** §1 ContextWindow (datos reales + juego difícil).
-- 🔧 **Rework fuerte (faked→real, kit ámbar):** §2 ContextCounter, §3 NgramBattle (local), §5a SparsityView,
-  §5b InfiniteTable, §6a UnseenContext, §6b TypoBreaker, §7 SimilarityBridge, §4a ContextExplosion.
-- ⬜ **Construir/decidir:** §4b (callout vs toggle), plegable Historia, primitivas kit nuevas
-  (ContextWindow, ExplosionGrid).
-- ❌ **Quitar:** 8 widgets (dashboard/backend/dupes) arriba.
-- 📝 **Prosa nueva** en todas las secciones (es → en), encuadre en el cuerpo, no en los widgets.
-
-## Conteo de visualizadores: 9-10 (vs ~11 actuales repartidos en 2 modos). No menos: mismos/ más, mejor hilados.
+## Resumen
+- ♻️ rebuild: §1 ContextWindow. 🔧 rework (kit ámbar, real): §2 ContextCounter, §3 NgramBattle (local), §4a
+  ContextExplosion, §5a SparsityView, §5b InfiniteTable, §6a UnseenContext, §6b TypoBreaker, §7 SimilarityBridge.
+- ⬜ decidir en build: §4b (callout vs toggle), plegable Historia, primitivas kit nuevas (ContextWindow, ExplosionGrid).
+- Narrativa: 9 visualizadores hilados en arco. Free-lab: set completo, re-skin ámbar.
+- Prosa: voz humana (7 delatores evitados), es→en en sync, encuadre en el cuerpo, no en widgets.

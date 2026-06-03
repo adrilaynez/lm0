@@ -66,6 +66,31 @@
   --color-bigram-accent-ink: var(--bigram-accent-ink);
   --color-bigram-sage: var(--bigram-sage);
   --color-bigram-wrong: var(--bigram-wrong);
+
+  /* ─── N-gram (editorial-amber) bridge → bg-ngram-* / text-ngram-* / border-ngram-* ───
+     Additive mirror of the bigram bridge; full role set so every ngram utility resolves. */
+  --color-ngram-bg: var(--ngram-bg);
+  --color-ngram-bg-2: var(--ngram-bg-2);
+  --color-ngram-surface: var(--ngram-surface);
+  --color-ngram-elev: var(--ngram-elev);
+  --color-ngram-rule: var(--ngram-rule);
+  --color-ngram-rule-2: var(--ngram-rule-2);
+  --color-ngram-ink: var(--ngram-ink);
+  --color-ngram-ink-2: var(--ngram-ink-2);
+  --color-ngram-body: var(--ngram-body);
+  --color-ngram-muted: var(--ngram-muted);
+  --color-ngram-dim: var(--ngram-dim);
+  --color-ngram-accent: var(--ngram-accent);
+  --color-ngram-accent-2: var(--ngram-accent-2);
+  --color-ngram-accent-deep: var(--ngram-accent-deep);
+  --color-ngram-accent-bright: var(--ngram-accent-bright);
+  --color-ngram-accent-ink: var(--ngram-accent-ink);
+  --color-ngram-accent-soft: var(--ngram-accent-soft);
+  --color-ngram-on-accent: var(--ngram-on-accent);
+  --color-ngram-sage: var(--ngram-sage);
+  --color-ngram-sage-soft: var(--ngram-sage-soft);
+  --color-ngram-wrong: var(--ngram-wrong);
+  --color-ngram-wrong-soft: var(--ngram-wrong-soft);
 }
 
 :root {
@@ -300,6 +325,135 @@ html:has([data-bigram-theme="light"])::-webkit-scrollbar-thumb:hover {
   mix-blend-mode: overlay;
 }
 [data-bigram-theme="light"] .bigram-grain::before { opacity: 0.025; mix-blend-mode: multiply; }
+
+/* ─── N-gram chapter tokens (editorial-amber) ───
+   Additive + scoped: only the n-gram chapter content opts in via [data-ngram-theme].
+   Role-for-role mirror of the bigram (--bigram-*) catalog, but the ACCENT is amber/gold
+   and the neutral base is warmed (warm-grey dark / warm cream light) so the chapter reads
+   amber while sharing bigram's structure, typography and motion. Never overwrites --lab-*,
+   --bigram-*, shadcn --accent, or any other accent. Fonts reuse the same registrations. */
+[data-ngram-theme] {
+  --ngram-r-sm: 8px;
+  --ngram-r-md: 12px;
+  --ngram-r-lg: 16px;
+  --ngram-r-pill: 999px;
+  --ngram-font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --ngram-font-serif: var(--font-source-serif), Georgia, "Times New Roman", serif;
+  --ngram-font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+[data-ngram-theme="dark"] {
+  --ngram-bg-2: oklch(0.138 0.012 75);
+  --ngram-bg: oklch(0.176 0.014 72);
+  --ngram-surface: oklch(0.223 0.016 72);
+  --ngram-elev: oklch(0.265 0.018 72);
+  --ngram-rule: oklch(0.99 0.02 80 / 10%);
+  --ngram-rule-2: oklch(0.99 0.03 80 / 18%);
+  --ngram-ink: oklch(0.94 0.012 85);
+  --ngram-ink-2: oklch(0.86 0.012 85);
+  --ngram-body: oklch(0.82 0.013 86);
+  --ngram-muted: oklch(0.73 0.012 88);
+  --ngram-dim: oklch(0.62 0.010 90);
+  --ngram-accent: oklch(0.77 0.150 75);
+  --ngram-accent-2: oklch(0.69 0.140 72);
+  --ngram-accent-deep: oklch(0.55 0.115 70);
+  --ngram-accent-bright: oklch(0.84 0.158 80);
+  --ngram-accent-ink: oklch(0.82 0.155 78);
+  --ngram-accent-soft: oklch(0.77 0.150 75 / 16%);
+  --ngram-on-accent: oklch(0.20 0.040 70);
+  --ngram-sage: oklch(0.82 0.050 100);
+  --ngram-sage-soft: oklch(0.82 0.050 100 / 13%);
+  --ngram-wrong: oklch(0.70 0.135 38);
+  --ngram-wrong-soft: oklch(0.70 0.135 38 / 16%);
+}
+
+[data-ngram-theme="light"] {
+  --ngram-bg: #f5ecd6;
+  --ngram-bg-2: #efe4c9;
+  --ngram-elev: #faf4e2;
+  --ngram-surface: #fbf6e6;
+  --ngram-ink: #28231a;
+  --ngram-ink-2: #463f30;
+  --ngram-body: oklch(0.43 0.018 78);
+  --ngram-muted: #6b6147;
+  /* Deepened so the tiniest labels/footer stay legible on cream (~4:1+). */
+  --ngram-dim: #756a4e;
+  --ngram-rule: #e0d4b6;
+  --ngram-rule-2: #d4c6a2;
+  --ngram-accent: #9a6a17;
+  --ngram-accent-2: #b07d22;
+  --ngram-accent-deep: #7c5310;
+  --ngram-accent-bright: #c9901c;
+  --ngram-accent-ink: #855a12;
+  --ngram-accent-soft: #f0e4c4;
+  --ngram-on-accent: #fdf7e8;
+  --ngram-sage: #7a6a3f;
+  --ngram-sage-soft: oklch(0.62 0.050 95 / 14%);
+  --ngram-wrong: #b1492f;
+  --ngram-wrong-soft: #eedacf;
+}
+
+/* N-gram serif prose uses old-style figures like bigram (numbers sit in the line). */
+[data-ngram-theme] {
+    font-variant-numeric: oldstyle-nums proportional-nums;
+    font-optical-sizing: auto;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Document scrollbar (N-gram chapter only) — same technique as bigram. ── */
+html:has([data-ngram-theme="dark"]) {
+  color-scheme: dark;
+  scrollbar-color: oklch(0.42 0.02 75) transparent;
+}
+html:has([data-ngram-theme="light"]) {
+  color-scheme: light;
+  scrollbar-color: #cdbf9d transparent;
+}
+html:has([data-ngram-theme="dark"])::-webkit-scrollbar,
+html:has([data-ngram-theme="light"])::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+html:has([data-ngram-theme="dark"])::-webkit-scrollbar-track,
+html:has([data-ngram-theme="light"])::-webkit-scrollbar-track {
+  background: transparent;
+}
+html:has([data-ngram-theme="dark"])::-webkit-scrollbar-thumb {
+  background: oklch(0.42 0.02 75);
+  border-radius: 9999px;
+  border: 3px solid oklch(0.176 0.014 72); /* = --ngram-bg (dark) */
+}
+html:has([data-ngram-theme="dark"])::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.52 0.02 75);
+}
+html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb {
+  background: #cdbf9d;
+  border-radius: 9999px;
+  border: 3px solid #f5ecd6; /* = --ngram-bg (light) */
+}
+html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
+  background: #bcae8a;
+}
+
+/* N-gram page grain + vignette (mirror of .bigram-grain). */
+.ngram-grain { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+[data-ngram-theme="dark"] .ngram-grain {
+  background: radial-gradient(135% 105% at 50% 0%, transparent 60%, oklch(0 0 0 / 0.18) 100%);
+}
+[data-ngram-theme="light"] .ngram-grain {
+  background: radial-gradient(130% 100% at 50% 0%, transparent 62%, oklch(0.3 0.03 70 / 0.10) 100%);
+}
+.ngram-grain::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+}
+[data-ngram-theme="light"] .ngram-grain::before { opacity: 0.025; mix-blend-mode: multiply; }
 
 /* ─── Latent Space tokens (Essays = light editorial / Mind = dark warm) ─── */
 [data-ls-mode="essays"] {

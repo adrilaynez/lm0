@@ -33,8 +33,8 @@ const ContextBlindnessDemo = lazy(() => import("@/features/lab/components/Contex
 const ShannonContextLadder = lazy(() => import("@/features/lab/components/ShannonContextLadder").then(m => ({ default: m.ShannonContextLadder })));
 const KitShowcase = lazy(() => import("@/features/lab/components/bigram/kit/KitShowcase").then(m => ({ default: m.KitShowcase })));
 
-/** slug → { label, node }. Order here is the chapter order, for the picker. */
-const WIDGETS: { slug: string; label: string; node: React.ReactNode }[] = [
+/** slug → { label, node, chapter }. Order here is the chapter order, for the picker. */
+const WIDGETS: { slug: string; label: string; node: React.ReactNode; chapter?: "bigram" | "ngram" }[] = [
     { slug: "fill-the-blank", label: "VIS1 · FillTheBlank", node: <FillTheBlank /> },
     { slug: "hero-auto-complete", label: "VIS1.5 · HeroAutoComplete", node: <HeroAutoComplete /> },
     { slug: "pair-highlighter", label: "VIS2 · PairHighlighter", node: <PairHighlighter /> },
@@ -61,6 +61,7 @@ function Bench() {
     const otherTheme = theme === "light" ? "dark" : "light";
     const slug = sp.get("w") ?? WIDGETS[0].slug;
     const current = WIDGETS.find((w) => w.slug === slug);
+    const chapter = current?.chapter ?? "bigram";
 
     // ?play=1 → auto-click the widget's primary button after mount, so a headless screenshot can
     // capture the BUILT/animated end-state (with a large --virtual-time-budget the animation fast-forwards).
@@ -78,9 +79,10 @@ function Bench() {
     return (
         <div
             data-bigram-theme={theme}
-            style={{ minHeight: "100vh", background: "var(--bigram-bg)", color: "var(--bigram-ink)" }}
+            data-ngram-theme={theme}
+            style={{ minHeight: "100vh", background: `var(--${chapter}-bg)`, color: `var(--${chapter}-ink)` }}
         >
-            <div className="bigram-grain" aria-hidden />
+            <div className={`${chapter}-grain`} aria-hidden />
             <div style={{ position: "relative", zIndex: 1, maxWidth: 980, margin: "0 auto", padding: "26px 24px 96px" }}>
                 {/* picker bar */}
                 <div
@@ -137,8 +139,12 @@ function Bench() {
                 {/* the Plane surface the narrative uses, so the widget reads exactly as in-page */}
                 <div
                     data-bench-stage
-                    className="rounded-[var(--bigram-r-md)] bg-[color-mix(in_oklab,var(--bigram-surface)_55%,var(--bigram-bg))]"
-                    style={{ padding: "32px 28px", marginTop: 22 }}
+                    style={{
+                        padding: "32px 28px",
+                        marginTop: 22,
+                        borderRadius: `var(--${chapter}-r-md)`,
+                        background: `color-mix(in oklab, var(--${chapter}-surface) 55%, var(--${chapter}-bg))`,
+                    }}
                 >
                     <Suspense
                         fallback={

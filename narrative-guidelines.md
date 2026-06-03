@@ -124,6 +124,30 @@ lleva su propio texto de encuadre (eso es cuerpo) — ver el gate "texto mínimo
   dos puntos. Racimos de guiones = delator de tono IA. Evita la frase-de-manual y la pregunta
   retórica profesoral ("¿Cómo podríamos enseñar a una máquina a…?").
 
+### No suenes a IA — los 7 delatores (es)
+
+La voz tiene que parecer de un amigo listo, no de un modelo. Estos son los tics que delatan a una IA;
+evítalos siempre. (Después de escribir prosa importante, manda un agente a auditarla contra esta lista.)
+
+1. **Ritmo de metralleta (fobia a las comas).** No escribas todo en frases cortas sujeto-verbo-predicado.
+   Punto. Otra. Punto. Eso es un metrónomo y cansa. **Mezcla**: una frase larga que desarrolla una idea y
+   se deja llevar un poco, y de golpe una de tres palabras para rematar. Musicalidad, no uniformidad. (Esto
+   matiza el pilar de «frases cortas»: corto para el GOLPE, largo para desarrollar; no corto para todo.)
+2. **Bisagras de metal (conectores obvios).** No abras frases ni párrafos con «Además, Por lo tanto, Sin
+   embargo, En este sentido, Cabe destacar, Es por ello que…». Enlaza las ideas de forma natural, sin
+   anunciar la relación lógica.
+3. **Azúcar sintético (sobredosis de adjetivos).** Nada de adjetivos/adverbios rimbombantes. No «un método
+   verdaderamente innovador y fascinante», sino «un método distinto». Prohibidos crucial, esencial,
+   transformador, épico, fascinante (de relleno).
+4. **Gancho de patio de colegio.** Jamás «Imagina un mundo donde…», «¿Alguna vez te has preguntado cómo…?»,
+   «En el acelerado mundo digital de hoy…».
+5. **La moraleja obligatoria.** No cierres cada párrafo con una frase-resumen que da la lección («Así queda
+   demostrado que…»). Suelta la información, punto y aparte, sigue.
+6. **Estructura de hamburguesa.** Nada de intro que parafrasea + lista de 3-5 puntos en negrita + cierre. Lo
+   humano es más lineal y un poco caótico, salta de una idea a otra sin seccionarlo todo.
+7. **Síndrome del copywriter (marketing americano).** Nada de «Descubre cómo lograrlo», «Eleva tu proyecto al
+   siguiente nivel», «Adéntrate en el mundo de…». Explica sin vender. Conversación, no anuncio.
+
 ---
 
 ## Checklist de calidad narrativa

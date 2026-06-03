@@ -115,8 +115,12 @@ NEW ngram primitives (added for this chapter — keep them blessed, don't inline
 - **Never name the language/domain.** No "in English", no naming the corpus. Shakespeare = the author (ok).
 - **Never order the reader.** No "Escribe…", "Mira…", "Cuenta…", "Pregúntale…". Use inclusive "vamos a…",
   declarative "le preguntas…", or let the widget's affordance invite (a blinking blank invites typing).
-- **No AI-tone.** No em-dash clusters, no triple-parallel staccato, no pseudo-deep openers, no rhetorical
-  "¿Cómo podríamos enseñar a una máquina a…?".
+- **No AI-tone — the 7 tells.** See `narrative-guidelines.md` → "No suenes a IA — los 7 delatores". In short:
+  vary sentence length (no machine-gun staccato — mix one long winding sentence with a short punch); no
+  obvious connectors (Además/Por lo tanto/Sin embargo/Cabe destacar); no rimbombante adjectives
+  (innovador/fascinante/crucial/épico); no clichéd hooks ("Imagina un mundo…", "¿Alguna vez te has
+  preguntado…?"); no obligatory moral closing every paragraph; no rigid hamburger structure; no
+  American-marketing copy ("Descubre cómo…", "Eleva tu…"). After writing copy, have an agent audit it.
 - **Discover, don't define.** The term is named AFTER the experience makes it obvious. "n-grama" is earned in §1.
 - **Humor throughout, honest.** The machine that predicts without understanding. No "fácil/obvio/simplemente/claramente".
 - **Spanish-first.** You may add new i18n keys to `en.ts` AND `es.ts` (in sync, same shape) when a beat needs copy.

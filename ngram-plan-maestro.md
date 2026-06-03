@@ -16,11 +16,18 @@
 > aquí?" y tirar a AÑADIR uno. **Mostrar, no contar.** Maximizar el nº de visualizadores enfocados,
 > minimizar el texto: los visualizadores normalmente FALTAN, no sobran. **Reusar/rehacer** los widgets
 > actuales cuya lógica/idea es buena (re-skin al kit + ámbar, faked→datos reales) en vez de reconstruir.
-> Rebuild sólo si la mecánica está mal. **Borrar SÓLO** duplicados genuinos (dos widgets con la idea
-> idéntica) y cromo de dashboard puro (volcados de métricas de backend, charts de loss). NUNCA borrar un
-> widget que enseña algo sólo por consolidar. Ante la duda de si dos solapan: quédate ambos si cada uno
-> enseña una micro-idea distinta con su propio puente "¿y si?". Ver memoria
-> `lab-chapters-maximize-visualizers`. Revisar TODO sección por sección, mil veces, poco a poco, con mimo.
+> Rebuild sólo si la mecánica está mal. **NO borrar prácticamente nada.** NUNCA borrar un widget que enseña
+> algo sólo por consolidar. Ante la duda de si dos solapan: quédate ambos si cada uno enseña una micro-idea
+> distinta con su propio puente "¿y si?". Ver memoria `lab-chapters-maximize-visualizers`. Revisar TODO
+> sección por sección, mil veces, poco a poco, con mimo.
+>
+> ### ⚠️ EL BACKEND ESTÁ BIEN (2ª corrección del usuario — manda)
+> El backend (`lmLabClient.ts`: `visualizeNgram`/`generateNgram`/…) **funciona y es genial**. Depender del
+> backend **NUNCA** es razón para borrar, "rebuild-a-local" ni tratar un widget como roto. NO se elimina NADA
+> por el backend. Se REHACEN en su sitio (re-skin ámbar/kit). Reparto por modos, sin cortar nada:
+> **narrativa** = widgets de enseñanza del kit con datos LOCALES reales (paridad con el bench y con cómo
+> bigram hace su narrativa — NO porque el backend sea malo); **free-lab** = TODO el set interactivo/instrumento
+> (con backend), re-skin a ámbar bajo `[data-ngram-theme]`. Ver memoria `backend-is-fine-never-delete-for-it`.
 
 ---
 
@@ -105,19 +112,22 @@ Encuadre en la PROSA del cuerpo, nunca dentro del widget (gate "minimal in-widge
 | §7 · historia | **plegable** (Shannon n-grama 1951 / IBM "more data") | premio histórico (máx 1-2) | `StatisticalEraTimeline`? | 🔧 rework o ⬜ build |
 | CTA | — (cinematic → neural-networks) | nueva curiosidad | CTA actual (rosa) | 🔧 rework (ámbar, oficio) |
 
-**❌ DELETE candidatos (cromo dashboard / backend / verdaderos dupes — NO widgets de enseñanza):**
-`NgramComparisonDashboard`, `NgramSparsityIndicator`, `NgramPerformanceSummary`, `NgramLossChart`,
-`NgramTechnicalExplanation` (fichas/volcados de métricas backend), `NgramStepwisePrediction` (cyan, backend,
-redundante con battle), `NgramContextDrilldown` (backend; su idea la cubre ContextCounter),
-`NgramInteractiveGenerator` (3er generador redundante; "tú prueba" se integra en la batalla). Posibles merges
-(decidir en prosa, NO borrar a la ligera): `GrowingTablesComparison` (mezcla 2 ideas → cubiertas por
-ContextExplosion+Sparsity), `NgramFiveGramScale`/`CombinatoricExplosionTable` (caben en ContextExplosion),
-`CountingComparisonWidget`/`ConcreteImprovementExample` (caben en ContextCounter). Antes de borrar: verificar
-que NINGÚN otro capítulo los importa (`mlp` usa `generateNgram` del cliente, no estos componentes;
-`lmLabClient.ts` se MANTIENE).
+**NADA se borra por el backend.** Reparto por modos (todo se queda, todo se re-skin a ámbar):
+- **Narrativa (educativo):** los 9 widgets de enseñanza del kit (tabla arriba), datos LOCALES reales para
+  paridad con el bench (igual que la narrativa de bigram va en local).
+- **Free-lab (`page.tsx`):** TODO el set interactivo/instrumento se MANTIENE y se re-skin a ámbar bajo
+  `[data-ngram-theme]`, arreglando el caos multi-acento (cyan/esmeralda/violeta/rojo → ámbar `--ngram-*`):
+  `ContextControl`, `TransitionMatrix` (path ámbar), `InferenceConsole` (path ngram/ámbar),
+  `NgramStepwisePrediction` (ámbar, no cyan), `GenerationPlayground` (path ngram/ámbar), `NgramContextDrilldown`
+  (ámbar), `NgramGenerationBattle` (ámbar), `NgramComparisonDashboard`, `NgramSparsityIndicator`,
+  `NgramPerformanceSummary`, `NgramLossChart`, `NgramTechnicalExplanation`, `NgramInteractiveGenerator`.
+- **Merges suaves (sólo si son DUPLICADO real de idea, NO por backend, y NO se pierde nada):** las micro-ideas
+  de `CountingComparisonWidget`/`ConcreteImprovementExample` se integran en ContextCounter;
+  `GrowingTablesComparison`/`NgramFiveGramScale`/`CombinatoricExplosionTable` en ContextExplosion+Sparsity.
+  Si aportan algo distinto, se quedan. Ante la duda: NO borrar. (`lmLabClient.ts` se MANTIENE intacto.)
 
-**Free-lab mode (`page.tsx`):** playground limpio, ámbar, scoped `[data-ngram-theme]`, SIN backend, reusando
-los widgets nuevos del kit. Así caen los dashboard widgets sin romper la página. (Espeja bigram.)
+**Prioridad de calidad:** la NARRATIVA es el showcase (mimo máximo: kit, ámbar, datos reales, arco perfecto).
+El free-lab recibe un pase sólido de coherencia ámbar (un solo acento, scoped), sin borrar nada.
 
 ---
 
@@ -131,7 +141,11 @@ los widgets nuevos del kit. Así caen los dashboard widgets sin romper la págin
 - [x] `ngram-changelog.md` (bitácora viva).
 - [x] `src/features/lab/components/ngram/kit/AGENTS.md` (contrato de build, adaptado).
 
-### FASE B — Pre-pass de archivos compartidos (SECUENCIAL, sólo aquí se tocan compartidos)  ⬜
+### FASE B — Pre-pass de archivos compartidos (SECUENCIAL, sólo aquí se tocan compartidos)  ⏳
+> Hecho: [x] tokens `--ngram-*` (validado) · [x] `accent="ngram"` en narrative-primitives + KeyTakeaway ·
+> [x] kit fork `ngram/kit/` + `ngram/{HonestBar,PairChip,Verdict}` · [x] `ngramData.ts` (0 mismatch vs golden) ·
+> [x] bench chapter-aware. Pendiente: [ ] i18n (con la copy en C/D) · [ ] gen-ngram-prose.mjs (D) ·
+> [ ] primitivas kit nuevas ContextWindow/ExplosionGrid (se añaden con su widget en C). tsc verde.
 - [ ] **Tokens `--ngram-*`** en `globals.css`: espejo rol-por-rol de `--ngram-*` ↔ `--bigram-*`, acento
       ámbar/amarillo (oscuro + claro), bajo `[data-ngram-theme="dark|light"]`. + bridge `@theme inline`
       `--color-ngram-*`. + `--ngram-font-display/serif/mono` = mismas fuentes. ADITIVO, no tocar `--bigram-*`/`--lab-*`/shadcn.

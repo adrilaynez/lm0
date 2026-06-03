@@ -18,13 +18,18 @@ import { cn } from "@/lib/utils";
    existing accent's value — the bigram entry is purely additive.
    ───────────────────────────────────────────── */
 
-export type NarrativeAccent = "emerald" | "amber" | "rose" | "violet" | "cyan" | "bigram";
+export type NarrativeAccent = "emerald" | "amber" | "rose" | "violet" | "cyan" | "bigram" | "ngram";
 export type HighlightColor = NarrativeAccent | "indigo";
 
 /* Bigram families — Playfair titles, Source Serif body, JetBrains Mono data. */
 const BIGRAM_DISPLAY = "font-[family-name:var(--bigram-font-display)]";
 const BIGRAM_SERIF = "font-[family-name:var(--bigram-font-serif)]";
 const BIGRAM_MONO = "font-[family-name:var(--bigram-font-mono)]";
+
+/* N-gram families — same registrations, amber accent. Mirror of the bigram editorial path. */
+const NGRAM_DISPLAY = "font-[family-name:var(--ngram-font-display)]";
+const NGRAM_SERIF = "font-[family-name:var(--ngram-font-serif)]";
+const NGRAM_MONO = "font-[family-name:var(--ngram-font-mono)]";
 
 /* ─────────────────────────────────────────────
    Color maps
@@ -37,6 +42,7 @@ const ACCENT_SIMPLE_CIRCLE: Record<NarrativeAccent, string> = {
     violet: "bg-violet-500/10 border-violet-500/20 text-violet-400",
     cyan: "bg-cyan-500/10 border-cyan-500/20 text-cyan-400",
     bigram: "bg-bigram-accent-soft border-[color-mix(in_oklab,var(--bigram-accent)_38%,transparent)] text-bigram-accent-ink",
+    ngram: "bg-ngram-accent-soft border-[color-mix(in_oklab,var(--ngram-accent)_38%,transparent)] text-ngram-accent-ink",
 };
 
 const CALLOUT_COLORS: Record<NarrativeAccent | "indigo", { border: string; bg: string; icon: string; title: string; glow: string }> = {
@@ -48,6 +54,7 @@ const CALLOUT_COLORS: Record<NarrativeAccent | "indigo", { border: string; bg: s
     cyan: { border: "border-cyan-500/20", bg: "bg-cyan-500/[0.04]", icon: "text-cyan-400", title: "text-cyan-400", glow: "from-cyan-500/[0.06]" },
     // v8: surface panel, rule-2 hairline, mono accent title + 6px accent dot (rendered below).
     bigram: { border: "border-[color:var(--bigram-rule-2)]", bg: "bg-bigram-surface", icon: "text-bigram-accent", title: "text-bigram-accent", glow: "from-transparent" },
+    ngram: { border: "border-[color:var(--ngram-rule-2)]", bg: "bg-ngram-surface", icon: "text-ngram-accent", title: "text-ngram-accent", glow: "from-transparent" },
 };
 
 const HIGHLIGHT_COLORS: Record<HighlightColor, string> = {
@@ -59,6 +66,7 @@ const HIGHLIGHT_COLORS: Record<HighlightColor, string> = {
     cyan: "text-cyan-400",
     // v8 inline emphasis (.hl): accent-ink, italic, weight 500 — rich but legible.
     bigram: "text-bigram-accent-ink italic font-medium",
+    ngram: "text-ngram-accent-ink italic font-medium",
 };
 
 const FORMULA_STYLES: Record<NarrativeAccent, { bg: string; border: string; shadow: string }> = {
@@ -69,6 +77,7 @@ const FORMULA_STYLES: Record<NarrativeAccent, { bg: string; border: string; shad
     cyan: { bg: "bg-cyan-500/[0.04]", border: "border-cyan-500/[0.15]", shadow: "shadow-[0_0_40px_-15px_rgba(34,211,238,0.15)]" },
     // v8: sunken bg-2 well, marked rule-2 hairline, no glow halo.
     bigram: { bg: "bg-bigram-bg-2", border: "border-[color:var(--bigram-rule-2)]", shadow: "" },
+    ngram: { bg: "bg-ngram-bg-2", border: "border-[color:var(--ngram-rule-2)]", shadow: "" },
 };
 
 const PULLQUOTE_BORDER: Record<NarrativeAccent, string> = {
@@ -78,6 +87,7 @@ const PULLQUOTE_BORDER: Record<NarrativeAccent, string> = {
     violet: "border-violet-500/30",
     cyan: "border-cyan-400/40",
     bigram: "border-bigram-accent",
+    ngram: "border-ngram-accent",
 };
 
 /* ─────────────────────────────────────────────
@@ -120,6 +130,21 @@ export function SectionLabel({
                 </span>
                 {label && (
                     <span className={cn(BIGRAM_MONO, "text-[11.5px] font-medium uppercase tracking-[0.18em] text-bigram-muted")}>
+                        {label}
+                    </span>
+                )}
+            </div>
+        );
+    }
+
+    if (accent === "ngram") {
+        return (
+            <div className="flex items-baseline gap-3.5 mb-5">
+                <span className={cn(NGRAM_DISPLAY, "italic font-semibold text-[26px] leading-none text-ngram-accent")}>
+                    {number}
+                </span>
+                {label && (
+                    <span className={cn(NGRAM_MONO, "text-[11.5px] font-medium uppercase tracking-[0.18em] text-ngram-muted")}>
                         {label}
                     </span>
                 )}
@@ -192,6 +217,22 @@ export function Heading({
         );
     }
 
+    if (accent === "ngram") {
+        return (
+            <h2
+                style={{ lineHeight: 1.08 }}
+                className={cn(
+                    NGRAM_DISPLAY,
+                    "font-semibold text-ngram-ink tracking-[-0.012em] mb-8 text-balance max-w-[74ch]",
+                    "text-[clamp(34px,4.8vw,52px)]",
+                    className
+                )}
+            >
+                {children}
+            </h2>
+        );
+    }
+
     return (
         <h2 className={cn("text-2xl md:text-[2rem] font-bold text-[var(--lab-text)] tracking-tight mb-6 leading-tight", className)}>
             {children}
@@ -235,6 +276,22 @@ export function Subheading({
         );
     }
 
+    if (accent === "ngram") {
+        return (
+            <h3
+                style={{ lineHeight: 1.2 }}
+                className={cn(
+                    NGRAM_DISPLAY,
+                    "font-semibold text-ngram-ink tracking-[-0.008em] mt-12 mb-4 text-balance max-w-[67ch]",
+                    "text-[clamp(27px,2.6vw,31px)]",
+                    className
+                )}
+            >
+                {children}
+            </h3>
+        );
+    }
+
     return (
         <h3 className={cn("text-xl md:text-2xl font-bold text-[var(--lab-text)] tracking-tight mt-10 mb-4 leading-snug", className)}>
             {children}
@@ -258,6 +315,14 @@ export function Lead({
     if (accent === "bigram") {
         return (
             <p className={cn(BIGRAM_SERIF, "text-[clamp(22px,2.3vw,27px)] font-normal leading-[1.5] text-bigram-ink-2 mb-10 text-pretty max-w-[74ch]")}>
+                {children}
+            </p>
+        );
+    }
+
+    if (accent === "ngram") {
+        return (
+            <p className={cn(NGRAM_SERIF, "text-[clamp(22px,2.3vw,27px)] font-normal leading-[1.5] text-ngram-ink-2 mb-10 text-pretty max-w-[74ch]")}>
                 {children}
             </p>
         );
@@ -291,6 +356,14 @@ export function P({
         );
     }
 
+    if (accent === "ngram") {
+        return (
+            <p className={cn(NGRAM_SERIF, "text-[20.5px] leading-[1.7] text-ngram-body mb-[1.66em] last:mb-0 text-pretty max-w-[67ch]")}>
+                {children}
+            </p>
+        );
+    }
+
     return (
         <p className="text-[15px] md:text-base text-[var(--lab-text-muted)] leading-[1.9] mb-5 last:mb-0">
             {children}
@@ -312,8 +385,13 @@ export function Highlight({
     tooltip?: string;
 }) {
     const isBigram = color === "bigram";
-    // The bigram inline style already carries italic + weight; non-bigram keeps semibold.
-    const emphasis = isBigram ? HIGHLIGHT_COLORS.bigram : `${HIGHLIGHT_COLORS[color]} font-semibold`;
+    const isNgram = color === "ngram";
+    // The bigram/ngram inline style already carries italic + weight; others keep semibold.
+    const emphasis = isBigram
+        ? HIGHLIGHT_COLORS.bigram
+        : isNgram
+            ? HIGHLIGHT_COLORS.ngram
+            : `${HIGHLIGHT_COLORS[color]} font-semibold`;
 
     if (!tooltip) {
         return <strong className={emphasis}>{children}</strong>;
@@ -397,6 +475,22 @@ export function Callout({
         );
     }
 
+    if (accent === "ngram") {
+        return (
+            <FadeInView as="aside" margin="-40px" className="relative my-9 rounded-[var(--ngram-r-md)] border border-[color:var(--ngram-rule-2)] bg-ngram-surface p-6">
+                {title && (
+                    <p className={cn(NGRAM_MONO, "flex items-center gap-2.5 text-[11px] uppercase tracking-[0.18em] text-ngram-accent mb-3")}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-ngram-accent" />
+                        {title}
+                    </p>
+                )}
+                <div className={cn(NGRAM_SERIF, "text-[17px] leading-[1.7] text-ngram-ink-2 [&>p]:mb-2.5 [&>p:last-child]:mb-0")}>
+                    {children}
+                </div>
+            </FadeInView>
+        );
+    }
+
     return (
         <FadeInView as="aside" margin="-40px" className={`relative my-8 rounded-xl border ${a.border} ${a.bg} p-5 md:p-6 overflow-hidden`}>
             <div className={`absolute inset-0 bg-gradient-to-br ${a.glow} to-transparent pointer-events-none`} />
@@ -455,6 +549,19 @@ export function FormulaBlock({
         );
     }
 
+    if (accent === "ngram") {
+        return (
+            <FadeInView margin="-40px" className="my-9 text-center">
+                <div className={cn("rounded-[var(--ngram-r-md)] px-7 py-6 text-ngram-accent", s.bg, "border", s.border)}>
+                    <BlockMath math={formula} />
+                </div>
+                <p className={cn(NGRAM_MONO, "mt-4 text-[11px] uppercase tracking-[0.18em] text-ngram-muted")}>
+                    {caption}
+                </p>
+            </FadeInView>
+        );
+    }
+
     return (
         <FadeInView margin="-40px" className="my-10 text-center">
             <div className="flex items-center justify-center mb-10">
@@ -492,6 +599,16 @@ export function PullQuote({
         );
     }
 
+    if (accent === "ngram") {
+        return (
+            <FadeInView as="blockquote" margin="-40px" className="my-11 md:my-12 pl-7 border-l-[3px] border-ngram-accent max-w-[74ch]">
+                <p className={cn(NGRAM_DISPLAY, "font-semibold text-[clamp(26px,3.2vw,38px)] leading-[1.2] tracking-[-0.01em] text-ngram-ink text-balance")}>
+                    {children}
+                </p>
+            </FadeInView>
+        );
+    }
+
     return (
         <FadeInView as="blockquote" margin="-40px" className={`my-10 md:my-12 pl-6 border-l-2 ${PULLQUOTE_BORDER[accent]}`}>
             <p className="text-lg md:text-xl text-[var(--lab-text-muted)] font-light italic leading-relaxed">
@@ -508,7 +625,7 @@ export function PullQuote({
    ───────────────────────────────────────────── */
 
 export function SectionBreak({ accent }: { accent?: NarrativeAccent } = {}) {
-    if (accent === "bigram") {
+    if (accent === "bigram" || accent === "ngram") {
         // Minimalist: no divider rule between sections — whitespace carries the break.
         return <div className="my-12 md:my-16" aria-hidden />;
     }
@@ -542,6 +659,8 @@ export const FIGURE_ACCENTS = {
     // Bigram is rendered through the dedicated editorial path below; this entry
     // exists only so accent="bigram" type-checks against FigureAccent.
     bigram: { border: "", bg: "", bar: "", text: "" },
+    // Same for ngram — rendered through the dedicated editorial path below.
+    ngram: { border: "", bg: "", bar: "", text: "" },
 } as const;
 
 export type FigureAccent = keyof typeof FIGURE_ACCENTS;
@@ -570,6 +689,26 @@ export function FigureWrapper({
                 </div>
                 {hint && (
                     <p className={cn(BIGRAM_SERIF, "mt-3 px-1 text-[15.5px] italic text-bigram-muted text-center")}>
+                        {hint}
+                    </p>
+                )}
+            </figure>
+        );
+    }
+
+    if (accent === "ngram") {
+        return (
+            <figure className="my-11 md:my-14 -mx-2 sm:mx-0">
+                {/* Numbered mono caption — no underline, separated by space (no chrome). */}
+                <figcaption className={cn(NGRAM_MONO, "px-1 pb-3 text-[12.5px] uppercase tracking-[0.18em] text-ngram-muted")}>
+                    {label}
+                </figcaption>
+                {/* The single faint plane: the only "this is interactive" signal. */}
+                <div className="rounded-[var(--ngram-r-sm)] bg-[color-mix(in_oklab,var(--ngram-surface)_55%,var(--ngram-bg))] px-7 py-8 sm:px-7">
+                    {children}
+                </div>
+                {hint && (
+                    <p className={cn(NGRAM_SERIF, "mt-3 px-1 text-[15.5px] italic text-ngram-muted text-center")}>
                         {hint}
                     </p>
                 )}

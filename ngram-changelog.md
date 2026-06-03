@@ -13,8 +13,13 @@
   sobran. (Memoria `lab-chapters-maximize-visualizers`.)
 - **Reusar > borrar.** El plan inicial borraba ~14 widgets y consolidaba en 7. Rechazado. Política nueva:
   REUSAR/REHACER los widgets cuya idea/lógica es buena (re-skin al kit + ámbar, faked→datos reales). Rebuild
-  sólo si la mecánica está mal. Borrar SÓLO cromo de dashboard puro (volcados de métricas backend) y dupes
-  genuinos. Resultado: 9 visualizadores (vs ~11 repartidos en 2 modos), mejor hilados, casi todos rework.
+  sólo si la mecánica está mal. NO borrar prácticamente nada. Resultado: narrativa con 9 widgets de enseñanza
+  del kit + free-lab con TODO su set instrumento, todo re-skin a ámbar.
+- **EL BACKEND ESTÁ BIEN (2ª corrección del usuario).** El backend funciona y es genial. Depender del backend
+  NUNCA es razón para borrar/rebuild-a-local/tratar como roto. NO se elimina nada por el backend. Reparto por
+  modos: narrativa = widgets del kit con datos LOCALES reales (paridad con el bench, igual que la narrativa de
+  bigram va en local — NO porque el backend sea malo); free-lab = todo el set con backend, re-skin a ámbar.
+  `lmLabClient.ts` intacto. (Memoria `backend-is-fine-never-delete-for-it`.)
 - **Acento ámbar con el sistema de bigram.** No es un look nuevo: son los MISMOS roles de token, primitivas
   del kit, tipografía y motion que bigram, sólo que el acento es ámbar/amarillo en vez de verde editorial.
   Espejo `--ngram-*` ↔ `--bigram-*`, scoped bajo `[data-ngram-theme]`. Aditivo: no toca bigram/lab/shadcn.
@@ -52,17 +57,31 @@
 - ❌ **§1 nombra el dominio e inventa:** `ContextWindowVisualizer` usa «I want to eat pizza» (nombra el
   dominio) y predicciones faked, y el juego es trivial (se acierta a la primera). → rebuild con texto real,
   sin nombrar dominio, juego difícil.
-- ❌ **Dashboard density:** muchos widgets son volcados de métricas (PerformanceSummary, ComparisonDashboard,
-  SparsityIndicator, LossChart, TechnicalExplanation) — multi-card, multi-color, sin interacción, sin enseñar
-  una idea. → borrados; el capítulo enseña por interacción, no por tablas de números.
+- ⚠️ **Dashboard density:** varios widgets son volcados de métricas (PerformanceSummary, ComparisonDashboard,
+  SparsityIndicator, LossChart, TechnicalExplanation) — multi-card, multi-color. NO se borran (el backend que
+  los alimenta está bien): se MANTIENEN en el free-lab como instrumento, re-skin a ámbar y sin multi-acento.
+  La NARRATIVA, en cambio, enseña por interacción (widgets del kit), no por tablas de métricas.
 - ❌ **Traffic-lights rojo-ámbar-verde** en heatmaps/severidad (CombinatoricExplosionTable, SparsityHeatmap,
   InfiniteTable). → rampa de calor única ámbar del kit.
-- ❌ **3 generadores** (NgramGenerationBattle, NgramInteractiveGenerator, GenerationPlayground) y **3-4
-  widgets de explosión 27^n** y **3 de tabla vacía**. → 1 generador (la batalla, con semilla editable), 1
-  explosión, 2 de muro (sparsity real + datos-infinitos, ideas distintas).
-- ❌ **Texto de error en inglés hardcodeado** en NgramGenerationBattle («Server may still be starting up»).
-  → generación local, sin backend, sin ese estado.
-- ❌ **i18n con naming stale:** NgramStepwisePrediction usa claves `models.bigram.stepwise.*`. → se borra.
+- ⚠️ **Redundancia de generadores/explosión/vacío:** en la NARRATIVA, 1 generador (batalla, semilla editable),
+  1 explosión, 2 de muro (sparsity real + datos-infinitos, ideas distintas). Los demás se quedan en el free-lab.
+- ⚠️ **Texto de error en inglés hardcodeado** en NgramGenerationBattle («Server may still be starting up»).
+  → i18n; la versión de la narrativa usa generación local (paridad con el bench).
+- ⚠️ **i18n con naming stale:** NgramStepwisePrediction usa claves `models.bigram.stepwise.*`. → renombrar a
+  claves ngram (no se borra el widget; se re-skin a ámbar y se queda en el free-lab).
+
+## Fase B (pre-pass compartido) — hecho
+- **Tokens `--ngram-*`** en globals.css: bridge `@theme inline` (set completo de roles) + bloques
+  `[data-ngram-theme="dark|light"]` (base cálida + acento ámbar) + grain + scrollbar + numeric. Aditivo.
+- **Rama `accent="ngram"`** en `narrative-primitives.tsx` (espejo exacto de `"bigram"`, clases literales
+  `*-ngram-*`; las ramas bigram quedan byte-idénticas = cero regresión). + `KeyTakeaway` (NgramTakeaway sage).
+- **Kit fork** `ngram/kit/` (10 archivos) + `ngram/{HonestBar,PairChip,Verdict}` vía script one-shot
+  (`--bigram-`→`--ngram-`, clases `bw-`→`nw-` para no colisionar el `<style>` global). eslint verde.
+- **`ngramData.ts`**: conteo local n=1..4 sobre `SHAKESPEARE_TEXT` (300.000 chars, con mayúsculas), mapas
+  dispersos, normalización = **lowercase → no-[a-z]→espacio → colapsar espacios**. ✅ VALIDADO: la regla
+  lowercase da **0 discrepancias** vs `MATRIX_27_COUNTS` (t→h = 7071). Helpers: contextDistribution,
+  topFollowers, contextRow, predictAt, diagnostics (contextSpace 27^k, observedContexts, sparsity),
+  generateLocal (con backoff + temperatura), validateAgainstBigram.
 
 ## Estado por visualizador (se actualiza en build)
 | § | Widget | Origen | Estado |

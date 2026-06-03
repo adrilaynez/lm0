@@ -6,7 +6,7 @@ import { Lightbulb } from "lucide-react";
 
 interface KeyTakeawayProps {
     children: React.ReactNode;
-    accent?: "emerald" | "amber" | "rose" | "violet" | "cyan" | "bigram";
+    accent?: "emerald" | "amber" | "rose" | "violet" | "cyan" | "bigram" | "ngram";
 }
 
 interface LiteralAccent {
@@ -18,7 +18,7 @@ interface LiteralAccent {
     glowRgb: string;
 }
 
-const ACCENT_STYLES: Record<Exclude<KeyTakeawayProps["accent"], "bigram" | undefined>, LiteralAccent> = {
+const ACCENT_STYLES: Record<Exclude<KeyTakeawayProps["accent"], "bigram" | "ngram" | undefined>, LiteralAccent> = {
     emerald: {
         border: "border-emerald-500/20",
         iconBg: "bg-emerald-500/15",
@@ -107,11 +107,57 @@ function BigramTakeaway({ children }: { children: React.ReactNode }) {
     );
 }
 
+/**
+ * N-gram (editorial-amber) takeaway — the SAGE "editorial insight" voice, amber sibling of
+ * BigramTakeaway. Every value is a --ngram-* token under the [data-ngram-theme] scope.
+ */
+function NgramTakeaway({ children }: { children: React.ReactNode }) {
+    return (
+        <div
+            className="my-10 rounded-[var(--ngram-r-lg)] p-6 sm:p-7 relative"
+            style={{
+                background:
+                    "linear-gradient(135deg, var(--ngram-sage-soft), transparent 82%)",
+                border: "1px solid color-mix(in oklab, var(--ngram-sage) 32%, transparent)",
+            }}
+        >
+            <div className="relative flex gap-4">
+                <div
+                    className="flex-shrink-0 grid place-items-center w-9 h-9 rounded-[var(--ngram-r-sm)]"
+                    style={{
+                        background: "var(--ngram-sage-soft)",
+                        color: "var(--ngram-sage)",
+                    }}
+                >
+                    <Lightbulb className="w-[18px] h-[18px]" />
+                </div>
+                <div>
+                    <div
+                        className="font-mono text-[10.5px] uppercase tracking-[0.18em] mb-2.5"
+                        style={{ color: "var(--ngram-sage)" }}
+                    >
+                        Key Takeaway
+                    </div>
+                    <div
+                        className="font-serif text-[19px] leading-relaxed"
+                        style={{ color: "var(--ngram-ink)" }}
+                    >
+                        {children}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export function KeyTakeaway({ children, accent = "emerald" }: KeyTakeawayProps) {
-    // Bigram opts into the SAGE editorial-green voice; all other chapters keep
+    // Bigram / n-gram opt into the SAGE editorial voice; all other chapters keep
     // their original literal Tailwind accents untouched.
     if (accent === "bigram") {
         return <BigramTakeaway>{children}</BigramTakeaway>;
+    }
+    if (accent === "ngram") {
+        return <NgramTakeaway>{children}</NgramTakeaway>;
     }
 
     const s = ACCENT_STYLES[accent];
