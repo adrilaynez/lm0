@@ -43,6 +43,20 @@ const InfiniteTable = lazy(() => import("@/features/lab/components/ngram/Infinit
 const UnseenContext = lazy(() => import("@/features/lab/components/ngram/UnseenContext").then(m => ({ default: m.UnseenContext })));
 const TypoBreaker = lazy(() => import("@/features/lab/components/ngram/TypoBreaker").then(m => ({ default: m.TypoBreaker })));
 const SimilarityBridge = lazy(() => import("@/features/lab/components/ngram/SimilarityBridge").then(m => ({ default: m.SimilarityBridge })));
+/* ── N-gram v3 "La fila" widgets ── */
+const WidenWindow = lazy(() => import("@/features/lab/components/ngram/WidenWindow").then(m => ({ default: m.WidenWindow })));
+const SplitTheRow = lazy(() => import("@/features/lab/components/ngram/SplitTheRow").then(m => ({ default: m.SplitTheRow })));
+const WriteFromMatrix = lazy(() => import("@/features/lab/components/ngram/WriteFromMatrix").then(m => ({ default: m.WriteFromMatrix })));
+const RowSharpens = lazy(() => import("@/features/lab/components/ngram/RowSharpens").then(m => ({ default: m.RowSharpens })));
+const GrowingTable = lazy(() => import("@/features/lab/components/ngram/GrowingTable").then(m => ({ default: m.GrowingTable })));
+const LookWhatYouBuilt = lazy(() => import("@/features/lab/components/ngram/LookWhatYouBuilt").then(m => ({ default: m.LookWhatYouBuilt })));
+const AmnesiaReplay = lazy(() => import("@/features/lab/components/ngram/AmnesiaReplay").then(m => ({ default: m.AmnesiaReplay })));
+const ExplosionZoom = lazy(() => import("@/features/lab/components/ngram/ExplosionZoom").then(m => ({ default: m.ExplosionZoom })));
+const BookFirehose = lazy(() => import("@/features/lab/components/ngram/BookFirehose").then(m => ({ default: m.BookFirehose })));
+const MuteSlot = lazy(() => import("@/features/lab/components/ngram/MuteSlot").then(m => ({ default: m.MuteSlot })));
+const Progression = lazy(() => import("@/features/lab/components/ngram/Progression").then(m => ({ default: m.Progression })));
+const BigModelLimit = lazy(() => import("@/features/lab/components/ngram/BigModelLimit").then(m => ({ default: m.BigModelLimit })));
+const EmptyMatrix = lazy(() => import("@/features/lab/components/ngram/EmptyMatrix").then(m => ({ default: m.EmptyMatrix })));
 
 /** slug → { label, node, chapter }. Order here is the chapter order, for the picker. */
 const WIDGETS: { slug: string; label: string; node: React.ReactNode; chapter?: "bigram" | "ngram" }[] = [
@@ -72,6 +86,20 @@ const WIDGETS: { slug: string; label: string; node: React.ReactNode; chapter?: "
     { slug: "ng-unseen", label: "NG§6a · UnseenContext", node: <UnseenContext />, chapter: "ngram" },
     { slug: "ng-typo", label: "NG§6b · TypoBreaker", node: <TypoBreaker />, chapter: "ngram" },
     { slug: "ng-similarity", label: "NG§7 · SimilarityBridge", node: <SimilarityBridge />, chapter: "ngram" },
+    // ── N-gram v3 "La fila" ──
+    { slug: "ng-widen", label: "v3§1 · WidenWindow", node: <WidenWindow />, chapter: "ngram" },
+    { slug: "ng-split", label: "v3§2 · SplitTheRow", node: <SplitTheRow />, chapter: "ngram" },
+    { slug: "ng-write", label: "v3§3 · WriteFromMatrix", node: <WriteFromMatrix />, chapter: "ngram" },
+    { slug: "ng-sharpen", label: "v3§2 · RowSharpens", node: <RowSharpens />, chapter: "ngram" },
+    { slug: "ng-grow", label: "v3§2 · GrowingTable", node: <GrowingTable />, chapter: "ngram" },
+    { slug: "ng-built", label: "v3§3 · LookWhatYouBuilt", node: <LookWhatYouBuilt />, chapter: "ngram" },
+    { slug: "ng-amnesia", label: "v3§1 · AmnesiaReplay", node: <AmnesiaReplay />, chapter: "ngram" },
+    { slug: "ng-zoom", label: "v3§4 · ExplosionZoom", node: <ExplosionZoom />, chapter: "ngram" },
+    { slug: "ng-firehose", label: "v3§4 · BookFirehose", node: <BookFirehose />, chapter: "ngram" },
+    { slug: "ng-mute", label: "v3§5 · MuteSlot", node: <MuteSlot />, chapter: "ngram" },
+    { slug: "ng-empty", label: "v3§5 · EmptyMatrix", node: <EmptyMatrix />, chapter: "ngram" },
+    { slug: "ng-progress", label: "v3§6 · Progression", node: <Progression />, chapter: "ngram" },
+    { slug: "ng-limit", label: "v3§6 · BigModelLimit", node: <BigModelLimit />, chapter: "ngram" },
 ];
 
 const MONO = "var(--bigram-font-mono)";
@@ -79,6 +107,7 @@ const MONO = "var(--bigram-font-mono)";
 function Bench() {
     const sp = useSearchParams();
     const theme = sp.get("theme") === "light" ? "light" : "dark";
+    const bare = sp.get("bare") === "1"; // ?bare=1 hides the picker bar → clean widget-only capture for the fresh-eyes gate
     const otherTheme = theme === "light" ? "dark" : "light";
     const slug = sp.get("w") ?? WIDGETS[0].slug;
     const current = WIDGETS.find((w) => w.slug === slug);
@@ -87,15 +116,23 @@ function Bench() {
     // ?play=1 → auto-click the widget's primary button after mount, so a headless screenshot can
     // capture the BUILT/animated end-state (with a large --virtual-time-budget the animation fast-forwards).
     const autoplay = sp.get("play") === "1";
+    const clicks = Math.max(1, Math.min(6, parseInt(sp.get("clicks") ?? "1", 10) || 1));
     useEffect(() => {
         if (!autoplay) return;
-        const id = setTimeout(() => {
+        const timers: ReturnType<typeof setTimeout>[] = [];
+        // click the PRIMARY action, not the first button (which is often a Tab/seed selector). `?clicks=N`
+        // presses it N times so a capture can show a deeper interacted state (used it, not just initial).
+        const PRIMARY = /escrib|gener|empez|\bpaso\b|añad|abrir|recorr|dejar|otra letra|construir|más hondo|caer|hondo|reproduc|jugar|play|ver la real/i;
+        const clickPrimary = () => {
             const stage = document.querySelector("[data-bench-stage]");
-            const btn = stage?.querySelector("button");
-            if (btn instanceof HTMLButtonElement) btn.click();
-        }, 600);
-        return () => clearTimeout(id);
-    }, [autoplay, slug]);
+            if (!stage) return;
+            const btns = Array.from(stage.querySelectorAll("button")) as HTMLButtonElement[];
+            const primary = btns.find((b) => PRIMARY.test(b.textContent ?? "")) ?? btns[0];
+            primary?.click();
+        };
+        for (let i = 0; i < clicks; i++) timers.push(setTimeout(clickPrimary, 600 + i * 520));
+        return () => timers.forEach(clearTimeout);
+    }, [autoplay, clicks, slug]);
 
     return (
         <div
@@ -106,6 +143,7 @@ function Bench() {
             <div className={`${chapter}-grain`} aria-hidden />
             <div style={{ position: "relative", zIndex: 1, maxWidth: 980, margin: "0 auto", padding: "26px 24px 96px" }}>
                 {/* picker bar */}
+                {!bare && (
                 <div
                     style={{
                         display: "flex",
@@ -156,6 +194,7 @@ function Bench() {
                         ☼ {otherTheme}
                     </a>
                 </div>
+                )}
 
                 {/* the Plane surface the narrative uses, so the widget reads exactly as in-page */}
                 <div

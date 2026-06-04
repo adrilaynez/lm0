@@ -70,23 +70,46 @@ Y el caso **tiene que ser de verdad difícil**: si el objetivo es "más contexto
 un ejemplo donde con poco contexto **no se pueda acertar** y solo el contexto tardío fuerce la respuesta
 (p. ej. una palabra rara de escribir, revelada letra a letra: «c… cu… cup… cupid… → o»). Un ejemplo que se
 clava a la primera no demuestra nada — mata la lección.
+**Y no solo la respuesta: deja que intente la SOLUCIÓN.** Cuando toca resolver algo (¿cómo arreglamos la
+amnesia? ¿cómo guardamos esto?), planta la pregunta y un hueco con una pista suave —«¿cómo lo harías tú?,
+piénsalo un momento»— para que el usuario *intente el arreglo antes de revelarlo*. Elige problemas cuya
+solución esté a su alcance: la saca, y siente que la inventó él. Es la peonza de *Inception*: la conclusión
+está delante, pero la dedujo él (pilar 3). Vale igual para los fallos: que escriba y sienta él «esto es una
+basura», no que se lo anuncies. Revelar sin dejar intentar le roba el momento.
 
-**11 · Muestra el fracaso a propósito.** Deja que lo malo pase para que el usuario sienta por qué
-hace falta algo mejor. El fracaso *vivido* motiva la solución mejor que cualquier advertencia.
+**11 · Muestra el fracaso a propósito — y nárralo, no lo anuncies.** Deja que lo malo pase para que el
+usuario sienta por qué hace falta algo mejor. El fracaso *vivido* motiva la solución mejor que cualquier
+advertencia. **Clave:** el cuerpo monta la escena y pregunta; el fallo lo *descubre* el usuario tocando.
+Nunca escribas en la prosa la conclusión que un visualizador podría dejar que encuentre («la tabla está
+vacía», «se estampa contra un muro», «se queda en blanco») *antes* de que la encuentre: le quitas la peonza
+de las manos. (Fallo real de n-gram v1: cada sección anunciaba su pega en el lead y el widget solo la
+ilustraba. Ver `method-failure-book.md` §2.3.)
 
-**12 · Del lío al orden: que la estructura se invente, no se imponga.** Las estructuras (una fila,
-una tabla, una matriz, un vector) aparecen como solución a un caos que el usuario *siente* primero.
+**12 · Del lío al orden: que la estructura se invente, no se imponga. Y construir CUESTA.** Las
+estructuras (una fila, una tabla, una matriz, un vector) aparecen como solución a un caos que el usuario
+*siente* primero. Y cada salto a una estructura mayor (bigrama→trigrama→4-grama→…) se *gana*: lo provoca un
+fallo que el usuario acaba de sentir con el nivel anterior, no «probemos con más por probar». Si subir de
+nivel es gratis e instantáneo, la victoria no vale nada. Que algo sea medio difícil, que el usuario *haga* el
+modelo con sus manos y sienta que lo levantó él — no que se lo den hecho. (n-gram v1 dio el trigrama hecho:
+«la llave es más larga, eso es todo». Ver `method-failure-book.md` §2.2.)
 
 **13 · El arco emocional pesa tanto como el lógico.** Beats: **curiosidad → pequeña victoria →
 victoria mayor → triunfo → decepción → nueva curiosidad.** Diseña la montaña rusa, no solo el temario.
 Orden importa: **celebra el logro ANTES del anticlímax honesto** (—lo has construido tú, desde cero— *y luego*
 —pero mira qué mal escribe—), no al revés. Primero que sienta que lo logró; luego la pega que abre lo siguiente.
+**No apiles fracasos:** *una* sola pared honesta tras la victoria celebrada abre el siguiente capítulo; tres o
+cuatro secciones seguidas de «mira otro fallo» hunden el arco y agotan al lector. (n-gram v1 puso cinco beats de
+fallo —tamaño, vacío, datos, raros, typos— contra uno de logro: «crítica, crítica, crítica». `method-failure-book.md` §2.1.)
 
 **14 · Cierra el círculo (bookends y callbacks).** La idea con la que abres vuelve al final.
 Recuperar el gancho inicial da sensación de *historia completa*.
 
 **15 · Honestidad sobre los límites.** No escondas las simplificaciones: conviértelas en el siguiente
-"¿y si?". Admitir el límite abre la siguiente puerta y enseña pensamiento crítico de regalo.
+"¿y si?". Admitir el límite abre la siguiente puerta y enseña pensamiento crítico de regalo. **Antes de
+escribir el puente al capítulo siguiente, LEE ese capítulo** (su narrativa / spine): el puente *abre* su
+puerta, no la cruza — así no spoileas ni contradices lo que enseñará (p. ej. los embeddings / «cosas
+parecidas se tratan parecido» viven en el capítulo de redes, no en el de conteo). El puente plantea la
+pregunta que el siguiente responde, nada más.
 
 **16 · Coherencia del ejemplo y del dato.** Un único hilo conductor (una frase ancla que reaparece)
 y claridad constante sobre **qué dato/corpus** estamos mirando en cada momento.
@@ -181,10 +204,18 @@ anterior. Entonces exige:
 
 - [ ] **El arco sube** (pilar 13): curiosidad → logro → logro mayor → triunfo → decepción honesta → nueva curiosidad.
 - [ ] **Cada beat puentea al siguiente** con un "¿y si?" del lector (pilar 8). Ninguna sección arranca en seco.
-- [ ] **Cero duplicación.** Dos párrafos que dicen lo mismo (p. ej. el `twist` de un widget y el párrafo
-      siguiente anunciando ambos "el mundo real tiene mayúsculas") → fusiona o borra uno. Fallo duro.
+- [ ] **Cero duplicación (prosa Y widgets).** Dos párrafos que dicen lo mismo → fusiona o borra uno. Y
+      **dos visualizadores que enseñan la MISMA idea** (n-gram v1: unseen + typo = ambos «no generaliza»;
+      sparsity + infinite = ambos «vacía») → uno muere, salvo que el segundo añada una faceta nueva de verdad.
+      Una idea → un widget. Fallo duro.
 - [ ] **Descubrir-no-definir se mantiene ENTRE beats** (un término nunca se usa antes del beat que lo gana).
 - [ ] **Coherencia de anclaje** (pilar 16): el lector nunca se pregunta "¿qué texto miro ahora?".
+- [ ] **Descubrir, no contar — a nivel de ARCO** (pilar 11): cada giro mayor lo DESCUBRE el usuario
+      (prueba → falla → nota el patrón), no se lo anuncia el narrador. Si una frase del cuerpo entrega la
+      conclusión que un widget podría dejar hallar, reescríbela como escena + pregunta. *Pregúntate por cada
+      sección: ¿esto lo descubre el usuario, o se lo cuento?*
+- [ ] **No apilar fracasos** (pilar 13): ¿hay 3+ secciones seguidas que solo muestran pegas? El arco se
+      hunde. Reordena a *una* pared honesta tras el logro celebrado.
 
 Reescribe en el `.md` hasta que fluya; solo entonces porta a `es.ts`/`en.ts` (en sincronía). No borres el `.md`:
 es el mirror persistente (regenéralo con `node gen-bigram-prose.mjs` tras cada cambio).
@@ -249,6 +280,18 @@ Para auditar cualquier capítulo (N-gram, MLP, …) sin rehacer la crítica a ma
    archivo). ¿Cuál es el concepto único de cada sección?
 2. **Define la escalera "¿y si?" ideal** del capítulo (pilar 8) y su **beat emocional** (pilar 13).
    Esto es la vara: la estructura *correcta*.
+2b. **Disciplina de blueprint — la narrativa lleva el MÁXIMO tiempo (el paso que más se recorta bajo prisa).**
+   Antes de especificar un solo widget: (a) lista TODO lo que la página debe enseñar; (b) escribe cada idea de
+   **~4 formas distintas**; (c) elige una **por evidencia, no por gusto**: la que un lector ciego te explica de
+   vuelta bien y la que tiene menos piezas/cromo; (d) diseña los puentes idea→idea como un **MAPA de viaje**
+   (qué descubre el usuario en cada salto y *cómo lo deduce él*); (d2) dibuja el **MAPA DE ARCO EMOCIONAL** —
+   una línea de *qué siente* el usuario beat a beat (curiosidad→logro→logro mayor→pared→nueva curiosidad),
+   APARTE de la escalera lógica, y verifica que sube y baja como toca (v1 tenía la lógica bien y el arco plano:
+   cinco bajadas seguidas — eso es lo que de verdad se rompió); (e) solo entonces especifica los widgets;
+   (f) antes de casar la prosa con un widget difícil, haz un **spike desechable de su héroe** (¿se puede hacer
+   legible / se puede *sentir*?) — si no entrega, cambia el plan ANTES de escribir la prosa, no después.
+   Saltarse esto produce un spine que es lista-de-beats, no diseño-de-descubrimiento — el fallo de n-gram v1
+   (`method-failure-book.md` §2, §3 RC-1/RC-5).
 3. **Audita la copy.** Extrae las cadenas i18n del capítulo. Cuenta los guiones largos. Marca las
    líneas con tono IA (P2), condescendencia (P4), define-antes-de-mostrar (P1). Señala 1-2 líneas
    *buenas* como referencia de voz.
@@ -265,6 +308,31 @@ Salida esperada del protocolo: un `<chapter>-analisis-critico.md`, una actualiza
 y un `<chapter>-blueprint.md`. (Para Bigram esa auditoría ya está hecha: vive en la **spine**
 `src/features/lab/data/bigramSpine.ts` + los componentes §1/§2; no hay ficheros sueltos
 `bigram-analisis-critico.md`/`bigram-blueprint.md`.)
+
+---
+
+## Gates exigibles del método (no auto-evaluables) — ver `method-failure-book.md`
+
+Los pilares y la checklist describen el destino; pero bajo prisa el constructor **se aprueba a sí mismo** —
+no puede juzgar su propia legibilidad porque ya sabe la respuesta. N-gram v1 pasó «claro en 5s» en sus cinco
+widgets y un desconocido no entendió ninguno. Por eso el método exige, además de la checklist, controles
+**independientes** (un agente que NO vio la narrativa, no el autor). Su operativa vive en `kit/AGENTS.md`
+(construcción) y el porqué en `method-failure-book.md`; aquí solo el índice:
+
+- **Ojos frescos (gate clave):** un agente que no vio la narrativa juzga SOLO la captura. En 5s debe saber
+  **qué hacer y qué es lo importante (el héroe)** —no el concepto entero— y nombrar el héroe sin pistas; si el
+  widget es complejo, debe llevarte de la mano (pulsa esto → mira este número). Si no sabe por dónde empezar o
+  el héroe está escondido → rehacer.
+- **Ojos frescos también para la NARRATIVA (no solo widgets).** Un lector ciego (que no escribió el capítulo)
+  lee el cuento en lenguaje llano y reporta: ¿dónde me perdí? ¿dónde me lo CONTARON vs. dónde lo DESCUBRÍ?
+  ¿vi venir los fallos o me los soltaron? ¿qué sentí beat a beat — sube el arco? El «si no se siente un viaje,
+  rehacer» del Paso 0 es auto-evaluado: el mismo fallo que hundió los widgets. Este lo arregla en el sitio
+  donde MÁS se falló. **Es un PASO SECUENCIADO** (tras regenerar el mirror, ANTES de construir widgets) y deja
+  **artefacto** `<capítulo>-gates/narrative.fresh-eyes.md`; incluye la pregunta de construcción «¿lo construí
+  o me lo dieron?». Sin artefacto = no hecho. Recipe + escalera maestra: `method-failure-book.md` §4b/§4c.
+- **Panel de jueces (3 lentes):** niño · estética/jerarquía · profesor. Pasa solo si los tres aprueban.
+- **Bucle hacer→criticar→REHACER** (pilar 18): rehacer es la regla, no el fracaso.
+- **Escala visible:** todo número grande con un visual de magnitud que *cambia* con el número.
 
 ---
 

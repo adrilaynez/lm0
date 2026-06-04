@@ -40,6 +40,20 @@ import {
    **exactly** its `newIdea`, assume **only** its `priorKnowledge`, and end where the next beat begins.
 2. **Final image in words.** Describe the end-state (what the screen looks like when it's done) before the
    mechanics. If you can't picture it, the spec isn't ready.
+2.5. **Think like a designer with the final word (5 directions + the hero + the hierarchy study).** Before
+   touching the kit, write: *the ONE thing the reader leaves with* and *the hero* (the single number/shape that
+   MUST dominate). Brainstorm **~5 distinct visual directions** to teach it. Study the **visual-hierarchy
+   tricks as the teaching tool**: what the eye hits first, contrast, size, position, focal point, Gestalt —
+   engineer them so the hero is what a stranger sees FIRST. Pick one with a written reason. **You have the
+   final word:** stay in the kit's aesthetic, but the mechanic is free if it teaches *this* idea better. (See
+   `method-failure-book.md` — parity-over-best-fit is why n-gram v1 read SORT-OF.)
+   **Order of priorities (floor first, ceiling last — never trade down):** (1) **idea** — from the narrative,
+   pin exactly what the reader must REALIZE; (2) **express it brilliantly, VISUAL-FIRST** — the more the idea
+   is carried by the picture and the less by text, the better. *This floor is mandatory; a widget that only
+   nails this is already acceptable.* (3) **interactive** — direct manipulation; hover/click reveals meaning;
+   (4) **a rabbit hole (the high bar)** — a place the reader gets LOST in out of curiosity: a matrix whose
+   numbers you pore over, layers to wander, something you keep poking and keep discovering. **Aim for (4).** If
+   the idea genuinely doesn't support it, fine — but NEVER sacrifice (2) to reach (3)/(4).
 3. **Assemble from the kit.** Use the primitives. If a needed piece genuinely isn't in the kit, **report it**
    (add it to the kit as a new blessed primitive) — never silently re-implement or substitute.
 4. **Real data only.** Counts/probabilities come from the data modules (`bigramShakespeare27.ts`,
@@ -111,7 +125,10 @@ import {
 
 ## SELF-CHECK CHECKLIST (run in the bench, both themes)
 
-- [ ] **One idea, clear in ~5s.** A stranger gets the point from the visual + one interaction.
+- [ ] **In 5s you know WHAT TO DO and WHAT MATTERS — not necessarily the whole concept.** The hero and the
+      entry point (which button to press, what to hover/read) are instantly obvious. A complex idea MAY take
+      longer than 5s to fully land IF the widget takes you by the hand (press this → watch this number → now
+      this). What fails: a stranger who doesn't know where to start or what to look at.
 - [ ] **Legible.** Numbers readable; nothing overflows; contrast real in BOTH light and dark.
 - [ ] **Rhythm.** A sweep ≈ 2s; no dead air; a teaching scan is visible but not sleepy.
 - [ ] **Tokens only.** No hardcoded hex. Colors/fonts/radii are `--bigram-*` / kit tokens.
@@ -232,15 +249,57 @@ grid/matrix/heatmap) must pass:
       that isn't self-evident. Default to LESS — if a label restates what the visual already shows, cut it. Do
       NOT add an eyebrow or a lead to a widget by reflex. (If a widget is shown standalone in the bench it'll
       look barer — that's fine, the bench is a dev surface; the narrative is production.)
+- [ ] **Scale is SHOWN, not numbered.** Any big quantity ships with a magnitude visual that **changes with the
+      number**: a table/grid that visibly GROWS, or a zoom/lens that says "you see 0.000…% of something this
+      big". A picture identical for a small and a huge number = fail; a big climbing number alone reads as
+      "looks small" to a stranger. (`method-failure-book.md` §1.)
+- [ ] **Fresh-eyes gate v2 (independent — THE keystone). BINDING CONTRACT: `method-failure-book.md` §8.**
+      You cannot grade your own legibility: you already know the answer. THIS GATE FAILED ONCE BY PRIMING
+      (ExplosionZoom passed two filters being a mess — §8). Non-negotiables now:
+      - **Screenshots only, never the code** (seeing the `.tsx` = reverse-engineering intent = no longer a user).
+      - **One capture per STATE/functionality** (initial + each interaction + each tab/mode + BOTH themes), not
+        cherry-picked. Missing a state ⇒ the gate CANNOT pass.
+      - **Context = ONLY the narrative that PRECEDES the widget.** NEVER name what it teaches, the hero, the key
+        number, or "look for X". A prompt that leaks the lesson = invalid gate, redo it. The reviewer DERIVES
+        the lesson blind; the orchestrator compares to the intended idea (mismatch ⇒ FAIL).
+      - **Everything visible is the product** — forbidden to excuse anything as "probably bench chrome".
+      - **Zero defects = PASS** (no "PASS with minor polish"); loop build→gate→rework until ALL are clean PASS.
+      - **Model is NOT the lever — independence is** (a BLIND Sonnet catches what a PRIMED Opus passed): use
+        Sonnet for the blind gate, Opus for building. **Builder never self-approves. Orchestrator independently
+        eyeballs the real shipped state + confirms the prompt carried no lesson — never copies excuses (§8.10).**
+      **Leaves an ARTIFACT:** reviewer's raw blind answer + the spec's hero + PASS/FAIL →
+      `bigram-gates/<slug>.fresh-eyes.md`. **No artifact = not done.** Recipe + master ladder: §4b/§4c/§8.
 
-## QUALITY PASSES (run all, in order — "best in the world" needs all four)
+## QUALITY PASSES (run all, in order — "best in the world" needs all six)
 
 1. **Build** per THE BUILD CONTRACT (kit + spine context packet).
 2. **Self-gate**: screenshot in the bench, BOTH themes; run the full checklist + Bar-v2 hard gates; MEASURE
    dimensions (don't eyeball the zoomed PNG). Iterate until every box is checked.
-3. **Harsh critic**: a non-complacent review against the manuals (pilares, motion-bible, anti-noise, Bar v2).
+3. **Fresh-eyes gate v2 + judge panel (independent, OPUS — do NOT skip).** A blind **Opus** agent runs the §8
+   gate (screenshots of EVERY state, preceding-narrative context ONLY, never the lesson); a 3-lens panel
+   reviews — **child** (no jargon: do you get it?), **aesthetics/hierarchy** (is the hero what the eye hits
+   first?), **teacher** (is the ONE idea taught AND discovered, not told?). All must pass with ZERO defects.
+4. **Rebuild if less than a clear YES.** If the blind stranger or any judge lists ANY defect, REBUILD — don't
+   patch, no "PASS with minor polish". Loop build→gate→rework until clean. Expect ≥1 rebuild (pilar 18).
+   The orchestrator is a REAL filter (§8.10): eyeball the shipped state; never copy the gate's excuses.
+5. **Harsh critic**: a non-complacent review against the manuals (pilares, motion-bible, anti-noise, Bar v2).
    Fix what it finds.
-4. **Orchestrator visual gate**: the human-facing owner screenshots and signs off on feel.
+6. **Orchestrator visual gate**: the human-facing owner screenshots and signs off on feel.
+
+**Proportional rigor (don't burn the budget).** The FULL pass (5 directions + 3-judge panel + rebuild +
+fresh-eyes, both themes) is for the **2-3 HERO widgets** of the chapter. A simple/quiet widget needs only the
+fresh-eyes 5s gate + the checklist. Not everything must be a showpiece — but everything must be UNDERSTOOD.
+**Risk-first:** build the riskiest hero as a throwaway spike BEFORE the narrative commits prose to it; if it
+can't be made legible, change the plan early (`method-failure-book.md` §4.10–11).
+
+**Generation panel (HERO widgets) — generate by committee, don't solo-default.** One mind under pressure
+defaults to parity. For a hero, spawn 3-5 PARALLEL idea-agents, each given ONLY the beat's teaching goal +
+this method (not each other's output); each returns ONE-idea + hero + best concept; then pick/merge with a
+written rationale → `bigram-gates/<slug>.directions.md` (5 directions + choice; required for ANY widget; no
+file = ideation skipped). The symmetric twin of the judge panel. **Seed ideas (a brief, the user's sketches)
+are INSPIRATION to BEAT — never a spec:** propose better/different, generate MORE widgets where a complex idea
+warrants, use a builder idea over the seed if it's better, then design the THROUGH-LINE as a journey.
+(`method-failure-book.md` §4d.)
 
 ## CAPTURE LOOP (process — keep it fast and honest)
 

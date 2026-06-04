@@ -23,11 +23,15 @@ export interface FixedAlphabetRowProps {
     /** Index currently inspected. Optional. */
     hoverIdx?: number;
     onHover?: (index: number | null) => void;
+    /** Click a slot to commit it (Bar-v2 idiom: hover reveals, click commits). When set, slots are clickable. */
+    onSelect?: (index: number) => void;
     /** Normalisation max. Default max(1, …counts). */
     max?: number;
     /** Bars area height in px. Default 156. */
     height?: number;
     maxWidth?: number;
+    /** Show the heat-cell strip under the bars. Default true. Set false when the bars alone carry the row. */
+    showHeat?: boolean;
 }
 
 export const FixedAlphabetRow = memo(function FixedAlphabetRow({
@@ -36,15 +40,18 @@ export const FixedAlphabetRow = memo(function FixedAlphabetRow({
     winner = -1,
     hoverIdx = -1,
     onHover,
+    onSelect,
     max,
     height = 156,
     maxWidth = 660,
+    showHeat = true,
 }: FixedAlphabetRowProps) {
     const N = cols.length;
     const m = max ?? Math.max(1, ...counts);
+    const selectable = !!onSelect;
 
     return (
-        <div className="nw-far">
+        <div className="nw-far" data-selectable={selectable ? "1" : "0"}>
             <div className="nw-far__bars">
                 {cols.map((c, i) => (
                     <div
@@ -54,26 +61,29 @@ export const FixedAlphabetRow = memo(function FixedAlphabetRow({
                         data-hover={i === hoverIdx ? "1" : "0"}
                         onMouseEnter={() => onHover?.(i)}
                         onMouseLeave={() => onHover?.(null)}
+                        onClick={selectable ? () => onSelect?.(i) : undefined}
                     >
                         <span className="nw-far__fill" style={{ height: `${(counts[i] / m) * 100}%` }} />
                     </div>
                 ))}
             </div>
 
-            <div className="nw-far__heatrow">
-                {cols.map((c, i) => (
-                    <span
-                        key={c + i}
-                        className="nw-far__cell"
-                        data-win={i === winner && counts[i] > 0 ? "1" : "0"}
-                        data-hover={i === hoverIdx ? "1" : "0"}
-                        style={{ background: heat(counts[i] / m) }}
-                        onMouseEnter={() => onHover?.(i)}
-                        onMouseLeave={() => onHover?.(null)}
-                        title={`${displayChar(c)}: ${counts[i]}`}
-                    />
-                ))}
-            </div>
+            {showHeat && (
+                <div className="nw-far__heatrow">
+                    {cols.map((c, i) => (
+                        <span
+                            key={c + i}
+                            className="nw-far__cell"
+                            data-win={i === winner && counts[i] > 0 ? "1" : "0"}
+                            data-hover={i === hoverIdx ? "1" : "0"}
+                            style={{ background: heat(counts[i] / m) }}
+                            onMouseEnter={() => onHover?.(i)}
+                            onMouseLeave={() => onHover?.(null)}
+                            title={`${displayChar(c)}: ${counts[i]}`}
+                        />
+                    ))}
+                </div>
+            )}
 
             <div className="nw-far__axis" aria-hidden>
                 {cols.map((c, i) => (
@@ -87,6 +97,7 @@ export const FixedAlphabetRow = memo(function FixedAlphabetRow({
                 .nw-far { width: 100%; display: flex; flex-direction: column; align-items: center; }
                 .nw-far__bars { display: grid; grid-template-columns: repeat(${N}, 1fr); gap: 3px; align-items: end; height: ${height}px; width: 100%; max-width: ${maxWidth}px; margin: 0 auto 5px; }
                 .nw-far__bar { height: 100%; display: flex; align-items: flex-end; min-width: 0; cursor: default; }
+                .nw-far[data-selectable="1"] .nw-far__bar { cursor: pointer; }
                 .nw-far__fill { width: 100%; border-radius: 3px 3px 0 0; min-height: 2px; background: color-mix(in oklab, var(--ngram-accent) 46%, transparent); transition: height .25s ease, background .2s ease; }
                 .nw-far__bar[data-win="1"] .nw-far__fill { background: var(--ngram-accent-bright); }
                 .nw-far__bar[data-hover="1"] .nw-far__fill { background: var(--ngram-accent); }

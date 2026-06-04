@@ -66,5 +66,10 @@ __tests__/
 # Backup files
 old-i18n-*.ts
 
+# Capture artifacts (screenshot profiling — local only)
+/.shotprof_*/
+/_*.png
+/_shotp.sh
+
 # Claude workspace
 .claude/

@@ -13,6 +13,7 @@ link to it instead of repeating it. Start here, then go to the owner for your ta
 |---|---|
 | `CLAUDE.md` (this file) | Product north star, design philosophy, per-chapter identity, the quality bar, anti-noise. |
 | `narrative-guidelines.md` | Chapter-agnostic narrative & pedagogy: the 18 pillars, voice, failure patterns, critique protocol. |
+| `method-failure-book.md` | **Why a chapter ships "looks good" but fails to teach** + the enforceable gates (fresh-eyes, judge panel, rebuild loop, scale). Read before redesigning any chapter. |
 | `bigram-narrative-guidelines.md` | Bigram entry point: pointers into the generic guidelines + Bigram-specific authorities. |
 | `bigram-design-spec.md` | Bigram **visual tokens**: the `--bigram-*` catalog, typography, shared primitives. |
 | `docs/bigram-motion-bible.md` | Bigram **motion**: easings, durations, scan/count/heat idioms, reduced-motion contract. |
@@ -109,6 +110,16 @@ Any new or redesigned visualizer must clear this bar. **Flagship: simple in appe
   (3–6 bullets), (3) implementation, (4) an ambitious solution, (5) ~300+ lines of considered code,
   (6) no superficial patches.
 
+**Two hard additions (learned from n-gram v1 — see `method-failure-book.md`):**
+
+- **Show SCALE, never just a number.** Any large quantity ("729", "14M", "billions") ships with a *visual of
+  magnitude that changes with the number*: a table/heatmap that visibly GROWS, or a zoom/lens that says "you
+  are seeing 0.000…% of something this big". A figure whose picture is identical for 729 and 14,000,000 is a
+  fail. A big climbing number alone reads as "looks small" to a stranger (proven, every scale widget in v1).
+- **You cannot grade your own legibility.** The builder knows the answer, so "clear in 5s" self-passes every
+  time. "Done" requires an *independent* sign-off: a fresh agent that never saw the narrative judges the
+  screenshot blind, plus a 3-lens judge panel (child / aesthetics / teacher). Operationalized in `kit/AGENTS.md`.
+
 ---
 
 ## Bigram build method — the kit (mandatory)
@@ -159,6 +170,25 @@ The first workflow failed because agents received prose + v8 and never validated
    pre-pass exists to prevent).
 5. **No silent scope cuts:** if a widget cannot match v10 without changing a shared primitive, the agent
    *reports it* — it does not quietly substitute a different primitive or drop a feature.
+
+---
+
+## Section chrome & hero layout — the chapter shell (MUST, every chapter, every section rework)
+
+The chapter shell is fixed and identical across chapters; only the accent token changes. A section is not
+"done" until it matches this. **This is a hard requirement in every section rework.**
+
+- **Left side-rail, never a moving top bar.** Section navigation is the fixed left rail
+  (`ChapterSideRail`, `accent="<chapter>"`) — a vertical dot timeline whose accent line fills as you scroll.
+  It lives at the article root, so it is present on **every** section. Do **not** use a scrolling/displacing
+  top progress bar in a chapter narrative. (Bigram set the standard; ngram now matches. `SectionProgressBar`
+  is legacy — migrate chapters off it.)
+- **Hero is LEFT-aligned and clean, aligned with the body.** The hero column reads like the prose beneath it:
+  eyebrow (mono, with a short accent rule) → big display `<h1>` (last word accented in italic) → serif
+  subtitle (left, `max-w`, never `mx-auto`/centered) → `ModeToggle` (left). No centered text, no bouncing
+  scroll-down arrow, no competing chrome. Match `BigramNarrative`'s hero structure exactly; only the accent differs.
+- **Tokens only, scoped.** Rail and hero resolve `--<chapter>-*` tokens inside the chapter's
+  `[data-<chapter>-theme]` scope — additive, never overwriting another chapter's accent.
 
 ---
 
