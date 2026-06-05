@@ -105,6 +105,29 @@ and that every latent-space `[[wikilink]]` points at a real note. **CI** (`.gith
 push / PR, GitHub runs typecheck → lint → test → build on Node 22. Lint is non-blocking for now (pre-existing
 lint errors unrelated to this work); typecheck, test and build are blocking. 17 tests green locally.
 
+## 2026-06-05 — Finished: professional production hardening (all 11 phases) ✅
+
+All 11 phases of `docs/pro-upgrade-plan.md` landed, each its own verified commit on
+`redesign/ngram-amber-v1` (typecheck + build green per phase). What shipped:
+
+1. **Tests + CI** — Vitest (i18n parity + content/frontmatter/wikilink validation, 38 tests) + GitHub Actions.
+2. **Error boundaries** — `global-error`, in-app `error`, localized `not-found` (+ root fallback).
+3. **Perf (safe)** — `optimizePackageImports` for icons/animation (MDX-2× refactor logged as deferred).
+4. **Security headers** — HSTS, nosniff, frame, referrer, permissions + **CSP report-only**.
+5. **Analytics + observability** — Vercel Analytics + Speed Insights; **Sentry gated** behind a DSN (inert without).
+6. **Per-page SEO** — per-chapter metadata + hreflang via a server/client split, dynamic OG image, JSON-LD.
+7. **MDX validation** — zod frontmatter schema, validated in the content test.
+8. **reactStrictMode** — enabled.
+9. **README** — refreshed for the real architecture.
+10. **.env.example** — every env var documented.
+11. **Prettier + husky/lint-staged** — staged-only formatting; MD/MDX protected.
+
+**Nothing deferred for failure** — the only intentional deferral is the larger MDX client→server perf refactor
+(Phase 3), which needs interactive validation. Final state: `tsc` clean, 38 tests green, production build green
+(123 pages + OG image route). New deps: `@vercel/analytics`, `@vercel/speed-insights`, `@sentry/nextjs`, `zod`
+(runtime); `prettier`, `husky`, `lint-staged` (dev). Added `.npmrc` (`legacy-peer-deps`) for an optional-peer
+conflict.
+
 ## 2026-06-05 — Started: professional production hardening (P0 + P1 + selected P2)
 
 Began a multi-phase upgrade to take the site from "high-craft demo" to "production-grade". Plan lives in
