@@ -1,0 +1,589 @@
+{/*
+  MLP + Embeddings — narrativa del capítulo (ES). Contenido editorial, no UI.
+  Portado 1:1 desde i18n `models.mlp.narrative.*`. El orden de secciones/widgets
+  refleja el antiguo MLPNarrative.tsx. Los componentes (Section, Figure, Callout,
+  widgets…) se inyectan vía labMdxComponents() en el shell. Acento: violeta (con
+  algunos callouts/resaltes en esmeralda).
+
+  MDX: el título es la prop `heading=` de <Section>, NO un <h2> literal. Usa <Break/>
+  en vez de <hr/>. El hero y el footer viven en el shell TSX (son UI). Varios widgets
+  necesitan datos en vivo de mlpGrid — se pre-vinculan en el mapa WIDGETS del shell,
+  así que aquí van sin props (p. ej. <GradientFlowVisualizer />).
+*/}
+
+<Section id="mlp-01" number="01" label="El Monstruo" heading="Conoce al Monstruo">
+
+<Lead>Construyamos algo. No otra neurona sola, no otra tabla de conteo — un Perceptrón Multicapa real. Capas de neuronas, apiladas en profundidad, procesando contexto. ¿Puede vencer al N-grama? Averigüémoslo.</Lead>
+
+*En el capítulo anterior, hicimos tres preguntas: ¿Qué pasaría si alimentáramos la red con más de un carácter? ¿Y si apiláramos capas en profundidad? ¿Y si pudiera inventar sus propias representaciones? Este capítulo responde las tres — y descubre problemas que nunca imaginamos.*
+
+Vamos a apilar docenas de neuronas en capas para crear algo con poder real: el MLP — Perceptrón Multicapa. Lo llamamos 'el monstruo' porque es emergente — aprenderá cosas que no le enseñamos, y fallará de formas que no predijimos. 👾
+
+<Figure label="Interactivo · ¿Qué ES un MLP?" hint="Haz clic en cada capa para ver qué hace. Pulsa 'Ver flujo de datos' para ver cómo la entrada viaja por la red. Este es el monstruo que estamos construyendo."><MLPNetworkDiagram /></Figure>
+
+Tres partes. La capa de entrada recibe tus datos. Las capas ocultas (1, 2 o 50 — tú eliges) son donde las neuronas detectan patrones — cada una hace lo mismo que construiste en el capítulo anterior: suma ponderada + sesgo + activación. La capa de salida también es una capa de pesos — toma la salida de la capa oculta y produce una puntuación por cada carácter posible (27 puntuaciones en total). Esas puntuaciones se convierten en probabilidades vía softmax. Más neuronas, más capas, más contexto = más poder.
+
+Ahora, ¿podemos finalmente derrotar al poderoso N-grama? Primero, hay un problema. ¿Cómo le metemos letras a este monstruo? ¿Cómo convertimos una letra en números para hacer una predicción?
+
+Entran números, salen números — así que necesitamos convertir caracteres a números. Nuestra codificación anterior usaba a=0, b=1, z=25 — pero eso implica que 'z' es 25 veces mayor que 'a', lo cual no tiene sentido.
+
+<Figure label="Interactivo · El Problema de Codificación" hint="Compara codificación entera (magnitudes engañosas) vs codificación one-hot (distancias iguales). Prueba diferentes pares de caracteres."><EncodingProblemDemo /></Figure>
+
+La solución: codificación one-hot. Convierte cada carácter en un vector de ceros con un solo 1 en la posición de ese carácter. Ahora cada carácter es igualmente diferente de todos los demás — sin orden falso, sin magnitudes engañosas.
+
+<Figure label="Interactivo · Codificación One-Hot" hint="Haz clic en cualquier letra para ver su vector one-hot — 27 números, todos ceros excepto uno."><OneHotVisualizer /></Figure>
+
+Para ver 3 letras a la vez, simplemente concatenamos sus vectores one-hot en un largo vector de entrada. Tres caracteres, cada uno con 27 números, nos da un único vector de 81 números que la red puede procesar.
+
+<Figure label="Interactivo · Concatenación de Contexto" hint="Elige 3 caracteres y observa cómo se concatenan en un único vector de entrada para la red."><ContextConcatenationExplorer /></Figure>
+
+Tenemos nuestra representación de entrada — 81 números. Ahora veamos qué pasa cuando el monstruo procesa UN ejemplo. Observa el ciclo completo de entrenamiento: los caracteres entran, se convierten en vectores one-hot, fluyen por la capa oculta, producen una predicción — y luego el monstruo aprende de sus errores.
+
+<Figure label="Interactivo · Un Paso de Entrenamiento" hint="Recorre el ciclo completo de entrenamiento: entrada → one-hot → concatenar → capa oculta → softmax → pérdida → backprop → actualización. Haz clic en 'Siguiente' para avanzar por cada etapa."><SingleExampleTrainer /></Figure>
+
+OK — tenemos un MLP con capas ocultas y una representación one-hot. ¿Podemos vencer al N-grama AHORA?! Hagámoslos competir cara a cara. Un modelo 4-grama de conteo contra nuestro MLP con 3 capas ocultas y 4 caracteres de contexto. Dale a empezar y veamos qué pasa.
+
+Antes de darle a empezar — ¿quién crees que gana? ¿La tabla de conteo que memoriza secuencias exactas? ¿O la red neuronal que aprende patrones?
+
+<Figure label="Interactivo · 4-grama vs MLP Carrera de Entrenamiento" hint="Observa un 4-grama (conteo, instantáneo) competir contra un MLP (aprendizaje, progresivo). Compara curvas de pérdida, parámetros y texto generado."><TrainingRace4gramVsMLP /></Figure>
+
+<PullQuote>Espera. ESPERA. Nuestro MLP tiene 3 capas ocultas, miles de parámetros y aprendizaje real basado en gradientes. El N-grama es solo una tabla de conteo. ¿Y GANÓ?! ¿Cómo es posible?</PullQuote>
+
+Investiguemos. ¿Cómo lee nuestro monstruo su entrada? Cuando le damos 'h', 'e', 'l' — ¿qué es lo que realmente VE? Midamos la distancia entre caracteres tal como el modelo los percibe:
+
+<Figure label="Interactivo · El Problema de la Ceguera" hint="Haz clic en cualquier carácter y observa su distancia a todos los demás. En modo one-hot, cada distancia es idéntica. Alterna a 'útil' para ver cómo serían distancias significativas."><CharacterSimilarityBlindness /></Figure>
+
+<BlindnessCallout title="El Monstruo Es Ciego">Todos los caracteres están exactamente a la misma distancia: √2. La letra 'a' está tan lejos de la 'e' como de la 'z' o '.'. Vocales, consonantes, puntuación — todos extraños idénticos. El monstruo no tiene ningún concepto de similitud.</BlindnessCallout>
+
+Y ese no es el único problema. Apilar más capas sin cuidado no ayuda — puede hacer las cosas PEORES. Un monstruo más profundo no es un monstruo más inteligente. Es uno inestable.
+
+Necesitamos domar a esta criatura. Paso a paso: primero, darle ojos para que vea similitud. Luego, entender su cerebro. Después, hacerlo más profundo sin romperlo. Finalmente, llevarlo a sus límites absolutos. Empecemos por el problema más devastador: el monstruo es ciego.
+
+<MonsterStatus>👾 El monstruo ha nacido — ciego e indisciplinado. Dos batallas por delante: enseñarle a ver, y luego enseñarle a crecer sin romperse.</MonsterStatus>
+
+</Section>
+
+<Break />
+
+<MonsterInterlude>Proceso entradas. Multiplico pesos. Produzco salidas. Pero cada letra se ve idéntica — sin similitud, sin estructura. Solo distancias uniformes en un vacío de 27 dimensiones.</MonsterInterlude>
+
+<Section id="mlp-02" number="02" label="Enseñarle a Ver" heading="Enseñarle a Ver">
+
+<Lead>El monstruo perdió su primera pelea — pero sigue ciego. Cada carácter le parece igual. Para llegar más lejos, necesitamos darle una forma de entender que algunos caracteres se parecen más que otros. Vamos a enseñarle a ver.</Lead>
+
+Piensa en las letras por un momento. ¿Qué tienen en común 'a', 'e', 'i', 'o', 'u'? Son todas vocales. ¿Qué comparten 'p', 'b', 'd'? Son todas oclusivas. Las letras tienen agrupaciones naturales que la codificación one-hot ignora por completo.
+
+<Figure label="Interactivo · Explorador de Características" hint="Ordena los caracteres en grupos. Estás asignando características categóricas — cada grupo es como una dimensión en un sistema de coordenadas."><CharacterFeatureExplorer /></Figure>
+
+Acabas de ordenar caracteres en grupos — vocales aquí, oclusivas allá. Pero un grupo es binario: estás dentro o fuera. ¿Y si cada característica fuera un NÚMERO? No 'es vocal' (sí/no), sino 'vocalidad: 0.9'. No 'es frecuente' (sí/no), sino 'frecuencia: 0.82'. Haz clic en cualquier letra para verla descrita como un vector de números.
+
+<Figure label="Interactivo · Vectores de Características" hint="Haz clic en cualquier carácter para ver sus puntuaciones. Compara grupos para ver cómo caracteres similares obtienen vectores similares — la idea central de los embeddings."><CharacterFeatureScoring /></Figure>
+
+Al asignar características numéricas a cada carácter, ahora podemos visualizarlos en un espacio coordenado. Cada carácter se convierte en un punto con coordenadas específicas, y los caracteres similares se agrupan naturalmente. Podemos graficar estos puntos para ver cómo los patrones y relaciones emergen visualmente.
+
+<Figure label="Interactivo · Constructor de Embeddings Manual" hint="Asigna 2 características numéricas a cada letra. Observa cómo las vocales se agrupan y las consonantes se organizan por tipo — o aleatoriza para ver cómo desaparece la estructura."><ManualEmbeddingBuilder /></Figure>
+
+Acabas de colocar letras en un espacio 2D eligiendo dos características. ¿Y si usaras 10? ¿O 100? Cada número es una dimensión que la red puede usar para describir un carácter. Más dimensiones significan una descripción más matizada — y mejor capacidad para distinguir caracteres similares.
+
+Pero ¿quién elige todas esas características? Tú las elegiste a mano — y eso fueron solo dos dimensiones. Para 100, nunca terminaríamos. En su lugar, podríamos dejar que la red las <Highlight color="emerald">aprenda automáticamente</Highlight>. Imagina una tabla con una fila por carácter y varias columnas — cada columna es una característica. La red empieza con números aleatorios y los ajusta durante el entrenamiento, descubriendo patrones que nunca le dijimos. Cada fila se convierte en la 'descripción' de ese carácter — una lista de números que la red descubrió por sí sola.
+
+<Figure label="Interactivo · La Tabla de Embeddings" hint="Haz clic en cualquier carácter para buscar su fila en la matriz de embedding. Observa cómo las vocales tienen patrones similares."><EmbeddingTableBridge /></Figure>
+
+<Figure label="Interactivo · Animador de Búsqueda de Embeddings" hint="Recorre el proceso paso a paso: selecciona un token → codifica one-hot → multiplica por la matriz de embedding → obtén el vector denso."><EmbeddingLookupAnimator /></Figure>
+
+¿Notas algo familiar? Multiplicar un vector one-hot por una matriz simplemente selecciona una fila — exactamente lo que hacía el N-grama cuando buscaba una fila en su tabla de conteos. La diferencia: esta matriz es APRENDIDA, no contada.
+
+<TrainingChallengePanel title="1. Para los Curiosos Matemáticos." preview="Ve la ecuación formal de la búsqueda de embeddings" category="math" difficulty={2}>
+<FormulaBlock formula="e_t = E[t] = E^\top \cdot \text{onehot}(t) \in \mathbb{R}^D" caption="Para los curiosos matemáticos: la búsqueda de embedding — seleccionar la fila t de la matriz E da un vector denso de D dimensiones." />
+</TrainingChallengePanel>
+
+La búsqueda de embedding es matemáticamente equivalente a multiplicar el vector one-hot por la matriz E. Pero en lugar de V dimensiones (27 para nuestro alfabeto), cada carácter ahora vive en solo D dimensiones (típicamente 2–32). El resultado: <Highlight color="emerald">entradas dramáticamente más pequeñas</Highlight> con información más rica.
+
+<TrainingChallengePanel title="3. Profundización Técnica: Ahorro de Parámetros" preview="Ve exactamente cómo los embeddings reducen el conteo de parámetros" category="math" difficulty={2}>
+<Figure label="Interactivo · Calculadora de Compresión" hint="Ajusta el tamaño del vocabulario, la ventana de contexto y la dimensión del embedding. Ve cómo los embeddings reducen drásticamente los parámetros comparado con one-hot."><CompressionRatioCalculator /></Figure>
+</TrainingChallengePanel>
+
+<MlpCallout icon="lightbulb" accent="emerald" title="Acabas de inventar los embeddings">Al pasar de ordenar letras en grupos → asignar características numéricas → dejar que la red aprenda esas características automáticamente, has reinventado una de las ideas más importantes del aprendizaje automático. Esto es exactamente lo que Yoshua Bengio propuso en 2003.</MlpCallout>
+
+Le dimos ojos al monstruo — embeddings que ven similitud. Pero ¿podemos entrenar el modelo perfecto? Descubrámoslo. Abajo, tres modelos compiten cara a cara: el 4-grama (conteo puro), un MLP con embeddings pequeños, y un MLP con la mejor configuración de embeddings que hemos encontrado. Dale a empezar y observa cómo se despliegan sus curvas de pérdida.
+
+<Figure label="Interactivo · 4-grama vs MLP(pequeño) vs MLP(mejor)" hint="Observa tres modelos competir: conteo vs embeddings pequeños vs embeddings grandes. Compara curvas de pérdida, parámetros y calidad del texto generado."><TripleModelRace /></Figure>
+
+Los resultados hablan por sí solos. Más dimensiones de embedding le dan a la red representaciones más ricas, que se traducen directamente en menor pérdida y texto más coherente. Pero no hemos terminado — veamos al modelo entrenado generar texto en vivo.
+
+<Figure label="Interactivo · Míralo Generar Texto Real" hint="Escribe texto y ve predicciones en tiempo real del MLP entrenado. Haz clic en una predicción para añadirla y observa al modelo escribir."><MLPLivePredictor /></Figure>
+
+<MonsterStatus gradient="violet-emerald">👾 El monstruo puede ver. Los embeddings le dieron ojos — sabe que la 'a' y la 'e' son similares. Pero ¿qué pasa DENTRO cuando esos embeddings fluyen por la capa oculta? ¿Qué calcula realmente cada neurona? Es hora de abrir el cráneo.</MonsterStatus>
+
+<KeyTakeaway>Los embeddings reemplazan los vectores one-hot desperdiciados con representaciones densas y aprendidas donde tokens similares obtienen vectores similares. Más dimensiones capturan estructura más fina — y la carrera triple lo demuestra: embeddings más grandes → menor pérdida → mejor texto. El monstruo ya tiene ojos.</KeyTakeaway>
+
+</Section>
+
+<Break />
+
+<MonsterInterlude>Ya puedo ver. Las letras se agrupan — las vocales forman vecindarios, las consonantes se organizan por tipo. Estructura que nadie me enseñó, emergiendo solo de los gradientes.</MonsterInterlude>
+
+<Section id="mlp-03" number="03" label="Los Ojos" heading="Dentro de los Ojos">
+
+<Lead>El monstruo aprendió a ver — los embeddings le dieron ojos. Pero ¿CÓMO se convierten números aleatorios en un mapa significativo del lenguaje? ¿Y qué aprendieron exactamente? Miremos dentro.</Lead>
+
+En §02, viste al monstruo ganar la vista. Pero nos saltamos la parte más fascinante: ¿CÓMO se organizan números aleatorios en un mapa de significado? La respuesta es la retropropagación — la misma señal de aprendizaje que ajusta los pesos también reforma los vectores de embedding. Cada paso de entrenamiento empuja el vector de cada carácter hacia posiciones que ayudan a predecir la siguiente letra.
+
+<Figure label="Interactivo · Cómo Aprenden los Embeddings" hint="Avanza por las instantáneas de entrenamiento y observa el espacio de embeddings evolucionar. Haz clic en cualquier carácter para ver cómo cambia su vector. Observa cómo caracteres similares convergen por descenso de gradiente."><BackpropEmbeddingVisualizer /></Figure>
+
+Ese fue el principio de aprendizaje en acción. Ahora veamos lo real — embeddings de nuestro modelo entrenado evolucionando a lo largo de 50.000 pasos:
+
+<Figure label="Interactivo · Timelapse de Entrenamiento de Embeddings" hint="Presiona play para ver embeddings 2D evolucionar de ruido aleatorio a clusters estructurados a lo largo de 50.000 pasos. Usa snapshots reales del modelo."><EmbeddingTrainingTimelapse /></Figure>
+
+Los embeddings aprendieron estructura — pero ¿QUÉ estructura exactamente? Entrenamos cuatro modelos con diferentes tamaños de embedding: 2D, 10D, 32D y 128D. Compáralos abajo. A la red nunca se le dijo qué caracteres son vocales o consonantes — observa lo que descubre por su cuenta a medida que obtiene más dimensiones.
+
+<Figure label="Interactivo · Comparación de Categorías de Embeddings (4 Modelos)" hint="Alterna entre embeddings de 2D, 10D, 32D y 128D. Observa cómo mejora la separación de clusters con más dimensiones. Color = categoría del carácter."><EmbeddingCategoryAnalyzer /></Figure>
+
+¿Lo notaste? Con solo 2 dimensiones, las categorías se confunden. A 10D, vocales, consonantes y puntuación forman clusters distintos. A 32D, incluso los sub-grupos emergen — las consonantes frecuentes se separan de las raras. La red descubrió CATEGORÍAS puramente de la tarea de predicción. Estas agrupaciones no estaban en los datos de entrenamiento — emergieron porque ayudan a predecir lo que viene después.
+
+El analizador de categorías mostró que más dimensiones ayudan — pero ¿cuánto? Abajo, compara modelos reales entrenados con E=2 hasta E=128. Observa cómo la pérdida cae al aumentar las dimensiones, y luego se estabiliza cuando la red tiene suficiente espacio. Para 28 caracteres, hay un punto óptimo claro donde agregar más dimensiones deja de ayudar.
+
+<Figure label="Interactivo · Cuello de Botella de Dimensión de Embedding" hint="Desliza por dimensiones de embedding E=2 a E=128. Observa la pérdida decrecer y luego estabilizarse. Ve cómo mejora la calidad del texto generado con cada paso."><EmbeddingBottleneckExplorer /></Figure>
+
+Los caracteres viven como puntos en un espacio de coordenadas. ¿Cómo medimos si dos puntos están 'cerca'? La distancia Euclidiana mide la línea recta entre ellos. La similitud coseno mide el ángulo — dos caracteres pueden estar lejos pero 'apuntando en la misma dirección' desde el origen.
+
+<DistanceConceptVisualizer />
+
+Aplica estas métricas a embeddings reales aprendidos: <Highlight>distancia Euclidiana</Highlight> y <Highlight color="emerald">similitud coseno</Highlight>. Los caracteres en contextos similares terminan con embeddings similares.
+
+<TrainingChallengePanel title="Pruébalo: Calculadora de Distancias" preview="Calcula la distancia Euclidiana real y la similitud coseno entre dos embeddings de caracteres." category="challenge" difficulty={1}>
+<EmbeddingDistanceCalculator />
+</TrainingChallengePanel>
+
+Has visto los clusters formarse. Ahora pon a prueba tu intuición: dados los embeddings existentes, ¿dónde crees que aterrizará un nuevo carácter?
+
+<Figure label="Interactivo · Desafío de Predicción de Embeddings" hint="Adivina dónde aterrizará un carácter misterioso en el espacio de embeddings, luego revela la posición real. ¿Puedes predecir los clusters?"><EmbeddingPredictionChallenge /></Figure>
+
+Nuestros embeddings a nivel de carácter agrupan letras por tipo — las vocales se agrupan, las consonantes se agrupan. Pero ¿qué pasa cuando aplicas esta MISMA idea a palabras enteras en lugar de letras individuales? Modelos como Word2Vec y GPT hacen exactamente esto: asignan a cada palabra un vector de números, entrenado para que las palabras usadas en contextos similares tengan vectores similares.
+
+El resultado es impresionante. En el espacio de embeddings de palabras, las direcciones codifican significado. La dirección de 'hombre' a 'rey' captura 'realeza.' Aplica esa misma dirección a 'mujer' y llegas cerca de 'reina.' Los sinónimos se agrupan. Los antónimos se sitúan cerca pero en lados opuestos de un eje de polaridad. Incluso las traducciones entre idiomas aterrizan en la misma región. El significado se convierte en geometría — y todo empieza con el mismo principio de embeddings que acabamos de explorar con caracteres.
+
+<Figure label="Ilustrativo · Analogías de Embeddings de Palabras" hint="Selecciona un preset de analogía, luego pulsa 'Revelar' para ver la aritmética vectorial en acción. Cambia a la pestaña Vecindarios para ver cómo sinónimos, antónimos y familias de palabras se agrupan en el espacio de embeddings."><WordEmbeddingAnalogyDemo /></Figure>
+
+<KeyTakeaway>Los embeddings no son magia — se aprenden a través de la misma retropropagación que entrena el resto de la red. Cada paso de gradiente empuja los vectores de caracteres hacia posiciones que mejoran las predicciones. Más dimensiones capturan estructura más fina, y los clusters aprendidos revelan patrones lingüísticos genuinos: las vocales se agrupan, las consonantes se organizan por tipo. A escala de palabras, la misma idea permite analogías como rey − hombre + mujer ≈ reina. Los ojos del monstruo funcionan — ahora veamos qué hace su cerebro con lo que ve.</KeyTakeaway>
+
+<TrainingChallengePanel title="Profundización: Aritmética de Embeddings" preview="¿Podemos hacer matemáticas reales con vectores aprendidos? Explora centroides y operaciones vectoriales." category="deepdive" difficulty={2}>
+¿Podemos hacer algo más audaz — matemáticas reales con estos vectores aprendidos? Si las vocales realmente forman un grupo, su posición promedio (centroide) debería ser significativa.
+
+Los centroides de grupo revelan cómo la red organiza los caracteres internamente — y las operaciones vectoriales muestran si las relaciones se codifican como direcciones consistentes.
+
+<EmbeddingArithmeticPlayground />
+</TrainingChallengePanel>
+
+<TrainingChallengePanel title="Análisis: Weight Tying — ¿Son Dos Matrices Una?" preview="La matriz de embedding E y la matriz de salida W_out tienen la misma forma transpuesta. ¿Y si fueran la misma matriz?" category="deepdive" difficulty={2}>
+Observa algo: la matriz de embedding E mapea caracteres → vectores (V×D), y la matriz de salida W_out mapea vectores → puntuaciones de caracteres (D×V). Una es la transpuesta de la otra. Weight tying fuerza W_out = Eᵀ, compartiendo los mismos parámetros para entrada y salida. ¿Ayuda?
+
+<Figure label="Experimento · Weight Tying: Atada vs Sin Atar" hint="Cambia entre dos corpus (V=28 y V=96) para ver cómo el tamaño del vocabulario afecta el compromiso del weight tying. Compara conteos de parámetros y val loss."><WeightTyingVisualizer /></Figure>
+</TrainingChallengePanel>
+
+</Section>
+
+<Break />
+
+<MonsterInterlude>Mis ojos ya no son aleatorios. Cada letra encontró su lugar — vocales derivándose hacia vocales, consonantes hacia consonantes. Estructura tallada solo por gradientes. Pero ¿qué HAGO con lo que veo?</MonsterInterlude>
+
+<Section id="mlp-04" number="04" label="El Cerebro" heading="Dentro del Cerebro">
+
+<Lead>Los ojos funcionan — los embeddings capturan similitud y estructura. Entre ver y predecir, esos vectores cuidadosamente aprendidos fluyen hacia la capa oculta y se transforman en algo completamente nuevo. Es hora de abrir el cráneo y trazar el camino paso a paso.</Lead>
+
+¿Qué pasa cuando el monstruo procesa "hel" y necesita predecir el siguiente carácter? Observa cada operación — desde la búsqueda de embedding, pasando por la capa oculta, hasta la distribución de probabilidad final.
+
+<Figure label="Interactivo · El Forward Pass del Monstruo" hint="Haz clic en 'Siguiente Paso' para recorrer el forward pass del MLP: embed → concatenar → capa oculta → softmax. Observa cómo los caracteres crudos se convierten en predicciones."><MLPForwardPassAnimator /></Figure>
+
+Ahora observa todo el pipeline funcionando junto — desde la búsqueda de embedding hasta la predicción del siguiente carácter. Cada componente ejecutándose como un sistema unificado.
+
+<Figure label="Interactivo · Pipeline MLP Completo" hint="El pipeline completo del modelo de lenguaje MLP: búsqueda de embedding → concatenación → capas ocultas → softmax → predicción del siguiente carácter."><MLPPipelineVisualizer /></Figure>
+
+¿Qué sale de la capa oculta? Cada neurona produce un número entre −1 y +1 (tanh). Con 128 neuronas, eso es un vector de 128 dimensiones — una representación comprimida de la entrada. Pero ¿cómo se convierte en una predicción? La capa de salida lo multiplica por una matriz de pesos de 128 × 27 para obtener 27 puntuaciones brutas (logits), y luego softmax las convierte en probabilidades. Veamos cada paso:
+
+<Figure label="Interactivo · De la Capa Oculta a la Predicción" hint="Recorre el cálculo paso a paso: salidas de neuronas ocultas → multiplicar por W₂ → logits brutos → exponenciar → normalizar → probabilidades. Esto es lo que realmente hace softmax."><SoftmaxStepVisualizer /></Figure>
+
+Sin capas ocultas, una red neuronal solo puede aprender mapeos simples entrada→salida — esencialmente una tabla de conteo con pesos. Memoriza 'después de "th", predice "e"' pero no puede generalizar. La capa oculta lo cambia todo: toma la entrada de embeddings de 30 dimensiones y la DOBLA a través de sumas ponderadas + tanh, creando nuevas características que la capa de salida puede combinar. No solo memoriza — descubre patrones.
+
+Probémoslo. Misma entrada, misma tarea — pero un cerebro tiene capa oculta y el otro no. Observa cómo la red plana converge a una copia exacta de la tabla de conteo, mientras que el MLP aprende algo más profundo:
+
+<Figure label="Interactivo · N-grama vs MLP: Misma Tarea, Cerebro Diferente" hint="Compara cómo un N-grama (búsqueda en tabla) y un MLP (cálculo matricial) manejan la misma entrada. El N-grama memoriza; el MLP generaliza."><TrigramEquivalenceDemo /></Figure>
+
+Así que la capa oculta dobla el espacio. Pero ¿qué hace cada neurona individual? Durante el entrenamiento, diferentes neuronas aprendieron a detectar diferentes patrones — completamente por su cuenta. Haz clic en cualquier neurona abajo para ver a qué responde.
+
+La capa oculta permite a la red DOBLAR el espacio. Cada neurona calcula su propia suma ponderada + sesgo + tanh, creando un detector de características no lineal. Una neurona podría activarse ante pares vocal-consonante. Otra detecta letras dobles. Otra más reconoce terminaciones de palabras. Nada de esto está programado — todo se descubre durante el entrenamiento.
+
+<Figure label="Interactivo · Qué Detecta Cada Neurona" hint="Haz clic en cualquier neurona oculta para ver los patrones de entrada que la activan más fuertemente (y menos). Cada neurona se ha especializado en un detector de características diferente."><NeuronActivationExplorer /></Figure>
+
+Una neurona se activa ante pares de vocales. Otra detecta finales de palabras. Otra más reconoce clusters de consonantes. La red no sabía nada de estos conceptos — los descubrió porque ayudan a predecir el siguiente carácter. Esta es la magia de las representaciones aprendidas.
+
+¿Notaste algo extraño? La neurona #0 dispara para pares de vocales Y TAMBIÉN para ciertas secuencias de consonantes. La neurona #3 detecta límites de palabra Y TAMBIÉN patrones de frecuencia. Estas neuronas no tienen un solo trabajo limpio. Están haciendo múltiples cosas a la vez.
+
+<Figure label="Interactivo · Una Neurona, Múltiples Significados" hint="Selecciona neuronas para ver qué patrones detectan. Nota la superposición — una neurona, múltiples roles."><PolysemanticitySplitDemo /></Figure>
+
+Podrías pensar: con 128 neuronas, deberíamos poder catalogar cada una. Neurona 1 = vocales. Neurona 2 = finales. Pero así no funciona. El monstruo no PIENSA en caracteres. Piensa en CARACTERÍSTICAS — patrones como 'probablemente seguido por una vocal.' Hay muchas más características útiles que neuronas. Así que la red hace algo ingenioso e inconveniente: mete múltiples características en cada neurona. Los investigadores llaman a esto polisemanticidad (poli = muchos, semántico = significado). Una neurona, muchos significados.
+
+Si la neurona #3 hace múltiples cosas, ¿qué pasa cuando la apagamos? Averigüémoslo.
+
+<Figure label="Interactivo · Explorador de Ablación de Neuronas" hint="Activa/desactiva neuronas para ver qué se rompe. Desactiva la neurona #45 para el efecto más dramático."><NeuronAblationExplorer /></Figure>
+
+Este es el famoso problema de la 'caja negra'. Incluso en nuestro pequeño monstruo con 128 neuronas y 27 caracteres, no podemos decir limpiamente qué hace cada neurona. Ahora imagina GPT-4: 96 capas, miles de millones de parámetros, millones de características metidas en neuronas que cada una sirve docenas de roles. Las capas ocultas en ChatGPT funcionan exactamente con el mismo principio — pero nadie en OpenAI puede señalar la neurona #847,293 y decir exactamente qué hace. Esta es la frontera de la investigación en seguridad de IA.
+
+<MlpCallout icon="brain" accent="emerald" title="🤖 Checkpoint ChatGPT: Ahora entiendes embeddings, forward passes y capas ocultas. Estas tres ideas — representaciones aprendidas, transformaciones matriciales y activaciones no lineales — son la base de todo modelo de lenguaje, incluido con el que podrías estar chateando ahora mismo.">De embeddings de caracteres a GPT-4, el bucle central es el mismo: embed → transformar → predecir. La escala cambia. Los principios no.</MlpCallout>
+
+<KeyTakeaway>La capa oculta transforma embeddings a través de pesos aprendidos y activaciones no lineales, creando detectores de características que operan sobre significado en lugar de coordenadas crudas. Sin capas ocultas, la red es solo una tabla de conteo. Con ellas, descubre patrones — pares de vocales, finales de palabra, clusters de consonantes — todo a través del entrenamiento. El cerebro funciona. Ahora: ¿podemos hacerlo más profundo?</KeyTakeaway>
+
+</Section>
+
+<Break />
+
+<MonsterInterlude>Cada neurona se especializa. Una dispara para pares de vocales, otra detecta finales de palabra. Soy un aproximador de patrones — pequeño, pero preciso. ¿Qué pasa con más capas?</MonsterInterlude>
+
+<Section id="mlp-05" number="05" label="Más Grande" heading="¿Podemos Hacerlo Más Grande?">
+
+<Lead>El monstruo funciona. Una capa oculta, embeddings, entrenado con Shakespeare — genera texto. Pero el lenguaje es profundo: letras forman patrones, patrones forman sílabas, sílabas forman palabras. ¿Y si apilamos más capas? Seguramente más profundo = mejor... ¿no?</Lead>
+
+Cada avance en IA del lenguaje vino de ir más profundo. GPT-1 usó 12 capas. GPT-3 usa 96. GPT-4 tiene más de 120. El lenguaje tiene capas de estructura — letras forman sílabas, sílabas forman palabras, palabras forman frases — y cada capa de red puede aprender un nivel de abstracción. Nuestro monstruo tiene solo una capa. ¿Qué pasa si le damos más?
+
+<Figure label="El Argumento de la Profundidad" hint="Haz clic en cualquier modelo para ver detalles. Nota la tendencia: cada generación va más profunda. Nuestro monstruo tiene solo 1 capa."><DepthMotivationViz /></Figure>
+
+La evidencia es abrumadora: la profundidad es el ingrediente secreto. Así que intentémoslo. Tomaremos nuestro monstruo y apilaremos capas — de 1 hasta 20. Mismos datos, mismo optimizador, todo lo demás igual. Solo más capas. Veamos qué pasa.
+
+<TrainingChallengePanel title="En Profundidad: Forma de la Red" preview="Antes de añadir capas: ¿ancha y superficial, estrecha y profunda, o equilibrada?" category="deepdive" difficulty={1}>
+Antes de empezar a apilar, una pregunta rápida: ¿QUÉ forma deberíamos intentar? ¿Ancha con pocas capas? ¿Estrecha con muchas? ¿O equilibrada?
+
+<Figure label="Interactivo · Comparación de Forma de Red" hint="Alterna entre ancha-superficial, estrecha-profunda y equilibrada. Ve el número de parámetros y el compromiso arquitectónico que crea cada forma."><NetworkShapeComparison /></Figure>
+</TrainingChallengePanel>
+
+La forma equilibrada (3 × 128) es nuestro punto de partida — suficientes capas para encontrar patrones profundos, suficientes neuronas por capa para mantener información sin crear cuellos de botella. Ahora ejecutémoslas y veamos qué pasa.
+
+<Figure label="Interactivo · Comparación Real de Profundidad" hint="Observa modelos con 1–4 capas ocultas entrenar lado a lado. Verde = bien, ámbar = luchando, rojo = roto. Nota: 2 capas supera a 1... pero ¿luego qué?"><RealDepthComparisonTrainer /></Figure>
+
+¿Más capas = más potencia, verdad? Vamos a probarlo. Entrenamos 10 redes idénticas — misma arquitectura, mismos datos, mismo optimizador (SGD lr=0.01), misma semilla — cambiando SOLO el número de capas. De 1 capa a 20.
+
+Los resultados son devastadores. UNA capa gana. El modelo más simple — solo 9K parámetros — supera a todas las alternativas más profundas. L1 obtiene 2.12, mientras que L6 con 92K parámetros apenas llega a 3.04. ¿L20 con 323K parámetros? Aún peor con 3.15. Más capas, más parámetros, PEORES resultados. El monstruo se debilita al crecer.
+
+<DramaticBridge main="¿QUÉ está pasando dentro de este monstruo?" sub="Más capas deberían significar más potencia. En cambio, el monstruo está empeorando. No le demos la respuesta — investiguemos." />
+
+Miremos dentro. Cuando inspeccionamos las neuronas de cada modelo, encontramos algo alarmante: muchas neuronas han dejado de funcionar por completo. Sus salidas están atascadas en ±1 (los límites de tanh), y sus derivadas son efectivamente cero. Estas neuronas NUNCA volverán a aprender — están permanentemente muertas.
+
+<Figure label="Interactivo · Neuronas Muertas por Profundidad" hint="Selecciona una profundidad para ver cuántas neuronas están muertas en cada capa. Las neuronas muertas (tanh' ≈ 0) están congeladas para siempre — desperdician capacidad y bloquean el flujo de gradientes."><DeadNeuronVisualizer /></Figure>
+
+Cuanto más profunda la red, más neuronas mueren. Una red de 20 capas tiene 88% de neuronas muertas — solo el 12% de su capacidad está realmente aprendiendo. Mientras tanto, L1 tiene cero neuronas muertas y la mejor loss. Pero ¿POR QUÉ mueren las neuronas en redes profundas? La respuesta es la saturación de tanh.
+
+¿Recuerdas tanh del capítulo de redes neuronales? Cuando las entradas son muy grandes, tanh se satura en ±1 — y su derivada cae a cero. Eso es exactamente lo que está pasando en nuestras capas profundas.
+
+<Figure label="Interactivo · Saturación de Tanh" hint="Arrastra x para ver tanh(x) y su derivada. Cuando |x| > 2, la derivada se acerca a 0 — los gradientes a través de esta neurona mueren."><TanhSaturationDemo /></Figure>
+
+Piensa en tanh como una banda elástica estirada entre dos paredes en −1 y +1. Una entrada pequeña la estira un poco y regresa fácilmente — esa fuerza elástica es el gradiente. Pero una vez que la estiras casi hasta la pared, está casi tensa: cualquier tirón adicional apenas la mueve. La entrada es grande, la salida está al límite, y casi no queda elasticidad para propagar la señal de error hacia atrás. Cada capa añade otra banda elástica en serie. Para la capa 4, la señal de error que intenta llegar a la capa 1 ha perdido toda su fuerza.
+
+<TrainingChallengePanel title="Inmersión: Batalla de Funciones de Activación" preview="¿Y si cambiamos tanh por ReLU o GELU? ¿Cambiar la función de activación resuelve el problema de profundidad?" category="deepdive" difficulty={2}>
+Si tanh es el culpable, ¿qué pasa si lo cambiamos? ReLU, GELU y sigmoid tienen propiedades de saturación diferentes. ¿Cambiar la función de activación resuelve el problema de profundidad?
+
+<Figure label="Interactivo · Batalla de Funciones de Activación" hint="Activa/desactiva activaciones para comparar. Observa las curvas de pérdida en carrera. Gana el mejor val_loss."><ActivationBattleVisualizer /></Figure>
+
+ReLU y GELU superan a tanh — no se saturan tan agresivamente en el lado positivo. Sigmoid es peor que tanh (saturación doble en ambos extremos). Linear diverge completamente — sin no-linealidad no hay poder de representación. Pero incluso ReLU con 4+ capas sigue degradando. Cambiar la activación ayuda, pero no resuelve completamente el problema de profundidad.
+</TrainingChallengePanel>
+
+El histograma de activaciones lo hace concreto. En la capa 1, los valores están distribuidos saludablemente. Para la capa 3, la mayoría están empujados a ±1 — la zona de saturación donde <Highlight color="amber">los gradientes son casi cero</Highlight>.
+
+<Figure label="Interactivo · Histogramas de Activación por Capa" hint="Compara distribuciones de activación entre capas. Las capas más profundas muestran distribuciones bimodales acumulándose en ±1 — la zona muerta de tanh."><ActivationHistogramVisualizer /></Figure>
+
+Pero se pone peor. Una neurona muerta no solo deja de aprender — NUNCA se recupera. Una vez que tanh se satura, la derivada es cero, así que la actualización de pesos es cero, así que la neurona permanece saturada para siempre. Está permanentemente congelada. Y peor: bloquea la señal de gradiente para cada neurona detrás de ella. En una red profunda, esto se propaga en cascada: una capa muerta mata el gradiente para todas las capas anteriores.
+
+<Figure label="Interactivo · Cascada de Capas Muertas" hint="Recorre la cascada: tanh se satura → la derivada cae a 0 → el gradiente muere → las neuronas anteriores pierden su señal de aprendizaje."><DeadLayerCascadeVisualizer /></Figure>
+
+Esta es la cruel verdad sobre las neuronas muertas: una vez que una neurona muere, está muerta PARA SIEMPRE. Derivada cero significa actualización de pesos cero. Actualización cero significa que los pesos nunca cambian. Los pesos no cambian significa que la salida sigue saturada. La salida saturada significa que la derivada sigue siendo cero. Es una espiral de muerte sin escapatoria.
+
+Neuronas saturadas. Capas muertas. Señales que se desvanecen. Podemos ver QUÉ se rompe cuando el monstruo va profundo. Pero ¿POR QUÉ? ¿Por qué añadir capas desencadena esta cascada? La respuesta está en cómo nació el monstruo: con pesos aleatorios que nadie verificó.
+
+</Section>
+
+<Break />
+
+<MonsterInterlude>Más capas. Más capacidad. Pero el gradiente se degrada en cada una. Mis primeras capas reciben señal casi nula. Profundidad sin estabilidad es ruido.</MonsterInterlude>
+
+<Section id="mlp-06" number="06" label="Se Rompe" heading="Por Qué lo Profundo se Rompe">
+
+<Lead>Vemos QUÉ se rompe — neuronas saturadas, capas muertas, señales que se desvanecen. Pero ¿POR QUÉ añadir capas desencadena esta cascada? La respuesta empieza en el principio: cómo nació el monstruo.</Lead>
+
+Antes de diagnosticar la enfermedad, mira los síntomas. Aquí están las pérdidas iniciales — la primera predicción de cada modelo, antes de CUALQUIER entrenamiento. Lo que verás debería perturbarte.
+
+<Figure label="Interactivo · Catástrofe de Pérdida Inicial" hint="Compara la val_loss inicial en el paso 0 entre los 10 modelos. La línea roja punteada es adivinar al azar (ln 27). Los modelos POR ENCIMA de esta línea son peores que no saber nada."><InitialLossCatastropheViz /></Figure>
+
+¿Cómo puede un modelo ser peor que el azar? Adivinar al azar da 1/27 ≈ 3.7% a cada carácter — incluyendo el correcto. Pero una red mal inicializada no produce probabilidades uniformes. Sus pesos aleatorios hacen que softmax concentre la probabilidad en UNOS POCOS caracteres equivocados. No está confundido — está confiadamente equivocado. Prueba a ajustar la escala de inicialización abajo para verlo en acción.
+
+<Figure label="Interactivo · Predicción Peor que el Azar" hint="Arrastra el deslizador σ para ver cómo la escala de inicialización afecta las probabilidades predichas. σ grande = confiado y equivocado = peor que el azar."><WorseThanRandomVisualizer /></Figure>
+
+¿De dónde vienen estos pesos? Antes de entrenar, inicializamos los pesos como números aleatorios de una campana de Gauss centrada en cero. El ancho de esta campana — su desviación estándar σ — lo controla todo. Muy ancha, y los pesos caen en la zona muerta de tanh. Muy estrecha, y la señal es demasiado débil para propagarse.
+
+<Figure label="Interactivo · Explorador de Distribución de Pesos" hint="Arrastra σ para ver cómo cambia la campana. Observa cuántos pesos caen en la zona muerta de tanh (|w| > 2) y qué significa para la salud de las neuronas."><GaussianDistributionExplorer /></Figure>
+
+La amplitud correcta resulta ser todo. Muy grande → activaciones explotan → cada neurona se satura al instante. Muy pequeña → señal se desvanece antes de llegar a la salida. Con muchas capas, una mala inicialización es irrecuperable.
+
+Arrastra el deslizador abajo para ver cómo la escala de inicialización afecta la curva de pérdida. Hay una franja estrecha donde el entrenamiento funciona — si la pierdes, la red está rota desde el paso 0.
+
+<Figure label="Interactivo · Sensibilidad a la Inicialización" hint="Arrastra σ por cuatro zonas: muerta (muy pequeña), punto óptimo (Kaiming), inestable (muy grande) y caótica (excesiva). Cada zona tiene explicación detallada."><InitializationSensitivityVisualizer /></Figure>
+
+Ahora sabemos QUÉ hace la mala inicialización. Pero ¿POR QUÉ es tan catastrófico para redes profundas específicamente? La respuesta está en cómo aprende la red: retropropagación.
+
+Durante el entrenamiento, la señal de error fluye hacia atrás desde la salida hasta la entrada. En cada capa, el gradiente se multiplica por dos cosas: tanh'(activación) y el peso. Si la neurona está saturada, tanh' ≈ 0 — el gradiente muere. Si el peso es muy grande, el gradiente explota. Elige un escenario abajo y avanza paso a paso por la cadena.
+
+<Figure label="Interactivo · Calculadora de Cadena de Retropropagación" hint="Elige desvanecimiento, estable o explosión. Avanza por 4 capas para ver multiplicaciones exactas tanh'(z) × W y el producto acumulado. Busca los indicadores KILLED."><BackpropVanishingCalculator /></Figure>
+
+La calculadora de cadena muestra un camino. Ahora ve la imagen completa: magnitud del gradiente en CADA capa de una red. Pasa el cursor por cada capa para su diagnóstico.
+
+<Figure label="Interactivo · Visualizador de Flujo de Gradientes" hint="Alterna entre regímenes de desvanecimiento, estable y explosión. Pasa el cursor por cualquier capa para su anotación. La tarjeta resumen explica qué significa cada régimen."><GradientFlowVisualizer /></Figure>
+
+El diagnóstico está completo. Tres problemas interconectados: (1) La inicialización aleatoria pone neuronas en la zona muerta de tanh → activaciones saturadas. (2) Activaciones saturadas tienen derivada ≈ 0 → gradientes que se desvanecen via regla de la cadena. (3) Gradientes que se desvanecen → capas tempranas no aprenden → la red desperdicia su capacidad. Cada capa añadida empeora los tres problemas. Por eso L1 superó a L20 — el monstruo más profundo estaba lisiado desde su nacimiento.
+
+Durante casi 30 años, los investigadores sabían que redes más profundas deberían ser mejores. No podían hacerlas funcionar. Entonces en 2015, tres equipos resolvieron independientemente los tres problemas. Veamos cómo domaron al monstruo.
+
+</Section>
+
+<Break />
+
+<MonsterInterlude>Ahora lo veo. Cada capa multiplica el gradiente por una fracción. Fracción × fracción × fracción → cero. La matemática es clara. Necesito intervención arquitectónica.</MonsterInterlude>
+
+<Section id="mlp-07" number="07" label="Domando" heading="Domando al Monstruo">
+
+<Lead>Tres problemas: mala inicialización, gradientes que se desvanecen y activaciones que se desvían. Tres inventos de 2015 los resolvieron todos — y transformaron el aprendizaje profundo de un arte poco fiable a ingeniería confiable.</Lead>
+
+Cada solución apunta a un eslabón en la cadena de fallos que acabamos de trazar. Juntas, hacen que las redes profundas sean entrenables.
+
+El monstruo nació con pesos aleatorios. Pero ¿CUÁLES aleatorios? Aquí está la trampa: una neurona con N entradas las suma todas, cada una multiplicada por un peso aleatorio. Si esos pesos se toman de σ = 1, la suma tiene varianza N. Con 128 entradas, eso es √128 ≈ 11 veces demasiado grande. La salida de la neurona es tan extrema que tanh se satura al instante — y una neurona saturada tiene gradiente ≈ 0. Muerta desde el principio. ¿La solución? Hacer cada peso más pequeño por exactamente √(2/N). Así la varianza se mantiene en ~1.0 en cada capa, sin importar la profundidad. He et al. lo demostraron en enero de 2015. Observa abajo:
+
+<Figure label="Interactivo · Explosión de Varianza" hint="Paso a paso: observa cómo N entradas aleatorias se multiplican por pesos aleatorios, se suman y pasan por tanh. Compara Ingenua (σ=1) vs Kaiming (σ=√(2/N))."><VarianceExplosionVisualizer /></Figure>
+
+<Figure label="Interactivo · Varianza Por Capa" hint="Alterna entre Ingenua (σ=1) y Kaiming (σ=√(2/N)). Arrastra el deslizador para cambiar N. Observa cómo las barras explotan o se mantienen verdes."><KaimingScalingVisualizer /></Figure>
+
+Pero espera — si la mala inicialización es tan mortal, ¿por qué nuestro monstruo de 1 capa funcionó bien antes? Porque con solo 1 capa, solo hay 1 oportunidad de que algo salga mal. La varianza se desvía un poco, pero la red puede corregirse durante el entrenamiento — los primeros 1.000 pasos son solo deshacer el mal comienzo. Con 10 capas, esos errores se acumulan en cada capa. En la capa 6, la varianza ha explotado exponencialmente. Más capas = más oportunidades de que el error de inicialización se propague. Por eso las redes profundas son tan sensibles a los pesos iniciales, mientras que las superficiales a menudo tienen suerte.
+
+<Figure label="Interactivo · Superficial vs Profunda" hint="Compara curvas de entrenamiento para redes de 1, 4 y 20 capas — todas con mala inicialización. Observa por qué las superficiales sobreviven."><ShallowVsDeepComparison /></Figure>
+
+El efecto en el entrenamiento es dramático. Abajo: tres inicializaciones compiten. Pesos demasiado pequeños (σ=0.01) producen una red muerta que apenas aprende. Aleatorios (σ=1) se saturan pronto y convergen lento. Kaiming empieza en la zona saludable y alcanza la menor pérdida.
+
+<Figure label="Interactivo · Comparación de Inicialización" hint="Carrera de tres columnas: Muy Pequeño vs Aleatorio vs Kaiming. Pulsa Entrenar para ver neuronas muertas, magnitudes de gradiente y deriva de varianza en tiempo real."><InitializationComparisonTrainer /></Figure>
+
+Kaiming le da al monstruo un comienzo saludable. Pero el entrenamiento es un viaje largo — miles de pasos donde cada peso cambia un poco. A medida que los pesos se mueven, las distribuciones de activación derivan: las medias se alejan del cero, las varianzas crecen o encogen impredeciblemente, y neuronas que empezaron sanas se saturan lentamente. Imagina calibrar un telescopio al atardecer, pero a medianoche la temperatura ha cambiado y todo está borroso. Mira lo que pasa con las distribuciones de activación durante el entrenamiento:
+
+<Figure label="Interactivo · Deriva de Activaciones" hint="Avanza por los pasos de entrenamiento: observa cómo la distribución se desplaza y se expande. La curva de campana saludable se aplana en caos."><ActivationDriftVisualizer /></Figure>
+
+Las activaciones están derivando. Kaiming arregló el punto de partida, pero ¿y el viaje? ¿Y si pudiéramos forzar las activaciones de vuelta a un rango saludable DESPUÉS de cada capa, en cada paso de entrenamiento? ¿Cuál es la solución más simple? Forzar los valores de vuelta a un rango saludable. Toma un lote de activaciones, calcula la media, réstala. Calcula la desviación estándar, divide por ella. Pruébalo abajo:
+
+<Figure label="Interactivo · Descubre BatchNorm" hint="Recorre paso a paso el cálculo de BatchNorm en un mini-lote real: valores crudos → calcular μ y σ → centrar → normalizar → aplicar γ y β aprendidos."><BatchNormDiscoveryVisualizer /></Figure>
+
+Eso es exactamente lo que hace la Normalización por Lotes. Después de cada capa, normaliza: resta la media, divide por la desviación estándar. Ahora las activaciones están siempre centradas en 0 con amplitud 1 — sin importar lo que hagan los pesos. Es como recalibrar tus instrumentos entre cada medición.
+
+<Figure label="Interactivo · Efecto de Batch Norm" hint="Activa y desactiva BatchNorm. Observa los porcentajes de zona muerta, indicadores de salud por capa y las formas de distribución cambiar en tiempo real."><BatchNormEffectVisualizer /></Figure>
+
+Hay un bonus oculto: BatchNorm calcula estadísticas del mini-lote actual (32–128 ejemplos), así que cada lote da μ y σ ligeramente diferentes. La red ve versiones ligeramente ruidosas de los datos en cada paso — como aumento de datos incorporado. Esto reduce el sobreajuste. BatchNorm es secretamente un regularizador también, lo que significa que nuestros lotes ya no son independientes — comparten estadísticas de normalización. Este acoplamiento previene que la red memorice ejemplos individuales.
+
+<Figure label="Interactivo · BatchNorm como Regularizador" hint="Misma entrada, diferentes lotes. Observa cómo cada mini-lote normaliza el mismo valor de forma diferente — creando ruido que previene la memorización. Prueba diferentes tamaños de lote."><BatchNormRegularizerVisualizer /></Figure>
+
+<TrainingChallengePanel title="En Profundidad: La Fórmula de BatchNorm" preview="x̂ = (x − μ) / √(σ² + ε) — recórrela paso a paso con deslizadores interactivos." category="deepdive" difficulty={3}>
+La fórmula: x̂ = (x − μ) / √(σ² + ε). μ es la media del lote actual, σ² es la varianza, y ε es un número diminuto que previene la división por cero. Recorrámosla paso a paso.
+
+<Figure label="Interactivo · BatchNorm Paso a Paso" hint="Haz clic en 'Siguiente' para avanzar por los 5 pasos: valores crudos → calcular media → centrar → normalizar → aplicar γ y β aprendidos. Ajusta los deslizadores de γ y β al final."><BatchNormStepByStep /></Figure>
+
+Pero espera — si SIEMPRE forzamos media=0, ¿no estamos limitando lo que la red puede aprender? Solución inteligente: añadir dos parámetros aprendibles por característica. y = γ·x̂ + β. La red puede aprender a DESHACER la normalización si quiere. BatchNorm no limita la capacidad — solo proporciona un punto de partida estable en cada capa.
+
+<Figure label="Interactivo · Escala y Desplazamiento Aprendibles" hint="Arrastra los deslizadores de γ (escala) y β (desplazamiento) para ver cómo la red puede remodelar la distribución normalizada. Prueba los presets para entender por qué cada patrón puede ser útil."><GammaBetaVisualizer /></Figure>
+</TrainingChallengePanel>
+
+<Figure label="Interactivo · Paso Forward con BatchNorm" hint="Recorre el paso forward de un MLP CON capas de BatchNorm. Ve cómo BN normaliza valores después de cada transformación lineal, manteniendo activaciones saludables a través de 3 capas."><BNArchitectureVisualizer /></Figure>
+
+Kaiming + BatchNorm mantienen las activaciones saludables. Pero las redes profundas aún tienen un problema fundamental: cada capa REEMPLAZA la señal completamente. Si una capa hace una mala transformación, la información original desaparece para siempre — no hay botón de deshacer. Piensa en el juego del teléfono: cada persona reemplaza el mensaje por completo, y después de 10 personas, el original es irreconocible. ¿Se te ocurre una solución? Explora abajo — prueba a activar 'mantener el original' y observa qué pasa:
+
+<Figure label="Interactivo · Descubre las Conexiones Residuales" hint="Observa cómo una capa mala (Capa 4) destruye la señal. Luego activa 'mantener el original' para descubrir la idea de conexión residual. Cambia qué capa es mala para probar la resiliencia."><ResidualDiscoveryVisualizer /></Figure>
+
+Esa es la conexión residual: y = x + F(x). Cada capa añade una pequeña corrección en vez de reemplazar la señal. Incluso si una capa es terrible (F(x) ≈ 0), el original pasa intacto. He et al. publicaron esto en diciembre de 2015. Ahora veámoslo con números reales — haz clic en cualquier capa abajo para ver las matemáticas exactas:
+
+<Figure label="Interactivo · Corrección vs Reemplazo" hint="Alterna y=f(x) (reemplazar) vs y=x+f(x) (corregir). Haz clic en cualquier capa para expandir y ver la entrada, salida f(x), corrección y calidad de señal."><ResidualHighwayVisual /></Figure>
+
+La conexión de salto también resuelve un segundo problema: gradientes que se desvanecen. ¿Recuerdas cómo los gradientes mueren al viajar hacia atrás por las capas? Con una conexión de salto, siempre hay una autopista directa que evita todas las capas. Incluso si 3 de 4 neuronas en una capa están muertas, el gradiente sigue fluyendo por el salto. Recórrelo abajo — haz clic en 'Iniciar Backprop' y retrocede capa por capa:
+
+<Figure label="Interactivo · Backprop Paso a Paso" hint="Alterna Con/Sin salto, luego haz clic en 'Iniciar Backprop' para retroceder capa por capa. Ve neuronas muertas, cálculos de gradiente por capa y gradiente acumulado."><ResidualGradientHighway /></Figure>
+
+<Figure label="Interactivo · Arquitectura Completa: BN + Residual Forward Pass" hint="Recorre el forward pass completo de un MLP de 3 capas con BatchNorm Y conexiones residuales. Observa cómo BN normaliza en cada capa mientras las conexiones de salto preservan la señal original. 15 pasos en total."><ResidualBNArchitectureVisualizer /></Figure>
+
+Con residuales, puedes apilar 50, 100, incluso 1000 capas. Cada bloque aprende una pequeña corrección. Los gradientes siempre tienen un camino. Sin residuales — imposible. Con ellos — rutina. Por eso ResNet (2015), Transformers (2017) y todos los modelos profundos modernos los usan.
+
+Juntemos la imagen completa. Abajo hay una matriz que muestra cada combinación de técnicas a diferentes profundidades. El patrón es llamativo: con 1 capa todo funciona, pero a medida que crece la profundidad, necesitas progresivamente más del kit de estabilidad para mantener vivo el entrenamiento.
+
+<Figure label="Interactivo · Matriz de Técnicas de Estabilidad" hint="Matriz: filas = número de capas, columnas = combinación de técnicas. Color = pérdida final (verde=bueno, rojo=divergió). Haz clic en cualquier celda para ver detalles."><StabilityTechniqueGrid /></Figure>
+
+<MlpCallout icon="lightbulb" accent="violet" title="El kit de herramientas del aprendizaje profundo (2015)">Inicialización Kaiming (enero), Normalización por Lotes (febrero), Conexiones Residuales (diciembre). Las tres aparecieron el mismo año. Juntas, transformaron el aprendizaje profundo de un arte poco fiable a ingeniería confiable — permitiendo redes con más de 100 capas donde 5 era antes el límite.</MlpCallout>
+
+¿Recuerdas el desastre de profundidad del §05? ¿Los modelos que solo producían sinsentido? Intentémoslo de nuevo — esta vez con las tres técnicas de estabilidad aplicadas. Misma profundidad. Mismos datos. Todo lo demás igual.
+
+<Figure label="Interactivo · Redención del Modelo Profundo" hint="Antes/después: la misma configuración profunda sin y con técnicas de estabilidad. Observa cómo se revela el lado exitoso tras el fracaso."><DeepModelRedemptionDemo /></Figure>
+
+La misma arquitectura. La misma profundidad. Pero con tres técnicas simples, el monstruo pasó de sinsentido a texto coherente. Este es el poder de entender POR QUÉ las cosas se rompen — una vez que conoces la causa, la solución es directa.
+
+<MonsterStatus gradient="emerald-violet">La bestia está domada. El monstruo puede ir profundo ahora. 👾</MonsterStatus>
+
+<TrainingChallengePanel title="En Profundidad: Experimento de Estabilidad a Escala" preview="¿Qué pasa con SGD puro? H=256 vs H=512, 4→20 capas. Los resultados son sorprendentes." category="deepdive" difficulty={3}>
+Pero aquí hay un giro. ¿Qué pasa cuando escalamos a H=256 o H=512 neuronas y usamos SGD puro — sin Adam, sin momentum? Entrenamos 20 modelos en 5 profundidades (4→20 capas) con dos configuraciones: solo Kaiming vs. Kaiming + BN + Residual. Los resultados son… no los que esperarías.
+
+<Figure label="Experimento de Estabilidad a Escala" hint="Alterna H=256 / H=512 para comparar. Cambia entre Pérdida Val, Pérdida Train y Gap. Pasa el ratón por las barras para detalles."><ScaleStabilityExperiment /></Figure>
+
+Sorpresa: con SGD puro, solo Kaiming supera a BN + Residual en cada profundidad. BN añade ruido de batch que SGD no puede manejar eficientemente, y las proyecciones residuales añaden sobrecarga sin beneficio. ¿La lección? Las técnicas no son mágicas — están diseñadas para optimizadores específicos. BN + Residual brillan con Adam; con SGD, más simple es mejor. Por eso el deep learning moderno usa Adam + BN + Residual juntos: cada pieza necesita las otras.
+</TrainingChallengePanel>
+
+<TrainingChallengePanel title="Por Qué los Transformers No Usan BatchNorm" preview="BatchNorm tiene problemas fundamentales para lenguaje. La solución moderna: LayerNorm." category="deepdive" difficulty={2}>
+BatchNorm tiene problemas: depende del tamaño del lote (lotes pequeños = estadísticas ruidosas), mezcla estadísticas de ejemplos no relacionados en el mismo lote, y es incómodo para datos secuenciales donde las longitudes de secuencia varían. Karpathy lo critica abiertamente — añade complejidad y estado oculto que dificulta la depuración. Durante la generación NO hay lote — solo 1 ejemplo — así que necesitas almacenar promedios móviles del entrenamiento.
+
+Solución moderna: Layer Normalization. En vez de normalizar a través del lote (vertical), normaliza dentro de cada ejemplo (horizontal). Cada token normaliza sus PROPIAS características. No depende del tamaño del lote. Funciona perfectamente con lote=1 durante la generación. Por eso TODOS los Transformers usan LayerNorm, no BatchNorm.
+
+<Figure label="Interactivo · BatchNorm vs LayerNorm" hint="Pasa el ratón por filas o columnas para ver μ y σ calculados. Activa 'Normalizado' para ver el resultado. Explora por qué LayerNorm funciona en inferencia y BatchNorm no."><NormComparisonDiagram /></Figure>
+</TrainingChallengePanel>
+
+<TrainingChallengePanel title="En Profundidad: Detalles de Residuales" preview="Coincidencia de dimensiones, proyecciones, y por qué se llaman 'residuales.'" category="deepdive" difficulty={2}>
+Para sumar x + F(x), ambos deben tener las mismas dimensiones. Si F(x) cambia la dimensión (común en capas de atención), necesitas una proyección aprendida: y = Wₚ·x + F(x). La proyección Wₚ es simplemente otra matriz de pesos que mapea x a la forma correcta.
+
+El nombre 'residual' viene de las matemáticas: F(x) = y − x. La red aprende el residuo — la diferencia entre lo que entra y lo que debería salir. No la salida completa, solo la corrección.
+
+<Figure label="Interactivo · Matemáticas Residuales" hint="Dos pestañas: '¿Por qué Residual?' muestra la idea F(x) = y − x con números. 'Proyección de Dimensión' muestra cómo W_s arregla dimensiones incompatibles."><ResidualProjectionVisualizer /></Figure>
+</TrainingChallengePanel>
+
+<KeyTakeaway>Tres inventos de 2015 — inicialización Kaiming, Normalización por Lotes y Conexiones Residuales — cada uno apunta a un eslabón en la cadena de fallos. Junto con el optimizador correcto, transforman las redes profundas de experimentos poco fiables a ingeniería confiable. Pero las técnicas solas no son mágicas — interactúan con tu elección de optimizador. La receta completa importa.</KeyTakeaway>
+
+</Section>
+
+<Break />
+
+<MonsterInterlude>Kaiming me dio equilibrio. BatchNorm me mantiene estable. Las conexiones residuales transportan mis gradientes. Ahora puedo ir profundo. Escalo.</MonsterInterlude>
+
+<Section id="mlp-08" number="08" label="La Receta" heading="La Receta Perfecta">
+
+<Lead>El monstruo está domado y estable — pero estable no significa bueno. Ahora necesitamos el MEJOR modelo. Cinco perillas controlan todo. ¿Cuál importa más? Solo hay una forma de averiguarlo: experimentar.</Lead>
+
+El monstruo está domado. Puede ir profundo sin colapsar. Pero 'estable' no significa 'bueno' — un modelo estable que genera basura es inútil. Necesitamos el MEJOR modelo: menor pérdida de validación, texto más coherente. Pero ¿qué controla 'mejor'? No los pesos — la red los aprende sola. Lo que NOSOTROS controlamos son los hiperparámetros: las decisiones arquitectónicas que tomamos antes de que el entrenamiento comience.
+
+Cinco perillas controlan el rendimiento del monstruo. La dimensión del embedding establece cuántos números describen cada carácter — representaciones más ricas, pero más parámetros. El tamaño oculto determina cuántos detectores de patrones viven en la capa oculta — más capacidad, pero riesgo de memorización. La tasa de aprendizaje controla el tamaño de cada paso de actualización del gradiente — demasiado rápido y el modelo diverge, demasiado lento y apenas aprende. El dropout silencia neuronas aleatoriamente durante el entrenamiento para prevenir la memorización. Y la ventana de contexto establece cuántos caracteres ve el modelo a la vez. Cada una de estas decisiones tiene compromisos.
+
+<Figure label="Interactivo · Anatomía de Hiperparámetros" hint="Haz clic en cada perilla para ver exactamente DÓNDE vive en la arquitectura MLP y qué controla. Observa cómo el diagrama resalta los componentes afectados."><HyperparameterAnatomyVisualizer /></Figure>
+
+Cada perilla controla una parte diferente de la arquitectura. Pero no operan de forma aislada — interactúan entre sí. La mejor dimensión de embedding depende del tamaño oculto, que depende de la tasa de aprendizaje. Para encontrar el óptimo real, necesitamos probarlas juntas.
+
+Así que entrenamos más de 100 modelos — cada combinación de dimensiones de embedding (2 a 32), tamaños ocultos (32 a 1024) y tasas de aprendizaje (0.01 a 0.2). Cada uno entrenado durante 50,000 pasos con los mismos datos de Shakespeare. Tu misión: explorar la cuadrícula y encontrar al campeón. Usa los controles. Observa las curvas de pérdida. Genera texto. Encuentra patrones.
+
+<Figure label="Interactivo · Explorador Completo de Hiperparámetros" hint="Usa los controles para explorar diferentes combinaciones de hiperparámetros. Observa curvas de entrenamiento, genera texto y detecta anomalías. Prueba los extremos primero — los modelos más pequeños y más grandes — luego acércate al punto óptimo."><MLPHyperparameterExplorer /></Figure>
+
+¿Encontraste el mejor modelo? ¿Notaste cómo algunas configuraciones divergen completamente — la pérdida sube en vez de bajar? Esas son las que tenían una tasa de aprendizaje demasiado agresiva para la capacidad del modelo. ¿Y viste la brecha entre pérdida de entrenamiento y validación crecer con modelos más grandes? Eso es sobreajuste — el modelo memorizando en vez de aprender.
+
+Ahora da un paso atrás y mira todos los modelos a la vez. Abajo, cada modelo que entrenamos está graficado como total de parámetros vs. pérdida de validación. El patrón es impactante: más allá de cierto tamaño, añadir más parámetros no ayuda. La pérdida toca un piso. Lo llamamos el muro de parámetros.
+
+<Figure label="Datos · El Muro de Parámetros" hint="Cada punto es un modelo entrenado real. Colorea por dimensión de embedding o tasa de aprendizaje para ver patrones. Pasa el cursor para detalles. Nota cómo la pérdida se estanca — más parámetros no atraviesan el muro."><ParameterWallVisualizer /></Figure>
+
+No importa cuántos parámetros lancemos a esta arquitectura, la pérdida no baja de ~2.1. El modelo más grande tiene 10× más parámetros que el punto óptimo — y rinde apenas mejor (o peor, por sobreajuste). Este es el límite fundamental de la arquitectura MLP, no un problema de ajuste.
+
+Uno de los mayores peligros en el explorador fue el sobreajuste — modelos que dominan sus datos de entrenamiento pero fallan con texto nuevo. Lo viste en el capítulo de Redes Neuronales: la brecha entre pérdida de entrenamiento y validación es la señal reveladora. ¿Puedes detectarlo en la práctica?
+
+<Figure label="Desafío · Detective de Sobreajuste" hint="Observa las curvas de pérdida de entrenamiento vs validación y diagnostica: ¿sobreajustado, subajustado o bien ajustado? ¡Gana puntos por respuestas correctas!"><OverfittingDetectiveChallenge /></Figure>
+
+La cura para la memorización es el dropout. Durante cada paso de entrenamiento, el dropout silencia aleatoriamente una fracción de las neuronas — forzando a la red a aprender representaciones redundantes y robustas en vez de depender de una sola neurona. Es como estudiar para un examen tapando partes aleatorias de tus apuntes cada vez.
+
+<Figure label="Interactivo · Visualizador de Dropout" hint="Haz clic en 'Training Step' para ver qué neuronas se silencian aleatoriamente. Activa/desactiva dropout. Observa la tira de historial — diferentes neuronas activas en cada paso, forzando redundancia."><DropoutVisualizer /></Figure>
+
+El dropout hace a la red más fuerte haciéndola menos segura. En vez de un solo camino frágil a través de la red, construye muchos caminos — y el resultado final es más confiable. En §07, vimos que BatchNorm hace algo similar inyectando ruido a través de estadísticas del lote. Ambos son formas de regularización — técnicas que combaten la memorización.
+
+<TrainingChallengePanel title="Experimento Real: Comparación de Tasas de Dropout" preview="Curvas de entrenamiento reales para dropout=0.0, 0.2, 0.5 en el mismo modelo. Observa cómo cambia la brecha de sobreajuste." category="experiment" difficulty={2}>
+<Figure label="Experimento · Barrido de Tasa de Dropout" hint="Haz clic en cada tasa de dropout para comparar curvas de pérdida. El área sombreada muestra la brecha de sobreajuste entre train y val loss. Menor brecha = mejor generalización."><DropoutExperimentViz /></Figure>
+</TrainingChallengePanel>
+
+De las cinco perillas, la tasa de aprendizaje es la más peligrosa. Demasiado baja y el modelo apenas aprende — la pérdida se estanca temprano, desperdiciando cómputo. Demasiado alta y el modelo diverge completamente — la pérdida explota, la red no aprende nada. El punto óptimo es estrecho, y depende del tamaño del modelo.
+
+<Figure label="Interactivo · Intuición de Tasa de Aprendizaje" hint="Haz clic en 'Run Gradient Descent' para ver tres tasas de aprendizaje competir en el mismo paisaje de pérdida. La bola muestra dónde está cada optimizador en cada paso."><LearningRateIntuition /></Figure>
+
+En el explorador, las configuraciones divergentes — las que tenían pérdida por encima de la línea base aleatoria — eran casi todas lr=0.1 o lr=0.2 en modelos más grandes. La tasa de aprendizaje que funciona para un modelo pequeño puede destruir uno grande. Por eso los profesionales suelen empezar con una tasa de aprendizaje pequeña y subir, nunca al revés.
+
+<TrainingChallengePanel title="Experimento Real: Barrido de Tasa de Aprendizaje" preview="5 tasas de aprendizaje de 0.0001 a 0.1 en la misma arquitectura. Ve exactamente cuándo y por qué cada una falla." category="experiment" difficulty={2}>
+<Figure label="Experimento · Barrido de Tasa de Aprendizaje (5 tasas)" hint="Haz clic en cada tasa de aprendizaje para ver su curva de val loss. La mejor tasa (verde) encuentra el punto óptimo. Muy baja = apenas aprende. Muy alta = explota."><LRSweepVisualizer /></Figure>
+</TrainingChallengePanel>
+
+Hay una trampa más en la que cae incluso la mejor configuración: entrenar demasiado tiempo. Abajo hay un solo modelo entrenado durante 200K pasos — diez veces más de lo necesario. Observa el momento en que la val loss deja de mejorar mientras la train loss sigue cayendo. Ese es el momento en que el modelo empieza a memorizar en vez de aprender.
+
+<Figure label="Experimento · La Línea de Tiempo del Sobreajuste" hint="Pasa el cursor para explorar las curvas de pérdida a lo largo de 200K pasos. Los puntos morados muestran instantáneas de calidad del texto en hitos. El marcador verde muestra cuándo el modelo estaba en su mejor momento."><OvertrainingTimelineViz /></Figure>
+
+Todo después de la línea verde es cómputo desperdiciado — o peor, daña activamente al modelo. En la práctica, usamos 'early stopping': monitoreamos la val loss y paramos cuando no ha mejorado en N pasos. El mejor modelo no es el que entrenó más tiempo — es el que supo cuándo parar.
+
+Después de cientos de experimentos, el campeón emerge. El mejor MLP posible con nuestros datos de entrenamiento — descubierto puramente a través de búsqueda sistemática. De la misma arquitectura que empezó como ruido aleatorio, encontró patrones en Shakespeare que ningún humano programó. No entiende qué significan los patrones. Optimiza. Y sin embargo — chocó contra el muro. Ningún ajuste puede superar los límites fundamentales del MLP.
+
+<MlpCallout icon="lightbulb" accent="violet" title="No hay almuerzo gratis">Cada hiperparámetro implica compromisos. Embeddings y capas ocultas más grandes aumentan la capacidad pero arriesgan el sobreajuste y ralentizan el entrenamiento. Tasas de aprendizaje más bajas son estables pero lentas. El arte del aprendizaje profundo es encontrar el punto óptimo — y entender POR QUÉ importa cada elección. No hay un 'mejor' ajuste universal — solo el mejor para tu arquitectura, datos y presupuesto de cómputo específicos.</MlpCallout>
+
+<MlpCallout icon="brain" accent="violet" title="🤖 Checkpoint ChatGPT₂: El Mejor MLP Posible">Hemos ajustado cada perilla: dimensión del embedding, tamaño oculto, tasa de aprendizaje, dropout, ventana de contexto. Tenemos el MEJOR MLP posible. ¿Es ESTO ChatGPT? 👾 Todavía no. El MLP tiene límites arquitectónicos duros que ningún ajuste puede superar. Descubramos cuáles son — y qué arquitectura los resuelve...</MlpCallout>
+
+<KeyTakeaway>La mejor configuración MLP equilibra los cinco hiperparámetros, pero incluso los ajustes óptimos chocan contra un muro. Más parámetros no ayudan pasado un punto. El monstruo está en su mejor momento — lo que viene después requiere una arquitectura completamente diferente.</KeyTakeaway>
+
+</Section>
+
+<Break />
+
+<MonsterInterlude>Cada peso optimizado. Cada hiperparámetro ajustado. Soy lo mejor que esta arquitectura permite. Y sin embargo — veo fragmentos, no relaciones. Lo proceso todo igual. No sé qué importa.</MonsterInterlude>
+
+<Section id="mlp-09" number="09" label="No Puede Ver" heading="El Monstruo Que No Puede Ver">
+
+<Lead>El monstruo tiene ojos, cerebro y profundidad. Es estable, optimizado, poderoso. Y sin embargo — no puede ver. No porque le falte visión, sino porque ver no se trata de tener ojos. Se trata de saber dónde mirar. Entender exactamente dónde falla el MLP revela lo que la siguiente arquitectura debe resolver.</Lead>
+
+Antes de catalogar las limitaciones, demostremos que el muro existe. Abajo: MLPs cada vez más grandes — más parámetros, más capas, más contexto. Observa la pérdida. Se estanca. Lanzar más cómputo al MLP no ayuda. La arquitectura misma es el cuello de botella.
+
+<Figure label="Interactivo · El Muro de Parámetros" hint="Haz clic en cada modelo para ver su configuración y texto generado. Nota cómo la pérdida apenas mejora a pesar de 500× más parámetros."><BigModelLimitationViz /></Figure>
+
+<TrainingChallengePanel title="Análisis: ¿Más Datos Ayudan?" preview="Mismo modelo, 5 tamaños de dataset. ¿Más datos rompen el muro?" category="deepdive" difficulty={2}>
+¿Quizás el problema son los datos? Entrenamos exactamente el mismo modelo en datasets desde 100K hasta 1.7M caracteres. Seguramente más datos ayudan… ¿verdad?
+
+<Figure label="Experimento · Impacto del Tamaño de Datos" hint="Pasa el cursor sobre cada punto para ver la pérdida de entrenamiento/validación y la brecha de generalización. Nota qué tamaño de dataset logra la pérdida de validación más baja."><DataSizeExperiment /></Figure>
+</TrainingChallengePanel>
+
+<Highlight color="amber">Limitación 1: Ventana fija = sin memoria de largo alcance.</Highlight> El MLP debe recibir exactamente N caracteres. No puede mirar más atrás ni expandir dinámicamente su vista. La información fuera de la ventana — sin importar cuán importante sea — es completamente invisible. En el lenguaje real, un pronombre puede referirse a un sustantivo decenas de tokens antes. Ninguna ventana fija de tamaño práctico puede cerrar estos huecos de manera confiable.
+
+<Figure label="Interactivo · Ceguera de la Ventana de Contexto" hint="Arrastra el deslizador para ampliar la ventana de contexto. Observa cuándo el referente entra en el campo de visión — y nota cuán pequeña debe ser la ventana para ocultarlo."><ContextWindowVisualizer /></Figure>
+
+<Figure label="Interactivo · Fallo en Dependencias de Largo Alcance" hint="Una oración donde el pronombre se refiere a un sustantivo muchos tokens atrás. Compara cómo cambian las predicciones a medida que crece la ventana."><LongRangeDependencyDemo /></Figure>
+
+<Highlight color="amber">Limitación 2: Posición = crisis de identidad.</Highlight> Como el MLP concatena embeddings, el mismo token en diferentes posiciones activa pesos completamente diferentes. 'the' en la posición 0 y 'the' en la posición 2 son tratados como entradas completamente distintas. Sin compartición de pesos entre posiciones — la red no puede reconocer que la misma palabra significa lo mismo sin importar dónde aparezca. Esto desperdicia parámetros e impide la generalización.
+
+<Figure label="Interactivo · Sensibilidad a la Posición" hint="Alterna un token entre posiciones. Las columnas resaltadas de W₁ muestran qué parámetros activa cada instancia — conjuntos completamente diferentes."><PositionSensitivityVisualizer /></Figure>
+
+<Highlight color="amber">Limitación 3: Cuello de botella por concatenación.</Highlight> La primera matriz de pesos W₁ tiene forma (N·D) × H. Duplicar el contexto duplica esta capa. Y a medida que el contexto crece, el embedding de cada token se reduce a una fracción más pequeña de la entrada — diluyendo cada señal.
+
+<Figure label="Interactivo · Cuello de Botella por Concatenación" hint="Cambia entre las vistas de Crecimiento de Parámetros y Dilución de Señal. Observa cómo W₁ se expande y la participación de cada token se reduce."><ConcatenationBottleneckVisualizer /></Figure>
+
+<Highlight color="amber">Limitación 4: Sin comprensión semántica.</Highlight> El MLP no sabe qué significan los caracteres — solo aprende patrones estadísticos. Considera la palabra 'banco': cerca de 'río' significa una cosa, cerca de 'dinero' algo completamente diferente. Pero el MLP le da a 'banco' el mismo embedding sin importar el contexto. No tiene mecanismo para ajustar el significado según las palabras circundantes.
+
+<Figure label="Interactivo · Embeddings Ciegos al Contexto" hint="Dos contextos para 'bank' — 'river bank' vs 'money bank'. El vector de embedding es idéntico en ambos. El MLP no tiene forma de ajustar el significado."><ContextMeaningDemo /></Figure>
+
+*Cuatro limitaciones. Una causa raíz. El MLP trata todo su contexto como un solo vector plano — procesa cada token de la misma manera. No tiene mecanismo para preguntar: ¿qué es relevante aquí? ¿En qué debería enfocarme? ¿Qué se conecta con qué? Ve, pero no entiende lo que está mirando.*
+
+Y mira lo que el monstruo PUEDE hacer. El mismo texto semilla, procesado por cada modelo que hemos construido. Observa el salto de calidad con cada avance arquitectónico.
+
+<Figure label="Interactivo · Galería de Generación" hint="Selecciona una semilla y compara la generación de texto lado a lado de los cuatro tipos de modelo. Observa cómo mejora la calidad con cada avance."><GenerationGallery /></Figure>
+
+Hemos avanzado mucho. Pero hay una diferencia entre apreciar el progreso y estar satisfechos. El monstruo puede predecir texto. Pero no puede ver más allá de 4 caracteres. No puede recordar lo que escribió hace 10 palabras. No entiende que 'rey' y 'reina' están relacionados. Queremos MÁS.
+
+¿Cómo sería la arquitectura ideal?
+
+<Figure label="Interactivo · Lista de Deseos de Arquitectura" hint="Marca cada propiedad que quieras en tu modelo de lenguaje ideal. Cuando hayas seleccionado suficientes, ¡descubre qué arquitectura has descrito!"><ArchitectureWishlistBuilder /></Figure>
+
+<AttentionTeaser />
+
+Ahora relee tu lista de deseos. Longitud de contexto variable. Significado independiente de la posición. Atención selectiva a las partes relevantes. Acabas de describir una arquitectura llamada Transformer — y es exactamente hacia donde nos dirigimos.
+
+<MonsterClosure closure={`Ya tengo ojos.
+Tengo cerebro.
+Soy profundo, estable, optimizado.
+Pero no sé qué importa.
+Veo fragmentos.
+No veo conexiones.
+No sé dónde mirar.`} question={`¿Y si pudiera mirarlo todo…
+y elegir?`} bridge="Esa pregunta — '¿en qué debería enfocarme?' — es la pregunta más importante en toda la IA. Y en 2017, un equipo de Google la respondió." />
+
+<KeyTakeaway>La ventana de contexto fija del MLP, los pesos dependientes de posición y la falta de compartición de parámetros son restricciones arquitectónicas duras — pero sus ideas perduran. Embeddings aprendidos, jerarquías de características no lineales y entrenamiento de gradientes de extremo a extremo son la base de todo modelo de lenguaje moderno. Las limitaciones apuntan directamente a la siguiente arquitectura: una que procese tokens independientemente, comparta pesos entre posiciones y atienda selectivamente al contexto.</KeyTakeaway>
+
+<MonsterInterlude>Dicen que hay una forma de verlo todo a la vez. No por una cerradura — por cada ventana simultáneamente. Ponderar lo que importa. Seleccionar lo relevante. Lo llaman atención.</MonsterInterlude>
+
+<ChapterEndCTAs />
+
+</Section>
