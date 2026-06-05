@@ -8,6 +8,16 @@ Format: `## YYYY-MM-DD — title` · what changed · why · (optional) commit re
 
 ---
 
+## 2026-06-05 — Analytics + observability (Phase 5) ✅
+
+Added traffic + performance telemetry and gated error reporting. **Vercel Analytics** + **Speed Insights**
+(`<Analytics/>` + `<SpeedInsights/>` in the locale layout) — zero-config, and a no-op off Vercel, so safe
+everywhere. **Sentry**, fully **gated behind `NEXT_PUBLIC_SENTRY_DSN`**: with no DSN the SDK is never imported
+(server) and tree-shaken out of the client bundle (the var is inlined at build time), so it has zero build/
+runtime/bundle cost until a DSN is provided. Wired via `src/instrumentation.ts` (server/edge `register` +
+`onRequestError`) and `src/instrumentation-client.ts` (client init) — no `withSentryConfig` wrapper needed.
+Added `.npmrc` (`legacy-peer-deps=true`) to resolve an unrelated optional-peer conflict from `@vercel/analytics`.
+
 ## 2026-06-05 — HTTP security headers (Phase 4) ✅
 
 Added real security headers via `next.config.mjs → headers()` on every route: HSTS (2-year, includeSubDomains,
