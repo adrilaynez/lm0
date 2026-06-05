@@ -8,6 +8,13 @@ Format: `## YYYY-MM-DD — title` · what changed · why · (optional) commit re
 
 ---
 
+## 2026-06-05 — .env.example (Phase 10) ✅
+
+Added a documented `.env.example` listing every environment variable the code reads — `NEXT_PUBLIC_SITE_URL`,
+`NEXT_PUBLIC_LM_LAB_API_URL`, `NEXT_PUBLIC_SENTRY_DSN`, `ANALYZE` — each with its default and a one-line note.
+All are optional (the app runs with defaults, no secrets needed). Added a `!.env.example` exception to
+`.gitignore` so the template is tracked while real `.env*` files stay ignored.
+
 ## 2026-06-05 — README refresh (Phase 9) ✅
 
 Brought `README.md` up to date with the current architecture: it predated next-intl and the MDX migration.
