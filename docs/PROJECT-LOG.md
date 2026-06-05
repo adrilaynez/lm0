@@ -8,6 +8,14 @@ Format: `## YYYY-MM-DD — title` · what changed · why · (optional) commit re
 
 ---
 
+## 2026-06-05 — MDX content validation (Phase 7) ✅
+
+Added a **zod** schema for note frontmatter (`noteFrontmatterSchema` in `src/lib/mdx.ts`): `title` required,
+`kind`/`status` constrained to their known values, the rest optional — lenient toward the existing 20 notes.
+The content test now validates every note's frontmatter against it (and the wikilink-integrity check from
+Phase 1 is already active), so malformed content fails CI. The runtime loader stays tolerant on purpose, so a
+bad note can never crash the live site. Test count: 38 green.
+
 ## 2026-06-05 — Per-page SEO: metadata + OG image + JSON-LD (Phase 6) ✅
 
 Each lab chapter now has its own search-engine identity. The 5 chapter routes (bigram, ngram, neural-networks,

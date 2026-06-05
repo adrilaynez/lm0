@@ -1,9 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import matter from "gray-matter";
 import { describe, expect, it } from "vitest";
 
-import { extractWikilinks, getNoteSlugs } from "../lib/mdx";
+import { extractWikilinks, getNoteSlugs, noteFrontmatterSchema } from "../lib/mdx";
 
 /**
  * Content integrity: every chapter/project has BOTH language MDX files, and every
@@ -44,6 +45,24 @@ describe("project MDX", () => {
     it.each(slugs)("%s has both .es.mdx and .en.mdx", (slug) => {
         expect(fs.existsSync(path.join(PROJECTS_DIR, `${slug}.en.mdx`)), `${slug}.en.mdx missing`).toBe(true);
         expect(fs.existsSync(path.join(PROJECTS_DIR, `${slug}.es.mdx`)), `${slug}.es.mdx missing`).toBe(true);
+    });
+});
+
+describe("note frontmatter", () => {
+    const files = fs.existsSync(NOTES_DIR) ? getNoteSlugs() : [];
+
+    it("has notes to validate", () => {
+        expect(files.length).toBeGreaterThan(0);
+    });
+
+    it.each(files)("%s has valid frontmatter", (file) => {
+        const raw = fs.readFileSync(path.join(NOTES_DIR, file), "utf8");
+        const { data } = matter(raw);
+        const result = noteFrontmatterSchema.safeParse(data);
+        const errors = result.success
+            ? ""
+            : result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+        expect(result.success, `${file} invalid frontmatter — ${errors}`).toBe(true);
     });
 });
 

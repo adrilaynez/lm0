@@ -1,8 +1,28 @@
 import fs from "fs"
 import matter from "gray-matter"
 import path from "path"
+import { z } from "zod"
 
 const contentDirectory = path.join(process.cwd(), "src/content/notes")
+
+/**
+ * Schema for a note's MDX frontmatter. Lenient toward the existing data: only `title`
+ * is strictly required; `kind`/`status` are optional but, when present, must be one of
+ * the known values. Used by the content test to catch malformed frontmatter in CI
+ * (the loader stays tolerant so a bad note never crashes the running site).
+ */
+export const noteFrontmatterSchema = z.object({
+    title: z.string().min(1, "title is required"),
+    date: z.string().optional(),
+    updated: z.string().optional(),
+    description: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    kind: z.enum(["essay", "seed", "evergreen"]).optional(),
+    status: z.enum(["draft", "published", "wip", "budding"]).optional(),
+    image: z.string().optional(),
+})
+
+export type NoteFrontmatter = z.infer<typeof noteFrontmatterSchema>
 
 export type NoteKind = "essay" | "seed" | "evergreen"
 export type NoteStatus = "draft" | "published" | "wip" | "budding"
