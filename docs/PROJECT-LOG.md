@@ -8,6 +8,15 @@ Format: `## YYYY-MM-DD — title` · what changed · why · (optional) commit re
 
 ---
 
+## 2026-06-05 — Prettier + husky/lint-staged pre-commit (Phase 11) ✅
+
+Added **Prettier** (`.prettierrc`: 100 print width, 2-space, double quotes, trailing commas — 2-space matches
+the repo's plurality and Prettier's default, minimizing churn) and a **husky** `pre-commit` hook running
+**lint-staged**. lint-staged only touches **staged** files (never the whole repo — a hard rule): `*.{ts,tsx}` →
+`eslint --fix` + `prettier --write`, `*.{json,css}` → `prettier --write`. **MD/MDX are deliberately excluded**
+from auto-formatting (and `.prettierignore` lists `**/*.mdx`) so the hand-authored lab narratives and prose docs
+are never silently rewrapped. Added a `format` script for manual full-repo formatting (not run automatically).
+
 ## 2026-06-05 — .env.example (Phase 10) ✅
 
 Added a documented `.env.example` listing every environment variable the code reads — `NEXT_PUBLIC_SITE_URL`,

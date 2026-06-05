@@ -1,0 +1,22 @@
+# Build output & deps
+node_modules
+.next
+.next-verify
+out
+coverage
+.vercel
+
+# Lockfiles & generated
+package-lock.json
+next-env.d.ts
+
+# Binary / assets
+*.png
+*.jpg
+*.svg
+*.ico
+public
+
+# Hand-authored content — never auto-format (MDX narratives + prose docs).
+# Prettier can subtly rewrap prose / alter MDX JSX; these are edited by hand.
+**/*.mdx

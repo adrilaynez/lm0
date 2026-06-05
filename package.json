@@ -9,7 +9,18 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "format": "prettier --write .",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
@@ -55,7 +66,10 @@
     "eslint-config-next": "16.1.6",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-unused-imports": "^4.4.1",
+    "husky": "^9.1.7",
     "jsdom": "^28.1.0",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.3",
     "puppeteer": "^24.37.4",
     "shadcn": "^3.8.5",
     "tailwindcss": "^4",
