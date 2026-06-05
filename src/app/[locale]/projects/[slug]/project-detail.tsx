@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { useI18n } from "@/i18n/context";
 import { Link } from "@/i18n/navigation";
+import { getProjectOverview } from "@/lib/projectContent";
 
 import { ProjectControls } from "../_components/project-controls";
 import { ProjectFooterNav } from "../_components/project-footer-nav";
@@ -64,6 +65,7 @@ export function ProjectDetail({ id }: { id: string }) {
 
   const related = getRelated(id);
   const d = p.detail;
+  const Overview = getProjectOverview(id, lang);
 
   return (
     <div data-proj style={accentStyle(p)} className="min-h-screen bg-[var(--proj-bg)] font-sans text-[color:var(--proj-fg)] transition-colors duration-500">
@@ -104,10 +106,14 @@ export function ProjectDetail({ id }: { id: string }) {
           <div className="min-w-0">
             <section className="mb-14">
               <SectionH>{t("projects.summary")}</SectionH>
-              <div className="proj-rich space-y-4 text-[17px] font-light leading-[1.7] text-[color:var(--proj-muted)] text-pretty">
-                {d.overview[lang].map((para, i) => (
-                  <p key={i} dangerouslySetInnerHTML={{ __html: para }} />
-                ))}
+              <div className="proj-rich space-y-4 text-[17px] font-light leading-[1.7] text-[color:var(--proj-muted)] text-pretty [&_strong]:font-medium [&_strong]:text-[color:var(--proj-fg)] [&_code]:font-[family-name:var(--font-jetbrains-mono)] [&_code]:text-[0.9em] [&_code]:text-[color:var(--accent)]">
+                {Overview ? (
+                  <Overview />
+                ) : (
+                  d.overview[lang].map((para, i) => (
+                    <p key={i} dangerouslySetInnerHTML={{ __html: para }} />
+                  ))
+                )}
               </div>
             </section>
 
