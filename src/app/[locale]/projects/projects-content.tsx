@@ -1,15 +1,14 @@
 "use client";
 
-import Link from "next/link";
-
 import { FadeInView } from "@/features/lab/components/FadeInView";
 import { useI18n } from "@/i18n/context";
+import { Link } from "@/i18n/navigation";
 
-import { ProjectMock } from "./_components/project-mock";
-import { ProjectMasthead } from "./_components/project-masthead";
 import { ProjectContactFooter } from "./_components/project-contact-footer";
+import { ProjectMasthead } from "./_components/project-masthead";
+import { ProjectMock } from "./_components/project-mock";
 import { StatusBadge } from "./_components/status-badge";
-import { FEATURED, REST, type Lang, type Project } from "./projects-data";
+import { FEATURED, type Lang, type Project,REST } from "./projects-data";
 
 const MONO = "font-[family-name:var(--font-jetbrains-mono)]";
 const NAME = "font-[family-name:var(--font-inter)]";

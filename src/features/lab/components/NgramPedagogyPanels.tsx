@@ -18,8 +18,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { useLabMode } from "@/features/lab/context/LabModeContext";
-import { useI18n } from "@/i18n/context";
 import { datasetLookup } from "@/features/lab/lib/lmLabClient";
+import { useI18n } from "@/i18n/context";
 
 const NGRAM_NAMES: Record<number, string> = {
     1: "Bigram",

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo,useState } from "react";
+
 import { motion } from "framer-motion";
-import { Database, TrendingUp, AlertTriangle } from "lucide-react";
+import {Database, TrendingUp } from "lucide-react";
 
 /**
  * DataSizeExperiment

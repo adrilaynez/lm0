@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Layers, Scaling, TrendingDown, AlertTriangle } from "lucide-react";
+import { useEffect, useMemo,useState } from "react";
+
+import { AnimatePresence,motion } from "framer-motion";
+import { AlertTriangle, Scaling } from "lucide-react";
 
 /**
  * ScaleStabilityExperiment

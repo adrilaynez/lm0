@@ -2,7 +2,6 @@
 
 import { lazy, Suspense, useCallback, useState } from "react";
 import { BlockMath } from "react-katex";
-import { useRouter } from "next/navigation";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, ArrowDown, Beaker, BookOpen, ChevronDown, FlaskConical, History, Layers } from "lucide-react";
@@ -23,6 +22,7 @@ import { SectionProgressBar } from "@/features/lab/components/SectionProgressBar
 import { useLabMode } from "@/features/lab/context/LabModeContext";
 import { useProgressTracker } from "@/features/lab/hooks/useProgressTracker";
 import { useI18n } from "@/i18n/context";
+import { useRouter } from "@/i18n/navigation";
 
 /* ─── Lazy-loaded interactive visualizers, injected into the MDX ─── */
 const ActivationDerivativeVisualizer = lazy(() => import("@/features/lab/components/nn/ActivationDerivativeVisualizer").then(m => ({ default: m.ActivationDerivativeVisualizer })));

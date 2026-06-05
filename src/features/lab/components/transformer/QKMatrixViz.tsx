@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback,useMemo, useState } from "react";
+
+import { AnimatePresence,motion } from "framer-motion";
 
 /*
   QKMatrixViz — Interactive matrix multiplication visualizer

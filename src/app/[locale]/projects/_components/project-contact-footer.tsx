@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowUpRight, FileText, Github, Linkedin } from "lucide-react";
 
 import { useI18n } from "@/i18n/context";
+import { Link } from "@/i18n/navigation";
 
 const MONO = "font-[family-name:var(--font-jetbrains-mono)]";
 const NAME = "font-[family-name:var(--font-inter)]";

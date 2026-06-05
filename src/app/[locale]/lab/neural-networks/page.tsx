@@ -1,18 +1,17 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import Link from "next/link";
 
 import { ArrowRight, FlaskConical } from "lucide-react";
 
-import { FadeInView } from "@/features/lab/components/FadeInView";
-
 import { ErrorBoundary } from "@/features/lab/components/ErrorBoundary";
+import { FadeInView } from "@/features/lab/components/FadeInView";
 import { LabShell } from "@/features/lab/components/LabShell";
 import { ModelHero } from "@/features/lab/components/ModelHero";
 import { SectionDivider } from "@/features/lab/components/SectionDivider";
 import { useLabMode } from "@/features/lab/context/LabModeContext";
 import { useI18n } from "@/i18n/context";
+import { Link } from "@/i18n/navigation";
 
 const NeuralNetworkNarrative = dynamic(
     () => import("@/features/lab/components/NeuralNetworkNarrative").then((m) => ({ default: m.NeuralNetworkNarrative })),

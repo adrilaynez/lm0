@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+
 import { AnimatePresence, motion } from "framer-motion";
 
-import { HomeFace } from "./_components/home-face";
 import { AboutFace } from "./_components/about-face";
+import { HomeFace } from "./_components/home-face";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 

@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 
 import { motion } from "framer-motion";
-import { Check, Eye, Shuffle, MapPin, Zap } from "lucide-react";
+import { Check, Eye, MapPin, Shuffle, Zap } from "lucide-react";
 
 /*
   WishlistCallbackViz — v2

@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 
-import { useI18n } from "@/i18n/context";
 import type { MLPGridConfig } from "@/features/lab/types/lmLab";
+import { useI18n } from "@/i18n/context";
 
 /*
   GeneralizationGapHeatmap

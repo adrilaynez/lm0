@@ -1,5 +1,4 @@
-import Link from "next/link";
-
+import { Link } from "@/i18n/navigation";
 import type { Note } from "@/lib/mdx";
 
 import { ThreadCard } from "./thread-card";

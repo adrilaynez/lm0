@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+
 import { motion } from "framer-motion";
-import { Skull, Zap, ShieldAlert } from "lucide-react";
+import { ShieldAlert,Skull, Zap } from "lucide-react";
 
 /*
   DeadNeuronVisualizer

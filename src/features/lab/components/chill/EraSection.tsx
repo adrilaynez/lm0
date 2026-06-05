@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { FadeInView } from "@/features/lab/components/FadeInView";
 import { ChillTerminal } from "@/features/lab/components/chill/Terminal";
+import { FadeInView } from "@/features/lab/components/FadeInView";
+import { Link } from "@/i18n/navigation";
 
 export interface EraChapter {
     num: string;

@@ -144,7 +144,7 @@ export function DotProductArrowsViz() {
         const r = 35;
         const angA = vecToAngle(vecA);
         const angB = vecToAngle(vecB);
-        let start = angA;
+        const start = angA;
         let end = angB;
         // Ensure we draw the smaller arc
         let diff = end - start;

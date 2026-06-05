@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect,useMemo, useRef, useState } from "react";
+
+import {motion } from "framer-motion";
 
 /*
   CharVsTokenViz — VIZ 14

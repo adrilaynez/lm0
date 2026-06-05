@@ -1,8 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -17,18 +15,19 @@ import {
     WifiOff,
 } from "lucide-react";
 
-import { ChapterSwitcher, accentOf } from "@/features/lab/components/ChapterSwitcher";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ScrollProvider, useScrollY } from "@/context/ScrollContext";
+import { accentOf,ChapterSwitcher } from "@/features/lab/components/ChapterSwitcher";
 import FeedbackButton from "@/features/lab/components/FeedbackButton";
 import { KeyboardShortcutsPanel } from "@/features/lab/components/KeyboardShortcutsPanel";
 import { ReadingProgressBar } from "@/features/lab/components/ReadingProgressBar";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ScrollProvider, useScrollY } from "@/context/ScrollContext";
 import { useUser } from "@/features/lab/context/UserContext";
 import { useBackendHealth } from "@/features/lab/hooks/useBackendHealth";
 import { useKeyboardShortcuts } from "@/features/lab/hooks/useKeyboardShortcuts";
 import { useLabTheme } from "@/features/lab/hooks/useLabTheme";
 import { useProgressTracker } from "@/features/lab/hooks/useProgressTracker";
 import { useI18n } from "@/i18n/context";
+import { Link, usePathname } from "@/i18n/navigation";
 
 /* ─── Avatar + Name Popover ─── */
 

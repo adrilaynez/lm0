@@ -6,8 +6,8 @@ import { Activity,TrendingDown } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { useI18n } from "@/i18n/context";
 import type { TrainingViz } from "@/features/lab/types/lmLab";
+import { useI18n } from "@/i18n/context";
 
 const TI = "models.neuralNetworks.sections.playground.training";
 const VI = "models.neuralNetworks.sections.playground.visualization";

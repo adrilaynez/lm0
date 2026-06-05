@@ -1,9 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
-import { ModeToggle, type Mode } from "./mode-toggle";
+import { useRouter } from "@/i18n/navigation";
+
+import { type Mode,ModeToggle } from "./mode-toggle";
 
 const STORAGE_KEY = "ls-default-mode";
 

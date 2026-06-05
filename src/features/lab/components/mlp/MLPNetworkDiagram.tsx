@@ -1,9 +1,10 @@
 "use client";
 
 import { memo, useCallback, useState } from "react";
-import { useI18n } from "@/i18n/context";
 
 import { AnimatePresence, motion } from "framer-motion";
+
+import { useI18n } from "@/i18n/context";
 
 /*
   MLPNetworkDiagram

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useMemo, useRef,useState } from "react";
+
+import { AnimatePresence,motion } from "framer-motion";
 
 /*
   V35 — WaveFingerprintViz — Complete rebuild v2

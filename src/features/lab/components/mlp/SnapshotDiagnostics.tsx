@@ -2,8 +2,8 @@
 
 import { useMemo } from "react";
 
-import { useI18n } from "@/i18n/context";
 import type { MLPTimelineResponse, MLPTimelineSnapshot } from "@/features/lab/types/lmLab";
+import { useI18n } from "@/i18n/context";
 
 /*
   SnapshotDiagnostics

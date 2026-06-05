@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo,useState } from "react";
+
 import { motion } from "framer-motion";
 import { Award, Skull, TrendingDown } from "lucide-react";
 

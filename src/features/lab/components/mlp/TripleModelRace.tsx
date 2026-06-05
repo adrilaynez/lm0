@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { Play, RotateCcw, Trophy, Zap, Table, BrainCircuit, Sparkles, Crown, Skull } from "lucide-react";
+import { AnimatePresence,motion } from "framer-motion";
+import { BrainCircuit, Crown, Play, RotateCcw, Skull,Sparkles, Table, Zap } from "lucide-react";
 
-import { fetchMLPGrid, fetchMLPTimeline, generateNgram, generateMLP } from "@/features/lab/lib/lmLabClient";
+import { fetchMLPGrid, fetchMLPTimeline, generateMLP,generateNgram } from "@/features/lab/lib/lmLabClient";
 import { useI18n } from "@/i18n/context";
 
 /*

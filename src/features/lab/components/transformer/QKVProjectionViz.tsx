@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
+import { AnimatePresence,motion } from "framer-motion";
 
 /*
   QKVProjectionViz — Shows how a single embedding vector gets multiplied

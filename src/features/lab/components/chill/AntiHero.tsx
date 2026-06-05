@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import { FadeInView } from "@/features/lab/components/FadeInView";
 import { useI18n } from "@/i18n/context";
+import { Link } from "@/i18n/navigation";
 
 /**
  * Closing call-to-action. Stripped down to a single CTA pill on top of the

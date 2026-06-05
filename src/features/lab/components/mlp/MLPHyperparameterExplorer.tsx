@@ -4,10 +4,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Activity, AlertTriangle, ChevronDown, ChevronUp, Cpu, GitCompareArrows, Layers, Loader2, Sparkles, TrendingDown } from "lucide-react";
 
-import { useI18n } from "@/i18n/context";
 import type { MLPGenerateResponse, MLPGridConfig, MLPTimelineResponse } from "@/features/lab/types/lmLab";
+import { useI18n } from "@/i18n/context";
 
-import { CrossConfigScatterPlot } from "./CrossConfigScatterPlot";
 import { EmbeddingDriftAnimator } from "./EmbeddingDriftAnimator";
 import { GeneralizationGapHeatmap } from "./GeneralizationGapHeatmap";
 import { NearestNeighborExplorer } from "./NearestNeighborExplorer";

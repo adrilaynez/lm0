@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
+
 import { Moon, Sun } from "lucide-react";
 
 import { useI18n } from "@/i18n/context";

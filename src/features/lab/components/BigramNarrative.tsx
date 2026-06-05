@@ -1,7 +1,6 @@
 "use client";
 
 import { lazy } from "react";
-import Link from "next/link";
 
 import { motion } from "framer-motion";
 import { ArrowRight, Beaker, FlaskConical } from "lucide-react";
@@ -17,6 +16,7 @@ import { useLabMode } from "@/features/lab/context/LabModeContext";
 import { useProgressTracker } from "@/features/lab/hooks/useProgressTracker";
 import type { TrainingViz, TransitionMatrixViz } from "@/features/lab/types/lmLab";
 import { useI18n } from "@/i18n/context";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 /* Bigram type families (Playfair display · Source Serif body · JetBrains Mono data),

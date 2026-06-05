@@ -1,14 +1,15 @@
-import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ArrowLeft, ArrowRight } from "lucide-react";
+
 import { MDXContent } from "@/components/mdx-content";
+import { Link } from "@/i18n/navigation";
 import { getEssays, getNoteBySlug, getNoteSlugs } from "@/lib/mdx";
 
 import { EssayCover } from "../../_components/essay-cover";
+import { EssayToc,type TocItem } from "../../_components/essay-toc";
 import { ReadingProgress } from "../../_components/reading-progress";
-import { type TocItem, EssayToc } from "../../_components/essay-toc";
 
 interface PageProps {
   params: Promise<{ slug: string }>;

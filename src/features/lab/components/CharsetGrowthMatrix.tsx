@@ -4,8 +4,8 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-import { useI18n } from "@/i18n/context";
 import { CHARSET_TIERS } from "@/features/lab/data/bigramCorpora";
+import { useI18n } from "@/i18n/context";
 
 /**
  * CharsetGrowthMatrix — the "the table grows" instrument (Bigram chapter, §4 · editorial-green).

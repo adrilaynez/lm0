@@ -26,13 +26,26 @@ export function useI18n() {
     const router = useRouter();
     const pathname = usePathname();
 
+    // Reproduce the OLD hand-rolled t() semantics exactly: take the RAW message string
+    // (no ICU parsing) and do `{param}` replacement ourselves. This is required because
+    // many strings embed literal <strong>/<em> HTML (rendered via dangerouslySetInnerHTML)
+    // which next-intl's ICU formatter would mis-parse as tag placeholders and throw on.
+    // Using tRoot.raw() sidesteps ICU entirely — same behavior the app always had.
     const t = React.useCallback(
         (key: string, params?: Record<string, string | number>): string => {
+            let raw: unknown;
             try {
-                return tRoot(key, params as Record<string, string | number>);
+                raw = tRoot.raw(key);
             } catch {
                 return key;
             }
+            if (typeof raw !== "string") return key;
+            if (!params) return raw;
+            let out = raw;
+            for (const [k, v] of Object.entries(params)) {
+                out = out.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+            }
+            return out;
         },
         [tRoot],
     );

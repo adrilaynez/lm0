@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { getProject, getProjectSlugs } from "../projects-data";
+
 import { ProjectDetail } from "./project-detail";
 
 interface PageProps {

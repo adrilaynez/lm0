@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useEffect, useMemo,useRef, useState } from "react";
+
+import { AnimatePresence,motion } from "framer-motion";
 
 /*
   CharGenerationPlayground — VIZ 5  ⭐⭐⭐⭐⭐

@@ -1,12 +1,11 @@
 "use client";
 
-import Link from "next/link";
-
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { Link } from "@/i18n/navigation";
 
 interface NoteLinkProps {
   slug: string;

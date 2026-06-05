@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback,useState } from "react";
+
+import { AnimatePresence,motion } from "framer-motion";
 
 /*
   V42 — BlockBuilderViz (Redesign v2)

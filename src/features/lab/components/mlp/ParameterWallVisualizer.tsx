@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Skull, TrendingDown, Zap } from "lucide-react";
+
+import { AnimatePresence,motion } from "framer-motion";
+import { Skull, TrendingDown, Trophy, Zap } from "lucide-react";
 
 import type { MLPGridConfig } from "@/features/lab/types/lmLab";
 

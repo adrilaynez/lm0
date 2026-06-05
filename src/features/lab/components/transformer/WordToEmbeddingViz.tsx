@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useReducer, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useReducer, useRef, useState } from "react";
+
+import { AnimatePresence,motion } from "framer-motion";
 
 /* ═══════════════════════════════════════════════
    Constants

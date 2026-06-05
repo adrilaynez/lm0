@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo,useState } from "react";
 
 import { Loader2 } from "lucide-react";
 
-import { useI18n } from "@/i18n/context";
 import { fetchMLPTimeline, generateMLP } from "@/features/lab/lib/lmLabClient";
 import type { MLPGenerateResponse,MLPGridConfig, MLPTimelineResponse } from "@/features/lab/types/lmLab";
+import { useI18n } from "@/i18n/context";
 
 import { EmbeddingDriftAnimator } from "./EmbeddingDriftAnimator";
 

@@ -13,8 +13,8 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import { Verdict } from "@/features/lab/components/bigram/Verdict";
 import {
-    SHAKESPEARE_ROW_T,
     displayChar,
+    SHAKESPEARE_ROW_T,
 } from "@/features/lab/data/bigramCorpora";
 import { useI18n } from "@/i18n/context";
 

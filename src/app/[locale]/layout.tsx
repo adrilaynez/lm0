@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import {
   Bebas_Neue,
   Geist,
@@ -11,7 +10,7 @@ import {
   Source_Serif_4,
   Space_Grotesk,
 } from "next/font/google";
-
+import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 

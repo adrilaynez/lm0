@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useCallback, useEffect,useRef, useState } from "react";
+
+import { AnimatePresence,motion } from "framer-motion";
 
 /*
   DepthGenerationViz — VIZ 10

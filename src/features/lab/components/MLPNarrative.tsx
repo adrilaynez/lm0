@@ -1,7 +1,6 @@
 "use client";
 
 import { lazy, Suspense, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, Beaker, BookOpen, BrainCircuit, FlaskConical, Sparkles } from "lucide-react";
@@ -18,6 +17,7 @@ import { useLabMode } from "@/features/lab/context/LabModeContext";
 import type { UseMLPGridReturn } from "@/features/lab/hooks/useMLPGrid";
 import { useProgressTracker } from "@/features/lab/hooks/useProgressTracker";
 import { useI18n } from "@/i18n/context";
+import { useRouter } from "@/i18n/navigation";
 
 /* ─── Lazy-loaded interactive visualizers, injected into the MDX ─── */
 // §01 — The Input Problem

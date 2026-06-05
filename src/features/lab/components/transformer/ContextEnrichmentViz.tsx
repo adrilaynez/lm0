@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useCallback,useEffect, useRef, useState } from "react";
+
+import { AnimatePresence,motion } from "framer-motion";
 
 /* ═══════════════════════════════════════════════
    ContextEnrichmentViz — v1

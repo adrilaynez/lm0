@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
 import { AnimatePresence, motion } from "framer-motion";
 
 /*
@@ -237,7 +238,7 @@ export function EmbeddingToArrowViz() {
     useEffect(() => {
         startAnim();
         return () => timers.current.forEach(clearTimeout);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [pairIdx]);
 
     const changePair = (i: number) => {

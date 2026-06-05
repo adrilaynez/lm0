@@ -135,7 +135,7 @@ export function NeuronAblationExplorer() {
         const degradeFraction = Math.min(disabled.size / GRID_SIZE, 1);
 
         // Start from baseline blended toward uniform by degradation fraction
-        let combined: Record<string, number> = {};
+        const combined: Record<string, number> = {};
         for (const ch of allChars) {
             const orig = scenario.allActive[ch];
             combined[ch] = orig + (uniform - orig) * degradeFraction;

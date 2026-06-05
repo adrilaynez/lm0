@@ -5,8 +5,8 @@ import { useCallback,useState } from "react";
 import {motion } from "framer-motion";
 import { ArrowLeft,ChevronRight, Loader2, Search } from "lucide-react";
 
-import { useI18n } from "@/i18n/context";
 import { visualizeNgram } from "@/features/lab/lib/lmLabClient";
+import { useI18n } from "@/i18n/context";
 
 /* ─────────────────────────────────────────────
    NgramContextDrilldown

@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowRight, Grid2x2 } from "lucide-react";
-import Link from "next/link";
 
+import { Link } from "@/i18n/navigation";
 import type { Note } from "@/lib/mdx";
 
 interface MindPrevNextProps {

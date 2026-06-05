@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, Play, RotateCcw, Sparkles, Thermometer } from "lucide-react";
+import { Loader2, RotateCcw, Sparkles, Thermometer } from "lucide-react";
 
 import { fetchMLPGrid, generateMLP } from "@/features/lab/lib/lmLabClient";
 

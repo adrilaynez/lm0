@@ -1,7 +1,6 @@
 "use client";
 
 import { lazy } from "react";
-import { useRouter } from "next/navigation";
 
 import { motion } from "framer-motion";
 import { ArrowRight, BrainCircuit, FlaskConical } from "lucide-react";
@@ -17,6 +16,7 @@ import { useLabMode } from "@/features/lab/context/LabModeContext";
 import { useLabTheme } from "@/features/lab/hooks/useLabTheme";
 import { useProgressTracker } from "@/features/lab/hooks/useProgressTracker";
 import { useI18n } from "@/i18n/context";
+import { useRouter } from "@/i18n/navigation";
 
 /* ─── n-gram v3 "La fila" widgets (amber, [data-ngram-theme]), injected into the MDX ─── */
 const AmnesiaReplay = lazy(() => import("@/features/lab/components/ngram/AmnesiaReplay").then(m => ({ default: m.AmnesiaReplay })));

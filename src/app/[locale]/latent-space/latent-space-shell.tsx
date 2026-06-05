@@ -1,14 +1,16 @@
 "use client";
 
+import { type ReactNode,useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+
 import { AnimatePresence, motion } from "framer-motion";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import { useI18n } from "@/i18n/context";
+import { usePathname, useRouter } from "@/i18n/navigation";
 
 import { LandingFooter } from "./_components/landing-footer";
 import { MindGate } from "./_components/mind-gate";
-import { ModeToggle, type Mode } from "./_components/mode-toggle";
+import { type Mode,ModeToggle } from "./_components/mode-toggle";
 import { WelcomeHero } from "./_components/welcome-hero";
 
 const STORAGE_KEY = "ls-default-mode";

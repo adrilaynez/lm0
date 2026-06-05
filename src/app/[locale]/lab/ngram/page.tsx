@@ -2,11 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 
 import { AnimatePresence, motion } from "framer-motion";
-
-import { FadeInView } from "@/features/lab/components/FadeInView";
 import {
     Activity,
     ArrowRight,
@@ -26,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { ErrorBoundary } from "@/features/lab/components/ErrorBoundary";
+import { FadeInView } from "@/features/lab/components/FadeInView";
 import { LabShell } from "@/features/lab/components/LabShell";
 import { ModelHero } from "@/features/lab/components/ModelHero";
 import { NgramComparisonDashboard } from "@/features/lab/components/NgramComparisonDashboard";
@@ -36,9 +34,10 @@ import { useLabMode } from "@/features/lab/context/LabModeContext";
 import { useNgramGeneration } from "@/features/lab/hooks/useNgramGeneration";
 import { useNgramStepwise } from "@/features/lab/hooks/useNgramStepwise";
 import { useNgramVisualization } from "@/features/lab/hooks/useNgramVisualization";
-import { useI18n } from "@/i18n/context";
 import { visualizeNgram } from "@/features/lab/lib/lmLabClient";
 import type { NGramTrainingInfo } from "@/features/lab/types/lmLab";
+import { useI18n } from "@/i18n/context";
+import { Link } from "@/i18n/navigation";
 
 const ContextControl = dynamic(() =>
     import("@/features/lab/components/ContextControl").then((m) => m.ContextControl)

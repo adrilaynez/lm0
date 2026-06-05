@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 /* ─────────────────────────────────────────────

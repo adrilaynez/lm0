@@ -5,9 +5,8 @@ import dynamic from "next/dynamic";
 
 import { FlaskConical } from "lucide-react";
 
-import { FadeInView } from "@/features/lab/components/FadeInView";
-
 import { ErrorBoundary } from "@/features/lab/components/ErrorBoundary";
+import { FadeInView } from "@/features/lab/components/FadeInView";
 import { LabShell } from "@/features/lab/components/LabShell";
 import type { MLPHyperparameterExplorerProps } from "@/features/lab/components/mlp/MLPHyperparameterExplorer";
 import type { MLPNarrativeProps } from "@/features/lab/components/MLPNarrative";

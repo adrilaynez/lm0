@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Info, Maximize2, Minimize2, Search, ZoomIn, ZoomOut } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";

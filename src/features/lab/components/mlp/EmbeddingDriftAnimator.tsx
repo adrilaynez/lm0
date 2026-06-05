@@ -4,9 +4,9 @@ import { useEffect, useRef,useState } from "react";
 
 import { Loader2 } from "lucide-react";
 
-import { useI18n } from "@/i18n/context";
 import { fetchMLPEmbedding } from "@/features/lab/lib/lmLabClient";
 import type { MLPEmbeddingResponse, MLPGridConfig } from "@/features/lab/types/lmLab";
+import { useI18n } from "@/i18n/context";
 
 import { EmbeddingSpaceVisualizer } from "./EmbeddingSpaceVisualizer";
 

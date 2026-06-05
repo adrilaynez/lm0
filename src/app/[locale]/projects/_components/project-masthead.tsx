@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 import { useI18n } from "@/i18n/context";
+import { Link } from "@/i18n/navigation";
 
 import { ProjectControls } from "./project-controls";
 

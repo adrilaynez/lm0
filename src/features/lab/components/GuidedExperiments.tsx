@@ -6,7 +6,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Lightbulb } from "lucide-react";
 
 import { FadeInView } from "@/features/lab/components/FadeInView";
-
 import { useI18n } from "@/i18n/context";
 
 export function GuidedExperiments() {

@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 
 import { useI18n } from "@/i18n/context";
+import { Link } from "@/i18n/navigation";
+
 import { FadeUp } from "./fade-up";
 
 export function HomeFace({ onAbout }: { onAbout: () => void }) {

@@ -1,9 +1,10 @@
 "use client";
 
-import { Info } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 
+import { Info } from "lucide-react";
+
+import { Link } from "@/i18n/navigation";
 import type { Note } from "@/lib/mdx";
 import { cn } from "@/lib/utils";
 

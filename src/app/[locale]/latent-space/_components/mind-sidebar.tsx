@@ -1,10 +1,10 @@
 "use client";
 
-import { ChevronRight, Search, Sparkles } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+import { ChevronRight, Search, Sparkles } from "lucide-react";
+
+import { Link, usePathname } from "@/i18n/navigation";
 import type { Note } from "@/lib/mdx";
 import { cn } from "@/lib/utils";
 

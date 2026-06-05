@@ -1,9 +1,8 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { usePathname } from "@/i18n/navigation";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();

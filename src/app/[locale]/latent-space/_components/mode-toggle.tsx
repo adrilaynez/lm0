@@ -1,7 +1,8 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useId, useRef } from "react";
+
+import { AnimatePresence, motion } from "framer-motion";
 
 import { useI18n } from "@/i18n/context";
 import { cn } from "@/lib/utils";

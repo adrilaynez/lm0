@@ -1,10 +1,10 @@
-import { redirect } from "next/navigation";
+import { redirect } from "@/i18n/navigation";
 
 interface Props {
-    params: Promise<{ slug: string }>;
+    params: Promise<{ slug: string; locale: string }>;
 }
 
 export default async function NoteSlugPage({ params }: Props) {
-    const { slug } = await params;
-    redirect(`/latent-space/mind/${slug}`);
+    const { slug, locale } = await params;
+    redirect({ href: `/latent-space/mind/${slug}`, locale });
 }

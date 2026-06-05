@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 
 import { ArrowRight, FlaskConical } from "lucide-react";
 
@@ -20,6 +19,7 @@ import { useBigramStepwise } from "@/features/lab/hooks/useBigramStepwise";
 import { useBigramVisualization } from "@/features/lab/hooks/useBigramVisualization";
 import { useLabTheme } from "@/features/lab/hooks/useLabTheme";
 import { useI18n } from "@/i18n/context";
+import { Link } from "@/i18n/navigation";
 
 const BigramNarrative = dynamic(() =>
     import("@/features/lab/components/BigramNarrative").then((m) => m.BigramNarrative)

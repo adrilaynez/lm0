@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
-
 import { useI18n } from "@/i18n/context";
+import { Link } from "@/i18n/navigation";
 
 /** Footer pipe-nav (My Latent Space / Proyectos / LM Lab / About). */
 export function ProjectFooterNav() {

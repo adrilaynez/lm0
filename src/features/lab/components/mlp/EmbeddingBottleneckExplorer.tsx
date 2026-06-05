@@ -5,8 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { BarChart3, Loader2, Target, Zap } from "lucide-react";
 
-import { fetchAdvancedEmbeddings } from "@/features/lab/lib/lmLabClient";
 import type { AdvancedEmbeddingModel } from "@/features/lab/lib/lmLabClient";
+import { fetchAdvancedEmbeddings } from "@/features/lab/lib/lmLabClient";
 
 /*
   EmbeddingBottleneckExplorer — v3 (Side-by-Side Comparator)

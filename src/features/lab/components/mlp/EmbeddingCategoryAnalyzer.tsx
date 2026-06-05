@@ -5,8 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, Award, Brain, Loader2, SearchCode, Skull } from "lucide-react";
 
-import { fetchAdvancedEmbeddings } from "@/features/lab/lib/lmLabClient";
 import type { AdvancedEmbeddingModel } from "@/features/lab/lib/lmLabClient";
+import { fetchAdvancedEmbeddings } from "@/features/lab/lib/lmLabClient";
 
 /*
   EmbeddingCategoryAnalyzer — v4 (Dimension Dissection)

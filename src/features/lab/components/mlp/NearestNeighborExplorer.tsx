@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 
 import { Loader2 } from "lucide-react";
 
-import { useI18n } from "@/i18n/context";
 import { fetchMLPEmbeddingQuality } from "@/features/lab/lib/lmLabClient";
 import type { MLPEmbeddingQualityResponse } from "@/features/lab/types/lmLab";
 import type { MLPGridConfig } from "@/features/lab/types/lmLab";
+import { useI18n } from "@/i18n/context";
 
 /*
   NearestNeighborExplorer

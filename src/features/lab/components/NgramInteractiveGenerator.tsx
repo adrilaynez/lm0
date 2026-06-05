@@ -5,8 +5,8 @@ import { memo, useCallback, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, Play, RotateCcw, Sparkles } from "lucide-react";
 
-import { useI18n } from "@/i18n/context";
 import { generateNgram } from "@/features/lab/lib/lmLabClient";
+import { useI18n } from "@/i18n/context";
 
 /* ─── Constants ─── */
 const N_OPTIONS = [2, 3, 4] as const;

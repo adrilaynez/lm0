@@ -4,8 +4,8 @@ import { BlockMath } from "react-katex";
 
 import { AlertTriangle, CheckCircle2, Cpu, Layers } from "lucide-react";
 
-import { FadeInView } from "@/features/lab/components/FadeInView";
 import { Badge } from "@/components/ui/badge";
+import { FadeInView } from "@/features/lab/components/FadeInView";
 import { useI18n } from "@/i18n/context";
 
 interface NgramTechnicalExplanationProps {

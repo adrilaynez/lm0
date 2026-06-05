@@ -1,7 +1,8 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+
+import { AnimatePresence, motion } from "framer-motion";
 
 const STORAGE_KEY = "ls-mind-entered";
 
@@ -31,7 +32,7 @@ export function MindGate({ children }: MindGateProps) {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [hydrated, entered]);
 
   const enter = () => {

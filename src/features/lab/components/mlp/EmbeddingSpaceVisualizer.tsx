@@ -4,8 +4,8 @@ import { memo,useCallback, useMemo, useState } from "react";
 
 import { Loader2 } from "lucide-react";
 
-import { useI18n } from "@/i18n/context";
 import type { MLPEmbeddingResponse } from "@/features/lab/types/lmLab";
+import { useI18n } from "@/i18n/context";
 
 /* ─────────────────────────────────────────────
    EmbeddingSpaceVisualizer

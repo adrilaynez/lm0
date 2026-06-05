@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 
 import { useI18n } from "@/i18n/context";
+import { Link } from "@/i18n/navigation";
 
 /**
  * Top fixed masthead for the chill landing.
