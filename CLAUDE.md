@@ -20,12 +20,35 @@ link to it instead of repeating it. Start here, then go to the owner for your ta
 | `src/features/lab/components/bigram/kit/AGENTS.md` | Bigram **build process**: the build contract + hard gates. **Read first before building a Bigram widget.** |
 | `src/features/lab/data/bigramSpine.ts` | Bigram **beat structure**: what each beat teaches, assumes, and hands off. |
 | `bigram-changelog.md` | Living log of Bigram decisions and **what did NOT work** — read before repeating mistakes in n-gram/MLP. |
+| `docs/PROJECT-LOG.md` | **The project history log** — every important change / new capability, dated. **MUST be updated (see rule below).** |
 | `docs/archive/` | Historical, **non-normative** notes (superseded approaches, kept for the record). |
 | `bigram-redesign/` | Historical per-widget redesign reports (**non-normative**). |
 
 **Precedence when two docs disagree:** `CLAUDE.md` (principles) > the topic owner above (e.g. `bigram-design-spec.md`
 for tokens, `bigram-motion-bible.md` for motion, `narrative-guidelines.md` for story, `kit/AGENTS.md` for build).
 Anything under `docs/archive/` or `bigram-redesign/` is **never** authoritative.
+
+---
+
+## Project log — MANDATORY for important changes
+
+There is a living history at **`docs/PROJECT-LOG.md`**. Every **important change or new capability MUST be
+recorded there** — a short dated entry, newest on top, in plain language so a non-engineer can later know
+exactly what the site has and when it arrived.
+
+**What counts as "important" (log it):**
+- New capability / architecture (e.g. tests + CI, error boundaries, security headers, analytics, SEO per page,
+  i18n routing, the MDX narrative migration, a new dependency that changes how the app works).
+- A **complete aesthetic renovation of a chapter** (e.g. "started the full visual redesign of N-gram with X" —
+  with a start entry AND a finish entry when it's done).
+- Anything that changes how the project is built, deployed, tested, or structured.
+
+**What does NOT count (skip it):**
+- A single visualizer tweak, copy edit, bug fix, dependency bump, or routine refactor.
+
+**Format:** for a multi-step effort, write a "started …" entry when it begins and a "finished …" entry when it
+ends (so the log reads like a diary of milestones). Keep entries short; link the relevant commit(s) if useful.
+This rule applies to every contributor and agent, always.
 
 ---
 
