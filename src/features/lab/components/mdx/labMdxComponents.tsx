@@ -5,6 +5,7 @@ import { Suspense } from "react";
 
 import { KeyTakeaway as _KeyTakeaway } from "@/features/lab/components/KeyTakeaway";
 import { LazySection, SectionSkeleton } from "@/features/lab/components/LazySection";
+import type { NarrativeAccent } from "@/features/lab/components/narrative-primitives";
 import {
     Callout as _Callout,
     FigureWrapper as _FigureWrapper,
@@ -21,8 +22,6 @@ import {
     Subheading as _Subheading,
 } from "@/features/lab/components/narrative-primitives";
 import { SectionAnchor } from "@/features/lab/components/SectionAnchor";
-
-import type { NarrativeAccent } from "@/features/lab/components/narrative-primitives";
 
 import { Expandable } from "./Expandable";
 import { Plane, Stage } from "./Plane";
@@ -128,8 +127,10 @@ export function labMdxComponents(
         Callout: ({ title, children }: { title?: string; children?: ReactNode }) => (
             <_Callout accent={accent} title={title}>{children}</_Callout>
         ),
-        Highlight: ({ tooltip, children }: { tooltip?: string; children?: ReactNode }) => (
-            <_Highlight color={accent as HighlightColor} tooltip={tooltip}>{children}</_Highlight>
+        // Defaults to the chapter accent; a chapter can override per-highlight with
+        // color="amber"/"indigo"/… for the few semantic emphases that aren't the accent.
+        Highlight: ({ tooltip, color, children }: { tooltip?: string; color?: HighlightColor; children?: ReactNode }) => (
+            <_Highlight color={(color ?? accent) as HighlightColor} tooltip={tooltip}>{children}</_Highlight>
         ),
 
         /* ── Chapter widgets (injected per chapter) ── */

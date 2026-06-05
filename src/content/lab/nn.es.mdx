@@ -1,0 +1,529 @@
+{/*
+  Redes Neuronales — narrativa del capítulo (ES). Contenido editorial, no UI.
+  Portado 1:1 desde i18n `neuralNetworkNarrative.*`. El orden de secciones/widgets refleja
+  el antiguo NeuralNetworkNarrative.tsx. Los componentes (Section, Figure, Callout, widgets…)
+  se inyectan vía labMdxComponents() en el shell. Acento: rose.
+
+  MDX: el título va como prop `heading=` de <Section>, NO como <h2> literal. Usa <Break/>
+  en vez de <hr/>. El hero, la CTA y el footer viven en el shell TSX (son UI).
+*/}
+
+<Section id="nn-01" number="01" label="La Chispa" heading="Enseñemos a una Máquina a Aprender">
+
+<Lead>El conteo chocó contra un muro. <Highlight tooltip="Aprender = ajustar pesos para que las respuestas sean cada vez menos incorrectas.">Los N-gramas no pueden compartir conocimiento entre patrones similares</Highlight> y sus tablas explotan con cada carácter extra de contexto. Necesitamos un enfoque completamente diferente — uno que no memorice, sino que descubra.</Lead>
+
+¿Recuerdas el modelo bigrama? Contaba cuántas veces una letra sigue a otra. Cuando escribías "th", buscaba cuántas veces aparecía cada letra después de "th" en el texto de entrenamiento. Pero por dentro, las letras son solo números — 't' podría ser 19, 'h' podría ser 7. El modelo bigrama no hacía matemáticas con esos números. Solo los usaba como direcciones dentro de una tabla gigante.
+
+¿Y si, en vez de una tabla de búsqueda, de verdad calculáramos algo con esos números? ¿Y si pudiéramos tomar los números de 't' y 'h', hacer un poco de matemáticas y obtener una predicción de lo que viene después?
+
+<CountingVsLearning />
+
+La idea es esta: en lugar de una tabla gigante, le damos a la máquina unos pocos números que puede ajustar — y dejamos que <Highlight tooltip="Los pesos deciden cuánto importa cada entrada.">aprenda mirando ejemplos</Highlight>. No memoriza frases enteras: aprende reglas simples que funcionan en muchos casos.
+
+Imagina que quieres predecir cuánto tarda tu trayecto al colegio. Sabes dos cosas: la distancia (8 km) y el nivel de tráfico (3 en una escala de 1 a 10). Con solo esos dos números, ¿cómo harías una predicción del tiempo de viaje?
+
+<Callout title="Las entradas son datos, los pesos son aprendibles">
+Algo crucial: la distancia y el nivel de tráfico son mediciones — no puedes cambiarlas. Lo único que PUEDES cambiar son los pesos. Esta es la regla fundamental de las redes neuronales: las entradas son datos fijos, los pesos son las perillas que el modelo aprende a ajustar.
+</Callout>
+
+Empecemos con algo sencillo: toma 8 (distancia) y 3 (tráfico). Prueba distintas formas de juntarlos y mira cómo cambia el resultado.
+
+<Predict>Antes de probar — ¿qué operación crees que te da más control sobre el resultado?</Predict>
+
+<Figure label="Interactivo · Explorador de Operaciones" hint="Prueba cada operación. Observa cómo la suma ponderada te da más control — puedes ajustar cuánto contribuye cada entrada."><OperationExplorer /></Figure>
+
+Ahora esos dos números representan mediciones reales de tu trayecto diario. La suma ponderada te da un tiempo de viaje predicho en minutos. Ajustando los pesos, controlas cuánto contribuye la distancia y el tráfico a la predicción.
+
+<Predict>¿Qué pasa si pones un peso a cero? Intenta predecirlo antes de arrastrar.</Predict>
+
+<Figure label="Interactivo · Deslizadores de Peso" hint="Arrastra los pesos. Un peso de 2 significa que esa entrada importa el doble. Un peso de 0 la ignora por completo. Los pesos negativos invierten la contribución."><WeightSliderDemo /></Figure>
+
+Los pesos pueden ser cualquier número — mayor que 2 o menor que −1 — solo limitamos el deslizador para que no se desmadren los números. Un peso alto en distancia significa que cada kilómetro suma mucho tiempo. Un peso negativo significaría que más distancia reduce el tiempo (físicamente absurdo — pero el modelo no sabe física, solo sigue las matemáticas).
+
+<Challenge question="Haz que el tráfico domine la predicción. ¿Puedes ajustar los pesos para que el tráfico represente aproximadamente el 70% del tiempo predicho?" hint="Prueba a subir w₂ y bajar w₁. Compara las dos barras (w₁·x₁ vs w₂·x₂)." successMessage="Bien. Los pesos son controles de volumen: puedes hacer que un factor tape al otro. Eso es exactamente lo que hace una neurona cuando aprende qué importa." />
+
+Y un último truco. ¿Qué pasa si ambas mediciones son cero — vives en el colegio y no hay tráfico — pero aún necesitas 5 minutos para salir por la puerta? O al revés: incluso con un trayecto decente, siempre llegas temprano. Ese 'desplazamiento por defecto' es el sesgo: un empujón constante que mueve el tiempo predicho hacia arriba o hacia abajo.
+
+<Predict>Si ambas entradas son cero, ¿cuál debería ser la salida? ¿Y si quieres un valor por defecto distinto de cero?</Predict>
+
+<Figure label="Interactivo · Añadiendo Sesgo" hint="El sesgo desplaza toda la salida hacia arriba o abajo. Un sesgo positivo hace que la neurona sea 'ansiosa' — dispara incluso con entradas débiles. Un sesgo negativo la hace reticente."><BiasDemo /></Figure>
+
+<Callout title="Acabas de construir una neurona">
+Suma ponderada + sesgo. Eso es todo. Cada red neuronal del mundo — desde la más simple hasta GPT-4 — está construida con unidades que hacen exactamente esto. El resto es escala y arquitectura ingeniosa.
+</Callout>
+
+Ya tienes una unidad de cómputo: entradas × pesos + sesgo = salida. Pero ahora mismo es solo una fórmula. Juntemos todas las piezas y veámosla funcionar.
+
+<KeyTakeaway>
+Una <Term word="neuron">neurona</Term> toma entradas, multiplica cada una por un <Term word="weight">peso</Term>, añade un <Term word="bias">sesgo</Term> y produce un número. Estos tres ingredientes son todo lo que necesitas para empezar a aprender.
+</KeyTakeaway>
+
+</Section>
+
+<Break />
+
+<Section id="nn-02" number="02" label="Ensamblaje" heading="Ensamblándolo Todo">
+
+<Lead>Construiste las piezas — pesos, suma, sesgo. Ahora conectémoslas en una sola unidad y veámosla calcular. Esta es la neurona artificial: el átomo de toda red neuronal.</Lead>
+
+Abajo tienes todo lo que acabas de aprender en un diagrama interactivo. Arrastra los deslizadores para cambiar entradas, pesos y sesgo — y observa cómo cada uno afecta la salida final en tiempo real.
+
+<Predict>¿Puedes trazar el camino de las entradas a la salida en tu cabeza antes de verlo animado?</Predict>
+
+<Figure label="Interactivo · El Perceptrón" hint="Haz clic en cada capa para ver cómo las entradas fluyen a través de pesos, sesgo y activación. Esta es la neurona artificial completa."><NNPerceptronDiagram /></Figure>
+
+<HiddenSection category="historical" difficulty={1} title="Biología vs Máquina" description="Inspirada en la naturaleza, pero mucho más simple">
+La neurona artificial fue inspirada directamente por cómo funcionan las células cerebrales reales. McCulloch y Pitts estudiaron neuronas biológicas en 1943 y notaron un patrón: las señales llegan por las dendritas, se procesan en el cuerpo celular, y si la señal total es suficientemente fuerte, la neurona dispara una salida por el axón. Preguntaron: ¿podemos construir un modelo matemático que haga lo mismo?
+
+<BiologicalVsArtificialDiagram />
+
+El parecido es intencional pero superficial. Las neuronas reales son sistemas electroquímicos complejos con temporización, inhibición y plasticidad. Las neuronas artificiales son una simplificación matemática que captura solo una idea: señales de entrada, cálculo, señal de salida.
+</HiddenSection>
+
+La neurona multiplica cada entrada por su peso, las suma, añade el sesgo y luego pasa el resultado por una función de activación (aquí, ReLU — que simplemente recorta los negativos a cero). El desglose de contribuciones muestra exactamente de dónde viene cada parte de la salida.
+
+Con los pesos y el sesgo correctos, una sola neurona puede <Highlight tooltip="Una activación es la 'compuerta' no lineal que deja a las redes doblar líneas en curvas.">trazar una línea recta a través de los datos y clasificar todo a un lado como A y al otro como B</Highlight>. El entrenamiento es cómo la neurona encuentra esos números correctos — partiendo de suposiciones aleatorias y mejorando paso a paso.
+
+<Callout title="¿Qué son los parámetros?">
+Los pesos y sesgos juntos se llaman parámetros. Al inicio son ruido aleatorio. Al final codifican todo lo que la red ha aprendido — almacenado simplemente como una lista de números decimales.
+</Callout>
+
+En matemáticas, todo lo que acabas de explorar se puede escribir en una sola línea:
+
+<FormulaBlock formula="y = f\left(\sum_{i=1}^{n} w_i \, x_i + b\right)" caption="Multiplica cada entrada por su peso, suma todo, añade el sesgo, luego pásalo por una función de activación f. Esta es la operación atómica de toda red neuronal." />
+
+<HistorySidebar />
+
+Una neurona puede calcular una suma ponderada y disparar (o no). Eso es poderoso — pero también limitado. ¿Qué pasa cuando juntamos muchas de estas unidades?
+
+</Section>
+
+<Break />
+
+<Section id="nn-03" number="03" label="Escalando" heading="¿Y Si Añadimos Más Neuronas?">
+
+<Lead>Una neurona solo puede trazar una línea recta. ¿Qué pasa cuando combinamos varias? Vamos a descubrirlo — paso a paso.</Lead>
+
+Ahora añadamos más neuronas. En lugar de una sola neurona que produce una sola salida, pon varias lado a lado — todas mirando las mismas entradas, cada una con sus propios pesos y sesgo.
+
+<Figure label="Interactivo · Neuronas en Paralelo" hint="Añade neuronas y activa/desactiva ReLU para ver cómo múltiples neuronas procesan las mismas entradas de forma independiente."><ParallelNeuronsDemo /></Figure>
+
+Cada neurona aprende a detectar un patrón diferente en los mismos datos. Esto se llama una capa — un grupo de neuronas trabajando en paralelo. Una salida se convierte en muchas.
+
+Pero ¿qué hace realmente cada neurona? Piensa en ella como una pregunta de sí o no: ¿está este punto por encima o por debajo de mi línea? La neurona calcula su suma ponderada, y el resultado es positivo (sí) o negativo (no). Esa línea divisoria es la frontera de decisión de la neurona.
+
+Por ejemplo: '¿El tiempo de viaje es más de 30 minutos?' Una neurona, una pregunta, una línea recta dividiendo el espacio en dos. Múltiples neuronas hacen múltiples preguntas — y combinando sus respuestas, podemos describir regiones mucho más complejas.
+
+Así es como se ve en la práctica. Una sola neurona traza una línea recta por los datos y dice "todo a este lado es A, todo al otro lado es B." Pruébalo — arrastra los pesos para mover la línea:
+
+<Figure label="Interactivo · Límite de Decisión" hint="Arrastra los deslizadores de peso para mover la línea de decisión. Prueba ambos escenarios — simple y XOR."><DecisionBoundaryIntro /></Figure>
+
+Empieza con el escenario simple — una línea es suficiente. Luego cambia al modo XOR e intenta alcanzar el 100% de precisión. Verás que es imposible con una sola neurona.
+
+<Challenge question="Cambia al modo XOR. Prueba todas las combinaciones de pesos y sesgo. ¿Puedes llegar al 100% de precisión?" hint="No importa cómo inclines o desplaces la línea, algunos puntos rojos y azules quedan en el lado equivocado. XOR no se puede resolver con una sola línea recta." successMessage="¡Exacto — no puedes! Una neurona = una línea. XOR necesita al menos dos líneas para separar los cuatro puntos. Por eso necesitamos varias neuronas trabajando juntas." />
+
+<Peak>Esto dejó estancado al campo durante veinte años.</Peak>
+
+<Reflection>Una neurona, una línea. Dos neuronas, dos líneas. ¿Qué pasa con cien?</Reflection>
+
+XOR demostró que una capa no es suficiente. ¿Y si apilamos capas — una tras otra — para que la salida de una sea la entrada de la siguiente?
+
+Esta es la primera sorpresa: si simplemente apilas capas de neuronas sin nada especial entre ellas, no obtienes nada nuevo. <Highlight color="amber" tooltip="No linealidad = la razón por la que las redes profundas pueden hacer más que líneas rectas.">Dos capas colapsan en una. Diez capas colapsan en una.</Highlight> Es como apilar lupas — simplemente se combinan en una sola ampliación. Pruébalo:
+
+Añade capas abajo, luego activa la función de activación para ver la diferencia.
+
+<Figure label="Interactivo · Apilando Capas" hint="Añade capas y observa: sin función de activación, el efecto combinado siempre es una línea recta. Con ReLU, cada capa añade una curva."><LinearStackingDemo /></Figure>
+
+Sin funciones de activación, la profundidad es una ilusión. La red sigue siendo solo una gran operación lineal — sin importar cuántas capas añadas.
+
+<HiddenSection category="math" difficulty={2} title="¿Y si apilaras 100 capas sin activación?" description="Una demostración con álgebra matricial de que cualquier número de capas lineales colapsa en una.">
+Cada capa lineal es simplemente una multiplicación de matrices: salida = W · entrada. ¿Dos capas? Eso es W₂ · (W₁ · entrada) = (W₂ · W₁) · entrada. El producto de dos matrices es simplemente otra matriz. Así que dos capas = una capa. ¿Cien capas? Sigue siendo una sola matriz.
+
+<Math>{`\\underset{\\text{Capa 2}}{W_2} \\cdot \\underset{\\text{Capa 1}}{W_1} = \\underset{\\text{Equivalente único}}{W_3}`}</Math>
+
+<Math>{`\\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix} \\cdot \\begin{bmatrix} e & f \\\\ g & h \\end{bmatrix} = \\begin{bmatrix} ae+bg & af+bh \\\\ ce+dg & cf+dh \\end{bmatrix}`}</Math>
+
+No importa cuántas capas apiles, sin no linealidad entre ellas, toda la red colapsa en una sola multiplicación de matrices. La profundidad es una ilusión. Este es el problema del colapso lineal — y por eso las funciones de activación son innegociables.
+</HiddenSection>
+
+La solución es una idea pequeña: después de la suma de cada neurona, aplica una función no lineal. Esto rompe el colapso. Cada capa ahora añade una curva genuina. Explora las funciones de activación más comunes:
+
+<Figure label="Interactivo · Funciones de Activación" hint="Haz clic en cada función para comparar formas. ReLU es la opción por defecto en redes modernas — simple pero efectiva."><NNActivationExplorer /></Figure>
+
+Diferentes funciones tienen diferentes personalidades. <Highlight color="indigo" tooltip="ReLU = max(0, x). Deja pasar lo positivo y corta lo negativo.">ReLU deja pasar los positivos y elimina los negativos. Sigmoide comprime todo entre 0 y 1. Tanh comprime entre -1 y 1.</Highlight> La elección importa: ReLU hizo prácticas las redes profundas al evitar el problema de los gradientes que desaparecen.
+
+Ahora viene la recompensa. ¿Recuerdas el problema XOR que una neurona no podía resolver? Con dos neuronas y activación ReLU, la red puede trazar dos líneas de frontera — creando una banda que separa las clases. Alterna entre los modos para ver la diferencia:
+
+<Figure label="Interactivo · XOR Resuelto con ReLU" hint="Alterna entre lineal (sin activación) y ReLU para ver cómo dos neuronas con activación pueden resolver el problema XOR."><XORSolverDemo /></Figure>
+
+Dos neuronas con ReLU resolvieron lo que una neurona nunca pudo. Cada neurona oculta traza una línea; la neurona de salida combina sus respuestas. Este es el poder fundamental de las redes neuronales: piezas simples, combinadas con no linealidad, pueden resolver problemas complejos.
+
+<Callout title="La receta hasta ahora">
+Toma neuronas (suma ponderada + sesgo). Añade funciones de activación para desbloquear la no linealidad. Ponlas en paralelo para obtener una capa. Apila capas en serie para obtener profundidad. Esa es la arquitectura de toda red neuronal.
+</Callout>
+
+<Figure label="Vista Previa: Una Neurona Por Vocal" hint="Un vistazo a lo que construiremos en §07 — una red que reconoce vocales."><ToyVowelTeaser /></Figure>
+
+</Section>
+
+<Break />
+
+<Section id="nn-04" number="04" label="Corrección" heading="¿Podemos Corregir una Mala Predicción?">
+
+<Lead>Hemos construido una neurona. Pero con pesos aleatorios, sus predicciones son completamente erróneas. ¿Podemos descubrir cómo arreglarlos — sin probar cada combinación posible?</Lead>
+
+Hagámoslo concreto. Imagina que queremos predecir cuánto tardas en llegar al trabajo. Las entradas son hechos fijos: distancia = 5 km y tráfico = 7. Queremos que la respuesta correcta sea 30 minutos. Pero la neurona empieza con pesos aleatorios (w₁ = 4, w₂ = 3) y un sesgo aleatorio — el tiempo fijo de "ponerte en marcha", como subirte al coche y arrancar. Así que la primera predicción sale muy mal.
+
+Las entradas son datos fijos. Lo único que podemos cambiar son los pesos y el sesgo. Entonces, ¿cómo ajustarías TÚ w₁, w₂ y b para que la predicción se acerque a 30 minutos? Pruébalo:
+
+<Figure label="Predicción vs Realidad" hint="El modelo predice minutos como w₁ × distancia + w₂ × tráfico + sesgo. Con parámetros aleatorios, la predicción es incorrecta."><PredictionErrorDemo /></Figure>
+
+<Peak>TIENE que haber una forma mejor.</Peak>
+
+El primer paso más natural: ¿qué pasa si simplemente cambiamos un peso y vemos qué sucede? Usa los deslizadores abajo para ajustar w₁ y w₂. Intenta que la salida sea igual a 3.
+
+<Figure label="¿Qué Pasa Si Ajustamos un Peso?" hint="Arrastra los deslizadores de peso y observa cómo cambia la salida. Nota cuál peso tiene más efecto."><NudgeWeightDemo /></Figure>
+
+¿Lo notaste? Cuando cambias w₁ en 1, la salida cambia en 1 (porque x₁ = 1). Pero cuando cambias w₂ en 1, la salida cambia en 2 (porque x₂ = 2). El efecto de cada peso depende de su entrada. w₂ es el doble de sensible que w₁.
+
+Acabas de descubrir algo poderoso: cada peso tiene un efecto distinto en la salida. Veamos exactamente por qué. Toma el ejemplo más simple posible: si z = x + y, ¿qué pasa con z cuando x sube en 1?
+
+<Figure label="Midiendo la Sensibilidad" hint="Alterna entre suma y multiplicación. Cambia x e y para ver cómo cambia el resultado."><DerivativeIntuitionDemo /></Figure>
+
+Para la suma (x + y = z), cuando x sube en 1, z siempre sube en 1 — sin importar y. Decimos que la derivada es 1. Significa: "por cada unidad que cambia x, z cambia exactamente 1 unidad". Para la multiplicación (x × y = z), cuando x sube en 1, z sube en y. La derivada es y — ¡el efecto de x depende de qué tan grande sea y! Esta idea — medir cuánto una cosa afecta a otra — es la base de cómo aprenden las redes neuronales.
+
+En una neurona real, las operaciones están encadenadas: primero multiplicas por un peso y luego sumas un sesgo. Si cambiamos x al principio, el cambio se propaga por cada paso. Mira cómo sucede:
+
+<Figure label="Encadenando Operaciones" hint="Mueve el deslizador de x y observa cómo el cambio se propaga por cada operación."><ChainRuleBuilder /></Figure>
+
+Para encontrar el efecto total, multiplicas los efectos individuales a lo largo de la cadena. En nuestro ejemplo: multiplicar por 3 tiene un efecto de 3, sumar 1 tiene un efecto de 1. Total: 3 × 1 = 3. A esto se le llama la regla de la cadena — y funciona sin importar cuántas operaciones apiles. ¿Una red con millones de operaciones? La misma idea: multiplicar efectos locales, paso a paso, desde el final hacia el principio.
+
+<Reflection>Acabas de medir algo invisible — cuánto un número afecta a otro a través de una cadena de operaciones.</Reflection>
+
+</Section>
+
+<Break />
+
+<Section id="nn-05" number="05" label="Entrenamiento" heading="Haciendo que Aprenda">
+
+<Lead>Conoces la dirección. Conoces el tamaño. Ahora juntemos todo — calculemos la pérdida, sigamos el gradiente y veamos cómo los pesos mejoran paso a paso.</Lead>
+
+Volvamos a nuestro ejemplo. La salida es 10, queríamos 3, así que el error es 10 − 3 = 7. Pero hay un problema sutil con usar errores crudos...
+
+<HiddenSection category="math" difficulty={2} title="¿Por Qué Elevar al Cuadrado?" description="Mira por qué los errores crudos son problemáticos y cómo elevar al cuadrado lo soluciona.">
+<LossFormulaMotivation />
+</HiddenSection>
+
+A este error al cuadrado lo llamamos pérdida. Es un solo número que nos dice qué tan equivocado está el modelo. Cuanto mayor la pérdida, peor la predicción. Nuestro objetivo es hacer la pérdida lo más pequeña posible.
+
+Ahora que sabemos medir el error, podemos hacer la pregunta clave: si cambiamos un peso ligeramente, ¿la pérdida sube o baja? Tracemos a través de una neurona real para averiguarlo.
+
+<Figure label="Interactivo · Cómo un Peso Cambia la Pérdida" hint="Arrastra el deslizador de peso y observa la cadena completa actualizarse: entrada × peso + sesgo → σ → salida → pérdida."><WeightImpactVisualizer /></Figure>
+
+Lo acabas de ver con tus propios ojos: un pequeño cambio en el peso cambia la pérdida. Si la pérdida subió, debemos mover el peso en la otra dirección. Si bajó, seguimos. Esta idea es exactamente lo que captura la derivada. Veámoslo como gráfico:
+
+La misma idea que acabamos de explorar — cambiar un peso y ver si la pérdida sube o baja — se puede visualizar como una curva. Cada valor posible de peso tiene una pérdida correspondiente. La derivada en cualquier punto es la pendiente de esta curva.
+
+<Figure label="Interactivo · La Derivada como Gráfico" hint="Arrastra el peso y ve la curva de pérdida. La pendiente de la línea tangente ES la derivada."><LossDerivativeVisualizer /></Figure>
+
+Conocemos la pérdida — ahora ¿en qué dirección debemos mover cada peso para reducirla? La pendiente de la curva de pérdida nos lo dice:
+
+<Figure label="Paisaje de Pérdida" hint="Arrastra el punto a lo largo de la curva para ver cómo cambia la pendiente. La pendiente le dice al modelo hacia dónde moverse."><LossWeightParabolaVisualizer /></Figure>
+
+La lógica es hermosa en su sencillez: si la derivada es positiva (aumentar el peso hace la salida más grande) y la salida ya es demasiado alta — baja el peso. Si la salida es demasiado baja y la derivada es positiva — sube el peso. En resumen: muévete siempre en contra de la dirección que empeora las cosas. Esta idea está detrás de todo el entrenamiento de redes neuronales.
+
+Ahora tenemos todo lo que necesitamos. Juntemos todo y hagamos un paso completo de entrenamiento: calcular la salida, medir la pérdida, calcular los gradientes y actualizar los pesos.
+
+<Figure label="Un Paso Completo de Entrenamiento" hint="Avanza por las cinco fases de una sola iteración de entrenamiento."><NeuronGradientCalculator /></Figure>
+
+¿Qué significan esos números del gradiente? Si el gradiente para w₁ es +14, significa: aumentar w₁ en 1 aumentaría la pérdida en 14. Eso es malo — así que disminuimos w₁ en su lugar. El signo te dice la dirección; el tamaño te dice qué tan sensible es la pérdida a ese peso.
+
+Paremos un momento y pongámosle nombres a todo lo que acabas de aprender.
+
+<Callout title="Nombrando lo que acabas de aprender">
+Calcular la salida es el pase hacia adelante. Elevar el error al cuadrado nos da la pérdida. Calcular cómo cada peso afecta la pérdida nos da los gradientes (el pase hacia atrás). Actualizar pesos restando el gradiente es descenso de gradiente. El ciclo completo — adelante, pérdida, atrás, actualizar — se llama retropropagación. ¡Acabas de hacerlo a mano!
+</Callout>
+
+<Peak>Acabas de hacer lo que tardó cuarenta años en descubrirse.</Peak>
+
+<HiddenSection category="supplementary" difficulty={2} title="Un Ejemplo Concreto" description="Veamos a una sola neurona aprender de un ejemplo, paso a paso.">
+Veamos a una sola neurona aprender de un ejemplo, paso a paso.
+
+<WorkedExample />
+
+Este ciclo completo — adelante, pérdida, atrás, actualización — se repite muchas veces durante el entrenamiento.
+</HiddenSection>
+
+Pero espera — en el paso de entrenamiento anterior, solo restamos una pequeña fracción del gradiente. ¿Qué pasa si restamos el gradiente completo? Vamos a averiguarlo:
+
+<Figure label="Interactivo · ¿Qué Pasa Sin Tasa de Aprendizaje?" hint="Alterna entre gradiente completo (lr=1) y una tasa pequeña (lr=0.01) para ver la diferencia dramática."><DivergenceDemo /></Figure>
+
+Un paso nos acercó, pero aún no llegamos. ¿Qué pasa si repetimos este proceso una y otra vez? Cada paso empuja los pesos un poco más cerca de los valores correctos.
+
+<Figure label="Aprendizaje a lo Largo del Tiempo" hint="Haz clic en 'Entrenar un paso' o usa auto-entrenamiento para ver la pérdida disminuir con el tiempo."><RepeatedTrainingDemo /></Figure>
+
+<Challenge question="¿Cuántos pasos necesita la pérdida para llegar casi a cero? Observa la curva — ¿cuándo se ralentiza la mejora?" hint="La pérdida baja rápido al principio porque los gradientes son pronunciados. Los pasos posteriores hacen ajustes mínimos. Esto es típico del descenso de gradiente." successMessage="¡La pérdida converge! Los primeros pasos hicieron grandes mejoras; los últimos refinaron. Este patrón de 'rápido luego lento' es universal en el entrenamiento de redes neuronales." />
+
+<Peak>Mira cómo baja la pérdida. La máquina está aprendiendo.</Peak>
+
+La tasa de aprendizaje (η) controla qué tan grande es cada paso. Después de calcular el gradiente, no saltamos toda la cantidad — tomamos una fracción. Esa fracción es la tasa de aprendizaje.
+
+<Figure label="Interactivo · Explorador de Tasa de Aprendizaje" hint="Prueba los tres preajustes y luego usa el deslizador personalizado para encontrar el punto dulce. Observa con atención la curva de pérdida."><LearningRateDemo /></Figure>
+
+<Challenge question="¿Puedes encontrar la tasa de aprendizaje que converge más rápido sin divergir? ¿Qué η llega a baja pérdida en menos pasos?" hint="Prueba primero los tres preajustes. Demasiado pequeña = avance lento. Demasiado grande = la pérdida explota. El punto óptimo está en algún lugar intermedio." successMessage="¡Lo encontraste! El η óptimo equilibra el tamaño del paso con la estabilidad. Esta es una de las decisiones de hiperparámetros más importantes en el aprendizaje profundo." />
+
+Pero, ¿cómo se ve realmente el sobreimpulso? Imagina la pérdida como un cuenco — una parábola. El descenso de gradiente es una bola rodando por los lados. Una tasa de aprendizaje pequeña mantiene la bola bajo control. Una grande la hace rebotar más allá del fondo y subir por el otro lado. Pruébalo:
+
+<Figure label="Interactivo · Sobreimpulso en el Cuenco de Pérdida" hint="Arrastra el slider de tasa de aprendizaje y pulsa Ejecutar. Observa cómo se comporta una bola en una parábola de pérdida convexa — convergencia suave, oscilación con rebote o divergencia descontrolada."><LROvershootVisualizer /></Figure>
+
+<HiddenSection category="math" difficulty={1} title="¿Y si la tasa de aprendizaje es exactamente 0?" description="Los pesos nunca cambian. El gradiente se calcula, pero se multiplica por cero antes de aplicarse.">
+Los pesos nunca cambian. El gradiente se calcula, pero se multiplica por cero antes de aplicarse. La red queda congelada en su inicialización aleatoria para siempre — literalmente no puede aprender. Por eso η > 0 es esencial.
+</HiddenSection>
+
+Veamos la imagen completa del aprendizaje. Abajo hay un mapa de todas las combinaciones posibles de pesos. Azul oscuro significa baja pérdida (bien). Rojo significa alta pérdida (mal). Observa cómo los pesos viajan desde su punto inicial aleatorio hacia una buena solución.
+
+<Figure label="Interactivo · Paisaje de Pesos" hint="El punto traza la ruta de los pesos durante el entrenamiento. La línea verde punteada muestra todas las combinaciones de pesos que dan la salida correcta. Observa cómo el punto 'baja la pendiente' hacia baja pérdida."><WeightTrajectoryDemo /></Figure>
+
+<HiddenSection category="advanced" difficulty={2} title="Avanzado: derivadas de activación y gradientes evanescentes" description="Compara cómo cada función de activación transforma su entrada y cómo se comporta su derivada. Zonas rojas = gradiente evanescente.">
+<Figure label="Funciones de Activación y Sus Derivadas" hint="Compara cómo cada función de activación transforma su entrada (izquierda) y cómo se comporta su derivada (derecha). Zonas rojas = gradiente evanescente."><ActivationDerivativeVisualizer /></Figure>
+</HiddenSection>
+
+Ahora que entiendes los gradientes, hay una trampa con ReLU: si la pre-activación de una neurona es siempre negativa, ReLU la recorta a cero — y gradiente cero significa aprendizaje cero. La neurona está permanentemente muerta. Este es el problema de la 'ReLU moribunda'.
+
+<Figure label="El Problema de la Neurona Muerta" hint="Un sesgo muy negativo hace que ReLU siempre dé cero. Arrastra el sesgo hacia arriba para revivir la neurona."><DeadNeuronDemo /></Figure>
+
+<HiddenSection category="advanced" difficulty={2} title="Avanzado: ¿Qué Pasa si la Derivada es Cero?" description="El problema del gradiente evanescente — por qué algunas neuronas dejan de aprender por completo.">
+Si la derivada es cero, el peso recibe actualización cero. No hay aprendizaje. Esto no es solo teórico — es uno de los problemas más importantes en aprendizaje profundo.
+
+<Figure label="Interactivo · Zonas de Saturación del Sigmoid" hint="Arrastra el valor de entrada. En las zonas rojas, la derivada es casi cero — la neurona está 'saturada' y no puede aprender."><FlatGradientVisualizer /></Figure>
+
+Viste que la derivada del sigmoid llega a cero en las zonas de saturación. ¿Pero qué significa eso realmente para el aprendizaje? Tracemos la cadena completa de retropropagación. Si CUALQUIER término es cero, todo el gradiente es cero.
+
+<Figure label="Interactivo · Retropropagación con Derivada Cero" hint="Mueve z a las zonas de saturación (lejos de 0) y observa σ'(z) colapsar a cero — matando toda la cadena de gradientes."><BackpropZeroDemo /></Figure>
+
+<Math>{`\\sigma'(z) = \\sigma(z)(1 - \\sigma(z))`}</Math>
+
+Cuando z es muy grande o muy negativo, σ(z) está cerca de 0 o 1. Entonces σ(z)(1 − σ(z)) ≈ 0. La derivada se desvanece. En una red profunda, estas derivadas diminutas se multiplican capa por capa — 0.01 × 0.01 × 0.01 = 0.000001.
+
+Por eso ReLU reemplazó a sigmoid en redes profundas. La derivada de ReLU es exactamente 1 para entradas positivas — el gradiente fluye sin cambios.
+</HiddenSection>
+
+<Reflection>Cada paso es pequeño. Pero miles de pasos pequeños en la dirección correcta pueden resolver problemas que ningún humano podría programar a mano.</Reflection>
+
+<KeyTakeaway>
+El <Term word="gradient descent">descenso de gradiente</Term> es cómo aprenden las redes neuronales: mide la <Term word="loss">pérdida</Term>, calcula el <Term word="gradient">gradiente</Term> y ajusta cada <Term word="weight">peso</Term> en la dirección que reduce el error. Repite miles de veces.
+</KeyTakeaway>
+
+</Section>
+
+<Break />
+
+<Section id="nn-06" number="06" label="Escala" heading="Entrenamiento a Escala">
+
+<Lead>Una neurona, un ejemplo, un paso. Esa es la versión de juguete. El entrenamiento real procesa miles de ejemplos en lotes, repite durante muchas épocas y debe evitar una trampa peligrosa: el sobreajuste.</Lead>
+
+Antes de continuar, aclaremos algunos términos que verás en todas partes en el aprendizaje automático.
+
+<TermCards />
+
+<Figure label="Pasos, Épocas y Lotes" hint="Observa cómo los datos fluyen por la red en lotes. Un pase completo por todos los datos = una época."><StepEpochBatchCounter /></Figure>
+
+Has visto cómo un ejemplo fluye a través de la red. Pero los conjuntos de datos reales tienen miles o millones de ejemplos. Entrenar con ellos uno por uno tomaría una eternidad. La solución: lotes.
+
+Calcular gradientes un ejemplo a la vez es ineficiente. Las GPUs modernas procesan cientos en paralelo. En lugar de actualizar tras cada ejemplo, promediamos gradientes de un pequeño lote — típicamente 32 a 256 — y actualizamos una vez por lote. Esto es descenso de gradiente por mini-lotes.
+
+El tamaño del lote controla un compromiso fundamental. Tamaño 1 (SGD) produce gradientes ruidosos. Conjunto de datos completo produce gradientes suaves pero es lento y puede sobreajustar. Los mini-lotes equilibran gradientes estables con cómputo eficiente.
+
+<Callout title="Por qué el ruido ayuda">
+El ruido en los gradientes no es solo un mal necesario — es una característica. Los lotes pequeños introducen aleatoriedad que ayuda al optimizador a explorar el paisaje de pérdida más a fondo, escapando de mínimos locales poco profundos y encontrando soluciones que generalizan mejor a datos nuevos.
+</Callout>
+
+El aprendizaje profundo moderno estandariza en mini-lotes de 32–256 ejemplos. Los lotes más grandes entrenan más rápido por época pero pueden generalizar peor. Los lotes más pequeños son más ruidosos pero a menudo encuentran mejores soluciones.
+
+<Figure label="Ruido del Gradiente vs Tamaño de Lote" hint="Lotes más grandes dan gradientes más suaves pero cada paso procesa más datos. Lotes más pequeños son más ruidosos pero actualizan pesos más frecuentemente por época. Compara las curvas para ver el compromiso."><GradientNoiseVisualizer /></Figure>
+
+¿Por qué no entrenar con un solo ejemplo a la vez? Imagina que intentas aprender la estatura promedio de 12 personas. Si solo miras a una persona por paso, una persona muy alta distorsionará tu estimación. Veamos los 3 tamaños de lote lado a lado:
+
+<Figure label="Interactivo · Por Qué Importa el Tamaño del Lote" hint="Observa los 3 tamaños de lote entrenar simultáneamente. Rojo (lote=1) es ruidoso; amarillo (lote=4) es más suave; verde (lote=TODOS) es un camino limpio."><BatchSizeComparisonVisualizer /></Figure>
+
+Esta inestabilidad con lotes pequeños es un anticipo de un problema más profundo: si tus datos de entrenamiento no son representativos, tu modelo aprenderá los patrones equivocados. Esto se llama sobreajuste.
+
+La teoría es una cosa. Verlo suceder es otra. La demostración a continuación ejecuta pasos de entrenamiento reales en una sola neurona.
+
+Pulsa el botón de entrenamiento y observa. La pérdida debería bajar. La predicción debería acercarse al objetivo. Cada clic ejecuta un ciclo de paso hacia adelante, retropropagación y actualización de pesos — el mismo proceso que acabas de construir a mano, pero en vivo.
+
+<LiveTrainingBlock />
+
+<HiddenSection category="math" difficulty={2} title="Avanzado: Una Capa ES una Multiplicación de Matrices" description="Mira cómo una capa de red neuronal es realmente solo multiplicación de matrices — la operación que las GPUs están diseñadas para hacer en paralelo.">
+<MatrixMultiplyVisual />
+</HiddenSection>
+
+Todo lo que hemos hecho con una sola neurona se extiende a redes con miles. Cada neurona recibe su propio gradiente, todos actualizados simultáneamente. Las matemáticas son las mismas — solo aplicadas en paralelo a través de cada peso en la red.
+
+En la siguiente sección, verás una red real con 27 neuronas de salida prediciendo caracteres. Pero primero, asegurémonos de que nuestro proceso de entrenamiento es lo suficientemente robusto para manejar esa escala.
+
+</Section>
+
+<Break />
+
+<Section id="nn-07" number="07" label="Sobreajuste" heading="El Riesgo del Sobreajuste">
+
+<Lead>Una red que entrena perfectamente en cada ejemplo puede fallar completamente con datos nuevos. Memorizó en lugar de aprender. Esto es el sobreajuste — uno de los conceptos más importantes en todo el aprendizaje automático.</Lead>
+
+<Figure label="El Patio de Juegos del Sobreajuste" hint="Tres modelos, mismos datos. Solo uno generaliza bien a nuevos puntos no vistos. Haz clic en 'Probar' para descubrirlo."><OverfittingPlayground /></Figure>
+
+Cuando una red entrena, la pérdida disminuye y las predicciones mejoran. El instinto natural es seguir — entrenar más, reducir la pérdida lo máximo posible. Pero esto lleva a una trampa: la red puede lograr un error casi nulo en los ejemplos de entrenamiento sin aprender nada general. Memoriza los patrones específicos de los datos que vio, incluyendo el ruido y las peculiaridades, y se vuelve inútil con ejemplos nuevos.
+
+Piensa en un estudiante preparándose para un examen. Un estudiante memoriza cada respuesta de cada problema de práctica sin entender los conceptos subyacentes. Otro estudiante aprende los principios y puede aplicarlos a nuevos problemas. En el examen de práctica, ambos sacan nota perfecta. En el examen real con preguntas diferentes, solo el segundo estudiante tiene éxito. El primer estudiante sobreajustó al conjunto de práctica.
+
+La solución es una división entrenamiento/validación. Reserva una porción de los datos — digamos el 20% — que el modelo nunca ve durante el entrenamiento. Mide el rendimiento tanto en el conjunto de entrenamiento (datos de los que aprende el modelo) como en el conjunto de validación (datos reservados). La pérdida de entrenamiento siempre disminuye. La pérdida de validación sigue una curva en U: mejora mientras el modelo aprende patrones reales, luego empeora cuando empieza a memorizar ruido específico del entrenamiento.
+
+<Figure label="Interactivo · División Entrenamiento / Validación" hint="Haz clic en 'Dividir' para ver cómo se dividen los datos en conjuntos de entrenamiento y validación. El modelo solo entrena con los puntos rellenos."><TrainValSplitVisualizer /></Figure>
+
+<Callout title="Por qué no podemos simplemente minimizar la pérdida de entrenamiento">
+Llevar la pérdida de entrenamiento a cero es fácil — solo memoriza cada ejemplo de entrenamiento. Pero el objetivo no es aprobar un examen que ya has visto. Es predecir patrones que nunca has encontrado. La pérdida de validación es la única medida honesta de si un modelo ha aprendido algo real.
+</Callout>
+
+<Figure label="Comparación · Buen Ajuste vs Sobreajuste" hint="Los mismos datos de entrenamiento, dos modelos diferentes. El modelo sobreajustado logra error cero de entrenamiento ajustando una curva compleja a cada punto. Pero con datos de prueba nuevos (círculos huecos), falla. El modelo de buen ajuste acepta algo de error de entrenamiento pero generaliza correctamente."><OverfittingComparisonDiagram /></Figure>
+
+<Figure label="Interactivo · Pérdida de Entrenamiento vs Validación en el Tiempo" hint="Arrastra el deslizador de épocas para ver cómo evolucionan las pérdidas de entrenamiento y validación. La pérdida de entrenamiento siempre disminuye. La pérdida de validación forma una curva en U — mejorando, luego empeorando cuando comienza el sobreajuste. El punto óptimo de parada es donde la pérdida de validación es más baja."><TrainValLossCurveVisualizer /></Figure>
+
+La complejidad del modelo amplifica este compromiso. Un modelo pequeño tiene dificultades para ajustarse incluso a los datos de entrenamiento (subajuste). Un modelo del tamaño adecuado se ajusta a los datos de entrenamiento y generaliza a datos nuevos. Un modelo enorme con muchos más parámetros de los necesarios memoriza perfectamente el conjunto de entrenamiento pero falla con los datos de validación (sobreajuste). Más capacidad no siempre es mejor.
+
+¿Cómo combatimos el sobreajuste? Más datos de entrenamiento diluyen el efecto de memorización. Las técnicas de regularización penalizan la complejidad del modelo. La parada temprana detiene el entrenamiento cuando la pérdida de validación deja de mejorar. El Dropout, el aumento de datos y BatchNorm ayudan. La clave: la pérdida de validación es la única métrica honesta. Un modelo puede engañarte con un rendimiento de entrenamiento perfecto siendo completamente inútil en la práctica.
+
+<Callout title="La prueba de generalización">
+Un modelo que funciona bien con los datos de entrenamiento pero mal con los de validación ha fallado la prueba de generalización. Aprendió el ruido, no la señal. En ML, el conjunto de validación es el juez definitivo — son los únicos datos que el modelo no ha visto y con los que no puede hacer trampa.
+</Callout>
+
+<Reflection>La brecha entre la pérdida de entrenamiento y la pérdida de validación es la brecha entre memorizar y comprender.</Reflection>
+
+El sobreajuste es la razón por la que dividimos los datos, por la que vigilamos de cerca las métricas de validación, y por la que los modelos más grandes no siempre son mejores. Todo profesional del ML aprende esta lección — generalmente viendo cómo un modelo entrena hasta un rendimiento 'perfecto' y luego falla espectacularmente con datos reales. El explorador MLP que verás a continuación detecta el sobreajuste automáticamente, pero ahora sabes qué significa y por qué importa.
+
+<KeyTakeaway>
+El <Term word="overfitting">sobreajuste</Term> ocurre cuando un modelo memoriza los datos de entrenamiento en lugar de aprender patrones. Divide tus datos en conjuntos de entrenamiento y validación, y vigila la <Term word="validation loss">pérdida de validación</Term> para saber cuándo parar.
+</KeyTakeaway>
+
+<HiddenSection category="supplementary" difficulty={1} title="¿Qué es el aprendizaje supervisado?" description="Aprendizaje supervisado = entrenamiento con respuestas correctas conocidas. Cada ejemplo es un par (entrada, respuesta correcta).">
+<SupervisedFlow />
+</HiddenSection>
+
+</Section>
+
+<Break />
+
+<Section id="nn-08" number="08" label="Lenguaje" heading="De Números a Letras">
+
+<Lead>Hemos estado trabajando con números abstractos. Pero ¿recuerdas el modelo bigrama? Predecía el siguiente carácter. ¿Pueden nuestras neuronas hacer eso?</Lead>
+
+En el capítulo de bigramas, contamos frecuencias de pares de caracteres para predecir el siguiente. Ahora haremos lo mismo — pero en vez de contar, la red aprenderá los patrones ajustando pesos.
+
+Antes de abordar el alfabeto completo de 27 caracteres, empecemos en pequeño. Cinco vocales. Una neurona por vocal. Una red tan pequeña que puedes ver cada peso individual.
+
+Queremos enseñar a una red diminuta un patrón simple: después de 'a' viene 'e', después de 'e' viene 'i', después de 'i' viene 'o', después de 'o' viene 'u', y después de 'u' viene 'a' otra vez. Cinco vocales ciclando en orden — suficientemente simple para nosotros, pero la red tiene que descubrirlo desde cero.
+
+<Figure label="Predictor de Vocales" hint="Una pequeña red de 5 neuronas que aprende a predecir la siguiente vocal. Observa cómo cambian los pesos mientras entrena."><ToyAlphabetPredictor /></Figure>
+
+Esa pequeña red acaba de aprender a predecir la siguiente vocal a partir de nada más que números aleatorios y descenso de gradiente. El mismo proceso escala a cualquier número de caracteres.
+
+Pero espera — las neuronas solo entienden números. ¿Cómo alimentamos letras a una red? Necesitamos una forma de convertir caracteres en números.
+
+<Figure label="Interactivo · De Letras a Números"><LetterToNumberDemo /></Figure>
+
+<Callout title="Una nota sobre codificaciones">
+Las redes neuronales reales no usan la posición alfabética como entrada — eso implica que 'z' es de alguna manera 26× más que 'a'. En el próximo capítulo descubriremos una mejor forma de representar caracteres — una que no desperdicie espacio y capture lo que las letras tienen en común.
+</Callout>
+
+Primero, veamos de dónde vienen los datos de entrenamiento. Cada posición en el texto se convierte en un ejemplo: <Highlight tooltip="Ventana de contexto = el fragmento de caracteres previos que el modelo puede ver.">la ventana de contexto es la entrada</Highlight>, el siguiente carácter es el objetivo.
+
+<Figure label="Datos de Entrenamiento del Texto" hint="Observa cómo la ventana de contexto se desliza por el texto. Cada posición crea un ejemplo de entrenamiento: la ventana es la entrada, el siguiente carácter es el objetivo."><TrainingWithTextDemo /></Figure>
+
+Si tenemos 27 caracteres posibles (a–z más espacio), necesitamos 27 neuronas de salida — cada una produce una puntuación para su carácter. Haz clic en diferentes caracteres de entrada para ver cómo la red distribuye sus predicciones.
+
+<Figure label="Interactivo · Diagrama de Red" hint="Haz clic en diferentes entradas para ver cómo la red distribuye sus puntuaciones brutas entre 27 salidas."><OutputLayerNetworkVisualizer /></Figure>
+
+Estas puntuaciones brutas — llamadas logits — no suman 1. No son probabilidades todavía. Necesitamos una función que convierta cualquier lista de números en una distribución de probabilidad válida.
+
+<Figure label="Transformación Softmax" hint="Alterna entre logits brutos y probabilidades softmax. Prueba el deslizador de temperatura para ver cómo agudiza o aplana la distribución."><SoftmaxTransformDemo /></Figure>
+
+Softmax nos da probabilidades. Pero entrenamos esta red — ¿cómo medimos cuán EQUIVOCADA estaba? Necesitamos una función de pérdida diseñada para salidas de probabilidad.
+
+<Figure label="Interactivo · Error Cuadrático vs Entropía Cruzada" hint="Arrastra el deslizador para cambiar P(respuesta correcta). Observa cómo la entropía cruzada castiga las predicciones equivocadas con confianza mucho más severamente que el error cuadrático."><SquaredVsCrossEntropy /></Figure>
+
+La entropía cruzada tiene una elegante simplicidad: solo mira la probabilidad asignada a la respuesta correcta. ¿Por qué el logaritmo? Porque log convierte 'reducir la probabilidad a la mitad' en 'sumar una penalización fija' — y cuanto menor sea la probabilidad, más castiga el log. Dale a la respuesta correcta un 1% de probabilidad y la pérdida es 4.6. Dale un 50% y la pérdida es solo 0.7. Esa curva empinada es exactamente la presión que el modelo necesita para ganar confianza rápido.
+
+<Figure label="Interactivo · Aprendiendo con Entropía Cruzada" hint="Observa un lote de 5 ejemplos entrenarse paso a paso. Ve cómo P(correcta) crece y la pérdida baja. Nota: cada operación es derivable — por eso funciona la retropropagación."><CrossEntropyVisualizer /></Figure>
+
+Ahora tenemos el panorama completo: softmax convierte puntuaciones brutas en probabilidades, y la entropía cruzada mide el error preguntando una cosa — ¿cuánta probabilidad le diste a la respuesta correcta?
+
+Ahora tenemos un sistema completo: introduce una ventana de contexto de caracteres, calcula 27 puntuaciones, aplica softmax y obtén una distribución de probabilidad sobre el siguiente carácter.
+
+Aquí está el resultado asombroso. Entrena esta red neuronal de una sola capa con el mismo texto que el modelo de bigramas usó para contar...
+
+<Figure label="Red Neuronal vs Tabla de Bigramas" hint="Observa cómo las probabilidades aprendidas por la red neuronal convergen hacia los mismos valores que la tabla de frecuencias de bigramas."><NNBigramComparison /></Figure>
+
+¡Converge exactamente a las mismas probabilidades que la tabla de frecuencias de bigramas! La red neuronal aprende lo que el conteo habría dado.
+
+<Callout title="¿Por qué el mismo resultado?">
+Con un solo carácter de entrada y sin capas ocultas, la solución matemáticamente óptima ES la tabla de bigramas. La arquitectura limita lo que se puede aprender. Para superar al bigrama, necesitamos cambios estructurales: ventanas de contexto más grandes, capas ocultas y una forma más inteligente de representar caracteres.
+</Callout>
+
+<HiddenSection category="math" difficulty={2} title="Mates: Por qué softmax(Wx) Recupera la Tabla de Bigramas" description="Un resultado hermoso: la matriz de pesos óptima W de 27×27 codifica exactamente las log-probabilidades de bigramas.">
+Aquí está la conexión matemática notable. Nuestra red calcula softmax(W·x) donde W es una matriz 27×27 y x es un vector one-hot que selecciona una fila. La probabilidad del carácter j siguiendo al carácter i es:
+
+<Math>{`P(\\text{next} = j \\mid \\text{prev} = i) = \\frac{e^{W_{ij}}}{\\sum_k e^{W_{ik}}}`}</Math>
+
+Cuando x es un vector one-hot para el carácter i, el producto matricial W·x simplemente selecciona la fila i de W. Así que Wᵢⱼ es el logit (puntuación bruta) para el carácter j dada la entrada i. Tras el entrenamiento, el Wᵢⱼ óptimo converge a log P(j|i) — el logaritmo de la probabilidad bigrama. Softmax luego exponencia y normaliza, recuperando la distribución bigrama exacta.
+
+<Math>{`\\mathbf{W} \\in \\mathbb{R}^{27 \\times 27}`}</Math>
+
+Por eso la red neuronal y la tabla de conteo dan la misma respuesta: con 27 entradas y 27 salidas, la matriz de pesos tiene exactamente 27×27 = 729 parámetros — el mismo número de entradas que la tabla de bigramas.
+</HiddenSection>
+
+¿Crees que entiendes los patrones? Intenta vencer a la red. Ha aprendido estadísticas de bigramas de miles de ejemplos — ¿puede tu intuición igualar sus tablas de probabilidad?
+
+<Figure label="Vence a la Máquina" hint="¿Puedes predecir el siguiente carácter mejor que una red bigrama entrenada? 10 rondas, tú vs la máquina."><BeatTheMachineChallenge /></Figure>
+
+Esto es hermoso y limitante a la vez. Para superar al bigrama, necesitamos ventanas de contexto más grandes, capas ocultas y una forma más inteligente de representar caracteres. Eso es exactamente lo que el siguiente capítulo ofrece.
+
+<Peak>Números aleatorios aprendieron lo que el conteo nos dio.</Peak>
+
+<KeyTakeaway>
+Una red neuronal con una sola <Term word="layer">capa</Term> de pesos puede aprender las mismas probabilidades de <Term word="bigram">bigrama</Term> que el conteo — pero con <Term word="softmax">softmax</Term> y <Term word="cross-entropy">pérdida de entropía cruzada</Term>, está lista para escalar a arquitecturas más profundas.
+</KeyTakeaway>
+
+</Section>
+
+<Break />
+
+<Section id="nn-09" number="09" label="El Salto" heading="¿Hasta Dónde Podemos Llegar?">
+
+<Lead>Mira lo que construiste. De la nada — números en bruto, una neurona en blanco — ensamblaste una máquina que aprende lenguaje. Celebremos eso. Y después preguntemos: ¿hasta dónde puede llegar?</Lead>
+
+Una neurona artificial que multiplica, suma y comprime. Una función de activación que dobla líneas rectas en curvas. Una función de pérdida que mide el error. Gradientes que apuntan hacia la mejora. Retropropagación que distribuye la culpa. Y una capa de salida de 27 neuronas que aprendió probabilidades de bigramas a partir de texto crudo.
+
+<Peak>Le enseñaste a los números a leer.</Peak>
+
+Tu red llegó a la misma respuesta que el conteo — pero APRENDIÓ el camino hasta allí. Sin tabla. Sin memorización. Puro descenso de gradiente. El bigrama contó pares de caracteres de un corpus. Tu red neuronal descubrió esas mismas probabilidades ajustando pesos a través de miles de pasos de entrenamiento. Mismo destino, camino fundamentalmente diferente.
+
+¿Hasta dónde podemos llevar esto? ¿Qué pasaría si le diéramos más de una letra de contexto? ¿Y si apiláramos capas, añadiéramos millones de neuronas y lo dejáramos entrenar durante horas? ¿Podría escribir frases? ¿Párrafos? ¿Podría convertirse en algo como ChatGPT? La respuesta es: vamos a intentarlo. Y lo que construyamos será poderoso, extraño y, en última instancia — roto de maneras que aún no podemos imaginar.
+
+Ahora mismo tu red ve exactamente una letra antes de hacer su predicción. Cambia el tamaño del contexto abajo y siente la diferencia:
+
+<Figure label="Interactivo · ¿Y Si Pudiera Ver Más?" hint="Cambia el tamaño de la ventana de contexto para ver cuánta información recibe la red. Con 1 carácter, adivina a ciegas. Con más, emergen patrones."><ContextWindowTeaser /></Figure>
+
+Una sola neurona traza una línea. Una capa traza muchas. Pero el lenguaje es más profundo que líneas — tiene estructura, jerarquía, memoria. Para capturar eso, necesitamos tres avances: (1) alimentar la red con múltiples caracteres a la vez, (2) apilar capas lo suficientemente profundas para aprender patrones abstractos, y (3) un truco secreto — dejar que la red invente su propia forma de representar caracteres, descubriendo por sí misma que 'a' y 'e' son similares. Ese truco se llama embedding, y lo cambia todo. La criatura que construiremos será algo completamente diferente de lo que has visto.
+
+Aquí tienes un adelanto. Mira lo que tres arquitecturas producen con los mismos datos de entrenamiento — la tuya es una de ellas:
+
+<Figure label="Lo Que Es Posible · Comparación de Salidas" hint="Compara texto generado por el Bigrama, tu Red Neuronal y una arquitectura misteriosa. Haz clic para revelar lo que viene."><ModelOutputTeaser /></Figure>
+
+Tres preguntas impulsarán el próximo capítulo. Recuérdalas — todas serán respondidas:
+
+<ForwardQuestions />
+
+Lo que construyamos a continuación empezará como una simple mejora — más contexto, más capas. Pero crecerá hasta convertirse en algo que no planeamos. Algo que inventa sus propias representaciones, que se rompe de formas espectaculares, que requiere técnicas completamente nuevas para domarlo. Lo llamaremos el monstruo.
+
+<ClosingLines />
+
+</Section>
