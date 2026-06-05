@@ -22,10 +22,26 @@ import {
 } from "@/features/lab/components/narrative-primitives";
 import { SectionAnchor } from "@/features/lab/components/SectionAnchor";
 
+import type { NarrativeAccent } from "@/features/lab/components/narrative-primitives";
+
 import { Expandable } from "./Expandable";
 import { Plane, Stage } from "./Plane";
 
-type LabAccent = "bigram" | "ngram";
+/* Any chapter accent: bigram/ngram (CSS-var tokens) or the literal Tailwind accents
+   used by MLP (violet), Neural Networks (rose) and Transformer (cyan). */
+type LabAccent = NarrativeAccent;
+
+/* Inline-emphasis color for markdown **bold** / *italic*. Token chapters use their
+   --<accent>-accent-ink; literal-accent chapters use the matching Tailwind 400 hue. */
+const LITERAL_INK: Record<Exclude<NarrativeAccent, "bigram" | "ngram">, string> = {
+    emerald: "#34d399",
+    amber: "#fbbf24",
+    rose: "#fb7185",
+    violet: "#a78bfa",
+    cyan: "#22d3ee",
+};
+const emphasisColor = (accent: LabAccent): string =>
+    accent === "bigram" || accent === "ngram" ? `var(--${accent}-accent-ink)` : LITERAL_INK[accent];
 
 /* ─────────────────────────────────────────────
    labMdxComponents — the bridge from authored .mdx to the editorial chapter look.
@@ -57,10 +73,10 @@ export function labMdxComponents(
         // content in a <p>, and PullQuote renders its own <p>, which would nest invalidly.
         // Authors use the explicit <PullQuote>…</PullQuote> component instead (below).
         strong: ({ children }: { children?: ReactNode }) => (
-            <strong style={{ color: `var(--${accent}-accent-ink)`, fontWeight: 600 }}>{children}</strong>
+            <strong style={{ color: emphasisColor(accent), fontWeight: 600 }}>{children}</strong>
         ),
         em: ({ children }: { children?: ReactNode }) => (
-            <em style={{ color: `var(--${accent}-accent-ink)`, fontStyle: "italic" }}>{children}</em>
+            <em style={{ color: emphasisColor(accent), fontStyle: "italic" }}>{children}</em>
         ),
 
         /* ── Structural components (used as JSX in the .mdx) ── */
