@@ -1,5 +1,6 @@
 import withBundleAnalyzer from '@next/bundle-analyzer';
 import createMDX from '@next/mdx';
+import createNextIntlPlugin from 'next-intl/plugin';
 
 /** @type {import('next').NextConfig} */
 const isProd = process.env.NODE_ENV === 'production';
@@ -7,6 +8,9 @@ const isProd = process.env.NODE_ENV === 'production';
 const analyzeBundles = withBundleAnalyzer({
     enabled: process.env.ANALYZE === 'true',
 });
+
+/* next-intl: URL-based locale routing. Explicit request-config path = Turbopack-safe. */
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 /* MDX for lab-chapter narrative content (src/content/lab/*.mdx). Plugins are declared
    as string names — required so the config stays serializable under Turbopack (Next 16 dev). */
@@ -64,4 +68,4 @@ const nextConfig = {
     },
 };
 
-export default analyzeBundles(withMDX(nextConfig));
+export default withNextIntl(analyzeBundles(withMDX(nextConfig)));

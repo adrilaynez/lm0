@@ -1,107 +1,15 @@
 import "./globals.css";
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 
-import { LayoutShell } from "@/components/layout/layout-shell";
-import { ThemeProvider } from "@/components/theme-provider";
-import { I18nProvider } from "@/i18n/context";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-import { Bebas_Neue, Inter, JetBrains_Mono, Playfair_Display, Silkscreen, Source_Serif_4, Space_Grotesk } from "next/font/google";
-
-const sourceSerif = Source_Serif_4({
-  variable: "--font-source-serif",
-  subsets: ["latin"],
-  display: "swap",
-  // Expose the `opsz` optical-sizing axis (omitting `weight` only makes `wght`
-  // variable — secondary axes must be requested explicitly via `axes`). Without
-  // it, font-optical-sizing:auto has nothing to act on and the lead renders at a
-  // single fixed optical master instead of the display cut the mockup uses.
-  axes: ["opsz"],
-  // Also pull in true italic for captions/hints.
-  style: ["normal", "italic"],
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  display: "swap",
-  // Load TRUE italic (and the full variable weight axis) so the editorial hero
-  // accent ("Bigrama") renders real Playfair italic, not a synthesised oblique.
-  style: ["normal", "italic"],
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const bebasNeue = Bebas_Neue({
-  variable: "--font-bebas",
-  weight: "400",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const silkscreen = Silkscreen({
-  variable: "--font-pixel",
-  weight: ["400", "700"],
-  subsets: ["latin"],
-  display: "swap",
-});
-
+/* Root layout is a thin pass-through. The real <html>/<body> + providers live in
+   app/[locale]/layout.tsx, which has the resolved locale. Next requires a root layout
+   to exist, but with i18n routing the locale segment owns the document shell. */
 export const metadata: Metadata = {
   title: "Adrian Laynez | Research & Engineering",
   description: "Personal website and research lab of Adrian Laynez.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} ${bebasNeue.variable} ${inter.variable} ${silkscreen.variable} ${sourceSerif.variable} antialiased`}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <I18nProvider>
-            <LayoutShell>{children}</LayoutShell>
-          </I18nProvider>
-        </ThemeProvider>
-      </body>
-    </html>
-  );
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return children;
 }
-

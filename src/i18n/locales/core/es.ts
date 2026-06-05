@@ -11,6 +11,7 @@ export const core = {
         code: "Código",
         liveDemo: "Demo en Vivo",
         viewCaseStudy: "Ver Caso de Estudio",
+        siteDescription: "Web personal y laboratorio de investigación de Adrián Laynez — ensayos interactivos sobre cómo funcionan los modelos de lenguaje, proyectos y notas.",
     },
     nav: {
         home: "Inicio",

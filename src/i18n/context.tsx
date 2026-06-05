@@ -1,125 +1,54 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React from "react";
+import { useLocale, useTranslations } from "next-intl";
 
-import { en } from './en';
-import type { Language, TranslationDictionary } from './types';
+import { usePathname, useRouter } from "./navigation";
+import type { Language } from "./types";
 
-// English is bundled statically (default / fallback).
-// Other languages are loaded on demand via dynamic import().
-const loadDictionary: Record<Language, () => Promise<TranslationDictionary>> = {
-    en: () => Promise.resolve(en),
-    es: () => import('./es').then(m => m.es),
-};
+/* ─────────────────────────────────────────────
+   useI18n — compatibility shim over next-intl.
 
-// Cache loaded dictionaries so they are only fetched once per session
-const _loaded: Partial<Record<Language, TranslationDictionary>> = { en };
+   Historically this was a hand-rolled React context (localStorage-persisted language +
+   a dotted-key `t`). It is now backed by next-intl so the ~374 call sites keep working
+   unchanged. The bridge: `useTranslations()` with NO namespace returns a root-scoped `t`
+   that accepts full dotted keys (`t('models.bigram.sections.x')`) — exactly the old API.
 
-// Recursive function to get value from nested key string
-function getNestedValue(obj: any, key: string): string | undefined {
-    if (!key) return undefined;
-    const keys = key.split('.');
-    let current = obj;
-
-    for (const k of keys) {
-        if (current === undefined || current === null) return undefined;
-        current = current[k];
-    }
-
-    if (typeof current === 'string') return current;
-    if (typeof current === 'number') return String(current);
-
-    return undefined;
-}
-
-interface I18nContextType {
-    language: Language;
-    setLanguage: (lang: Language) => void;
-    t: (key: string, params?: Record<string, string | number>) => string;
-}
-
-const I18nContext = createContext<I18nContextType | undefined>(undefined);
-
-export function I18nProvider({ children }: { children: React.ReactNode }) {
-    // Initialize from storage or default to 'en', but avoid hydration mismatch via useEffect
-    const [language, setLanguageState] = useState<Language>('en');
-    const [dict, setDict] = useState<TranslationDictionary>(en);
-
-    // Per-language lookup cache — persists across renders, cleared on language change is not needed
-    // because we keep a separate map per language key.
-    const lookupCaches = useRef<Partial<Record<Language, Map<string, string>>>>({});
-
-    // Load dictionary for current language
-    useEffect(() => {
-        let cancelled = false;
-        if (_loaded[language]) {
-            setDict(_loaded[language]!);
-        } else {
-            loadDictionary[language]().then((d) => {
-                if (cancelled) return;
-                _loaded[language] = d;
-                setDict(d);
-            });
-        }
-        return () => { cancelled = true; };
-    }, [language]);
-
-    useEffect(() => {
-        const saved = localStorage.getItem('lm-lab-language') as Language;
-        if (saved && (saved === 'en' || saved === 'es')) {
-            setLanguageState(saved);
-            document.cookie = `lm-lab-language=${saved}; path=/; max-age=31536000; samesite=lax`;
-        }
-        document.documentElement.lang = saved && (saved === 'en' || saved === 'es') ? saved : 'en';
-    }, []);
-
-    const setLanguage = useCallback((lang: Language) => {
-        setLanguageState(lang);
-        localStorage.setItem('lm-lab-language', lang);
-        document.cookie = `lm-lab-language=${lang}; path=/; max-age=31536000; samesite=lax`;
-        document.documentElement.lang = lang;
-    }, []);
-
-    const t = useCallback((key: string, params?: Record<string, string | number>): string => {
-        // Only cache non-parameterized lookups for now to keep it simple
-        if (!params && lookupCaches.current[language]) {
-            const cache = lookupCaches.current[language]!;
-            const cached = cache.get(key);
-            if (cached !== undefined) return cached;
-        }
-
-        let result =
-            getNestedValue(dict, key) ??
-            getNestedValue(en, key) ??
-            key;
-
-        if (params) {
-            Object.entries(params).forEach(([k, v]) => {
-                result = result.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
-            });
-        }
-
-        if (!params && lookupCaches.current[language]) {
-            lookupCaches.current[language]!.set(key, result);
-        }
-        return result;
-    }, [language, dict]);
-
-    // FIX: Memoize the context value so consumers only re-render when language actually changes,
-    // not on every render of I18nProvider (which previously caused all 44+ consumers to re-render).
-    const value = useMemo(() => ({ language, setLanguage, t }), [language, setLanguage, t]);
-
-    return (
-        <I18nContext.Provider value={value}>
-            {children}
-        </I18nContext.Provider>
-    );
-}
-
+   - language: the active locale from the URL ([locale] segment).
+   - setLanguage: navigates to the same path under the new locale (persists via NEXT_LOCALE
+     cookie). Replaces the old localStorage state flip.
+   - t: dotted-key lookup + {param} interpolation, defensive (falls back to the key) so a
+     stray ICU brace during rollout never throws in the UI.
+   ───────────────────────────────────────────── */
 export function useI18n() {
-    const context = useContext(I18nContext);
-    if (context === undefined) {
-        throw new Error('useI18n must be used within an I18nProvider');
-    }
-    return context;
+    const language = useLocale() as Language;
+    const tRoot = useTranslations();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    const t = React.useCallback(
+        (key: string, params?: Record<string, string | number>): string => {
+            try {
+                return tRoot(key, params as Record<string, string | number>);
+            } catch {
+                return key;
+            }
+        },
+        [tRoot],
+    );
+
+    const setLanguage = React.useCallback(
+        (lang: Language) => {
+            router.replace(pathname, { locale: lang });
+        },
+        [router, pathname],
+    );
+
+    return { language, setLanguage, t };
+}
+
+/* Back-compat no-op: the old <I18nProvider> wrapper is replaced by NextIntlClientProvider
+   in app/[locale]/layout.tsx. Kept as a pass-through so any lingering import doesn't break. */
+export function I18nProvider({ children }: { children: React.ReactNode }) {
+    return <>{children}</>;
 }

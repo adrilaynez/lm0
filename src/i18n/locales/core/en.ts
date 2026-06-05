@@ -11,6 +11,7 @@ export const core = {
         code: "Code",
         liveDemo: "Live Demo",
         viewCaseStudy: "View Case Study",
+        siteDescription: "Personal website and research lab of Adrián Laynez — interactive essays on how language models work, projects, and notes.",
     },
     nav: {
         home: "Home",
