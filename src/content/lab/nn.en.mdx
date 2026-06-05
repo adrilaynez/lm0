@@ -30,12 +30,14 @@ Start simple: take 8 (distance) and 3 (traffic). Try a few ways to combine them 
 
 <Predict>Before you try — which operation do you think gives you the most control over the result?</Predict>
 
+{/* OperationExplorer — among add, multiply and the weighted sum, the reader discovers which one gives real control over the prediction. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Operation Explorer" hint="Try each operation. Notice how the weighted sum gives you the most control — you can tune how much each input contributes."><OperationExplorer /></Figure>
 
 Now those two numbers represent real measurements of your daily commute. The weighted sum gives you a predicted travel time in minutes. By adjusting the weights, you control how much distance and traffic each contribute to the prediction.
 
 <Predict>What happens if you set one weight to zero? Try to predict before you drag.</Predict>
 
+{/* WeightSliderDemo — weights are the model's knobs: raising, lowering or zeroing one changes how much each input counts toward the prediction. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Weight Sliders" hint="Drag the weights. A weight of 2 means that input matters twice as much. A weight of 0 ignores it entirely. Negative weights flip the contribution."><WeightSliderDemo /></Figure>
 
 Weights can be any number — bigger than 2, smaller than −1 — we're only limiting the slider to keep things readable. A high weight on distance means each kilometer adds a lot of travel time. A negative weight would mean more distance somehow reduces time (physically nonsensical — but the model doesn't know physics, it just follows the math).
@@ -46,6 +48,7 @@ One more tiny upgrade. What if both measurements are zero — you live at school
 
 <Predict>If both inputs are zero, what should the output be? What if you want a non-zero default?</Predict>
 
+{/* BiasDemo — the bias is the default push: it shifts the output even when inputs are zero, completing the neuron. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Adding Bias" hint="The bias shifts the entire output up or down. A positive bias makes the neuron 'eager' — it fires even with weak inputs. A negative bias makes it reluctant."><BiasDemo /></Figure>
 
 <Callout title="You just built a neuron">
@@ -70,6 +73,7 @@ Below is everything you just learned in one interactive diagram. Drag the slider
 
 <Predict>Can you trace the path from inputs to output in your head before seeing it animated?</Predict>
 
+{/* NNPerceptronDiagram — all the pieces assembled: the reader traces the path input → weight → sum → bias → activation → output of a whole neuron. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · The Perceptron" hint="Click each layer to see inputs flow through weights, bias, and activation. This is the complete artificial neuron."><NNPerceptronDiagram /></Figure>
 
 <HiddenSection category="historical" difficulty={1} title="Biology vs Machine" description="Inspired by nature, but vastly simpler">
@@ -106,6 +110,7 @@ One neuron can compute a weighted sum and fire (or not). That's powerful — but
 
 Now let's add more neurons. Instead of a single neuron producing a single output, put several side by side — all looking at the same inputs, each with its own weights and bias.
 
+{/* ParallelNeuronsDemo — several neurons looking at the same inputs, each detecting its own pattern: one output becomes many, and that is a layer. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Parallel Neurons" hint="Add neurons and toggle ReLU to see how multiple neurons process the same inputs independently."><ParallelNeuronsDemo /></Figure>
 
 Each neuron learns to detect a different pattern in the same data. This is called a layer — a group of neurons working in parallel. One output becomes many.
@@ -116,6 +121,7 @@ For example: 'Is the commute time more than 30 minutes?' One neuron, one questio
 
 Here's what that looks like in practice. A single neuron draws one straight line through the data and says "everything on this side is A, everything on that side is B." Try it — drag the weights to move the line:
 
+{/* DecisionBoundaryIntro — one neuron is a single straight line: it splits the simple case, but the reader hits the wall that XOR can't be cut with one line. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Decision Boundary" hint="Drag the weight sliders to move the decision line. Try both scenarios — simple and XOR."><DecisionBoundaryIntro /></Figure>
 
 Start with the simple scenario — one line is enough. Then switch to XOR mode and try to reach 100% accuracy. You'll find it's impossible with a single neuron.
@@ -132,6 +138,7 @@ Here's the first surprise: if you just stack layers of neurons without anything 
 
 Add layers below, then toggle the activation function to see the difference.
 
+{/* LinearStackingDemo — stacking layers without activation is an illusion of depth: ten linear layers collapse into a single straight line. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Stacking Layers" hint="Add layers and watch: without an activation function, the combined effect is always a straight line. With ReLU, every layer adds a bend."><LinearStackingDemo /></Figure>
 
 Without activation functions, depth is an illusion. The network is still just one big linear operation — no matter how many layers you add.
@@ -148,12 +155,14 @@ No matter how many layers you stack, without non-linearity between them, the ent
 
 The fix is a single small idea: after each neuron's sum, apply a non-linear function. This breaks the collapse. Every layer now adds a genuine bend. Explore the most common activation functions below:
 
+{/* NNActivationExplorer — the spark that breaks the collapse: each activation bends the line a different way, and comparing their personalities is the point. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Activation Functions" hint="Click each function to compare shapes. ReLU is the default for modern networks — simple but effective."><NNActivationExplorer /></Figure>
 
 Different functions have different personalities. <Highlight color="indigo" tooltip="ReLU = max(0, x). It keeps positive signals and kills negative ones.">ReLU passes positives unchanged and kills negatives. Sigmoid squashes everything into 0–1. Tanh squashes into −1 to 1.</Highlight> The choice matters: ReLU made deep networks practical by avoiding a training problem called vanishing gradients, where error signals shrink to near-zero in early layers.
 
 Now for the payoff. Remember the XOR problem that one neuron couldn't solve? With two neurons and ReLU activation, the network can draw two boundary lines — creating a band that separates the classes. Toggle between the modes to see the difference:
 
+{/* XORSolverDemo — the payoff: two neurons with ReLU solve the XOR a single one never could; simple pieces plus non-linearity beat the complex. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · XOR Solved with ReLU" hint="Toggle between linear (no activation) and ReLU to see how two neurons with activation can solve the XOR problem."><XORSolverDemo /></Figure>
 
 Two neurons with ReLU solved what one neuron never could. Each hidden neuron draws one line; the output neuron combines their answers. This is the fundamental power of neural networks: simple pieces, combined with non-linearity, can solve complex problems.
@@ -162,6 +171,7 @@ Two neurons with ReLU solved what one neuron never could. Each hidden neuron dra
 Take neurons (weighted sum + bias). Add activation functions to unlock non-linearity. Put neurons in parallel to get a layer. Stack layers in series to get depth. That's the architecture of every neural network.
 </Callout>
 
+{/* ToyVowelTeaser — a visual promise: it hints at the one-neuron-per-vowel network that gets built for real in §07. (Mechanics: see the .tsx) */}
 <Figure label="Preview: One Neuron Per Vowel" hint="A glimpse of what we'll build in §07 — a network that recognizes vowels."><ToyVowelTeaser /></Figure>
 
 </Section>
@@ -176,24 +186,28 @@ Let's make this concrete. Imagine we're predicting a commute time. The inputs ar
 
 The inputs are fixed data. The only things we can change are the weights and the bias. So how would YOU adjust w₁, w₂, and b to make the prediction match 30 minutes? Try it:
 
+{/* PredictionErrorDemo — with random weights the prediction lands far from the target; the reader feels the frustration of adjusting blind and wants a better method. (Mechanics: see the .tsx) */}
 <Figure label="Prediction vs Reality" hint="The model predicts minutes as w₁ × distance + w₂ × traffic + bias. With random parameters, the prediction is wrong."><PredictionErrorDemo /></Figure>
 
 <Peak>There HAS to be a better way.</Peak>
 
 What if we just try changing a weight and see what happens? Use the sliders to adjust w₁ and w₂. Try to make the output equal 3.
 
+{/* NudgeWeightDemo — each weight has its own leverage: nudging it moves the output in proportion to its input, the first intuition for sensitivity (the derivative). (Mechanics: see the .tsx) */}
 <Figure label="What If We Nudge a Weight?" hint="Drag the weight sliders and watch the output change. Notice which weight has more effect."><NudgeWeightDemo /></Figure>
 
 Did you notice? Changing w₁ by 1 moves the output by 1 (because x₁ = 1). Changing w₂ by 1 moves the output by 2 (because x₂ = 2). Each weight has a different leverage. But how do we measure that leverage precisely — for any operation, not just this one?
 
 That worked for one operation. But our neuron chains MANY operations — multiply, add, activate. We need a way to measure the effect of a change through an entire chain. Start with the simplest case:
 
+{/* DerivativeIntuitionDemo — the derivative without formulas: in a sum the effect is always 1, in a multiplication it depends on the other number. Measuring how much one thing affects another. (Mechanics: see the .tsx) */}
 <Figure label="Measuring Sensitivity" hint="Toggle between addition and multiplication. Change x and y to see how the result changes."><DerivativeIntuitionDemo /></Figure>
 
 For addition, the derivative is always 1. For multiplication (x × y), the derivative of x is y — the effect of x depends on how big y is. This simple idea — measuring how much one thing affects another — is the foundation of how neural networks learn. Now: what happens when operations are chained?
 
 In a real neuron, operations are chained: multiply by weight, then add bias. A change at the input ripples through every step. Watch it:
 
+{/* ChainRuleBuilder — the chain rule made visible: a change at the input ripples step by step, and the local effects multiply to give the total effect. (Mechanics: see the .tsx) */}
 <Figure label="Chaining Operations" hint="Move the x slider and watch how the change propagates through each operation."><ChainRuleBuilder /></Figure>
 
 To find the total effect, multiply the individual effects along the chain. This is the chain rule — and it works no matter how many operations you stack. A network with millions of operations? Same idea, applied backwards from the output all the way to the first weight. Now we know the size of the effect. But which direction should we move the weight?
@@ -218,22 +232,26 @@ Squaring the error gives us the loss — a single positive number that measures 
 
 Now that we know how to measure error, we can ask the key question: if we change one weight slightly, does the loss go up or down? Let's trace through a real neuron to find out. The chain is simple: input × weight + bias → activation function → output → compare to target → loss.
 
+{/* WeightImpactVisualizer — moving one weight ripples through the whole neuron to the loss: the reader sees, without graphs, that a weight nudge shrinks or grows the error. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · How a Weight Changes the Loss" hint="Drag the weight slider and watch the entire chain update: input × weight + bias → σ → output → loss. Then see what happens if you nudge the weight by 0.1."><WeightImpactVisualizer /></Figure>
 
 You just saw it with your own eyes: nudging the weight by a tiny amount changes the loss. If the loss went up, we should move the weight the other direction. If the loss went down, we should keep going. This idea — 'which direction makes the loss smaller?' — is exactly what the derivative captures. Let's now see this as a graph:
 
 The same idea we just explored — nudging a weight and checking if the loss goes up or down — can be visualized as a curve. Every possible weight value has a corresponding loss. The derivative at any point is the slope of this curve: steep slope means big effect, flat slope means little effect.
 
+{/* LossDerivativeVisualizer — the same idea as a curve: every weight has its loss, and the slope of the tangent IS the derivative telling you how much the error changes. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · The Derivative as a Graph" hint="Drag the weight and see the loss curve. The slope of the tangent line IS the derivative — it tells you which direction to move."><LossDerivativeVisualizer /></Figure>
 
 We know the loss — now which direction should we move each weight to reduce it? The slope of the loss curve tells us:
 
+{/* LossWeightParabolaVisualizer — the sign of the slope is the compass: it tells which way to move the weight to descend toward the bottom of the loss bowl. (Mechanics: see the .tsx) */}
 <Figure label="Loss Landscape" hint="Drag the point along the curve to see how the slope changes. The slope tells the model which way to move."><LossWeightParabolaVisualizer /></Figure>
 
 Always move opposite to the direction that makes things worse. If the derivative is positive and the output is too high — decrease the weight. If the output is too low — increase it. This one rule is behind all of neural network training. But we still need a single number that captures how wrong the model is — so we can track progress.
 
 One complete training step: compute the output, measure the loss, calculate the gradients, update the weights. Five phases. Watch them happen:
 
+{/* NeuronGradientCalculator — one full training step end to end: forward, loss, gradients backward, and update — backpropagation done by hand. (Mechanics: see the .tsx) */}
 <Figure label="One Complete Training Step" hint="Step through the five phases of a single training iteration."><NeuronGradientCalculator /></Figure>
 
 What do those gradient numbers mean? If the gradient for w₁ is +14, it means: increasing w₁ by 1 would increase the loss by 14. That's bad — so we decrease w₁ instead. The sign tells you the direction; the size tells you how sensitive the loss is to that weight.
@@ -256,10 +274,12 @@ This full loop — forward, loss, backward, update — repeats many times during
 
 But wait — in the training step above, we only subtracted a tiny fraction of the gradient. What happens if we subtract the full gradient instead? Let's find out:
 
+{/* DivergenceDemo — subtracting the whole gradient makes the loss explode; that's why we take only a tiny step, motivating the need for a learning rate. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · What Happens Without a Learning Rate?" hint="Toggle between full gradient (lr=1) and a small learning rate (lr=0.01) to see the dramatic difference."><DivergenceDemo /></Figure>
 
 One step moved us closer, but we're not there yet. What if we repeat this process over and over? Each step nudges the weights a little closer to the right values.
 
+{/* RepeatedTrainingDemo — one step isn't enough, but repeating the cycle many times drives the loss down: the reader watches the machine actually learn, step by step. (Mechanics: see the .tsx) */}
 <Figure label="Learning Over Time" hint="Click 'Train one step' or use auto-train to watch the loss decrease over time."><RepeatedTrainingDemo /></Figure>
 
 <Challenge question="How many steps does it take for the loss to become nearly zero? Watch the curve — when does improvement slow down?" hint="The loss drops fast at first because the gradients are steep. Later steps make tiny refinements. This is typical of gradient descent." successMessage="The loss converges! Early steps made big improvements; later steps refined. This 'fast then slow' pattern is universal in neural network training." />
@@ -268,12 +288,14 @@ One step moved us closer, but we're not there yet. What if we repeat this proces
 
 The learning rate (η) controls how big each step is. After computing the gradient, we don't jump the full amount — we take a fraction. That fraction is the learning rate.
 
+{/* LearningRateDemo — the step size decides everything: too small crawls, too large explodes; there's a sweet spot the reader has to find. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Learning Rate Explorer" hint="Try all three presets, then use the custom slider to find the sweet spot. Watch the loss curve carefully."><LearningRateDemo /></Figure>
 
 <Challenge question="Find the learning rate that converges fastest without diverging. Which η gets to low loss in the fewest steps?" hint="Try all three presets first. Too small = slow crawl. Too large = the loss explodes. The sweet spot is somewhere in between." successMessage="Found it! The optimal η balances step size against stability. This is one of the most important hyperparameter choices in all of deep learning." />
 
 But what does overshoot actually look like? Imagine the loss as a bowl — a parabola. Gradient descent is a ball rolling down the sides. A small learning rate keeps the ball under control. A large one makes it bounce past the bottom and climb the other side. Try it:
 
+{/* LROvershootVisualizer — overshoot made physical: a ball rolling in a bowl that, with too big a step, bounces past the bottom and flies off. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Overshoot on the Loss Bowl" hint="Drag the learning rate slider and press Run. Watch how a ball on a convex loss parabola behaves — smooth convergence, bouncing oscillation, or wild divergence."><LROvershootVisualizer /></Figure>
 
 <HiddenSection category="math" difficulty={1} title="What if the learning rate is exactly 0?" description="The weights never change. The gradient is computed, but multiplied by zero before being applied.">
@@ -282,23 +304,28 @@ The weights never change. The gradient is computed, but multiplied by zero befor
 
 Let's see the full picture of learning. Below is a map of all possible weight combinations. Dark blue means low loss (good). Red means high loss (bad). Watch the weights travel from their random starting point toward a good solution.
 
+{/* WeightTrajectoryDemo — the full picture: over a loss map, the weights travel from a random point downhill to a good solution. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Weight Landscape" hint="The dot traces the path of the weights during training. The dashed green line shows all weight combinations that give the correct output. Watch the dot 'roll downhill' toward low loss."><WeightTrajectoryDemo /></Figure>
 
 <HiddenSection category="advanced" difficulty={2} title="Advanced: activation derivatives & vanishing gradients" description="Compare how each activation function transforms its input and how its derivative behaves. Red zones = vanishing gradient.">
+{/* ActivationDerivativeVisualizer — each activation beside its derivative: where the derivative flattens (red zones) the gradient vanishes and the neuron stops learning. (Mechanics: see the .tsx) */}
 <Figure label="Activation Functions & Their Derivatives" hint="Compare how each activation function transforms its input (left) and how its derivative behaves (right). Red zones = vanishing gradient."><ActivationDerivativeVisualizer /></Figure>
 </HiddenSection>
 
 Now that you understand gradients, here's a catch with ReLU: if a neuron's pre-activation is always negative, ReLU clips it to zero — and zero gradient means zero learning. The neuron is permanently dead. This is the 'dying ReLU' problem.
 
+{/* DeadNeuronDemo — ReLU's trap: a very negative bias keeps it stuck at zero, with no gradient and no learning; raising the bias revives it. (Mechanics: see the .tsx) */}
 <Figure label="The Dead Neuron Problem" hint="A very negative bias means ReLU always outputs zero. Drag the bias up to bring the neuron back to life."><DeadNeuronDemo /></Figure>
 
 <HiddenSection category="advanced" difficulty={2} title="Advanced: What If the Derivative Is Zero?" description="The vanishing gradient problem — why some neurons stop learning entirely.">
 If the derivative is zero, the weight gets zero update. No learning happens. This isn't just a theoretical concern — it's one of the most important problems in deep learning. Let's see exactly when and why this happens with the sigmoid function.
 
+{/* FlatGradientVisualizer — far from the center the sigmoid flattens: its derivative drops near zero, the neuron saturates and learning stalls. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Sigmoid Saturation Zones" hint="Drag the input value. In the red zones, the derivative is nearly zero — the neuron is 'saturated' and can't learn."><FlatGradientVisualizer /></Figure>
 
 You saw that the sigmoid derivative goes to zero in the saturation zones. But what does that actually mean for learning? Let's trace the full backpropagation chain. During training, the gradient for each weight is computed by multiplying several terms together. If ANY one of those terms is zero, the entire gradient is zero — and the weight doesn't change at all.
 
+{/* BackpropZeroDemo — the gradient is a product of chained terms: if a single one (a saturated σ'(z)) goes to zero, the whole gradient dies and the weight doesn't move. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Backpropagation with Zero Derivative" hint="Move z into the saturation zones (far from 0) and watch σ'(z) collapse to zero — killing the entire gradient chain. The weight update becomes zero: the neuron stops learning."><BackpropZeroDemo /></Figure>
 
 <Math>{`\\sigma'(z) = \\sigma(z)(1 - \\sigma(z))`}</Math>
@@ -326,6 +353,7 @@ Before we go further, let's clarify some terminology you'll see everywhere in ma
 
 <TermCards />
 
+{/* StepEpochBatchCounter — pulls apart three words that get confused: a batch is a group of examples, a step one update, an epoch a full pass over the data. (Mechanics: see the .tsx) */}
 <Figure label="Steps, Epochs & Batches" hint="Watch data flow through the network in batches. One full pass through all data = one epoch."><StepEpochBatchCounter /></Figure>
 
 You've seen how one example flows through the network. But real datasets have thousands or millions of examples. Training on them one-by-one would take forever. The solution: batches.
@@ -340,10 +368,12 @@ Gradient noise isn't just a necessary evil — it's a feature. Small batches int
 
 Modern deep learning standardizes on mini-batches of 32–256 examples. Larger batches train faster per epoch but may generalize worse. Smaller batches are noisier but often find better solutions.
 
+{/* GradientNoiseVisualizer — the batch decides how noisy the gradient is: few examples give scattered arrows, many a single clean arrow toward the true descent. (Mechanics: see the .tsx) */}
 <Figure label="Gradient Noise vs Batch Size" hint="Larger batches give smoother gradients but each step processes more data. Smaller batches are noisier but update weights more frequently per epoch. Compare the curves to see the trade-off."><GradientNoiseVisualizer /></Figure>
 
 Why not just train on one example at a time? Imagine you're trying to learn the average height of 12 people. If you only look at one person per step, a very tall person will wildly skew your estimate. Let's watch all 3 batch sizes train side by side — same data, same learning rate, different batch sizes:
 
+{/* BatchSizeComparisonVisualizer — three batch sizes running at once: with 1 the path is erratic, with all it's clean; the noise-stability trade-off in one glance. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Why Batch Size Matters" hint="Watch all 3 batch sizes train simultaneously. Red (batch=1) is noisy and chaotic; yellow (batch=4) is smoother; green (batch=ALL) is a clean path to the answer."><BatchSizeComparisonVisualizer /></Figure>
 
 This instability with small batches is a preview of a deeper problem: if your training data isn't representative, your model will learn the wrong patterns entirely. This is called overfitting — and it gets its own section next.
@@ -370,6 +400,7 @@ In the next section, you'll see a real network with 27 output neurons predicting
 
 <Lead>A network that trains perfectly on every example can still fail completely on new data. It memorized instead of learned. This is overfitting — one of the most important concepts in all of machine learning.</Lead>
 
+{/* OverfittingPlayground — three models on the same data; testing on new points reveals only the middle one generalizes, the others memorized or fell short. (Mechanics: see the .tsx) */}
 <Figure label="The Overfitting Playground" hint="Three models, same data. Only one generalizes well to new, unseen points. Click 'Test' to find out which."><OverfittingPlayground /></Figure>
 
 When a network trains, loss decreases and predictions improve. The natural instinct is to keep going — train longer, push loss as low as possible. But this leads to a trap: the network can achieve near-zero error on the training examples while learning nothing general. It memorizes the specific patterns in the data it saw, including the noise and quirks, and becomes useless on new examples.
@@ -378,14 +409,17 @@ Think of a student preparing for an exam. One student memorizes every answer to 
 
 The solution is a train/validation split. Hold out a portion of the data — say 20% — that the model never sees during training. Measure performance on both the training set (data the model learns from) and the validation set (held-out data). Training loss always decreases as the model gets better at fitting what it sees. Validation loss follows a U-curve: it improves as the model learns real patterns, then worsens as the model starts memorizing training-specific noise.
 
+{/* TrainValSplitVisualizer — the defense against overfitting: set aside a slice of data the model never sees, so it can be judged honestly. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Train / Validation Split" hint="Click 'Split' to see how data is divided into training and validation sets. The model only trains on the filled dots."><TrainValSplitVisualizer /></Figure>
 
 <Callout title="Why we can't just minimize training loss">
 Driving training loss to zero is easy — just memorize every training example. But the goal isn't to ace a test you've already seen. It's to predict patterns you've never encountered. Validation loss is the only honest measure of whether a model has learned something real.
 </Callout>
 
+{/* OverfittingComparisonDiagram — zero training error is not a good sign: the wiggly curve touching every point fails on new data; the smooth one gets it right. (Mechanics: see the .tsx) */}
 <Figure label="Comparison · Good Fit vs Overfit" hint="Same training data, two different models. The overfit model achieves zero training error by fitting a complex curve through every point. But on new test data (hollow circles), it fails. The good-fit model accepts some training error but generalizes correctly."><OverfittingComparisonDiagram /></Figure>
 
+{/* TrainValLossCurveVisualizer — training loss always falls, but validation loss traces a U: its lowest point marks when to stop before memorizing kicks in. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Train vs Validation Loss Over Time" hint="Drag the epoch slider to see how training and validation loss evolve. Training loss always decreases. Validation loss forms a U-curve — improving, then worsening as overfitting begins. The optimal stopping point is where validation loss is lowest."><TrainValLossCurveVisualizer /></Figure>
 
 Model complexity amplifies this trade-off. A small model struggles to fit even the training data (underfitting). A right-sized model fits the training data and generalizes to new data. A huge model with far more parameters than needed memorizes the training set perfectly but fails on validation data (overfitting). More capacity is not always better.
@@ -422,12 +456,14 @@ Before tackling the full 27-character alphabet, let's start tiny. Five vowels. O
 
 We want to teach a tiny network a simple pattern: after 'a' comes 'e', after 'e' comes 'i', after 'i' comes 'o', after 'o' comes 'u', and after 'u' comes 'a' again. Five vowels cycling in order — simple enough for us, but the network has to discover this from scratch.
 
+{/* ToyAlphabetPredictor — a tiny network trains live and discovers the a→e→i→o→u cycle on its own, with no rule handed to it: learning applied to letters. (Mechanics: see the .tsx) */}
 <Figure label="Toy Vowel Predictor" hint="A tiny 5-neuron network that learns to predict the next vowel. Watch the weights change as it trains."><ToyAlphabetPredictor /></Figure>
 
 That tiny network just learned to predict the next vowel from nothing but random numbers and gradient descent. The same process scales to any number of characters.
 
 But wait — neurons only understand numbers. How do we feed letters into a network? We need a way to convert characters into numbers.
 
+{/* LetterToNumberDemo — the bridge from counting to computing: letters become numbers that flow through the weighted sum into a prediction. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · From Letters to Numbers"><LetterToNumberDemo /></Figure>
 
 <Callout title="A note on encodings">
@@ -436,22 +472,27 @@ Real neural networks don't use alphabet position as input — that implies 'z' i
 
 First, let's see where the training data comes from. Every position in the text becomes one example: <Highlight tooltip="Context window = the chunk of previous characters the model can see.">the context window is the input</Highlight>, the next character is the target.
 
+{/* TrainingWithTextDemo — where the examples come from: a window slides through the text and every position is an input-target pair to train on. (Mechanics: see the .tsx) */}
 <Figure label="Training Data From Text" hint="Watch the context window slide through the text. Each position creates one training example: the window is the input, the next character is the target."><TrainingWithTextDemo /></Figure>
 
 If we have 27 possible characters (a–z plus space), we need 27 output neurons — each one produces a score for its character. Click different input characters to see how the network distributes its predictions.
 
+{/* OutputLayerNetworkVisualizer — one input, 27 output neurons, one score per possible character: the network spreads its bet across the whole alphabet. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Network Diagram" hint="The glowing neurons are the top-3 predictions. Click different inputs to see how the raw scores shift."><OutputLayerNetworkVisualizer /></Figure>
 
 These raw scores — called logits — don't sum to 1. They're not probabilities yet. We need a function that turns any list of numbers into a valid probability distribution.
 
+{/* SoftmaxTransformDemo — softmax turns loose scores into a probability distribution that sums to 1; temperature sharpens or flattens it. (Mechanics: see the .tsx) */}
 <Figure label="Softmax Transform" hint="Toggle between raw logits and softmax probabilities. Try the temperature slider to see how it sharpens or flattens the distribution."><SoftmaxTransformDemo /></Figure>
 
 Softmax gives us probabilities. But we trained this network — how did we measure how WRONG it was? We need a loss function designed for probability outputs.
 
+{/* SquaredVsCrossEntropy — why probabilities demand a different loss: cross-entropy punishes confident-but-wrong harshly, while squared error barely flinches. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Squared Error vs Cross-Entropy" hint="Drag the slider to change P(correct answer). See how cross-entropy punishes confident-but-wrong predictions far more severely than squared error."><SquaredVsCrossEntropy /></Figure>
 
 Cross-entropy has an elegant simplicity: it only looks at the probability assigned to the correct answer. Why the logarithm? Because log converts 'halving the probability' into 'adding a fixed penalty' — and the lower the probability, the more harshly log punishes. Give the right answer a 1% probability and the loss is 4.6. Give it 50% and the loss is only 0.7. That steep curve is exactly the pressure the model needs to get confident fast.
 
+{/* CrossEntropyVisualizer — cross-entropy in action: as a batch trains, the probability of the correct answer climbs and the loss drops, all differentiable. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · Learning with Cross-Entropy" hint="Watch a batch of 5 examples train step by step. See P(correct) grow and loss drop. Note: every operation is differentiable — that's why backpropagation works."><CrossEntropyVisualizer /></Figure>
 
 Now we have the full picture: softmax turns raw scores into probabilities, and cross-entropy measures the error by asking one question — how much probability did you give the right answer?
@@ -460,6 +501,7 @@ Now we have a complete system: input a context window of characters, compute 27 
 
 Here's the astonishing result. Train this single-layer neural network on the same text the bigram model used for counting...
 
+{/* NNBigramComparison — the astonishing result: trained, the network converges to the same probabilities as bigram counting; same destination, learned path. (Mechanics: see the .tsx) */}
 <Figure label="Neural Network vs Bigram Table" hint="Watch the neural network's learned probabilities converge toward the exact same values as the bigram frequency table."><NNBigramComparison /></Figure>
 
 It converges to the exact same probabilities as the bigram frequency table! The neural network learns what counting would have given us.
@@ -482,6 +524,7 @@ This is why the neural network and the counting table give the same answer: with
 
 Think you understand the patterns? Try to beat the network. It has learned bigram statistics from thousands of examples — can your intuition match its probability tables?
 
+{/* BeatTheMachineChallenge — a game to feel what the network learned: your intuition against its bigram probabilities, round by round. (Mechanics: see the .tsx) */}
 <Figure label="Beat the Machine" hint="Can you predict the next character better than a trained bigram network? 10 rounds, you vs the machine."><BeatTheMachineChallenge /></Figure>
 
 This is both beautiful and limiting. To surpass the bigram, we need larger context windows, hidden layers, and a smarter way to represent characters. That's exactly what the next chapter delivers.
@@ -510,12 +553,14 @@ So how far can we push this? What if we gave it more than one letter of context?
 
 Right now your network sees exactly one letter before making its prediction. Toggle the context size below and feel the difference:
 
+{/* ContextWindowTeaser — plants the next chapter: your network sees a single letter; widening the context window promises far better predictions. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · What If It Could See More?" hint="Toggle context window size to see how much information the network gets. With 1 character, it's guessing blind. With more, patterns emerge."><ContextWindowTeaser /></Figure>
 
 A single neuron draws one line. A layer draws many. But language is deeper than lines — it has structure, hierarchy, memory. To capture that, we need three breakthroughs: (1) feed the network multiple characters at once, (2) stack layers deep enough to learn abstract patterns, and (3) a secret trick — let the network invent its own way to represent characters, discovering on its own that 'a' and 'e' are similar. That trick is called an embedding, and it changes everything. The creature we build next will be something entirely different from what you've seen.
 
 Here's a taste. Look at what three architectures produce from the same training data — yours is one of them:
 
+{/* ModelOutputTeaser — the quality leap ahead: bigram, your network and a mystery architecture side by side, foreshadowing what the next chapter achieves. (Mechanics: see the .tsx) */}
 <Figure label="What's Possible · Model Output Comparison" hint="Compare text generated by the Bigram, your Neural Network, and a mystery architecture. Click to reveal what's coming next."><ModelOutputTeaser /></Figure>
 
 Three questions will drive the next chapter. Remember them — every one will be answered:

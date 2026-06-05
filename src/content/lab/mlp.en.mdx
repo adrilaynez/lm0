@@ -18,6 +18,7 @@
 
 We're stacking dozens of neurons into layers to create something with real power: the MLP — Multi-Layer Perceptron. We call it 'the monster' because it's emergent — it will learn things we didn't teach it, and fail in ways we didn't predict. 👾
 
+{/* MLPNetworkDiagram — the reader sees at a glance what an MLP really is: three parts that turn context into a bet. (Mechanics: see the .tsx) */}
 <Figure label="Interactive · What IS an MLP?" hint="Click each layer to see what it does. Hit 'Watch data flow' to see how input travels through the network. This is the monster we're building."><MLPNetworkDiagram /></Figure>
 
 Three parts. The input layer receives your data. The hidden layers (1, 2, or 50 — your choice) are where neurons detect patterns — each one does the same thing you built last chapter: weighted sum + bias + activation. The output layer is also a layer of weights — it takes the hidden layer's output and produces one score per possible character (27 scores total). Those scores become probabilities via softmax. More neurons, more layers, more context = more power.
@@ -26,30 +27,36 @@ Can this monster beat the N-gram? First problem: how do we feed letters to a neu
 
 We need to convert characters to numbers. The obvious approach — a=0, b=1, z=25 — implies 'z' is 25× bigger than 'a', which is meaningless. We need something better.
 
+{/* EncodingProblemDemo — numbering the letters (a=0…z=25) invents a fake ordering: 'z' isn't 25× 'a'. The reader feels why something better is needed. */}
 <Figure label="Interactive · The Encoding Problem" hint="Compare integer encoding (misleading magnitudes) vs one-hot encoding (equal distances). Try different character pairs."><EncodingProblemDemo /></Figure>
 
 The solution: one-hot encoding. Convert each character to a vector of zeros with a single 1 at that character's position. Now every character is equally different from every other — no fake ordering, no misleading magnitudes.
 
+{/* OneHotVisualizer — the honest fix: each letter is a vector of zeros with a single 1, equally distinct from every other, with no invented order. */}
 <Figure label="Interactive · One-Hot Encoding" hint="Click any letter to see its one-hot vector — 27 numbers, all zeros except one."><OneHotVisualizer /></Figure>
 
 To see 3 letters at once, we simply concatenate their one-hot vectors into one long input vector. Three characters, each with 27 numbers, gives us a single vector of 81 numbers that the network can process.
 
+{/* ContextConcatenationExplorer — to see several letters at once, their vectors are glued into one: that's how the network's context input is born. */}
 <Figure label="Interactive · Context Concatenation" hint="Pick 3 characters and see how they're concatenated into a single input vector for the network."><ContextConcatenationExplorer /></Figure>
 
 We have our input representation — 81 numbers. Now let's see what happens when the monster processes ONE example. Watch the full training loop: characters enter, get converted to one-hot vectors, flow through the hidden layer, produce a prediction — and then the monster learns from its mistakes.
 
+{/* SingleExampleTrainer — the entire learning loop on ONE example: predict, be wrong, correct itself. Learning is just that, repeated millions of times. */}
 <Figure label="Interactive · One Training Step" hint="Step through the complete training loop: input → one-hot → concatenate → hidden layer → softmax → loss → backprop → update. Click 'Next' to advance through each stage."><SingleExampleTrainer /></Figure>
 
 OK — we have an MLP with hidden layers and a one-hot representation. Can we beat the N-gram NOW?! Let's race them head to head. A 4-gram counting model versus our MLP with 3 hidden layers and 4 characters of context. Hit start and see what happens.
 
 Before we hit start — who do you think wins? The counting table that memorizes exact sequences? Or the neural network that learns patterns?
 
+{/* TrainingRace4gramVsMLP — the unexpected twist: the humble counting table beats the monster with thousands of parameters. The defeat that opens the chapter. */}
 <Figure label="Interactive · 4-gram vs MLP Training Race" hint="Watch a 4-gram (counting, instant) race against an MLP (learning, progressive). Compare loss curves, parameters, and generated text."><TrainingRace4gramVsMLP /></Figure>
 
 <PullQuote>Wait. WAIT. Our MLP has 3 hidden layers, thousands of parameters, and real gradient-based learning. The N-gram is just a counting table. And it WON?! How is this possible?</PullQuote>
 
 Let's investigate. How does our monster actually read its input? When we feed it 'h', 'e', 'l' — what does it actually SEE? Let's measure the distance between characters as the model perceives them:
 
+{/* CharacterSimilarityBlindness — the root of the defeat: under one-hot, every letter is the same distance from every other. The monster doesn't know 'a' and 'e' are alike. */}
 <Figure label="Interactive · The Blindness Problem" hint="Click any character and see its distance to all others. In one-hot mode, every distance is identical. Toggle to 'useful' to see what meaningful distances would look like."><CharacterSimilarityBlindness /></Figure>
 
 <BlindnessCallout title="The Monster Is Blind">Every single character is exactly the same distance apart: √2. The letter 'a' is as far from 'e' as it is from 'z' or '.'. Vowels, consonants, punctuation — all identical strangers. The monster has no concept of similarity whatsoever.</BlindnessCallout>
@@ -72,22 +79,27 @@ We need to tame this creature. Step by step: first, give it eyes so it can see s
 
 Think about the letters for a moment. What do 'a', 'e', 'i', 'o', 'u' have in common? They're all vowels. What do 'p', 'b', 'd' share? They're all stops. Letters have natural groupings that one-hot encoding completely ignores.
 
+{/* CharacterFeatureExplorer — by grouping letters by type, the reader discovers letters have features: the first step toward embeddings, without realizing it. */}
 <Figure label="Interactive · Character Feature Explorer" hint="Sort characters into groups. You're assigning categorical features — each group is like a dimension in a coordinate system."><CharacterFeatureExplorer /></Figure>
 
 You just sorted characters into groups — vowels here, stops there. But a group is binary: you're either in or out. What if each feature was a NUMBER instead? Not 'is vowel' (yes/no), but 'vowelness: 0.9'. Not 'is frequent' (yes/no), but 'frequency: 0.82'. Click any letter below to see it described as a vector of numbers.
 
+{/* CharacterFeatureScoring — the jump from binary group to number: not 'is a vowel yes/no', but 'vowelness 0.9'. Similar letters get similar vectors. */}
 <Figure label="Interactive · Character Feature Vectors" hint="Click any character to see its feature scores. Compare groups to see how similar characters get similar vectors — the core idea behind embeddings."><CharacterFeatureScoring /></Figure>
 
 By assigning numerical features to each character, we can now visualize them in a coordinate space. Each character becomes a point with specific coordinates, and similar characters naturally cluster together. We can plot these points on a graph to see the patterns and relationships emerge visually.
 
+{/* ManualEmbeddingBuilder — with two features, letters land on a plane and good embeddings become visible: alike sits close, randomness scatters everything. */}
 <Figure label="Interactive · Manual Embedding Builder" hint="Assign 2 numeric features to each letter. Watch how vowels cluster together and consonants group by type — or randomize to see the structure vanish."><ManualEmbeddingBuilder /></Figure>
 
 You just placed letters in a 2D space by choosing two features. But what if you used 10? Or 100? Each number is a dimension the network can use to describe a character. The more dimensions, the more nuanced the description — and the better the network can distinguish between similar characters.
 
 But who chooses all those features? You picked these by hand — and that was only two dimensions. For 100, we'd never finish. Instead, we could let the network <Highlight color="emerald">learn them automatically</Highlight>. Imagine a table with one row per character and several columns — each column is a feature. The network starts with random numbers and adjusts them during training, discovering patterns we never told it about. Each row becomes that character's 'description' — a list of numbers the network figured out on its own.
 
+{/* EmbeddingTableBridge — nobody picks the features by hand: the network learns them itself. Each row is the 'description' the monster invented for a letter. */}
 <Figure label="Interactive · The Embedding Table" hint="Click any character to look up its row in the embedding matrix. Notice how vowels have similar patterns."><EmbeddingTableBridge /></Figure>
 
+{/* EmbeddingLookupAnimator — an embedding lookup is selecting a row: the same move the N-gram made in its table, but with a learned matrix. */}
 <Figure label="Interactive · Embedding Lookup Animator" hint="Step through the process: select a token → one-hot encode → multiply by embedding matrix → get the dense embedding vector."><EmbeddingLookupAnimator /></Figure>
 
 Notice something familiar? Multiplying a one-hot vector by a matrix just selects one row — exactly what the N-gram did when it looked up a row in its count table. The difference: this matrix is LEARNED, not counted.
@@ -99,6 +111,7 @@ Notice something familiar? Multiplying a one-hot vector by a matrix just selects
 The embedding lookup is mathematically equivalent to multiplying the one-hot vector by the embedding matrix E. But instead of V dimensions (27 for our alphabet), each character now lives in just D dimensions (typically 2–32). The result: <Highlight color="emerald">dramatically smaller inputs</Highlight> with richer information.
 
 <TrainingChallengePanel title="3. Technical Deep Dive: Parameter Savings" preview="See exactly how embeddings reduce parameter count" category="math" difficulty={2}>
+{/* CompressionRatioCalculator — embeddings don't just see better, they compress. The reader sees how many parameters are saved versus one-hot. */}
 <Figure label="Interactive · Compression Calculator" hint="Adjust vocabulary size, context window, and embedding dimension. See how embeddings slash the parameter count compared to one-hot encoding."><CompressionRatioCalculator /></Figure>
 </TrainingChallengePanel>
 
@@ -106,10 +119,12 @@ The embedding lookup is mathematically equivalent to multiplying the one-hot vec
 
 We gave the monster eyes — embeddings that see similarity. But can we actually train the perfect model? Let's find out. Below, three models race head-to-head: the 4-gram (pure counting), an MLP with tiny embeddings, and an MLP with the best embedding configuration we've found. Press start and watch their loss curves unfold.
 
+{/* TripleModelRace — the rematch with eyes: more embedding dimensions → lower loss → better text. Embeddings flip the result of the race. */}
 <Figure label="Interactive · 4-gram vs MLP(small) vs MLP(best)" hint="Watch three models race: counting vs small embeddings vs large embeddings. Compare loss curves, parameters, and generated text quality."><TripleModelRace /></Figure>
 
 The results speak for themselves. More embedding dimensions give the network richer representations, which translate directly into lower loss and more coherent text. But we're not done — let's see the trained model generate text live.
 
+{/* MLPLivePredictor — the tangible payoff: the trained model writes live, letter by letter, from whatever the reader types. The monster now generates text. */}
 <Figure label="Interactive · See It Generate Real Text" hint="Type text and see real-time next-character predictions from the trained MLP. Click a prediction to append it and watch the model write."><MLPLivePredictor /></Figure>
 
 <MonsterStatus gradient="violet-emerald">👾 The monster can see. Embeddings gave it eyes — it knows 'a' and 'e' are similar. But what happens INSIDE when those embeddings flow through the hidden layer? What is each neuron actually computing? Time to crack open the skull.</MonsterStatus>
@@ -128,40 +143,48 @@ The results speak for themselves. More embedding dimensions give the network ric
 
 In §02, you watched the monster gain sight. But we skipped the most fascinating part: HOW do random numbers organize themselves into a map of meaning? The answer is backpropagation — the same learning signal that tunes weights also reshapes embedding vectors. Each training step nudges every character's vector toward positions that help predict the next letter.
 
+{/* BackpropEmbeddingVisualizer — embeddings aren't magic: the same backpropagation that tunes the weights also pushes each letter into its place. */}
 <Figure label="Interactive · How Embeddings Learn" hint="Step through training snapshots and watch the embedding space evolve. Click any character to see how its vector changes. Watch similar characters converge through gradient descent."><BackpropEmbeddingVisualizer /></Figure>
 
 That was the learning principle in action. Now let's watch the real thing — embeddings from our actual trained model evolving across 50,000 steps:
 
+{/* EmbeddingTrainingTimelapse — real data: from random noise to clusters of meaning over 50,000 steps. The order isn't imposed, it emerges on its own. */}
 <Figure label="Interactive · Embedding Training Timelapse" hint="Press play to watch 2D embeddings evolve from random noise to structured clusters across 50,000 training steps. Uses real model snapshots."><EmbeddingTrainingTimelapse /></Figure>
 
 The embeddings learned structure — but WHAT structure exactly? We trained four models with different embedding sizes: 2D, 10D, 32D, and 128D. Compare them below. The network was never told which characters are vowels or consonants — watch what it discovers on its own as it gets more dimensions to work with.
 
+{/* EmbeddingCategoryAnalyzer — nobody told it what a vowel is: with more dimensions, the network separates categories on its own, just because they help it predict. */}
 <Figure label="Interactive · Embedding Category Comparison (4 Models)" hint="Switch between 2D, 10D, 32D, and 128D embeddings. Watch how cluster separation improves with more dimensions. Color = character category."><EmbeddingCategoryAnalyzer /></Figure>
 
 Did you notice? With just 2 dimensions, categories blur together. By 10D, vowels, consonants, and punctuation form distinct clusters. At 32D, even sub-groups emerge — frequent consonants separate from rare ones. The network discovered CATEGORIES purely from the prediction task. These groupings weren't in the training data — they emerged because they help predict what comes next.
 
 The category analyzer showed that more dimensions help — but how much? Below, compare actual models trained with E=2 through E=128. Watch the loss drop as dimensions increase, then plateau when the network has enough room. For 28 characters, there's a clear sweet spot where adding more dimensions stops helping.
 
+{/* EmbeddingBottleneckExplorer — more dimensions help, but only up to a point: for 27 letters there's a sweet spot, and going past it stops paying off. */}
 <Figure label="Interactive · Embedding Dimension Bottleneck" hint="Slide through embedding dimensions E=2 to E=128. Watch loss decrease then plateau. See generated text quality improve with each step up."><EmbeddingBottleneckExplorer /></Figure>
 
 Characters live as points in a coordinate space. How do we measure if two points are 'close'? Euclidean distance measures the straight line between them. Cosine similarity measures the angle — two characters can be far apart but 'pointing the same way' from the origin.
 
+{/* DistanceConceptVisualizer — two ways to measure 'close' in embedding space: Euclidean distance (the straight line) and cosine similarity (the angle). */}
 <DistanceConceptVisualizer />
 
 Apply these metrics to real learned embeddings: <Highlight>Euclidean distance</Highlight> and <Highlight color="emerald">cosine similarity</Highlight>. Characters in similar contexts end up with similar embeddings.
 
 <TrainingChallengePanel title="Try It: Distance Calculator" preview="Compute the actual Euclidean distance and cosine similarity between any two character embeddings." category="challenge" difficulty={1}>
+{/* EmbeddingDistanceCalculator — apply the metrics to real embeddings: letters that appear in similar contexts end up neighbors, and the number confirms it. */}
 <EmbeddingDistanceCalculator />
 </TrainingChallengePanel>
 
 You've seen the clusters form. Now test your intuition: given the existing embeddings, where do you think a new character will land?
 
+{/* EmbeddingPredictionChallenge — the reader bets where a mystery letter will land: if they've understood the clusters, they can guess before the reveal. */}
 <Figure label="Interactive · Embedding Prediction Challenge" hint="Guess where a mystery character will land in the embedding space, then reveal the actual position. Can you predict the clusters?"><EmbeddingPredictionChallenge /></Figure>
 
 Our character-level embeddings group letters by type — vowels cluster together, consonants cluster together. But what happens when you apply this SAME idea to entire words instead of single letters? Models like Word2Vec and GPT do exactly this: they assign each word a vector of numbers, trained so that words used in similar contexts get similar vectors.
 
 The result is breathtaking. In word-level embedding space, directions encode meaning. The direction from 'man' to 'king' captures 'royalty.' Apply that same direction to 'woman' and you land near 'queen.' Synonyms cluster together. Antonyms sit nearby but on opposite sides of a polarity axis. Even translations across languages land in the same region. Meaning becomes geometry — and it all starts with the same embedding principle we just explored with characters.
 
+{/* WordEmbeddingAnalogyDemo — the same idea at word scale: meaning becomes geometry, and king − man + woman ≈ queen stops being magic. */}
 <Figure label="Illustrative · Word Embedding Analogies" hint="Select an analogy preset, then click 'Reveal' to see the vector arithmetic in action. Switch to the Neighborhoods tab to see how synonyms, antonyms, and word families cluster in embedding space."><WordEmbeddingAnalogyDemo /></Figure>
 
 <KeyTakeaway>Embeddings aren't magic — they're learned through the same backpropagation that trains the rest of the network. Each gradient step nudges character vectors toward positions that improve predictions. More dimensions capture finer structure, and the learned clusters reveal genuine linguistic patterns: vowels group together, consonants cluster by type. At word scale, the same idea enables analogies like king − man + woman ≈ queen. The monster's eyes work — now let's see what its brain does with what it sees.</KeyTakeaway>
@@ -171,12 +194,14 @@ Can we do something bolder — actual math with these learned vectors? If vowels
 
 Group centroids reveal how the network organizes characters internally — and vector operations show whether relationships are encoded as consistent directions.
 
+{/* EmbeddingArithmeticPlayground — if vowels really form a group, their centroid means something: relationships are encoded as directions you can do math with. */}
 <EmbeddingArithmeticPlayground />
 </TrainingChallengePanel>
 
 <TrainingChallengePanel title="Deep Dive: Weight Tying — Are Two Matrices One?" preview="The embedding matrix E and the output matrix W_out have the same shape transposed. What if they're the same matrix?" category="deepdive" difficulty={2}>
 Notice something: the embedding matrix E maps characters → vectors (V×D), and the output matrix W_out maps vectors → character scores (D×V). One is the transpose of the other. Weight tying forces W_out = Eᵀ, sharing the same parameters for input and output. Does it help?
 
+{/* WeightTyingVisualizer — the input matrix and the output matrix are transposes of each other: tying them saves parameters, and helps more as vocabulary grows. */}
 <Figure label="Experiment · Weight Tying: Tied vs Untied" hint="Switch between two corpora (V=28 and V=96) to see how vocabulary size affects the weight tying trade-off. Compare parameter counts and val loss."><WeightTyingVisualizer /></Figure>
 </TrainingChallengePanel>
 
@@ -192,38 +217,45 @@ Notice something: the embedding matrix E maps characters → vectors (V×D), and
 
 What happens when the monster processes "hel" and needs to predict the next character? Watch each operation unfold — from embedding lookup through the hidden layer to the final probability distribution.
 
+{/* MLPForwardPassAnimator — the full path from letter to prediction, step by step: how "hel" becomes a bet on the next character. */}
 <Figure label="Interactive · The Monster's Forward Pass" hint="Click 'Next Step' to walk through the MLP's forward pass: embed → concatenate → hidden layer → softmax. Watch how raw characters become predictions."><MLPForwardPassAnimator /></Figure>
 
 Now watch the whole pipeline working together — from embedding lookup all the way to the next-character prediction. Every component running as one unified system.
 
+{/* MLPPipelineVisualizer — the same journey but with real model data, running as one unified end-to-end system. */}
 <Figure label="Interactive · Complete MLP Pipeline" hint="The full MLP language model pipeline: embedding lookup → concatenation → hidden layers → softmax → next character prediction."><MLPPipelineVisualizer /></Figure>
 
 So what comes out of the hidden layer? Each neuron produces a number between −1 and +1 (tanh). With 128 neurons, that's a 128-dimensional vector — a compressed representation of the input. But how does that become a prediction? The output layer multiplies it by a 128 × 27 weight matrix to get 27 raw scores (logits), and then softmax turns those into probabilities. Let's see each step:
 
+{/* SoftmaxStepVisualizer — demystifies softmax: how 27 raw scores (logits) get exponentiated and normalized into probabilities that sum to 100%. */}
 <Figure label="Interactive · From Hidden Layer to Prediction" hint="Step through the computation: hidden neuron outputs → multiply by W₂ → raw logits → exponentiate → normalize → probabilities. This is what softmax actually does."><SoftmaxStepVisualizer /></Figure>
 
 Without hidden layers, a neural network can only learn simple input→output mappings — essentially a counting table with weights. It memorizes 'after "th", predict "e"' but can't generalize. The hidden layer changes everything: it takes the 30-dimensional embedding input and BENDS it through weighted sums + tanh, creating new features the output layer can combine. It doesn't just memorize — it discovers patterns.
 
 Let's prove it. Same input, same task — but one brain has a hidden layer and the other doesn't. Watch how the flat network converges to an exact copy of the counting table, while the MLP learns something deeper:
 
+{/* TrigramEquivalenceDemo — with no hidden layer, the MLP is just a counting table in disguise. The hidden layer is what separates memorizing from generalizing. */}
 <Figure label="Interactive · N-gram vs MLP: Same Task, Different Brain" hint="Compare how an N-gram (table lookup) and an MLP (matrix computation) handle the same input. The N-gram memorizes; the MLP generalizes."><TrigramEquivalenceDemo /></Figure>
 
 So the hidden layer bends space. But what is each individual neuron doing? During training, different neurons learned to detect different patterns — completely on their own. Click any neuron below to see what it responds to.
 
 The hidden layer lets the network BEND space. Each neuron computes its own weighted sum + bias + tanh, creating a non-linear feature detector. One neuron might fire for vowel-consonant pairs. Another detects doubled letters. Yet another recognizes word endings. None of this is programmed — it's all discovered during training.
 
+{/* NeuronActivationExplorer — each neuron specialized on its own into a detector: vowel pairs, word endings... nobody programmed it, it discovered them. */}
 <Figure label="Interactive · What Each Neuron Detects" hint="Click any hidden neuron to see the input patterns that make it fire most strongly (and least). Each neuron has specialized into a different feature detector."><NeuronActivationExplorer /></Figure>
 
 One neuron fires for vowel pairs. Another detects word endings. Yet another recognizes consonant clusters. The network didn't know about any of these concepts — it discovered them because they help predict the next character. This is the magic of learned representations.
 
 Did you notice something strange? Neuron #0 fires for vowel pairs AND also for certain consonant sequences. Neuron #3 detects word boundaries AND also frequency patterns. These neurons don't have clean, single jobs. They're doing multiple things at once.
 
+{/* PolysemanticitySplitDemo — a neuron has no single clean job: the network crams several features into each one. That's polysemanticity, made visible. */}
 <Figure label="Interactive · One Neuron, Multiple Meanings" hint="Select neurons to see what patterns they detect. Notice the overlap — one neuron, multiple roles."><PolysemanticitySplitDemo /></Figure>
 
 You might think: with 128 neurons, we should be able to catalog each one. Neuron 1 = vowels. Neuron 2 = endings. But that's not how it works. The monster doesn't THINK in characters. It thinks in FEATURES — patterns like 'likely to be followed by a vowel.' There are far more useful features than neurons. So the network does something clever and inconvenient: it crams multiple features into each neuron. Researchers call this polysemanticity (poly = many, semantic = meaning). One neuron, many meanings.
 
 If neuron #3 does multiple things, what happens when we turn it off? Let's find out.
 
+{/* NeuronAblationExplorer — turning off a single neuron degrades several predictions at once: living proof of polysemanticity and of the 'black box'. */}
 <Figure label="Interactive · Neuron Ablation Explorer" hint="Toggle neurons on/off to see what breaks. Disable neuron #45 for the most dramatic effect."><NeuronAblationExplorer /></Figure>
 
 This is the famous 'black box' problem. Even in our tiny monster with 128 neurons and 27 characters, we can't cleanly say what each neuron does. Now imagine GPT-4: 96 layers, billions of parameters, millions of features crammed into neurons that each serve dozens of roles. The hidden layers in ChatGPT work on exactly the same principle — but nobody at OpenAI can point to neuron #847,293 and say exactly what it does. This is the frontier of AI safety research.
@@ -244,6 +276,7 @@ This is the famous 'black box' problem. Even in our tiny monster with 128 neuron
 
 Every breakthrough in language AI came from going deeper. GPT-1 used 12 layers. GPT-3 uses 96. GPT-4 has over 120. Language has layers of structure — letters form syllables, syllables form words, words form phrases — and each network layer can learn one level of abstraction. Our monster has just one layer. What happens if we give it more?
 
+{/* DepthMotivationViz — every AI leap came from going deeper (GPT-1: 12 layers, GPT-4: 120+). The reader feels the promise before seeing it break. */}
 <Figure label="The Case for Depth" hint="Click any model to see details. Notice the trend: every generation goes deeper. Our monster has just 1 layer."><DepthMotivationViz /></Figure>
 
 The evidence is overwhelming: depth is the secret ingredient. So let's try it. We'll take our monster and stack layers — from 1 all the way to 20. Same data, same optimizer, same everything else. Just more layers. Let's see what happens.
@@ -251,11 +284,13 @@ The evidence is overwhelming: depth is the secret ingredient. So let's try it. W
 <TrainingChallengePanel title="Deep Dive: Network Shape" preview="Before adding layers: should we go wide-shallow, narrow-deep, or balanced?" category="deepdive" difficulty={1}>
 Before we start stacking, a quick question: WHICH shape should we try? Wide with few layers? Narrow with many? Or balanced?
 
+{/* NetworkShapeComparison — at the same parameter budget, shape matters: wide-shallow, narrow-deep, or balanced each carry a different trade-off. */}
 <Figure label="Interactive · Network Shape Comparison" hint="Toggle between wide-shallow, narrow-deep, and balanced. See the parameter count and the architectural trade-off each shape creates."><NetworkShapeComparison /></Figure>
 </TrainingChallengePanel>
 
 The balanced shape (3 × 128) is our starting point — enough layers to find deep patterns, enough neurons per layer to hold information without bottlenecking. Now let's actually run them and see what happens.
 
+{/* RealDepthComparisonTrainer — the experiment that breaks intuition: with everything equal but depth, ONE layer wins and the deep ones get worse. */}
 <Figure label="Interactive · Real Depth Comparison" hint="Watch models with 1–4 hidden layers train side by side. Green = good, amber = struggling, red = broken. Notice: 2 layers beats 1... but then what?"><RealDepthComparisonTrainer /></Figure>
 
 More layers = more power, right? Let's test that. We trained 10 identical networks — same architecture, same data, same optimizer (SGD lr=0.01), same seed — changing ONLY the number of layers. From 1 layer to 20.
@@ -266,12 +301,14 @@ The results are devastating. ONE layer wins. The simplest model — just 9K para
 
 Let's look inside. When we inspect the neurons of each model, we find something alarming: many neurons have stopped working entirely. Their outputs are stuck at ±1 (the limits of tanh), and their derivatives are effectively zero. These neurons will NEVER learn again — they are permanently dead.
 
+{/* DeadNeuronVisualizer — the autopsy: the deeper the network, the more neurons die stuck at ±1. A 20-layer network has 88% of them not learning. */}
 <Figure label="Interactive · Dead Neurons by Depth" hint="Select a depth to see how many neurons are dead in each layer. Dead neurons (tanh' ≈ 0) are frozen forever — they waste capacity and block gradient flow."><DeadNeuronVisualizer /></Figure>
 
 The deeper the network, the more neurons die. A 20-layer network has 88% dead neurons — only 12% of its capacity is actually learning. Meanwhile, L1 has zero dead neurons and the best loss. But WHY do neurons die in deep networks? The answer is tanh saturation.
 
 Remember tanh from the neural network chapter? When inputs get too large, tanh saturates at ±1 — and its derivative drops to zero. That's exactly what's happening in our deep layers.
 
+{/* TanhSaturationDemo — the why behind the death: as the input grows large, tanh flattens and its derivative drops to zero. No derivative, no learning. */}
 <Figure label="Interactive · Tanh Saturation" hint="Drag x to see tanh(x) and its derivative. When |x| > 2, the derivative approaches 0 — gradients through this neuron are killed."><TanhSaturationDemo /></Figure>
 
 Think of tanh like a rubber band stretched between two walls at −1 and +1. A small input stretches it a bit and it snaps back easily — that elastic force is the gradient. But once you stretch it almost to the wall, it's nearly taut: any additional pull barely moves it. The input is large, the output is at the limit, and there's almost no elasticity left to propagate the error signal backward. Every layer adds another rubber band in series. By layer 4, the error signal trying to reach layer 1 has lost all of its force.
@@ -279,6 +316,7 @@ Think of tanh like a rubber band stretched between two walls at −1 and +1. A s
 <TrainingChallengePanel title="Deep Dive: Activation Function Battle" preview="What if we swap tanh for ReLU or GELU? Does changing the activation function solve the depth problem?" category="deepdive" difficulty={2}>
 If tanh is the culprit, what if we swap it out? ReLU, GELU, and sigmoid all have different saturation properties. Does switching the activation function solve the depth problem?
 
+{/* ActivationBattleVisualizer — is tanh to blame? Switching to ReLU or GELU helps, but the reader finds it isn't enough: depth keeps degrading. */}
 <Figure label="Interactive · Activation Function Battle" hint="Toggle activations to compare. Watch the loss curves race. Best val_loss wins."><ActivationBattleVisualizer /></Figure>
 
 ReLU and GELU beat tanh — they don't saturate as aggressively on the positive side. Sigmoid is worse than tanh (double saturation at both ends). Linear diverges entirely — no non-linearity means no representation power. But even ReLU with 4+ layers still degrades. Changing the activation helps, but doesn't fully solve the depth problem.
@@ -286,10 +324,12 @@ ReLU and GELU beat tanh — they don't saturate as aggressively on the positive 
 
 The activation histogram makes this concrete. In layer 1, values are spread healthily. By layer 3, most values are pushed to ±1 — the saturation zone where <Highlight color="amber">gradients are nearly zero</Highlight>.
 
+{/* ActivationHistogramVisualizer — the abstract made concrete: layer by layer, activations pile up at ±1, the dead zone where the gradient vanishes. */}
 <Figure label="Interactive · Activation Histograms by Layer" hint="Compare activation distributions across layers. Deeper layers show bimodal distributions piling up at ±1 — the tanh dead zone."><ActivationHistogramVisualizer /></Figure>
 
 But it gets worse. A dead neuron doesn't just stop learning — it NEVER recovers. Once tanh saturates, the derivative is zero, so the weight update is zero, so the neuron stays saturated forever. It's permanently frozen. And worse: it blocks the gradient signal for every neuron behind it. In a deep network, this cascades: one dead layer kills the gradient for all earlier layers.
 
+{/* DeadLayerCascadeVisualizer — a dead layer doesn't die alone: it blocks the gradient for every layer before it. The damage cascades backward. */}
 <Figure label="Interactive · Dead Layer Cascade" hint="Step through the cascade: tanh saturates → derivative drops to 0 → gradient dies → downstream neurons lose their learning signal."><DeadLayerCascadeVisualizer /></Figure>
 
 This is the cruel truth about dead neurons: once a neuron dies, it's dead FOREVER. Zero derivative means zero weight update. Zero weight update means the weights never change. The weights never change means the output stays saturated. The output stays saturated means the derivative stays zero. It's a death spiral with no escape.
@@ -308,30 +348,36 @@ Saturated neurons. Dead layers. Fading signals. We can see WHAT breaks when the 
 
 Before we diagnose the disease, look at the symptoms. Here are the initial losses — the very first prediction each model makes, before ANY training. What you see should disturb you.
 
+{/* InitialLossCatastropheViz — the symptom that should disturb you: before any training, deep models predict WORSE than random. Something was born wrong. */}
 <Figure label="Interactive · Initial Loss Catastrophe" hint="Compare initial val_loss at step 0 across all 10 depth models. The red dashed line is random guessing (ln 27). Models ABOVE this line are worse than knowing nothing."><InitialLossCatastropheViz /></Figure>
 
 How can a model be worse than random? Random guessing gives 1/27 ≈ 3.7% to every character — including the correct one. But a badly initialized network doesn't output uniform probabilities. Its random weights make softmax concentrate probability on a FEW wrong characters. It's not confused — it's confidently wrong. Try adjusting the init scale below to see this in action.
 
+{/* WorseThanRandomVisualizer — worse than random isn't being confused: it's being confidently wrong, betting everything on the incorrect characters. */}
 <Figure label="Interactive · Worse Than Random Prediction" hint="Drag the σ slider to see how initialization scale affects the model's predicted probabilities. Large σ = confident and wrong = worse than random."><WorseThanRandomVisualizer /></Figure>
 
 So where do these weights come from? Before training begins, we initialize weights as random numbers drawn from a bell curve (Gaussian distribution) centered at zero. The width of this bell — its standard deviation σ — controls everything. Too wide, and weights land in the tanh dead zone. Too narrow, and the signal is too weak to propagate.
 
+{/* GaussianDistributionExplorer — the culprit is at birth: the width σ of the initial weight bell decides everything. Too wide kills, too narrow mutes. */}
 <Figure label="Interactive · Weight Distribution Explorer" hint="Drag σ to see the bell curve change shape. Watch how many sampled weights fall into the tanh dead zone (|w| > 2) and what that means for neuron health."><GaussianDistributionExplorer /></Figure>
 
 The right spread turns out to be everything. Too large → activations explode → every neuron saturates instantly. Too small → signal fades to nothing before reaching the output. With many layers, bad initialization is irrecoverable.
 
 Drag the slider below to see how initialization scale affects the loss curve. There's a narrow sweet spot where training works — miss it and the network is broken from step 0.
 
+{/* InitializationSensitivityVisualizer — there's a narrow band where training works; outside it, the network is broken from step 0. */}
 <Figure label="Interactive · Initialization Sensitivity" hint="Drag σ across four zones: dead (too small), sweet spot (Kaiming), unstable (too large), and chaotic (way too large). Each zone gets a detailed explanation."><InitializationSensitivityVisualizer /></Figure>
 
 Now we know WHAT bad initialization does. But WHY is it so catastrophic for deep networks specifically? The answer is in how the network learns: backpropagation.
 
 During training, the error signal flows backward from the output to the input. At each layer, the gradient is multiplied by two things: tanh'(activation) and the weight. If the neuron is saturated, tanh' ≈ 0 — the gradient is killed. If the weight is too large, the gradient explodes. Pick a scenario below and step through the chain.
 
+{/* BackpropVanishingCalculator — the chain rule as arithmetic: fraction × fraction × fraction → zero. The reader watches the gradient die layer by layer. */}
 <Figure label="Interactive · Backpropagation Chain Calculator" hint="Choose vanishing, stable, or exploding. Step through 4 layers to see exact tanh'(z) × W multiplications and the running gradient product. Watch for KILLED indicators."><BackpropVanishingCalculator /></Figure>
 
 The chain calculator shows one path. Now see the full picture: gradient magnitude at EVERY layer of a network. Hover each layer for its diagnosis.
 
+{/* GradientFlowVisualizer — the full picture of the flow: the gradient arrives strong at the output and near-zero at the first layers. That's why they don't learn. */}
 <Figure label="Interactive · Gradient Flow Visualizer" hint="Toggle between vanishing, stable, and exploding regimes. Hover any layer for annotation. The summary card explains what each regime means for training."><GradientFlowVisualizer /></Figure>
 
 The diagnosis is complete. Three interconnected problems: (1) Random initialization puts neurons in the tanh dead zone → saturated activations. (2) Saturated activations have derivative ≈ 0 → vanishing gradients via chain rule. (3) Vanishing gradients → early layers can't learn → the network wastes most of its capacity. Each added layer makes all three problems worse. That's why our L1 model beat L20 — the deeper monster was crippled from birth.
@@ -352,70 +398,87 @@ Each solution targets one link in the failure chain we just traced. Together, th
 
 The monster was born with random weights. But WHICH random? Here's the trap: a neuron with N inputs sums all of them, each multiplied by a random weight. If those weights are drawn from σ = 1, the sum has variance N. With 128 inputs, that's √128 ≈ 11 times too large. The neuron's output is so extreme that tanh saturates instantly — and a saturated neuron has gradient ≈ 0. It's dead on arrival. The fix? Make each weight smaller by exactly √(2/N). This way the variance stays at ~1.0 through every layer, no matter how deep. He et al. proved this in January 2015. Watch below:
 
+{/* VarianceExplosionVisualizer — the first fix: summing N inputs with σ=1 blows up the variance and saturates the neuron. Shrinking weights by √(2/N) keeps it alive. */}
 <Figure label="Interactive · Variance Explosion" hint="Step through: see how N random inputs get multiplied by random weights, summed, and passed through tanh. Compare Naive (σ=1) vs Kaiming (σ=√(2/N))."><VarianceExplosionVisualizer /></Figure>
 
+{/* KaimingScalingVisualizer — layer by layer: with σ=1 variance explodes; with Kaiming it stays at ~1 no matter the depth. The green bars tell the story. */}
 <Figure label="Interactive · Variance Per Layer" hint="Toggle between Naive (σ=1) and Kaiming (σ=√(2/N)). Drag the slider to change N. Watch variance bars explode or stay green."><KaimingScalingVisualizer /></Figure>
 
 But wait — if bad initialization is so deadly, why did our 1-layer monster work fine earlier? Because with only 1 layer, there's only 1 chance for things to go wrong. The variance drifts a bit, but the network can correct itself during training — the first 1,000 steps are just undoing the bad start. With 10 layers, those errors compound at each layer. By layer 6, the variance has exploded exponentially. More layers = more chances for the initialization error to cascade. That's why deep networks are so sensitive to starting weights, while shallow ones often get lucky.
 
+{/* ShallowVsDeepComparison — why the 1-layer net survived bad init: it has just one chance to go wrong; across 20 layers, the error compounds. */}
 <Figure label="Interactive · Shallow vs Deep" hint="Compare training curves for 1-layer, 4-layer, and 20-layer networks — all with bad initialization. See why shallow networks survive."><ShallowVsDeepComparison /></Figure>
 
 The effect on training is dramatic. Below: three initializations race. Too-small weights (σ=0.01) produce a dead network that barely learns. Random (σ=1) saturates early and converges slowly. Kaiming starts in the healthy zone and reaches the lowest loss.
 
+{/* InitializationComparisonTrainer — the live proof: tiny weights give a dead network, random converges slowly, Kaiming starts healthy and reaches the lowest loss. */}
 <Figure label="Interactive · Initialization Comparison" hint="Three-column race: Too Small vs Random vs Kaiming. Press Train to watch dead neurons, gradient magnitudes, and variance drift in real time."><InitializationComparisonTrainer /></Figure>
 
 Kaiming gives the monster a healthy start. But training is a long journey — thousands of steps where every weight changes a little bit. As weights shift, the activation distributions drift: means wander away from zero, variances grow or shrink unpredictably, and neurons that started healthy slowly saturate. Imagine calibrating a telescope at sunset, but by midnight the temperature has changed and everything is blurry again. Watch what happens to activation distributions across training steps:
 
+{/* ActivationDriftVisualizer — Kaiming fixes the starting point, not the journey: during training the activations drift and the healthy bell turns to chaos. */}
 <Figure label="Interactive · Activation Drift" hint="Step through training: watch how the distribution shifts and spreads as training progresses. The healthy bell curve flattens into chaos."><ActivationDriftVisualizer /></Figure>
 
 The activations are drifting. Kaiming fixed the starting point, but what about the journey? What if we could force the activations back to a healthy range AFTER every single layer, at every training step? What's the simplest fix? Force the values back to a healthy range. Take a batch of activations, calculate the mean, subtract it. Calculate the standard deviation, divide by it. Try it below:
 
+{/* BatchNormDiscoveryVisualizer — the simplest fix, discovered: if activations drift, force them back by subtracting the mean and dividing by σ. */}
 <Figure label="Interactive · Discover BatchNorm" hint="Step through the BatchNorm calculation on a real mini-batch: raw values → compute μ and σ → center → normalize → apply learned γ and β."><BatchNormDiscoveryVisualizer /></Figure>
 
 That's exactly what Batch Normalization does. After each layer, it normalizes: subtract the mean, divide by the standard deviation. Now activations are always centered at 0 with spread 1 — no matter what the weights are doing. It's like recalibrating your instruments between every measurement.
 
+{/* BatchNormEffectVisualizer — the effect, on and off: with BatchNorm the activations stay centered and healthy at every layer, whatever the weights do. */}
 <Figure label="Interactive · Batch Norm Effect" hint="Toggle BatchNorm on and off. Watch dead zone percentages, layer health indicators, and distribution shapes change in real time."><BatchNormEffectVisualizer /></Figure>
 
 There's a hidden bonus: BatchNorm computes statistics from the current mini-batch (32–128 examples), so each batch gives slightly different μ and σ. The network sees slightly noisy versions of the data at every step — like built-in data augmentation. This reduces overfitting. BatchNorm is secretly a regularizer too, which means our batches are no longer independent — they share normalization statistics. This coupling prevents the network from memorizing individual examples.
 
+{/* BatchNormRegularizerVisualizer — the hidden bonus: each mini-batch gives different μ and σ, so the same value is normalized differently every time. That noise curbs memorization. */}
 <Figure label="Interactive · BatchNorm as Regularizer" hint="Same input, different batches. See how each mini-batch normalizes the same value differently — creating noise that prevents memorization. Try different batch sizes."><BatchNormRegularizerVisualizer /></Figure>
 
 <TrainingChallengePanel title="Deep Dive: The BatchNorm Formula" preview="x̂ = (x − μ) / √(σ² + ε) — walk through it step by step with interactive sliders." category="deepdive" difficulty={3}>
 The formula: x̂ = (x − μ) / √(σ² + ε). μ is the mean of the current batch, σ² is the variance, and ε is a tiny number that prevents division by zero. Let's walk through it step by step.
 
+{/* BatchNormStepByStep — the formula broken into five moves over a real vector, so x̂ = (x − μ)/√(σ²+ε) stops being symbols and becomes a procedure. */}
 <Figure label="Interactive · BatchNorm Step by Step" hint="Click 'Next' to advance through the 5 steps: raw values → compute mean → center → normalize → apply learned γ and β. Adjust γ and β sliders at the end."><BatchNormStepByStep /></Figure>
 
 But wait — if we ALWAYS force mean=0, aren't we limiting what the network can learn? Smart solution: add two learnable parameters per feature. y = γ·x̂ + β. The network can learn to UNDO the normalization if it wants. BatchNorm doesn't limit capacity — it just provides a stable starting point each layer.
 
+{/* GammaBetaVisualizer — always normalizing to mean 0 would limit the network; learnable γ and β give it the freedom to undo the norm when it pays off. */}
 <Figure label="Interactive · Learnable Scale & Shift" hint="Drag γ (scale) and β (shift) sliders to see how the network can reshape the normalized distribution. Try the presets to understand why each pattern might be useful."><GammaBetaVisualizer /></Figure>
 </TrainingChallengePanel>
 
+{/* BNArchitectureVisualizer — BatchNorm in place within the architecture: after each layer it normalizes and keeps activations healthy across all three depths. */}
 <Figure label="Interactive · Forward Pass with BatchNorm" hint="Step through an MLP's forward pass WITH BatchNorm layers. See how BN normalizes values after each linear transform, keeping activations healthy through 3 layers."><BNArchitectureVisualizer /></Figure>
 
 Kaiming + BatchNorm keep activations healthy. But deep networks still have a fundamental problem: each layer REPLACES the signal entirely. If a layer makes a bad transformation, the original information is gone forever — there's no undo button. Think of it like a game of telephone: each person replaces the message entirely, and after 10 people, the original is unrecognizable. Can you think of a fix? Explore below — try toggling 'keep the original' and see what happens:
 
+{/* ResidualDiscoveryVisualizer — the game-of-telephone problem: each layer replaces the signal and a bad layer destroys it. The saving idea: keep the original. */}
 <Figure label="Interactive · Discover Residual Connections" hint="See how a bad layer (Layer 4) destroys the signal. Then toggle 'keep the original' to discover the residual connection idea. Change which layer is bad to test resilience."><ResidualDiscoveryVisualizer /></Figure>
 
 That's the residual connection: y = x + F(x). Each layer adds a small correction instead of replacing the signal. Even if a layer is terrible (F(x) ≈ 0), the original passes through untouched. He et al. published this in December 2015. Now let's see it with real numbers — click any layer below to see the exact math:
 
+{/* ResidualHighwayVisual — the residual connection with numbers: y = x + F(x). Each layer adds a small correction instead of replacing; the original always passes intact. */}
 <Figure label="Interactive · Correction vs Replacement" hint="Toggle y=f(x) (replace) vs y=x+f(x) (correct). Click any layer to expand and see the input, f(x) output, correction, and signal quality."><ResidualHighwayVisual /></Figure>
 
 The skip connection also solves a second problem: vanishing gradients. Remember how gradients die as they travel backward through layers? With a skip connection, there's always a direct highway that bypasses all the layers. Even if 3 out of 4 neurons in a layer are dead, the gradient still flows through the skip. Step through it below — click 'Start Backprop' and step backward layer by layer:
 
+{/* ResidualGradientHighway — the skip connection also rescues the gradient: even when neurons die, the direct highway lets it flow all the way to the first layers. */}
 <Figure label="Interactive · Backprop Step by Step" hint="Toggle With/Without skip, then click 'Start Backprop' to step backward layer by layer. See dead neurons, per-layer gradient calculations, and cumulative gradient."><ResidualGradientHighway /></Figure>
 
+{/* ResidualBNArchitectureVisualizer — both pieces together in one architecture: BatchNorm normalizes at each layer while the skips preserve the original signal. */}
 <Figure label="Interactive · Full Architecture: BN + Residual Forward Pass" hint="Step through the complete forward pass of a 3-layer MLP with BatchNorm AND residual connections. See how BN normalizes at each layer while skip connections preserve the original signal. 15 steps total."><ResidualBNArchitectureVisualizer /></Figure>
 
 With residuals, you can stack 50, 100, even 1000 layers. Each block learns a small correction. Gradients always have a path. Without residuals — impossible. With — routine. This is why ResNet (2015), Transformers (2017), and every modern deep model uses them.
 
 Let's put the full picture together. Below is a matrix showing every combination of techniques at different depths. The pattern is striking: with 1 layer everything works, but as depth grows, you need progressively more of the stability toolkit to keep training alive.
 
+{/* StabilityTechniqueGrid — the whole-picture view: with 1 layer everything works, but the deeper you go, the more of the stability kit you need to keep training alive. */}
 <Figure label="Interactive · Stability Technique Grid" hint="Matrix: rows = layer count, columns = technique combination. Color = final loss (green=good, red=diverged). Click any cell for details."><StabilityTechniqueGrid /></Figure>
 
 <MlpCallout icon="lightbulb" accent="violet" title="The deep learning toolkit (2015)">Kaiming initialization (January), Batch Normalization (February), Residual Connections (December). All three appeared in the same year. Together, they transformed deep learning from unreliable art to reliable engineering — enabling networks with 100+ layers where 5 was once the limit.</MlpCallout>
 
 Remember the depth disaster from §05? Models that produced nothing but gibberish? Let's try again — this time with all three stability techniques applied. Same depth. Same data. Same everything else.
 
+{/* DeepModelRedemptionDemo — the redemption: the same deep network that produced gibberish in §05 now writes coherent text, just with the three techniques applied. */}
 <Figure label="Interactive · Deep Model Redemption" hint="Before/after: the same deep config without and with stability techniques. Watch the success side reveal after the failure."><DeepModelRedemptionDemo /></Figure>
 
 The same architecture. The same depth. But with three simple techniques, the monster went from gibberish to coherent text. This is the power of understanding WHY things break — once you know the cause, the fix is straightforward.
@@ -425,6 +488,7 @@ The same architecture. The same depth. But with three simple techniques, the mon
 <TrainingChallengePanel title="Deep Dive: Scale Stability Experiment" preview="What happens with plain SGD? H=256 vs H=512, 4→20 layers. The results are surprising." category="deepdive" difficulty={3}>
 But here's a twist. What happens when we scale up to H=256 or H=512 neurons and use plain SGD — no Adam, no momentum? We trained 20 models across 5 depths (4→20 layers) with two setups: Kaiming alone vs. Kaiming + BN + Residual. The results are… not what you'd expect.
 
+{/* ScaleStabilityExperiment — the twist: techniques aren't magic, they depend on the optimizer. With plain SGD, Kaiming alone wins; BN and residual shine with Adam. */}
 <Figure label="Scale Stability Experiment" hint="Toggle H=256 / H=512 to compare. Switch between Val Loss, Train Loss, and Gap metrics. Hover bars for detail."><ScaleStabilityExperiment /></Figure>
 
 Surprise: with plain SGD, Kaiming alone actually outperforms BN + Residual at every depth. BN adds batch noise that SGD can't handle efficiently, and residual projections add overhead without benefit. The lesson? Techniques aren't magic — they're designed for specific optimizers. BN + Residual shine with Adam; with SGD, simpler is better. This is why modern deep learning uses Adam + BN + Residual together: each piece needs the others.
@@ -435,6 +499,7 @@ BatchNorm has issues: it depends on batch size (small batches = noisy statistics
 
 Modern solution: Layer Normalization. Instead of normalizing across the batch (vertical), normalize within each example (horizontal). Each token normalizes its OWN features. Doesn't depend on batch size. Works perfectly with batch=1 during generation. That's why ALL Transformers use LayerNorm, not BatchNorm.
 
+{/* NormComparisonDiagram — why Transformers don't use BatchNorm: normalizing within each example (LayerNorm) works with batch=1; across the batch, it doesn't. */}
 <Figure label="Interactive · BatchNorm vs LayerNorm" hint="Hover over rows or columns to see computed μ and σ. Toggle 'Normalized' to see the result. Explore why LayerNorm works at inference and BatchNorm doesn't."><NormComparisonDiagram /></Figure>
 </TrainingChallengePanel>
 
@@ -443,6 +508,7 @@ To add x + F(x), both must have the same dimensions. If F(x) changes the dimensi
 
 The name 'residual' comes from the math: F(x) = y − x. The network learns the residual — the difference between what goes in and what should come out. Not the complete output, just the correction.
 
+{/* ResidualProjectionVisualizer — the name reveals the idea: the network learns the residual F(x) = y − x, only the correction. A projection fixes mismatched dimensions. */}
 <Figure label="Interactive · Residual Math" hint="Two tabs: 'Why Residual?' shows the F(x) = y − x insight with numbers. 'Dimension Projection' shows how W_s fixes mismatched dimensions."><ResidualProjectionVisualizer /></Figure>
 </TrainingChallengePanel>
 
@@ -462,48 +528,57 @@ The monster is tamed. It can go deep without collapsing. But 'stable' doesn't me
 
 Five knobs control the monster's performance. Embedding dimension sets how many numbers describe each character — richer representations, but more parameters. Hidden size determines how many pattern detectors live in the hidden layer — more capacity, but risk of memorization. Learning rate controls how big each gradient update step is — too fast and the model diverges, too slow and it barely learns. Dropout randomly silences neurons during training to prevent memorization. And context window sets how many characters the model sees at once. Every one of these choices has trade-offs.
 
+{/* HyperparameterAnatomyVisualizer — the five knobs we DO control (the network learns the weights): each one lives in a different part of the architecture. */}
 <Figure label="Interactive · Hyperparameter Anatomy" hint="Click each knob to see exactly WHERE it lives in the MLP architecture and what it controls. Watch the diagram highlight the affected components."><HyperparameterAnatomyVisualizer /></Figure>
 
 Each knob controls a different part of the architecture. But they don't operate in isolation — they interact. The best embedding dimension depends on hidden size, which depends on learning rate. To find the true optimum, we need to test them together.
 
 So we trained over 100 models — every combination of embedding dimensions (2 to 32), hidden sizes (32 to 1024), and learning rates (0.01 to 0.2). Each one trained for 50,000 steps on the same Shakespeare data. Your mission: explore the grid and find the champion. Use the sliders. Watch the loss curves. Generate text. Find patterns.
 
+{/* MLPHyperparameterExplorer — over 100 real models to explore: the reader hunts the champion by hand and feels how the knobs interact with one another. */}
 <Figure label="Interactive · Full Hyperparameter Explorer" hint="Use the sliders to explore different hyperparameter combinations. Watch training curves, generate text, and spot anomalies. Try extremes first — the smallest and largest models — then narrow in on the sweet spot."><MLPHyperparameterExplorer /></Figure>
 
 Did you find the best model? Did you notice how some configurations diverge entirely — loss shooting up instead of down? Those are the ones where the learning rate was too aggressive for the model's capacity. And did you see the gap between training and validation loss grow with larger models? That's overfitting — the model memorizing instead of learning.
 
 Now step back and look at all the models at once. Below, every model we trained is plotted as total parameters vs. validation loss. The pattern is striking: beyond a certain size, adding more parameters doesn't help. The loss hits a floor. We call this the parameter wall.
 
+{/* ParameterWallVisualizer — every model at once: past a certain size the loss hits a floor. More parameters don't break through the MLP architecture's wall. */}
 <Figure label="Data · The Parameter Wall" hint="Every dot is a real trained model. Color by embedding dimension or learning rate to see patterns. Hover for details. Notice how the loss plateaus — more parameters don't break through the wall."><ParameterWallVisualizer /></Figure>
 
 No matter how many parameters we throw at this architecture, the loss won't go below ~2.1. The biggest model has 10× more parameters than the sweet spot — and it performs barely better (or worse, due to overfitting). This is the fundamental limit of the MLP architecture, not a tuning problem.
 
 One of the biggest dangers in the explorer was overfitting — models that ace their training data but fail on new text. You saw it in the Neural Network chapter: the gap between training and validation loss is the telltale sign. Can you spot it in practice?
 
+{/* OverfittingDetectiveChallenge — the reader learns to read the telltale sign: the gap between training and validation loss reveals when the model is memorizing. */}
 <Figure label="Challenge · Overfitting Detective" hint="Look at train vs validation loss curves and diagnose: overfitting, underfitting, or well-fitted? Score points for correct answers!"><OverfittingDetectiveChallenge /></Figure>
 
 The cure for memorization is dropout. During each training step, dropout randomly silences a fraction of the neurons — forcing the network to learn redundant, robust representations instead of relying on any single neuron. It's like studying for an exam by covering random parts of your notes each time.
 
+{/* DropoutVisualizer — the cure for memorization: silencing neurons at random each step forces the network to learn redundant, robust paths. */}
 <Figure label="Interactive · Dropout Visualizer" hint="Click 'Training Step' to see which neurons get randomly silenced. Toggle dropout on/off. Watch the history strip — different neurons are active every step, forcing redundancy."><DropoutVisualizer /></Figure>
 
 Dropout makes the network stronger by making it less certain. Instead of one fragile path through the network, it builds many paths — and the final result is more reliable. In §07, we saw BatchNorm do something similar by injecting noise through batch statistics. Both are forms of regularization — techniques that fight memorization.
 
 <TrainingChallengePanel title="Real Experiment: Dropout Rate Comparison" preview="See actual training curves for dropout=0.0, 0.2, 0.5 on the same model. Watch the overfitting gap change." category="experiment" difficulty={2}>
+{/* DropoutExperimentViz — real data on the trade-off: more dropout closes the overfitting gap, but too much also slows learning. */}
 <Figure label="Experiment · Dropout Rate Sweep" hint="Click each dropout rate to compare loss curves. The shaded area shows the overfitting gap between train and val loss. Smaller gap = better generalization."><DropoutExperimentViz /></Figure>
 </TrainingChallengePanel>
 
 Of all five knobs, learning rate is the most dangerous. Too low and the model barely learns — loss plateaus early, wasting compute. Too high and the model diverges entirely — loss explodes, the network learns nothing. The sweet spot is narrow, and it depends on model size.
 
+{/* LearningRateIntuition — the most dangerous knob, like a ball on a slope: too low barely moves, too high bounces over the minimum and diverges. The sweet spot is narrow. */}
 <Figure label="Interactive · Learning Rate Intuition" hint="Click 'Run Gradient Descent' to watch three learning rates compete on the same loss landscape. The ball shows where each optimizer is at each step."><LearningRateIntuition /></Figure>
 
 In the explorer, the diverged configurations — the ones with loss above the random baseline — were almost all lr=0.1 or lr=0.2 on larger models. The learning rate that works for a small model can destroy a large one. This is why practitioners often start with a small learning rate and tune up, never the other way around.
 
 <TrainingChallengePanel title="Real Experiment: Learning Rate Sweep" preview="5 learning rates from 0.0001 to 0.1 on the same architecture. See exactly when and why each one fails." category="experiment" difficulty={2}>
+{/* LRSweepVisualizer — real data on the narrow band: the rate that works on a small model destroys a large one. That's why you start low and tune up. */}
 <Figure label="Experiment · Learning Rate Sweep (5 rates)" hint="Click each learning rate to see its val loss curve. The best rate (green) finds the sweet spot. Too low = barely learns. Too high = explodes."><LRSweepVisualizer /></Figure>
 </TrainingChallengePanel>
 
 There's one more trap even the best configuration falls into: training for too long. Below is a single model trained for 200K steps — ten times longer than necessary. Watch the moment when val loss stops improving while train loss keeps falling. That's the moment the model starts memorizing instead of learning.
 
+{/* OvertrainingTimelineViz — training too long also hurts: the moment val loss stops improving while train loss keeps falling marks the start of memorizing. */}
 <Figure label="Experiment · The Overfitting Timeline" hint="Hover to explore the loss curves over 200K steps. Purple dots show text quality snapshots at milestones. The green marker shows when the model was at its best."><OvertrainingTimelineViz /></Figure>
 
 Everything after the green line is wasted compute — or worse, it actively hurts the model. In practice, we use 'early stopping': monitor val loss and stop when it hasn't improved for N steps. The best model isn't the one that trained longest — it's the one that knew when to stop.
@@ -528,30 +603,37 @@ After hundreds of experiments, the champion emerges. The best possible MLP with 
 
 Before we catalogue the limitations, let's prove the wall exists. Below: increasingly large MLPs — more parameters, more layers, more context. Watch the loss. It plateaus. Throwing more compute at the MLP doesn't help. The architecture itself is the bottleneck.
 
+{/* BigModelLimitationViz — proof the wall is the architecture's, not effort's: 500× more parameters and the loss barely moves. */}
 <Figure label="Interactive · The Parameter Wall" hint="Click each model to see its config and generated text. Notice how loss barely improves despite 500× more parameters."><BigModelLimitationViz /></Figure>
 
 <TrainingChallengePanel title="Deep Dive: Does More Data Help?" preview="Same model, 5 dataset sizes. Does more data break through the wall?" category="deepdive" difficulty={2}>
 Maybe the problem is data? We trained the exact same model on datasets from 100K to 1.7M characters. Surely more data helps… right?
 
+{/* DataSizeExperiment — what if it's the data? It isn't either: more text doesn't break the wall. The bottleneck is the architecture, not the number of examples. */}
 <Figure label="Experiment · Data Size Impact" hint="Hover over each point to see train/val loss and the generalization gap. Notice which dataset size achieves the lowest val loss."><DataSizeExperiment /></Figure>
 </TrainingChallengePanel>
 
 <Highlight color="amber">Limitation 1: Fixed window = no long-range memory.</Highlight> The MLP must receive exactly N characters. It cannot look further back or dynamically expand its view. Information outside the window — no matter how important — is completely invisible. In real language, a pronoun may refer to a noun dozens of tokens earlier. No practically-sized fixed window can reliably bridge these gaps.
 
+{/* ContextWindowVisualizer — Limitation 1, made visible: the fixed window is a keyhole. Whatever falls outside, however important, is invisible to the model. */}
 <Figure label="Interactive · Context Window Blindness" hint="Drag the slider to grow the context window. Watch when the referent comes into view — and notice how small the window must be to hide it entirely."><ContextWindowVisualizer /></Figure>
 
+{/* LongRangeDependencyDemo — the real cost of the fixed window: a pronoun whose referent is far back falls out of reach. No practical window closes that gap. */}
 <Figure label="Interactive · Long-Range Dependency Failure" hint="A sentence where the pronoun refers to a noun many tokens back. Compare how predictions change as the window grows."><LongRangeDependencyDemo /></Figure>
 
 <Highlight color="amber">Limitation 2: Position = identity crisis.</Highlight> Because the MLP concatenates embeddings, the same token at different positions activates completely different weights. 'the' at position 0 and 'the' at position 2 are treated as entirely different inputs. No weight sharing across positions — the network can't recognize that the same word means the same thing regardless of where it appears. This wastes parameters and prevents generalization.
 
+{/* PositionSensitivityVisualizer — Limitation 2: because it concatenates, 'the' in one position vs another activates different weights. No sharing across positions. */}
 <Figure label="Interactive · Position Sensitivity" hint="Toggle a token between positions. The highlighted W₁ columns show which parameters each instance activates — completely different sets."><PositionSensitivityVisualizer /></Figure>
 
 <Highlight color="amber">Limitation 3: Concatenation bottleneck.</Highlight> The first weight matrix W₁ has shape (N·D) × H. Doubling the context doubles this layer. And as context grows, each token's embedding shrinks to a smaller fraction of the input — diluting every signal.
 
+{/* ConcatenationBottleneckVisualizer — Limitation 3: doubling the context doubles the first layer, and each token dilutes into a smaller fraction of the input. */}
 <Figure label="Interactive · Concatenation Bottleneck" hint="Switch between Parameter Growth and Signal Dilution views. Watch W₁ expand and each token's share shrink."><ConcatenationBottleneckVisualizer /></Figure>
 
 <Highlight color="amber">Limitation 4: No semantic understanding.</Highlight> The MLP doesn't know what characters mean — it only learns statistical patterns. Consider the word 'bank': near 'river' it means one thing, near 'money' something completely different. But the MLP gives 'bank' the same embedding regardless of context. It has no mechanism to adjust meaning based on surrounding words.
 
+{/* ContextMeaningDemo — Limitation 4: 'bank' next to 'river' or 'money' gets the SAME embedding. The MLP can't adjust meaning by what surrounds the word. */}
 <Figure label="Interactive · Context-Blind Embeddings" hint="Two contexts for 'bank' — 'river bank' vs 'money bank'. The embedding vector is identical in both. The MLP has no way to adjust meaning."><ContextMeaningDemo /></Figure>
 
 *Four limitations. One root cause. The MLP treats its entire context as one flat vector — it processes every token the same way. It has no mechanism to ask: what's relevant here? What should I focus on? What connects to what? It sees, but it doesn't understand what it's looking at.*
@@ -564,6 +646,7 @@ We've come far. But there's a difference between appreciating progress and being
 
 What would the ideal architecture look like?
 
+{/* ArchitectureWishlistBuilder — the reader designs their ideal model without knowing it: ticking what the MLP lacks, they describe exactly the Transformer. */}
 <Figure label="Interactive · Architecture Wishlist" hint="Check every property you want in your ideal language model. Once you've selected enough, reveal what architecture you've described!"><ArchitectureWishlistBuilder /></Figure>
 
 <AttentionTeaser />

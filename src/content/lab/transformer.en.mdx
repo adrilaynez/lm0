@@ -52,6 +52,7 @@ Before we see the problem, let&apos;s understand what &ldquo;tower&rdquo; looks 
 
 If two words are similar, they&apos;ll share similar features &mdash; and therefore similar vectors. We can picture each vector as a point in <em>meaning-space</em>: similar words end up close together, different words end up far apart. Watch &ldquo;tower&rdquo; transform from letters into its position in that space:
 
+{/* WordToEmbeddingViz — a word stops being letters and becomes a point in meaning-space; that glowing dot IS its whole identity to the model. (Mechanics: see the .tsx) */}
 <Stage><WordToEmbeddingViz /></Stage>
 
 That glowing dot is &ldquo;tower&rdquo;&apos;s entire identity inside the model. Its position captures everything the model has learned about the word &mdash; and notice how &ldquo;castle&rdquo; and &ldquo;skyscraper&rdquo; cluster nearby (similar features), while &ldquo;toy&rdquo; and &ldquo;child&rdquo; sit far away (very different features).
@@ -62,6 +63,7 @@ That dot &mdash; that point in space &mdash; is the same every time. It doesn&ap
 
 See for yourself:
 
+{/* FrozenVsContextualViz — the reader watches one fixed dot refuse to move across four meanings: the blind spot, made literal. */}
 <Stage><FrozenVsContextualViz /></Stage>
 
 The dot doesn&apos;t move. <Highlight color="amber">Four different meanings, one frozen point.</Highlight> The model literally cannot tell these apart &mdash; they are mathematically identical.
@@ -72,6 +74,7 @@ That&apos;s the blind spot. Every word gets one permanent address in meaning-spa
 
 And it gets worse. The frozen problem doesn&apos;t just affect words with multiple definitions. Read this sentence carefully:
 
+{/* PronounResolutionViz — you link "it" back to "trophy" effortlessly; the model has no mechanism to look back at all, and that's the point. */}
 <Stage><PronounResolutionViz /></Stage>
 
 You connected &ldquo;it&rdquo; back to &ldquo;trophy&rdquo; across six words &mdash; using meaning, grammar, and common sense. <Highlight color="amber">Our model has no mechanism to do this.</Highlight> The word &ldquo;it&rdquo; gets one frozen embedding. It can&apos;t look back at &ldquo;trophy.&rdquo; It can&apos;t look anywhere. Every word is processed in its own isolated slot, blind to everything around it.
@@ -80,6 +83,7 @@ You connected &ldquo;it&rdquo; back to &ldquo;trophy&rdquo; across six words &md
 
 Here&apos;s the surprising part. You already know how to do this. Read this sentence, and draw the connections you naturally see between the words:
 
+{/* DrawConnectionsViz — by drawing weighted links between words the reader invents attention with their own hands before it's named. */}
 <Stage><DrawConnectionsViz /></Stage>
 
 Those weighted lines you drew &mdash; thicker for words that matter more, thinner for words that matter less &mdash; are <em className="text-white/75 not-italic font-medium">exactly</em> the mechanism that powers every modern language model. GPT. Claude. Gemini. All of them.
@@ -92,6 +96,7 @@ You did the scoring with intuition. The model needs to learn to do it with math.
 
 So what do we need to build? Over the next sections, we&apos;ll construct this mechanism piece by piece:
 
+{/* WishlistCallbackViz — frames the chapter as a build: the wishlist of capabilities attention must deliver, checked off as we go. */}
 <Stage><WishlistCallbackViz /></Stage>
 
 <KeyTakeaway accent="cyan">
@@ -120,20 +125,24 @@ The idea: what if the model reads like we do? Left to right, one word at a time,
 
 They called it the <Highlight>Recurrent Neural Network</Highlight>. On paper, it solved the isolation problem &mdash; tokens could finally communicate through a chain of memory.
 
+{/* RNNChainViz — the older idea: read left to right carrying a memory; the reader feels how RNN's chained passing differs from parallel processing. */}
 <Stage><RNNChainViz /></Stage>
 
 <NarrativeDivider />
 
 But think about what happens to the first word&apos;s information as it travels through the chain. Word 1&apos;s meaning gets compressed into word 2&apos;s memory. Then words 1 and 2 get compressed into word 3. By word 50, the memory of word 1 is almost completely gone. It&apos;s like a game of telephone &mdash; the message degrades with every step.
 
+{/* TelephoneGameViz — the fatal flaw of carried memory: information decays token by token, so distant words fade to noise. */}
 <Stage><TelephoneGameViz /></Stage>
 
 Researchers added a clever fix: <Highlight color="amber">memory gates</Highlight> &mdash; tiny neural networks inside each step that decide what to remember and what to forget. They called it the <strong>LSTM</strong> (Long Short-Term Memory). It helped. The memory lasted longer. But it couldn&apos;t solve the fundamental issue.
 
+{/* LSTMBandageViz — memory gates slow the decay but never cure it: a bandage, not a fix, so the deeper problem still stands. */}
 <Stage><LSTMBandageViz /></Stage>
 
 And there was a deeper problem &mdash; one that no gating could fix. The RNN <em>must</em> process tokens in order. Token 5 waits for token 4. Token 4 waits for token 3. On modern GPUs designed for massive parallelism, this sequential bottleneck was <Highlight color="rose">painfully slow</Highlight>.
 
+{/* SequentialVsParallelViz — a race: RNN fills slot by slot while the new approach fills all at once, making the case for processing the whole sentence in parallel. */}
 <Stage><SequentialVsParallelViz /></Stage>
 
 Remember the real goal: we want each word to change meaning based on context. RNNs tried to solve this by passing a memory forward, but that memory degrades over distance and forces sequential processing. We need something fundamentally different &mdash; a mechanism that lets every word see every other word, all at once, and use that information to rewrite itself.
@@ -170,6 +179,7 @@ When you read a sentence, you don&apos;t process each word in isolation. Your br
 
 What is the &ldquo;creature&rdquo; in this sentence? Without any effort, &ldquo;blue&rdquo; and &ldquo;plush&rdquo; reached across to &ldquo;creature&rdquo; and rewrote its meaning. It&apos;s no longer a generic living thing &mdash; it&apos;s a <em>soft blue stuffed toy</em>. The surrounding words didn&apos;t just provide context &mdash; they <em>changed what the word means</em>. Click any word to see what enriches it:
 
+{/* ContextEnrichmentViz — attention's payoff made visible: context words flow into a target word and progressively rewrite its meaning. */}
 <Stage><ContextEnrichmentViz /></Stage>
 
 Every word gets enriched &mdash; but some more than others. Now let&apos;s see this same idea with a longer, richer sentence:
@@ -184,12 +194,14 @@ Your eyes jumped: <Highlight>king</Highlight> <StyledArrow /> <Highlight color="
 
 Imagine each word has a <Highlight>spotlight</Highlight>. When you activate a word, its spotlight shines on the other words it cares about &mdash; brighter for stronger connections, dimmer for weaker ones. Every word has its own unique spotlight pattern.
 
+{/* SpotlightViz — the reader's first sight of attention weights: hover a word and the ones it leans on bloom, the rest recede. */}
 <Stage><SpotlightViz /></Stage>
 
 Click different words. The spotlight pattern changes completely each time. &ldquo;The&rdquo; barely shines on anything. But &ldquo;king&rdquo;? It illuminates &ldquo;crown&rdquo; and &ldquo;ruled&rdquo; across the entire sentence.
 
 Each spotlight pattern is a set of <Highlight color="amber">attention weights</Highlight> &mdash; numbers that say how much each word should listen to every other word. They are the recipe for building context-aware meaning.
 
+{/* GuessPatternChallenge — the reader predicts which words a target attends to, turning passive watching into an active hypothesis they can check. */}
 <GuessPatternChallenge />
 
 <NarrativeDivider />
@@ -204,16 +216,19 @@ Attention weights are the opposite. They are computed <Highlight>fresh for every
 <strong className="text-white/80">Dynamic (Attention):</strong> <span className="text-white/50">rewires for every sentence &mdash; connections depend on meaning. Different output embedding depending on context.</span>
 </Callout>
 
+{/* StaticVsDynamicViz — the core contrast: MLP weights are carved in stone, attention weights recompute per sentence; the comparison IS the lesson. */}
 <Stage><StaticVsDynamicViz /></Stage>
 
 And when the wiring changes, <em>meaning</em> changes with it. &ldquo;Bank&rdquo; next to &ldquo;river&rdquo; connects to nature words. &ldquo;Bank&rdquo; next to &ldquo;money&rdquo; connects to finance words. Same word, completely different connections, completely different meaning.
 
 Now see the complete picture &mdash; every word&apos;s attention to every other word, all at once:
 
+{/* AttentionWebViz — every attention link at once as a constellation, so the reader grasps that all words attend to all words simultaneously. */}
 <Stage><AttentionWebViz /></Stage>
 
 Every word is simultaneously attending to every other word &mdash; a dense web of weighted connections, computed in parallel. But how do we store all of these relationships? The answer is elegantly simple: a grid where every cell is one connection strength.
 
+{/* AttentionHeatmapViz — the same web read as a matrix: every word-to-word weight becomes a cell, revealing structure the eye can explore. */}
 <Stage><AttentionHeatmapViz /></Stage>
 
 <NarrativeDivider />
@@ -222,10 +237,12 @@ But knowing <em>which words matter</em> is only half the story. That&apos;s just
 
 &ldquo;Bank&rdquo; next to &ldquo;river&rdquo; should pick up nature. &ldquo;Bank&rdquo; next to &ldquo;money&rdquo; should pick up finance. <em>The same word, different meaning, depending on context.</em> That was our goal from the very first paragraph of this chapter. Watch it happen &mdash; one token&apos;s journey from isolation to context:
 
+{/* ContextAssemblyFilmViz — the full move in slow motion: arcs gather, values flow, and a fresh context-aware word is assembled before your eyes. */}
 <Stage><ContextAssemblyFilmViz /></Stage>
 
 That was one word&apos;s journey. But in a transformer, this happens to <em>every</em> word simultaneously. Watch the entire sentence transform at once:
 
+{/* FullContextualAssemblyViz — every word at once gets rewritten: each color blends into its contributors', so the whole sentence becomes context-aware together. */}
 <Stage><FullContextualAssemblyViz /></Stage>
 
 <KeyTakeaway accent="cyan">
@@ -252,6 +269,7 @@ In Section 1, we saw that every word becomes a <Highlight>vector</Highlight> &md
 
 Two arrows pointing the same way → the words are similar. Perpendicular → unrelated. Opposite directions → they mean opposite things. Watch how each word&apos;s vector becomes an arrow:
 
+{/* EmbeddingToArrowViz — grounds the math: a word becomes a list of numbers becomes a vector arrow, nothing lost, each stage building on the last. */}
 <Stage><EmbeddingToArrowViz /></Stage>
 
 <NarrativeDivider />
@@ -260,6 +278,7 @@ So direction tells us similarity. But we need a <em>number</em> &mdash; somethin
 
 Try it &mdash; drag the arrows and watch the score change:
 
+{/* DotProductCalculatorViz — the dot product made tangible two ways at once: drag arrows to feel the geometry, move sliders to see the algebra of "how aligned?". */}
 <Stage><DotProductCalculatorViz /></Stage>
 
 When features match &mdash; both high or both low &mdash; the products are positive and the score climbs. When they disagree, products go negative and the score drops. Notice how the arrows tell the same story: same direction → big score, perpendicular → zero, opposite → negative.
@@ -274,6 +293,7 @@ This multiply-and-sum operation has a name: the <Highlight color="amber">dot pro
 
 Now here&apos;s where it gets exciting. Take every word in a sentence and compute the dot product with <em>every other word</em>. The result? A complete map of relationships &mdash; every word compared to every other word, all at once:
 
+{/* PairwiseScoringViz — scoring scales up: the dot product run over every word pair fills a similarity matrix, the raw material attention scores from. */}
 <Stage><PairwiseScoringViz /></Stage>
 
 <NarrativeDivider />
@@ -286,10 +306,12 @@ Every word&apos;s highest score is with... <em>itself</em>. Of course. A vector 
 <strong className="text-white/70">The self-similarity trap:</strong> <span className="text-white/50">Using raw embeddings, every token pays the most attention to itself. The model would just reinforce what it already knows instead of learning from context.</span>
 </Callout>
 
+{/* SelfSimilarityViz — the trap: a raw dot product always rates each word most similar to itself, so plain embeddings are useless for attention. */}
 <Stage><SelfSimilarityViz /></Stage>
 
 But the self-similarity trap is only half the story. There&apos;s a deeper problem with using raw embeddings for attention. Let&apos;s see what each word actually finds when it searches for its closest matches:
 
+{/* EmbeddingAttentionFailureViz — drives the trap home on a real sentence: raw similarity makes each word find its lookalikes, not what it actually needs. */}
 <Stage><EmbeddingAttentionFailureViz /></Stage>
 
 See the pattern? <Highlight color="amber">Embeddings find twins, not partners.</Highlight> &ldquo;King&rdquo; finds other nouns &mdash; &ldquo;crown,&rdquo; &ldquo;kingdom&rdquo; &mdash; because they share similar features. But &ldquo;king&rdquo; doesn&apos;t <em>need</em> another noun. It needs the verb that tells you what the king <em>did</em> (&ldquo;ruled&rdquo;) and the object that defines his status (&ldquo;crown&rdquo; for what he <em>wore</em>, not just as a similar word).
@@ -306,12 +328,14 @@ And the other side? Each word also has something to <em>offer</em>. King offers 
 
 These arrows have names. The &ldquo;what I need&rdquo; arrow is the <Highlight color="cyan">Query</Highlight>. The &ldquo;what I offer&rdquo; arrow is the <Highlight color="emerald">Key</Highlight>. Each word gets both &mdash; created by passing its embedding through two different learned matrices:
 
+{/* QKSplitViz — the fix begins: one embedding splits into a Query (what I'm looking for) and a Key (what I offer), two views from one vector. */}
 <Stage><QKSplitViz /></Stage>
 
 &ldquo;King&rdquo; through the Query lens: royalty fades, <em>action</em> lights up &mdash; king is looking for verbs. Through the Key lens: royalty stays bright &mdash; king <em>offers</em> its royalty to whoever is searching for a noble subject.
 
 But how do we <em>get</em> these Queries and Keys? We multiply each word&apos;s embedding by a <Highlight>learned matrix</Highlight>. The model discovers the exact numbers in this matrix during training &mdash; learning precisely how to transform each embedding into the right perspective. Try it yourself &mdash; click any cell and drag its slider:
 
+{/* QKMatrixViz — where Query and Key come from: a learned weight matrix multiplies the embedding, and tweaking cells shows the projection isn't magic. */}
 <Stage><QKMatrixViz /></Stage>
 
 We&apos;re using a tiny 2×2 matrix here to make it visual. In real models, embeddings have <Highlight>hundreds</Highlight> of dimensions (GPT uses 768) and queries have 64&ndash;128 dimensions. The matrix is much larger, but the principle is identical &mdash; and the model learns every number during training.
@@ -322,18 +346,21 @@ Remember the self-similarity trap? With raw embeddings, king &middot; king = hig
 
 See the difference for yourself. Toggle between raw embeddings and Q×K projections &mdash; watch the diagonal collapse:
 
+{/* WhyQKMattersViz — the payoff of Q/K: the matrix morphs so the self-diagonal deflates and real relationships light up, escaping the self-similarity trap. */}
 <Stage><WhyQKMattersViz /></Stage>
 
 <NarrativeDivider />
 
 Now let&apos;s see what happens when one word&apos;s Query meets <em>every</em> Key in the sentence. Pick a word &mdash; see its Query arrow, then compare it against every Key. The closer they point, the higher the score:
 
+{/* QuerySearchViz — attention reframed as search: a word's Query probes every Key, and the best matches become its attention weights. */}
 <Stage><QuerySearchViz /></Stage>
 
 See? It&apos;s not magic &mdash; it&apos;s <em>geometry</em>. When Q and K point the same way, the dot product is high. Different directions? Low score. The arrows tell you everything.
 
 Those raw scores get passed through <Highlight>softmax</Highlight> (the same function from previous chapters) to become percentages: crown 30%, ruled 18%, golden 15%, king itself just 6%. We have a recipe. But <Highlight color="amber">30% of WHAT exactly?</Highlight>
 
+{/* WeightsOfWhatViz — the missing piece: we know who matters, but Q and K only matched; we still need something else to carry the actual content. */}
 <Stage><WeightsOfWhatViz /></Stage>
 
 We need something to blend. But what? Could we just use the raw <em>embeddings</em>? Crown&apos;s embedding, ruled&apos;s embedding, golden&apos;s embedding&hellip;
@@ -352,12 +379,14 @@ Here&apos;s what we do: take each word&apos;s Value, multiply it by the attentio
 
 The result is a <em>weighted blend</em> of everyone&apos;s information. Step through the process:
 
+{/* ValueCompletesViz — the Value completes attention: weights times each word's Value, summed, produce the new contextual vector — the weighted sum made concrete. */}
 <Stage><ValueCompletesViz /></Stage>
 
 <NarrativeDivider />
 
 Let&apos;s see the concrete change. Below, you can compare king&apos;s feature values <em>before</em> attention touched it and <em>after</em> context was blended in:
 
+{/* BeforeAfterAttentionViz — proof it worked: a word's feature bars shift from generic to context-shaped, and a different sentence shifts them differently. */}
 <Stage><BeforeAfterAttentionViz /></Stage>
 
 See the numbers change? That&apos;s not abstract &mdash; that&apos;s the actual transformation. Features that matter for this context got amplified. Features that don&apos;t got suppressed. The embedding literally became a different mathematical object.
@@ -376,16 +405,19 @@ Our Q·K scores work beautifully with 3 features. But real models don&apos;t use
 
 A dot product is a sum of products across all dimensions. With 3 dimensions, you add 3 numbers. With 768, you add 768 numbers. More terms = bigger total. The scores become <em>enormous</em> &mdash; and enormous scores make softmax collapse. One word gets 99.99%, everything else gets nearly zero. The model stops blending and starts <em>ignoring</em>.
 
+{/* NumbersExplodeViz — a hidden problem surfaces: more dimensions mean more terms summed, so dot products balloon and softmax turns spiky, ignoring everything but one word. */}
 <Stage><NumbersExplodeViz /></Stage>
 
 We need to calm those numbers down. What if we divided all scores by some number before feeding them to softmax? But <Highlight>which number?</Highlight> Try it yourself &mdash; find the divisor that makes the distribution healthy:
 
+{/* ScalingFixViz — the reader discovers the fix by sliding a divisor: at exactly √d the scores calm down and softmax stays healthy. */}
 <Stage><ScalingFixViz /></Stage>
 
 The answer: divide by √d &mdash; the square root of the number of dimensions. With 768 dimensions, that&apos;s √768 ≈ 27.7. This keeps scores in a range where softmax can produce a healthy blend instead of a winner-take-all collapse.
 
 Let&apos;s put it all together. The complete attention pipeline: Q·K → scale by √d → softmax → multiply by V → sum to output. Five steps, each one simple, together they&apos;re extraordinary:
 
+{/* FullScoringPipelineViz — the chapter's centerpiece: the whole single-head pipeline end to end, Q/K/V through scale, softmax, and weighted sum, in one flow. */}
 <Stage><FullScoringPipelineViz /></Stage>
 
 Think of attention as a <Highlight>soft database lookup</Highlight>. A hard lookup picks exactly one item. Attention picks a <em>weighted blend</em> of everything, based on relevance. No information is lost &mdash; every word contributes, proportional to how much it matters.
@@ -412,12 +444,14 @@ I can pay attention now. But something feels off. When I try to focus on grammar
 
 <Lead>Before we go further, try a quick experiment. I&apos;ll show you a sentence and ask a simple question. There&apos;s no trick &mdash; just answer honestly.</Lead>
 
+{/* WhichWordMattersViz — a game where multiple answers are all valid, so the reader feels why one attention pattern isn't enough — motivating multiple heads. */}
 <Stage><WhichWordMattersViz /></Stage>
 
 Three rounds. Three sentences. And every time, your answer was valid &mdash; but so was a completely different one. Grammar, meaning, location, action: they all matter <em>at the same time</em>.
 
 Now think about what our attention mechanism does. It produces <Highlight color="amber">one set of weights</Highlight>. One ranking. One compromise. Boosting one relationship means dimming the others. Try it:
 
+{/* OneHeadDilemmaViz — a single head is forced to choose one relationship and loses the others: the dilemma that demands several heads at once. */}
 <Stage><OneHeadDilemmaViz /></Stage>
 
 See? One set of weights can only capture <em>one pattern</em>. It&apos;s the same frustration you felt in the game &mdash; forced to pick one answer when several were equally valid.
@@ -426,12 +460,14 @@ See? One set of weights can only capture <em>one pattern</em>. It&apos;s the sam
 
 What if the model didn&apos;t have to choose? What if, instead of one attention system trying to handle everything, we ran <Highlight color="cyan">multiple attention systems in parallel</Highlight>? Each with its own Q, K, and V matrices. Each free to specialize in a different type of relationship:
 
+{/* MultiHeadIdeaViz — the idea of multi-head attention: one embedding branches into several heads, each free to track a different kind of relationship. */}
 <Stage><MultiHeadIdeaViz /></Stage>
 
 Here&apos;s the crucial insight: it&apos;s the <Highlight color="amber">V (Value) matrices</Highlight> that make this powerful. Q and K decide <em>who to attend to</em> &mdash; but V decides <em>what information to pass along</em>. A syntax head&apos;s V matrix might extract &ldquo;this is a verb in past tense,&rdquo; while a meaning head&apos;s V matrix extracts &ldquo;this is related to academia.&rdquo; Same word, completely different signals.
 
 This is called <Highlight color="cyan">Multi-Head Attention</Highlight>. Instead of one set of eyes forced into a single compromise, the model gets <em>many sets of eyes</em>, each specialized in a different aspect of language. Watch how each head sees something different:
 
+{/* MultiLensViewViz — four sets of eyes on one sentence: hovering a word shows each head attending differently, so heads specialize, not duplicate. */}
 <Stage><MultiLensViewViz /></Stage>
 
 And here&apos;s what makes it efficient: each head doesn&apos;t work with the full embedding. If an embedding has 512 dimensions and we have 4 heads, each head gets <Highlight color="cyan">its own exclusive slice of 128 dimensions</Highlight>. The slices <em>don&apos;t overlap</em> &mdash; head 1 might own dimensions 1&ndash;128 (syntax features), head 2 owns 129&ndash;256 (semantic features), and so on. Each head becomes an expert in its own subset of the word&apos;s features, and none of them compete for the same information.
@@ -440,12 +476,14 @@ And here&apos;s what makes it efficient: each head doesn&apos;t work with the fu
 
 But we can&apos;t just leave 4 separate outputs. The rest of the model expects <em>one vector per word</em>. So we <Highlight color="amber">concatenate</Highlight> all head outputs &mdash; stacking each head&apos;s slice back together into one long vector, then <Highlight color="cyan">projecting</Highlight> it back to the original embedding size. The result: every word now carries information from all four perspectives at once. Watch it happen:
 
+{/* MultiHeadPipelineViz — multi-head end to end: input fans into heads, each attends, then outputs concatenate and project back to one vector. */}
 <Stage><MultiHeadPipelineViz /></Stage>
 
 <NarrativeDivider />
 
 There&apos;s a practical question: <Highlight>how many heads?</Highlight> The total dimension is fixed (say 512). More heads means each one gets fewer dimensions. Too few heads and you miss patterns. Too many and each head is too narrow to learn anything useful.
 
+{/* HeadBudgetViz — heads split a fixed dimension budget: more heads means thinner each, so there's a sweet spot, not "more is always better." */}
 <Stage><HeadBudgetViz /></Stage>
 
 GPT-2 uses 12 heads with 64 dimensions each. GPT-3 uses 96 heads with 128 dimensions each. The sweet spot depends on the model size, but the principle is always the same: <em>split the work across specialized workers</em>.
@@ -479,6 +517,7 @@ Same words. Completely different meaning. One is a news story. The other is a he
 
 Now imagine our attention mechanism reading them. It computes Q&middot;K for every pair of words, runs softmax, blends Values. Go ahead &mdash; look at the attention weights for both sentences:
 
+{/* ShuffleDisasterViz — attention's blind spot to order: "dog bit man" and "man bit dog" produce identical weights, exposing the bag-of-words flaw. */}
 <Stage><ShuffleDisasterViz /></Stage>
 
 Strangely&hellip; the model produces the <Highlight>exact same result</Highlight>. Same attention weights. Same output. Two completely different stories, and the model can&apos;t tell them apart.
@@ -497,6 +536,7 @@ Sounds reasonable. Let&apos;s see what happens.
 
 A word embedding has values around <Highlight color="cyan">-1 to 1</Highlight>. Subtle numbers that encode meaning: 0.3 for &ldquo;animal,&rdquo; -0.7 for &ldquo;abstract,&rdquo; 1.2 for &ldquo;living.&rdquo; Now add the position number. Position 500? That&apos;s <Highlight color="amber">+500</Highlight>. The model sees 500.3 and thinks <em>&ldquo;that&apos;s basically just 500.&rdquo;</em> It forgot what the word even means.
 
+{/* SimpleNumbersViz — why the naive fix fails: adding raw position numbers (+500) drowns the subtle meaning values, erasing what the word is. */}
 <Stage><SimpleNumbersViz /></Stage>
 
 <NarrativeDivider />
@@ -523,6 +563,7 @@ This is exactly what we do. We create a <Highlight>position embedding table</Hig
 
 Explore the table below. Each position has its own unique pattern of numbers &mdash; a learned fingerprint for <em>where</em> a word sits. Click two positions to compare them side by side.
 
+{/* LearnedPositionEmbeddingsViz — the real fix, take one: each position gets its own learned vector fingerprint, just like word embeddings but for "where." */}
 <Stage><LearnedPositionEmbeddingsViz /></Stage>
 
 Simple and effective. But with a catch: you have to decide the maximum sequence length <em>before</em> training. If you trained with 512 positions, position 513 has no embedding. The model simply hasn&apos;t learned one.
@@ -537,6 +578,7 @@ Imagine a clock with many hands, each spinning at a different speed. One hand co
 
 At any given position, read off where each hand is pointing. That combination of readings is <em>unique</em> for every position. A <Highlight>fingerprint made of waves</Highlight>.
 
+{/* WaveFingerprintViz — the elegant alternative: waves at different speeds, read together, give every position a unique fingerprint that works for any length. */}
 <Stage><WaveFingerprintViz /></Stage>
 
 Each wave has a job. The <Highlight color="cyan">fast wave</Highlight> changes with every position &mdash; your exact seat number. The <Highlight color="amber">medium wave</Highlight> changes every few positions &mdash; which paragraph you&apos;re in. The <Highlight color="amber">slow wave</Highlight> barely moves &mdash; which section of the text, near the beginning or the end.
@@ -547,6 +589,7 @@ Together: <Highlight>fine detail</Highlight> (position 5 vs 6) and <Highlight>bi
 
 Here&apos;s why waves are so clever. Two positions that are <em>close together</em> (like 10 and 11) have very <Highlight color="cyan">similar</Highlight> wave readings. Two positions far apart (like 10 and 200) have completely different readings. Nearby words naturally get similar encodings &mdash; which is exactly what language needs.
 
+{/* PositionalSimilarityViz — why waves are clever: nearby positions get similar encodings and far-apart ones get different — exactly what language needs. */}
 <Stage><PositionalSimilarityViz /></Stage>
 
 The math uses sine and cosine &mdash; each dimension gets a wave at a different frequency:
@@ -563,8 +606,10 @@ The final step is beautifully simple. Take the word embedding (what the word <em
 
 After this addition, &ldquo;dog&rdquo; at position 1 has a slightly different vector than &ldquo;dog&rdquo; at position 5. The attention mechanism can finally tell them apart. &ldquo;Dog bit man&rdquo; and &ldquo;man bit dog&rdquo; produce <em>different</em> attention patterns. Order is restored.
 
+{/* AddEmbeddingsViz — the final step is just addition: word meaning plus positional encoding equals one vector that knows both what and where. */}
 <Stage><AddEmbeddingsViz /></Stage>
 
+{/* PositionInActionViz — order restored, felt directly: the same word in two positions now draws different attention, so word order finally matters. */}
 <Stage><PositionInActionViz /></Stage>
 
 <MonsterStatus>
@@ -595,6 +640,7 @@ You thought <Highlight>basketball</Highlight>. Immediately. No hesitation. Your 
 
 Now let&apos;s see what attention alone does with that same sentence.
 
+{/* AttentionAloneFailsViz — listening isn't thinking: attention gathers "Michael Jordan plays" perfectly but can't leap to "basketball" — the gap the FFN fills. */}
 <Stage><AttentionAloneFailsViz /></Stage>
 
 Attention did its job perfectly: it gathered context. The embedding for &ldquo;plays&rdquo; now carries traces of &ldquo;Michael&rdquo; and &ldquo;Jordan.&rdquo; But that&apos;s <em>all</em> it did. The result is a <Highlight>blend</Highlight> of the original embeddings &mdash; it points toward where &ldquo;Michael Jordan&rdquo; lives in vector space, but it hasn&apos;t made the <em>leap</em> to <Highlight color="amber">basketball</Highlight>. Attention listened perfectly, but it doesn&apos;t know how to <em>think</em>.
@@ -605,6 +651,7 @@ Think about how <em>you</em> learn in a conversation. First, you <Highlight>list
 
 Attention is the listening phase. Embeddings go in, enriched embeddings come out &mdash; <em>same shape, same type</em>, just with context mixed in. But we need a second phase to actually <Highlight color="amber">process</Highlight> what was gathered.
 
+{/* CommunicationVsProcessingViz — names the two phases: attention is listening (words connect), the FFN is thinking (each word processes alone). */}
 <Stage><CommunicationVsProcessingViz /></Stage>
 
 <NarrativeDivider />
@@ -621,6 +668,7 @@ And here&apos;s the exciting part. Remember the MLP from the previous chapter? I
 
 Now look at what we&apos;ve done. Attention gathers context from the <em>entire</em> sequence. Every token can see every other token. And <em>then</em> we feed that rich, context-aware embedding into the same MLP architecture. The brain that was starving for information now has <Highlight>everything it needs</Highlight>.
 
+{/* FFNCallbackViz — the FFN is the MLP you already built — same brain, but now fed rich context instead of a blind fixed window. */}
 <Stage><FFNCallbackViz /></Stage>
 
 Think of the FFN as each token&apos;s <Highlight color="amber">private notebook</Highlight>. After listening to the conversation (attention), each token sits alone and processes what it heard. Attention decided <em>what</em> to look at. The FFN processes <em>what it found</em>.
@@ -633,6 +681,7 @@ That&apos;s the FFN&apos;s job. It takes the blended embedding and asks hundreds
 
 The input was a blend. The output is an <em>understanding</em>. Same shape, same size &mdash; but now pointing somewhere entirely new. Somewhere attention alone could never reach.
 
+{/* FFNDeepDiveViz — inside the FFN: expand to a wide space, fire on the features that matter, compress back — turning a blend into an understanding. */}
 <Stage><FFNDeepDiveViz /></Stage>
 
 <NarrativeDivider />
@@ -641,6 +690,7 @@ We now have both pieces: <Highlight>attention</Highlight> to listen and <Highlig
 
 Watch the values below as you increase the number of operations. Something goes wrong.
 
+{/* ValueDriftViz — a problem of stacking: pile up attention and FFN without protection and the values explode, burying the original meaning. */}
 <Stage><ValueDriftViz /></Stage>
 
 <NarrativeDivider />
@@ -649,6 +699,7 @@ The values exploded. Each operation amplifies small differences, and the origina
 
 What if, after each operation, we simply <Highlight>added the original input back</Highlight> to the output? A direct shortcut &mdash; the output becomes &ldquo;what changed&rdquo; <em>plus</em> &ldquo;what was already there.&rdquo; The Transformer uses this trick twice: once after attention, once after the FFN.
 
+{/* HighwayReturnsViz — residual connections as a highway: adding the original input back keeps the signal alive through every layer instead of letting it fade. */}
 <Stage><HighwayReturnsViz /></Stage>
 
 <NarrativeDivider />
@@ -657,6 +708,7 @@ The second fix: <Highlight color="amber">Layer Normalization</Highlight>. Before
 
 The result: values stay calm, gradients stay healthy, and training stays stable &mdash; no matter how many operations you stack.
 
+{/* LayerNormViz — the calming step: normalization re-centers and re-scales each vector so values stay in a healthy range layer after layer. */}
 <Stage><LayerNormViz /></Stage>
 
 We covered normalization techniques in depth in the <a href="/lab/mlp#mlp-06" className="text-cyan-400 underline underline-offset-2 hover:text-cyan-300 transition-colors">MLP chapter &sect;06</a>. If you read that, you might be wondering: how does LayerNorm differ from BatchNorm?
@@ -673,12 +725,14 @@ These four components, arranged in the right order, form one <Highlight>Transfor
 
 Why this order? Normalization before each operation levels the playing field &mdash; attention and FFN both get clean, balanced input. The residual add after each operation preserves the original, so nothing valuable is thrown away. Now put that knowledge to the test.
 
+{/* BlockBuilderViz — the reader assembles the block from memory, picking the right component at each step, locking in the recipe: normalize, attend, add; normalize, FFN, add. */}
 <Stage><BlockBuilderViz /></Stage>
 
 <NarrativeDivider />
 
 Want to go deeper? <Highlight>Explore the block</Highlight> component by component. Click any piece to zoom in and see exactly what happens inside.
 
+{/* BlockComponentExplorerViz — anatomy of one assembled block: click any component in the diagram to see what it does and how it connects to the rest. */}
 <Stage><BlockComponentExplorerViz /></Stage>
 
 <NarrativeDivider />
@@ -707,6 +761,7 @@ What if we do the same thing here? Take the output of one Transformer block and 
 Stack identical Transformer blocks. Block 1 captures local patterns. Block 3 captures syntax. Block 6 captures abstract meaning. Same architecture, repeated &mdash; creating deeper and deeper understanding.
 </Callout>
 
+{/* LayerEvolutionViz — why depth matters: stacking blocks differentiates representations layer by layer, from near-identical tokens to distinct, abstract meanings. */}
 <Stage><LayerEvolutionViz /></Stage>
 
 <NarrativeDivider />
@@ -717,6 +772,7 @@ The stacked blocks produce refined embeddings &mdash; rich vectors that encode m
 
 <strong>Step 2 &mdash; Softmax.</strong> Raw scores can be any number &mdash; positive, negative, huge, tiny. Softmax squashes them into a proper probability distribution: every value between 0 and 1, all summing to exactly 1. The highest score dominates; the lowest scores vanish to near-zero. The model <Highlight color="amber">chooses</Highlight> by sampling from this distribution.
 
+{/* LinearSoftmaxViz — from vector to prediction: the linear head turns an embedding into per-character scores, and softmax turns scores into a probability distribution. */}
 <Stage><LinearSoftmaxViz /></Stage>
 
 <NarrativeDivider />
@@ -727,6 +783,7 @@ Now let&apos;s zoom out and see the complete architecture. From raw text to pred
 
 The embedding turns each word into a vector. Positional encoding adds &quot;where am I?&quot; Then the stacked blocks refine these representations, layer after layer. Finally, the <Highlight color="amber">Linear Head</Highlight> does the <em>inverse</em> of embedding: it takes each vector and produces a score for every word in the vocabulary. Softmax turns those scores into probabilities.
 
+{/* TransformerBlockExplorerViz — the whole architecture in one diagram: text → embed → +position → N blocks → linear head → softmax, zoomable piece by piece. */}
 <Stage><TransformerBlockExplorerViz /></Stage>
 
 <Callout icon="Layers" accent="amber" title="Modern scale — pure curiosity">
@@ -755,6 +812,7 @@ I am assembled. Every piece in place. Attention to hear. FFN to think. Residuals
 
 What does an untrained Transformer produce? The weights are randomly initialized &mdash; every number drawn from a normal distribution, completely unaware of language, grammar, or meaning. Let&apos;s find out what that looks like.
 
+{/* UntrainedOutputViz — a flawless architecture with random weights produces pure gibberish: the machine is built but knows nothing yet. */}
 <Stage><UntrainedOutputViz /></Stage>
 
 Pure noise. The architecture is flawless &mdash; but the weights are random. A beautiful machine with nothing to say. <Highlight>Let&apos;s fix that.</Highlight>
@@ -767,6 +825,7 @@ But here&apos;s the trick that makes Transformers train so fast. Remember the ML
 
 The Transformer processes the <em>entire sequence at once</em>. Every position simultaneously predicts what comes next. Feed it 256 characters and you get <Highlight>256 predictions in a single forward pass</Highlight>. Each one becomes a training signal. Each one nudges the weights a little closer to understanding language.
 
+{/* ParallelPredictionViz — the training superpower: one sequence yields a prediction at every position at once, so each forward pass teaches many lessons. */}
 <Stage><ParallelPredictionViz /></Stage>
 
 <Callout icon="Sparkles" title="The training superpower">
@@ -779,6 +838,7 @@ But there&apos;s a catch. If position 5 is trying to predict character 6, it <em
 
 The solution is a <Highlight>mask</Highlight>: each position can only attend to itself and everything <em>before</em> it. The future is invisible. The model is forced to actually predict.
 
+{/* CausalMaskViz — no peeking at the answer: the causal mask lets each position attend only to itself and the past, forcing real prediction instead of cheating. */}
 <Stage><CausalMaskViz /></Stage>
 
 The triangle of visibility grows row by row &mdash; token 1 sees only itself, token 8 sees all eight. At every position, the model practices predicting the future from the past.
@@ -793,6 +853,7 @@ Our model is about to learn from two very different geniuses: <Highlight>Shakesp
 
 But first &mdash; what is a <Highlight>training step</Highlight>? In each step, the model reads a batch of text sequences. It processes them in a single forward pass (all positions at once, thanks to the mask), computes the <Highlight color="amber">loss</Highlight> (how wrong its predictions were), and then adjusts every weight slightly in the direction that reduces that loss. One step = one batch = one weight update. After 50,000 of these steps, the model will have seen millions of characters, each time getting a little better at predicting what comes next.
 
+{/* TrainingTimelapseViz — watch a Transformer learn from scratch: as loss falls, gibberish becomes language, all from one question asked 50,000 times — what comes next? */}
 <Stage><TrainingTimelapseViz /></Stage>
 
 You just watched a machine learn to write. Not because someone programmed English grammar into it. Not because someone told it what words mean. It learned from one simple question, asked fifty thousand times: <Highlight color="amber"><em>what comes next?</em></Highlight>
@@ -801,6 +862,7 @@ You just watched a machine learn to write. Not because someone programmed Englis
 
 Your model is trained. Now it&apos;s yours to control. Type any starting text and watch it generate, one character at a time.
 
+{/* CharGenerationPlayground — the moment of power: the reader prompts their trained model and watches it write character by character, feeling how temperature trades coherence for surprise. */}
 <Stage><CharGenerationPlayground /></Stage>
 
 Notice what happens with different temperatures. At <Highlight>low temperature</Highlight>, the model becomes deterministic &mdash; it always picks the most likely character. Coherent, but repetitive. At <Highlight color="amber">high temperature</Highlight>, the probability distribution flattens. Rare characters get a chance. Creative, but chaotic. The sweet spot &mdash; around 0.8 &mdash; produces text that feels natural and varied.
@@ -809,6 +871,7 @@ Notice what happens with different temperatures. At <Highlight>low temperature</
 
 Let&apos;s put our Transformer to the test. Three models generate from the same prompt. Same starting text, same number of characters. Watch what each one does with it.
 
+{/* ModelBattleArena — n-gram vs MLP vs Transformer on the same prompt: the payoff of full-context attention is unmistakable next to fixed-window models. */}
 <Stage><ModelBattleArena /></Stage>
 
 The n-gram gets stuck. It knows what pairs of characters are common, but it has no sense of a sentence. The MLP does better &mdash; it learned <em>representations</em>, not just frequencies. But it can only see a small fixed window. The Transformer sees <Highlight>everything</Highlight>, and it shows.
@@ -817,6 +880,7 @@ The n-gram gets stuck. It knows what pairs of characters are common, but it has 
 
 Our four-block Transformer is impressive. But can we make it <em>better</em>? The obvious move: more neurons. A bigger feedforward layer. More dimensions. If a 128-dimensional model works this well, surely a 512-dimensional model will be dramatically better?
 
+{/* NeuronScalingViz — wider isn't better forever: adding width hits diminishing then negative returns as the model starts memorizing — setting up the case for depth. */}
 <Stage><NeuronScalingViz /></Stage>
 
 The loss barely budges past 256 dimensions. We made the model sixteen times bigger &mdash; and it actually got <Highlight color="amber">worse</Highlight>. Not just diminishing returns &mdash; negative returns. The 512-dimensional model started memorizing the training data instead of learning patterns. Its training loss was great; its validation loss climbed back up. The ceiling is real.
@@ -841,6 +905,7 @@ More neurons didn&apos;t help. I&apos;m stuck at the ceiling. But what if I coul
 
 The width ceiling sat at a validation loss of around 1.40 &mdash; the best a single block could do no matter how many neurons we added. What happens when we add a second block?
 
+{/* DepthBreakthroughViz — depth breaks the width ceiling: a second block already beats the best single block, and four shatter it — going deeper, not wider, is the unlock. */}
 <Stage><DepthBreakthroughViz /></Stage>
 
 The ceiling shattered. Two blocks already beat the best single-block model. Four blocks produced text that&apos;s recognizably <em>prose</em>. The validation loss dropped from 1.40 all the way to 1.30 &mdash; not by adding neurons, but by giving the model a second chance to look, and a third, and a fourth.
@@ -853,6 +918,7 @@ Each additional block receives representations that are already context-aware &m
 
 What is each block actually doing? Let&apos;s look inside. Every block produces its own attention patterns &mdash; a heatmap showing which characters each position attended to most.
 
+{/* LayerLensViz — an x-ray of depth: each block's attention pattern differs, early blocks catching local structure and deep ones spanning the whole sequence. */}
 <Stage><LayerLensViz /></Stage>
 
 Research on real Transformer models reveals a consistent pattern. Early blocks tend to capture <Highlight color="amber">local structure</Highlight> &mdash; adjacent characters, spacing, punctuation. Middle blocks develop a sense of <Highlight color="amber">word-level relationships</Highlight>. Deep blocks capture <Highlight>abstract patterns</Highlight> that span the full sequence. Same architecture &mdash; different specialization emerging purely from training.
@@ -861,6 +927,7 @@ Research on real Transformer models reveals a consistent pattern. Early blocks t
 
 See the difference depth makes directly. Same prompt, same temperature &mdash; only the number of blocks changes.
 
+{/* DepthGenerationViz — depth's effect on output, side by side: one block is choppy, four flow like prose, and twelve turn eerily specific — the first hint of memorization. */}
 <Stage><DepthGenerationViz /></Stage>
 
 One block produces recognizable words but choppy, incoherent phrases. Four blocks produce <Highlight>flowing English prose</Highlight>. But something strange happens at twelve blocks &mdash; the text becomes oddly specific. Proper names appear. Exact phrases from the training data resurface. That&apos;s a warning sign.
@@ -869,10 +936,12 @@ One block produces recognizable words but choppy, incoherent phrases. Four block
 
 Wait. The 12-block model had <em>more</em> blocks than the 4-block winner. Shouldn&apos;t more depth always be better? Let&apos;s look at the training curves.
 
+{/* OverfittingDualCurveViz — overfitting made visible: the 12-block model's training loss dives while validation climbs — great memory, poor understanding. */}
 <Stage><OverfittingDualCurveViz /></Stage>
 
 The 12-block model achieved a training loss of 0.78 &mdash; far lower than the 4-block model&apos;s 1.15. By that measure it looks like a massive improvement. But its validation loss was <Highlight color="amber">1.48 &mdash; worse than the 4-block model</Highlight>. It didn&apos;t learn language. It memorized the book.
 
+{/* MemorizationRevealViz — the smoking gun: the over-deep model quotes the training text verbatim, proving it memorized rather than learned. */}
 <Stage><MemorizationRevealViz /></Stage>
 
 This is <Highlight color="amber">overfitting</Highlight>. More model capacity than the data can fill. The 12-block model has roughly 2.4 million parameters &mdash; and it trained on only 1.7 million characters. It had enough capacity to memorize every sentence. And it did.
@@ -885,6 +954,7 @@ More blocks + same data = <strong className="text-amber-400">memorization</stron
 
 There&apos;s one more dimension to explore. We&apos;ve varied width and depth &mdash; but how far back should the model <em>look</em>? The context window defines the maximum number of characters the model can attend to at any position.
 
+{/* ContextWindowViz — the third lever, the context window: how far back the model can look caps prediction quality, and beyond what the text needs the extra reach goes unused. */}
 <Stage><ContextWindowViz /></Stage>
 
 With 32 characters of context, the model can barely see past one word. Predictions are almost completely local. With 256, it sees full sentences &mdash; and the quality improves dramatically. Beyond 256? This text doesn&apos;t have dependencies that reach further than a sentence or two. The extra context window goes unused.
@@ -907,6 +977,7 @@ You started with nothing. A blank table of character frequencies. The model coul
 
 Five architectures, each building on the insights of the last. Each solving a problem the previous one couldn&apos;t.
 
+{/* EvolutionTimelineViz — the grand finale: the full journey from bigram to deep Transformer on one timeline, each model solving what the last couldn't — emotional closure. */}
 <Stage><EvolutionTimelineViz /></Stage>
 
 Bigram gave us structure from chaos. N-gram added memory. The MLP learned to compress patterns into representations. The Transformer let every position see every other &mdash; and when we stacked those layers deep, something remarkable happened: the model stopped producing gibberish and started producing language.
@@ -919,6 +990,7 @@ But how much actually stuck? You&apos;ve seen a lot of components &mdash; embedd
 
 Six components. Six questions. No pressure &mdash; this is for you, not for a grade.
 
+{/* ConceptRecallViz — a low-stakes self-quiz that lets the reader confirm how much of the architecture actually stuck, component by component. */}
 <Stage><ConceptRecallViz /></Stage>
 
 Those aren&apos;t abstract concepts. Each one is a specific operation &mdash; a matrix multiply, a normalization step, a masking trick &mdash; that you built with your own hands. And together, they form something extraordinary.
@@ -931,6 +1003,7 @@ Not as a metaphor. Not as a vague intuition. The <Highlight>actual architecture<
 
 You didn&apos;t just read about these. You built them.
 
+{/* ArchitectureIdentityViz — the big reveal: toggle "your model" to "GPT-4" and the diagram doesn't change — only the numbers do. Same engine, different scale. */}
 <Stage><ArchitectureIdentityViz /></Stage>
 
 GPT-4 has 96 layers instead of 4. Dimensions of 12,288 instead of 128. A vocabulary of 100,000 tokens instead of 96 characters. It trained on trillions of words across thousands of GPUs for months. But every single block, every attention head, every residual highway works <em>exactly</em> the way you learned. <Highlight color="amber">The only difference is scale.</Highlight>
@@ -947,6 +1020,7 @@ But here&apos;s where it gets fascinating.
 
 The engine you built &mdash; and GPT before fine-tuning &mdash; does exactly one thing: <Highlight color="amber">predict the next token</Highlight>. Given some text, it outputs the most likely continuation. Ask it a question, and it doesn&apos;t answer &mdash; it just continues the text as if it were writing a document that happens to contain a question.
 
+{/* CompletionVsAssistantViz — same architecture, two behaviors: a raw model just continues text while ChatGPT answers — the gap that fine-tuning closes, teasing the next chapter. */}
 <Stage><CompletionVsAssistantViz /></Stage>
 
 The completion engine doesn&apos;t answer &mdash; it <em>continues</em>. It might generate another question, or start a paragraph, or produce something that looks like a textbook passage. But it doesn&apos;t <em>help</em>.
@@ -959,6 +1033,7 @@ There&apos;s one more thing you should notice. We built everything at the charac
 
 But look at what that costs. The word &ldquo;understanding&rdquo; is 13 characters &mdash; 13 positions in the sequence, 13 rows in every attention matrix. A single paragraph becomes hundreds of tokens. And attention grows <em>quadratically</em>.
 
+{/* CharVsTokenViz — characters vs subword tokens: the same sentence at two resolutions, showing why real models tokenize — and planting the seed for the next chapter. */}
 <Stage><CharVsTokenViz /></Stage>
 
 33 characters. Or 10 tokens. Same sentence. Same architecture. Same attention, same FFN, same residuals. <Highlight color="amber">Only the resolution changes.</Highlight> How does a model learn to split &ldquo;strawberry&rdquo; into &ldquo;straw&rdquo; + &ldquo;berry&rdquo;? How do you build a vocabulary from scratch, without any human rules? That&apos;s one of the first things you&apos;ll discover next.
@@ -967,6 +1042,7 @@ But look at what that costs. The word &ldquo;understanding&rdquo; is 13 characte
 
 The architecture is complete. But the story of how a text completer becomes a helpful assistant has its own twists &mdash; and they&apos;re just as fascinating as anything you&apos;ve seen so far. Here are three doors waiting to be opened.
 
+{/* ThreeMysteriesViz — three doors to what comes next (tokenization, fine-tuning/RLHF, chain-of-thought), each building on the architecture the reader already owns. */}
 <Stage><ThreeMysteriesViz /></Stage>
 
 Tokenization teaches the model a smarter alphabet. Fine-tuning and RLHF teach it to follow instructions instead of just completing text. Chain of Thought lets it reason step by step &mdash; and when you give it tools, it becomes an agent that can browse the web, write code, and take actions in the real world. Every one of these builds on the architecture you already know.
@@ -975,6 +1051,7 @@ Tokenization teaches the model a smarter alphabet. Fine-tuning and RLHF teach it
 
 You built a Transformer from scratch. Not a toy version. Not a simplified metaphor. The actual architecture that powers every AI conversation on Earth. You understand it at the level of matrix multiplies and gradient updates. That&apos;s not something most people can say &mdash; including most people who use these models every day.
 
+{/* ShareJourneyViz — a screenshotable achievement card celebrating the journey: the reader built a real Transformer from scratch, and this lets them own the moment. */}
 <Stage><ShareJourneyViz /></Stage>
 
 <NarrativeDivider />
