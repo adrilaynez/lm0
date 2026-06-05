@@ -1,0 +1,40 @@
+// projects namespace (es). Slice of the original i18n dictionary — see src/i18n/README.md.
+export const projects = {
+    projects: {
+        title: "Proyectos",
+        eyebrow: "Trabajo seleccionado",
+        subtitle: "Una colección de trabajo en la intersección de las matemáticas, el código y la inteligencia artificial.",
+        moreWork: "Más trabajo",
+        included: "Lo que incluye",
+        summary: "Resumen",
+        features: "Características",
+        howItWorks: "Cómo funciona",
+        example: "Ejemplo",
+        spec: "Ficha técnica",
+        related: "Otros proyectos",
+        viewDemo: "Ver demo",
+        viewProject: "Ver proyecto",
+        viewDetails: "Ver detalles",
+        viewPage: "Ver página",
+        code: "Código",
+        read: "Leer",
+        backHome: "Inicio",
+        backToProjects: "Proyectos",
+        projectLabel: "Proyecto",
+        nav: {
+            latent: "My Latent Space",
+            projects: "Proyectos",
+            lab: "LM Lab",
+            about: "About",
+        },
+        contact: {
+            eyebrow: "Hablemos",
+            title: "Contact me",
+            text: "Abierto a colaboraciones de investigación, prácticas o una conversación sobre las matemáticas de la inteligencia.",
+            emailLabel: "Email",
+            github: "GitHub",
+            linkedin: "LinkedIn",
+            cv: "CV",
+        },
+    }
+};
