@@ -8,6 +8,16 @@ Format: `## YYYY-MM-DD — title` · what changed · why · (optional) commit re
 
 ---
 
+## 2026-06-05 — README refresh (Phase 9) ✅
+
+Brought `README.md` up to date with the current architecture: it predated next-intl and the MDX migration.
+Rewrote the stale parts — the i18n design-decision (now "next-intl + `useI18n` shim"), the project-structure
+tree (`app/[locale]/`, `content/lab` + `content/projects` MDX, i18n namespaces, instrumentation, sitemap/robots,
+error boundaries, OG image), the i18n/content section (URL routing + UI-vs-prose split + parity test), the tech
+stack (added next-intl, zod, Vitest, GitHub Actions CI, Vercel Analytics, gated Sentry), Getting Started
+(scripts + `.env.example`), and "Adding a New Lab Chapter" (server/client split + MDX prose). Added a
+"Quality & CI" section. Kept the chapter write-ups, backend API table, and latent-space docs intact.
+
 ## 2026-06-05 — Enable reactStrictMode (Phase 8) ✅
 
 Flipped `reactStrictMode` to `true` in `next.config.mjs`. Strict mode double-invokes effects in development to

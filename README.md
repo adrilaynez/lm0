@@ -210,45 +210,47 @@ Your content. Math: $E = mc^2$. Code with syntax highlighting. [[wikilinks]] cre
 
 ```
 src/
-├── app/                        # Next.js App Router
-│   ├── lab/                    # Lab routes: bigram, ngram, neural-networks, mlp, transformer
-│   ├── latent-space/           # Essays + Mind graph
-│   ├── projects/
-│   └── page.tsx                # Home / Portfolio
+├── app/
+│   └── [locale]/               # Next.js App Router, locale-segmented (en | es)
+│       ├── lab/                # Lab routes: bigram, ngram, neural-networks, mlp, transformer
+│       │   └── <chapter>/      #   page.tsx (server, generateMetadata) + <chapter>-client.tsx
+│       ├── latent-space/       # Essays + Mind graph
+│       ├── projects/
+│       ├── layout.tsx          # <html lang> + providers + Analytics + JSON-LD
+│       ├── opengraph-image.tsx # Dynamic social card (next/og)
+│       ├── error.tsx           # In-app error boundary
+│       └── not-found.tsx       # Localized 404
+│   ├── global-error.tsx        # Last-resort error boundary (own <html>)
+│   ├── sitemap.ts · robots.ts  # Per-locale hreflang SEO
+│   └── layout.tsx              # Thin root pass-through
+│
+├── proxy.ts                    # next-intl middleware (Next 16 renamed middleware→proxy)
+├── instrumentation.ts          # Gated Sentry (server/edge) — inert without a DSN
+├── instrumentation-client.ts   # Gated Sentry (client)
 │
 ├── features/
 │   └── lab/                    # Self-contained lab module
-│       ├── components/         # ~340 visualizer components
-│       │   ├── bigram/
-│       │   ├── ngram/
-│       │   ├── nn/
-│       │   ├── mlp/            # 99 components · ~30k lines
-│       │   ├── transformer/    # 114 components
-│       │   └── chill/          # Lab landing page
-│       ├── hooks/              # 15 custom hooks (training loops, generation, viz)
-│       ├── context/            # LabModeContext (narrative/lab), UserContext
-│       ├── lib/                # lmLabClient.ts — typed API client
-│       └── types/              # TypeScript types for all API responses
+│       ├── components/         # ~340 visualizer components (bigram, ngram, nn, mlp, transformer, chill)
+│       │   └── mdx/            # labMdxComponents() — markdown → editorial primitives
+│       ├── hooks/ · context/ · lib/ · types/
+│       └── data/               # Per-chapter spines (what each beat teaches)
 │
-├── components/                 # Shared globals only
-│   ├── layout/                 # Navbar, footer
-│   ├── ui/                     # Design system primitives (Button, Card, BentoGrid…)
-│   └── mdx/                    # MDX renderers (callout, math, code)
-│
-├── context/
-│   └── ScrollContext.tsx       # Shared scroll state (home + lab + latent-space)
+├── components/                 # Shared globals (layout, ui primitives, mdx renderers)
 │
 ├── content/
-│   └── notes/                  # 20 MDX source files
+│   ├── lab/                    # Chapter narrative prose — <chapter>.{es,en}.mdx (all 5 chapters)
+│   ├── projects/               # Per-project long-form prose — <slug>.{es,en}.mdx
+│   └── notes/                  # 20 latent-space MDX notes
 │
-├── i18n/                       # Bilingual EN/ES
-│   ├── en.ts                   # ~4300 lines of English strings
-│   ├── es.ts                   # ~4300 lines of Spanish strings
-│   ├── context.tsx             # useI18n() hook
-│   └── types.ts                # TranslationDictionary type
+├── i18n/                       # Bilingual EN/ES (UI strings only; prose is in content/*.mdx)
+│   ├── routing.ts · navigation.ts · request.ts   # next-intl config
+│   ├── locales/<ns>/{en,es}.ts # Per-feature namespaces (core, home, projects, lab, models, …)
+│   ├── en.ts · es.ts           # Thin barrels assembling the namespaces
+│   ├── context.tsx             # useI18n() — compatibility shim over next-intl
+│   └── i18n.test.ts            # EN/ES parity test
 │
 └── lib/
-    ├── mdx.ts                  # MDX parsing utilities
+    ├── mdx.ts                  # MDX utils + zod frontmatter schema
     └── utils.ts                # cn() — Tailwind class merger
 ```
 
@@ -256,24 +258,29 @@ src/
 
 **Why `features/lab/` instead of `components/lab/`?** The lab is a self-contained product with its own hooks, context, API client, and types. Nothing outside `features/lab/` imports from inside it (except the `app/lab/` pages that mount it). This makes the boundary explicit and the module independently understandable.
 
-**Why not next-intl or i18next?** The translation surface is large but static. A custom `useI18n()` hook over two typed dictionaries is ~40 lines vs a full library setup, and gives full TypeScript autocomplete on every key via `TranslationDictionary`. Acceptable tradeoff for a solo project.
+**Why next-intl with a `useI18n()` shim?** Language is resolved on the **server** from the URL via **next-intl** (`localePrefix: 'as-needed'` → English unprefixed, Spanish under `/es/`), which kills the language "flash" and makes both languages indexable. To avoid rewriting ~374 call-sites, `useI18n()` is a thin **compatibility shim** over next-intl that keeps the original `{ t, language, setLanguage }` API. UI strings live in typed namespace modules (`src/i18n/locales/*`); long-form chapter prose lives in MDX (below). See [`src/i18n/README.md`](./src/i18n/README.md).
 
 **Why Next.js rewrites for the API?** Keeps the backend URL out of the browser (no CORS preflight), allows a zero-config local dev swap, and lets `useBackendHealth` detect cold starts the same way in both environments.
 
 ---
 
-## i18n
+## i18n & content
 
-Every user-facing string lives in `src/i18n/en.ts` and `src/i18n/es.ts`. Language toggle in the navbar, preference persists in `localStorage`.
+Text is split by **type**:
+
+- **UI strings** (labels, nav, CTAs, section titles) → typed namespace modules in `src/i18n/locales/<ns>/{en,es}.ts`, assembled by the `src/i18n/{en,es}.ts` barrels. Read via `useI18n()`.
+- **Long-form prose** (chapter narratives, project overviews) → bilingual **MDX** in `src/content/lab/<chapter>.{es,en}.mdx` and `src/content/projects/<slug>.{es,en}.mdx`.
+
+Language is **URL-based** via next-intl: English unprefixed (`/lab/bigram`), Spanish under `/es/` (`/es/lab/bigram`). The choice persists in the `NEXT_LOCALE` cookie. No client-side flash.
 
 ```tsx
-const { t, language } = useI18n();
+const { t, language } = useI18n(); // shim over next-intl — same API as before
 <p>{t('lab.mlp.sections.hidden.pWhyHiddenLayers')}</p>
 ```
 
-Keys mirror the app structure: `nav`, `landing`, `lab.bigram`, `lab.mlp.sections.*`, `latentSpace`, etc.
+A **parity test** (`src/i18n/i18n.test.ts`) fails CI if the EN and ES dictionaries ever drift out of sync. See [`src/i18n/README.md`](./src/i18n/README.md).
 
-> ⚠️ **Encoding:** these files must be saved as UTF-8 without BOM. If you see `?` characters in the UI, check the file encoding first — Windows editors sometimes corrupt them silently.
+> ⚠️ **Encoding:** all locale files must be saved as UTF-8 without BOM. If you see `?` characters in the UI, check the file encoding first — Windows editors sometimes corrupt them silently.
 
 ---
 
@@ -283,13 +290,19 @@ Keys mirror the app structure: `nav`, `landing`, `lab.bigram`, `lab.mlp.sections
 |---|---|
 | Framework | Next.js 16 (App Router) |
 | Language | TypeScript 5 |
+| i18n | next-intl (URL routing) + `useI18n()` shim |
 | Styling | Tailwind CSS |
 | Animation | Framer Motion |
 | UI Primitives | Radix UI |
-| MDX | next-mdx-remote + gray-matter |
+| MDX | @next/mdx (static import) + gray-matter |
+| Validation | zod (MDX frontmatter) |
 | Math | KaTeX |
 | Code highlighting | Shiki via rehype-pretty-code |
 | Icons | Lucide React |
+| Testing | Vitest |
+| CI | GitHub Actions (typecheck · lint · test · build) |
+| Analytics | Vercel Analytics + Speed Insights |
+| Error tracking | Sentry (gated behind `NEXT_PUBLIC_SENTRY_DSN`) |
 | Backend | FastAPI + PyTorch (separate repo) |
 | Hosting | Vercel (frontend) · Render (backend) |
 
@@ -301,30 +314,36 @@ Keys mirror the app structure: `nav`, `landing`, `lab.bigram`, `lab.mlp.sections
 git clone https://github.com/adrianlaynez/adrian-v2-web
 cd adrian-v2-web
 npm install
-npm run dev          # → localhost:3000
+cp .env.example .env.local   # optional — all vars have sane defaults
+npm run dev                  # → localhost:3000
 ```
 
-The site works fully without the backend — every interactive visualizer has a client-side simulation mode. To enable real model inference:
-
-```bash
-# .env.local — point to local backend (optional)
-NEXT_PUBLIC_LM_LAB_API_URL=http://localhost:8000
-```
+The site works fully without the backend — every interactive visualizer has a client-side simulation mode. In dev, API calls are proxied to `http://localhost:8000` (see the rewrite in `next.config.mjs`). All environment variables are documented in [`.env.example`](./.env.example).
 
 ```bash
-# Analyze bundle
-ANALYZE=true npm run build
+npm run dev          # dev server (Turbopack)
+npm run build        # production build
+npm run test         # vitest (i18n parity + content validation)
+npm run lint         # eslint
+ANALYZE=true npm run build   # bundle analysis
 ```
+
+## Quality & CI
+
+- **Tests** ([Vitest](https://vitest.dev)) — an i18n **parity test** (EN/ES dictionaries must stay structurally identical) + **content tests** (every chapter/project has both-language MDX, note frontmatter is valid via zod, latent-space wikilinks resolve).
+- **CI** (GitHub Actions, `.github/workflows/ci.yml`) — typecheck → lint → test → build on every push/PR.
+- **Hardening** — error boundaries + 404 pages, HTTP security headers (+ CSP report-only), per-chapter SEO metadata + hreflang + dynamic OG image + JSON-LD, `reactStrictMode`.
+- **Formatting** — Prettier + a husky/lint-staged pre-commit hook (staged files only).
 
 ---
 
 ## Adding a New Lab Chapter
 
-1. **Page** — `src/app/lab/[chapter]/page.tsx`
-2. **Narrative** — `src/features/lab/components/[Chapter]Narrative.tsx`
+1. **Route** — `src/app/[locale]/lab/[chapter]/page.tsx` (server wrapper with `generateMetadata`, via `lab/_seo.ts`) + `[chapter]-client.tsx` (interactive UI)
+2. **Narrative prose** — `src/content/lab/[chapter].{es,en}.mdx`, rendered by a thin `[Chapter]Narrative.tsx` shell through `labMdxComponents()`
 3. **Visualizers** — `src/features/lab/components/[chapter]/`
-4. **Translations** — add `lab.[chapter]` to both `src/i18n/en.ts` and `src/i18n/es.ts`
-5. **Nav link** — edit `src/app/lab/page.tsx` → add to the `EraSection` chapters array
+4. **UI strings** — add the chapter namespace to `src/i18n/locales/*` (both `en` and `es` — the parity test enforces it)
+5. **Nav link** — edit `src/app/[locale]/lab/page.tsx` → add to the `EraSection` chapters array
 
 ---
 
