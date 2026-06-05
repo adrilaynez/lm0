@@ -4,21 +4,34 @@ Bilingual EN/ES translation system for **UI strings** (labels, nav, buttons, CTA
 section names, tooltips). Long-form chapter **narrative** does NOT live here — it lives in
 MDX content files (see "Narrative vs. UI" below).
 
-## Files
+## How language works (next-intl, URL-based)
 
-- `en.ts` / `es.ts` — thin **barrels** that assemble the per-feature namespace modules.
+Language is resolved on the **server** from the URL, via **next-intl** with `localePrefix: 'as-needed'`:
+English is unprefixed (`/lab/bigram`), Spanish is under `/es/` (`/es/lab/bigram`). No client-side
+flash. Detection order: URL prefix → `NEXT_LOCALE` cookie → `Accept-Language` → default (`en`).
+
+- `routing.ts` — locales/defaultLocale/localePrefix/cookie (`defineRouting`).
+- `navigation.ts` — locale-aware `Link`/`useRouter`/`usePathname`/`redirect`/`getPathname`
+  (`createNavigation`). **Use these instead of `next/link` / `next/navigation`** for internal links.
+- `request.ts` — `getRequestConfig`; loads `messages` from the existing TS dictionaries (below).
+- `../proxy.ts` — next-intl middleware (Next 16 renamed `middleware.ts` → `proxy.ts`); `/api` excluded.
+- App lives under `app/[locale]/`; `app/[locale]/layout.tsx` owns `<html lang>` + `NextIntlClientProvider`.
+
+## Dictionary files
+
+- `en.ts` / `es.ts` — thin **barrels** that assemble the per-feature namespace modules (reused as
+  next-intl `messages`; no JSON migration — next-intl accepts any JS object).
 - `locales/<ns>/{en,es}.ts` — the actual strings, split by feature:
   - `core` — `common`, `nav`, `footer`, `datasetExplorer`
-  - `lab` — `lab`, `training`, `home`, `landing`, `projects`, `notes`, `latentSpace`, `challenge`
+  - `home` — `home`, `landing`
+  - `projects` — `projects`
+  - `latent-space` — `latentSpace`, `notes` (export name `latentSpaceNs`)
+  - `lab` — `lab`, `training`, `challenge`
   - `models` — the per-model metadata block (the largest)
-  - `bigram` — `bigramNarrative` (leftover UI), `bigramBuilder`, `bigramWidgets`
-  - `ngram` — `ngram`, `ngramNarrative` (leftover UI), `ngramPedagogy`
-  - `neuralNetwork` — `neuralNetworkNarrative`
-- `context.tsx` — React context + `useI18n()` hook (unchanged: `t()`, fallback `lang → en → key`,
-  `{param}` interpolation, lazy-loaded `es`).
+  - `bigram` / `ngram` / `neuralNetwork` — the chapters' leftover UI + widget labels
 - `types.ts` — `TranslationDictionary = typeof en`.
 
-The split is purely organizational: `en` is still one object (`{ ...core, ...lab, ... }`),
+The split is organizational: `en` is still one object (`{ ...core, ...home, ...projects, ... }`),
 so `t('lab.mlp.sections.hidden.x')` works exactly as before — no call-site changed.
 
 ## Usage
@@ -32,7 +45,16 @@ function MyComponent() {
 }
 ```
 
-`language` is `'en'` or `'es'`. The toggle is in the navbar; preference is stored in localStorage.
+`useI18n()` is now a **compatibility shim over next-intl** (same `{ language, setLanguage, t }` API):
+- `language` = `useLocale()` (from the URL).
+- `setLanguage(l)` navigates to the same path under locale `l` (persists via `NEXT_LOCALE` cookie).
+- `t` uses next-intl's `tRoot.raw(key)` + manual `{param}` replacement — NOT ICU formatting. This is
+  required because many strings embed literal `<strong>`/`<em>` HTML (rendered via
+  `dangerouslySetInnerHTML`); ICU would mis-parse `<…>` as tag placeholders and throw. `raw()`
+  reproduces the original hand-rolled `t()` semantics exactly. **So do NOT rely on ICU plural/select
+  syntax in these dictionaries** — use plain `{param}` placeholders only.
+
+The language toggle (`components/ui/language-toggle.tsx`) just calls `setLanguage()`.
 
 ## Narrative vs. UI — where does my text go?
 
