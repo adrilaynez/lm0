@@ -1819,5 +1819,9 @@ export const models = {
                 },
             },
         },
+        transformer: {
+            title: "Transformers & Attention",
+            description: "How attention lets a model weigh every token against every other — the architecture behind modern language models, built up from first principles.",
+        },
     }
 };

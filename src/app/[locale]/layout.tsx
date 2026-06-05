@@ -88,6 +88,26 @@ export default async function LocaleLayout({
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
 
+  // Structured data: identifies the author + the site to search engines / rich results.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Person",
+        name: "Adrián Laynez",
+        url: SITE_URL,
+        jobTitle: "Research & Engineering",
+        sameAs: ["https://github.com/adrilaynez"],
+      },
+      {
+        "@type": "WebSite",
+        name: "Adrián Laynez | Research & Engineering",
+        url: SITE_URL,
+        inLanguage: locale,
+      },
+    ],
+  };
+
   return (
     <html lang={locale} suppressHydrationWarning>
       <body
@@ -100,6 +120,10 @@ export default async function LocaleLayout({
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </body>
     </html>
   );

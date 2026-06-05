@@ -8,6 +8,18 @@ Format: `## YYYY-MM-DD — title` · what changed · why · (optional) commit re
 
 ---
 
+## 2026-06-05 — Per-page SEO: metadata + OG image + JSON-LD (Phase 6) ✅
+
+Each lab chapter now has its own search-engine identity. The 5 chapter routes (bigram, ngram, neural-networks,
+mlp, transformer) were each split into a thin **server** `page.tsx` (exports `generateMetadata`) + a
+`<chapter>-client.tsx` holding the existing interactive UI — necessary because the pages are client components
+and `generateMetadata` must run on the server. A shared helper (`lab/_seo.ts`) emits per-chapter localized
+title/description (from the `models.<chapter>` i18n block), canonical URL, and hreflang alternates (EN
+unprefixed / ES `/es`), plus an article OpenGraph card. Added `models.transformer.{title,description}` (EN/ES),
+which didn't exist. Added a branded **dynamic OG image** (`[locale]/opengraph-image.tsx`, `next/og`) used as
+the default social card, and **JSON-LD** (Person + WebSite schema) in the locale layout. Build generates all
+123 pages + the OG image route cleanly.
+
 ## 2026-06-05 — Analytics + observability (Phase 5) ✅
 
 Added traffic + performance telemetry and gated error reporting. **Vercel Analytics** + **Speed Insights**

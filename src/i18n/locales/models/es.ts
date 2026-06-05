@@ -1808,5 +1808,9 @@ export const models = {
                 },
             },
         },
+        transformer: {
+            title: "Transformers y Atención",
+            description: "Cómo la atención permite a un modelo pesar cada token frente a todos los demás — la arquitectura detrás de los modelos de lenguaje modernos, construida desde los principios.",
+        },
     }
 };
