@@ -8,6 +8,24 @@ Format: `## YYYY-MM-DD — title` · what changed · why · (optional) commit re
 
 ---
 
+## 2026-06-05 — Error boundaries + 404 pages (Phase 2) ✅
+
+Broken pages no longer show a blank screen. Added a last-resort `global-error.tsx` (renders its own document
+with inline styles — works even when the root layout itself fails), an in-app `[locale]/error.tsx` with a
+"try again" button, a localized `[locale]/not-found.tsx` 404 (EN/ES, locale-aware link home), and a
+self-contained root `not-found.tsx` for non-locale paths. New i18n keys: `common.notFound{Title,Body,Cta}`.
+
+## 2026-06-05 — Tests + CI (Phase 1) ✅
+
+The site now has an automated test suite and a CI robot. **Tests** (`vitest`): an i18n **parity test**
+(`src/i18n/i18n.test.ts`) that guarantees the Spanish and English dictionaries have the exact same structure
+— same nested keys, same array-of-object lengths, no value empty in one language but filled in the other, no
+stray non-string leaves — so a translation can never silently drift; plus a **content test**
+(`src/content/content.test.ts`) verifying every lab chapter and every project has BOTH `.es.mdx` and `.en.mdx`,
+and that every latent-space `[[wikilink]]` points at a real note. **CI** (`.github/workflows/ci.yml`): on every
+push / PR, GitHub runs typecheck → lint → test → build on Node 22. Lint is non-blocking for now (pre-existing
+lint errors unrelated to this work); typecheck, test and build are blocking. 17 tests green locally.
+
 ## 2026-06-05 — Started: professional production hardening (P0 + P1 + selected P2)
 
 Began a multi-phase upgrade to take the site from "high-craft demo" to "production-grade". Plan lives in

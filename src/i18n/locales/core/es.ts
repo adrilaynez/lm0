@@ -12,6 +12,9 @@ export const core = {
         liveDemo: "Demo en Vivo",
         viewCaseStudy: "Ver Caso de Estudio",
         siteDescription: "Web personal y laboratorio de investigación de Adrián Laynez — ensayos interactivos sobre cómo funcionan los modelos de lenguaje, proyectos y notas.",
+        notFoundTitle: "Página no encontrada",
+        notFoundBody: "La página que buscas no existe o puede que se haya movido.",
+        notFoundCta: "Volver al inicio",
     },
     nav: {
         home: "Inicio",

@@ -12,6 +12,9 @@ export const core = {
         liveDemo: "Live Demo",
         viewCaseStudy: "View Case Study",
         siteDescription: "Personal website and research lab of Adrián Laynez — interactive essays on how language models work, projects, and notes.",
+        notFoundTitle: "Page not found",
+        notFoundBody: "The page you’re looking for doesn’t exist or may have moved.",
+        notFoundCta: "Back home",
     },
     nav: {
         home: "Home",
