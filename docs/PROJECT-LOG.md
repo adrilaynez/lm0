@@ -8,6 +8,15 @@ Format: `## YYYY-MM-DD — title` · what changed · why · (optional) commit re
 
 ---
 
+## 2026-06-05 — Perf hardening, safe subset (Phase 3) ✅
+
+Enabled `experimental.optimizePackageImports` for `lucide-react` and `framer-motion` in `next.config.mjs` —
+Next now tree-shakes those big barrel imports to their deep paths at build time, so each page ships only the
+icons/animation primitives it actually uses. No behavior change. **Deferred on purpose (future work):** the
+bigger win — making the lab chapters load their MDX via a locale-aware dynamic import from a *server* boundary
+(today both language bundles are shipped to the client, and ~91% of the tree is client) — was NOT attempted in
+this unattended run because it can break the instant in-place language toggle; it needs interactive validation.
+
 ## 2026-06-05 — Error boundaries + 404 pages (Phase 2) ✅
 
 Broken pages no longer show a blank screen. Added a last-resort `global-error.tsx` (renders its own document

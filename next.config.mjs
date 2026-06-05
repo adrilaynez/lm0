@@ -23,6 +23,11 @@ const withMDX = createMDX({
 
 const nextConfig = {
     reactStrictMode: false,
+    // Tree-shake large barrel imports (icons + animation) so only the used symbols ship.
+    // Safe, no behavior change — Next rewrites the imports to their deep paths at build time.
+    experimental: {
+        optimizePackageImports: ['lucide-react', 'framer-motion'],
+    },
     // Allow an alternate build dir (e.g. to verify a production build while `next dev`
     // holds the default .next lock). Unset in normal use → defaults to .next.
     ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
