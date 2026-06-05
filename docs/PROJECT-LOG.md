@@ -8,6 +8,11 @@ Format: `## YYYY-MM-DD — title` · what changed · why · (optional) commit re
 
 ---
 
+## 2026-06-05 — Enable reactStrictMode (Phase 8) ✅
+
+Flipped `reactStrictMode` to `true` in `next.config.mjs`. Strict mode double-invokes effects in development to
+surface side-effect bugs early; production builds are unaffected. Build is green with it on (123/123 pages).
+
 ## 2026-06-05 — MDX content validation (Phase 7) ✅
 
 Added a **zod** schema for note frontmatter (`noteFrontmatterSchema` in `src/lib/mdx.ts`): `title` required,

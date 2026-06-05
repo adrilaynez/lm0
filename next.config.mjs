@@ -22,7 +22,7 @@ const withMDX = createMDX({
 });
 
 const nextConfig = {
-    reactStrictMode: false,
+    reactStrictMode: true,
     // Tree-shake large barrel imports (icons + animation) so only the used symbols ship.
     // Safe, no behavior change — Next rewrites the imports to their deep paths at build time.
     experimental: {
