@@ -8,6 +8,15 @@ Format: `## YYYY-MM-DD — title` · what changed · why · (optional) commit re
 
 ---
 
+## 2026-06-05 — HTTP security headers (Phase 4) ✅
+
+Added real security headers via `next.config.mjs → headers()` on every route: HSTS (2-year, includeSubDomains,
+preload), `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy:
+strict-origin-when-cross-origin`, `Permissions-Policy` (camera/mic/geolocation off), `X-DNS-Prefetch-Control:
+on`. Plus a **Content-Security-Policy in Report-Only mode** — it never blocks anything, it only reports
+violations, so it's safe to ship; once the report is clean we flip the header name to enforce. The policy
+already whitelists the backend API origin and Vercel analytics so the eventual switch is low-friction.
+
 ## 2026-06-05 — Perf hardening, safe subset (Phase 3) ✅
 
 Enabled `experimental.optimizePackageImports` for `lucide-react` and `framer-motion` in `next.config.mjs` —

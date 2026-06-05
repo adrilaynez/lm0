@@ -34,6 +34,37 @@ const nextConfig = {
     // Allow .md/.mdx alongside the usual extensions (does not turn content files into routes —
     // routes still come only from app/, which has no .mdx files).
     pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+    async headers() {
+        // Content-Security-Policy is REPORT-ONLY: it never blocks anything, it only surfaces
+        // violations (in the browser console / a report endpoint). Safe to ship; once the report
+        // is clean, swap the header name to `Content-Security-Policy` to start enforcing.
+        const csp = [
+            "default-src 'self'",
+            // Next.js injects inline bootstrap scripts; Vercel analytics loads from va.vercel-scripts.com.
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com",
+            "style-src 'self' 'unsafe-inline'",
+            "img-src 'self' data: blob: https:",
+            "font-src 'self' data:",
+            // Same-origin + the backend (proxied via /api rewrite) + Vercel insights + dev backend.
+            "connect-src 'self' https://lm-lab.onrender.com https://vitals.vercel-insights.com https://va.vercel-scripts.com http://localhost:8000",
+            "frame-ancestors 'self'",
+            "base-uri 'self'",
+            "form-action 'self'",
+            "object-src 'none'",
+        ].join('; ');
+
+        const securityHeaders = [
+            { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+            { key: 'X-Content-Type-Options', value: 'nosniff' },
+            { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+            { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+            { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+            { key: 'X-DNS-Prefetch-Control', value: 'on' },
+            { key: 'Content-Security-Policy-Report-Only', value: csp },
+        ];
+
+        return [{ source: '/(.*)', headers: securityHeaders }];
+    },
     async rewrites() {
         return [
             {
