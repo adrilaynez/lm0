@@ -1,4 +1,5 @@
 import withBundleAnalyzer from '@next/bundle-analyzer';
+import createMDX from '@next/mdx';
 
 /** @type {import('next').NextConfig} */
 const isProd = process.env.NODE_ENV === 'production';
@@ -7,8 +8,23 @@ const analyzeBundles = withBundleAnalyzer({
     enabled: process.env.ANALYZE === 'true',
 });
 
+/* MDX for lab-chapter narrative content (src/content/lab/*.mdx). Plugins are declared
+   as string names — required so the config stays serializable under Turbopack (Next 16 dev). */
+const withMDX = createMDX({
+    options: {
+        remarkPlugins: [['remark-math']],
+        rehypePlugins: [['rehype-katex']],
+    },
+});
+
 const nextConfig = {
     reactStrictMode: false,
+    // Allow an alternate build dir (e.g. to verify a production build while `next dev`
+    // holds the default .next lock). Unset in normal use → defaults to .next.
+    ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
+    // Allow .md/.mdx alongside the usual extensions (does not turn content files into routes —
+    // routes still come only from app/, which has no .mdx files).
+    pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
     async rewrites() {
         return [
             {
@@ -48,4 +64,4 @@ const nextConfig = {
     },
 };
 
-export default analyzeBundles(nextConfig);
+export default analyzeBundles(withMDX(nextConfig));

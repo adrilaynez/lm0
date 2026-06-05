@@ -1,0 +1,176 @@
+{/*
+  Bigram — chapter narrative (EN). Editorial content, not UI.
+  Ported 1:1 from i18n `bigramNarrative.v2.*`. Section/widget order mirrors the
+  old BigramNarrative.tsx. Components injected via labMdxComponents() in the shell.
+
+  IMPORTANT (MDX): the title is the `heading=` prop of <Section>, NOT a literal <h2>
+  — MDX only routes markdown-generated elements and Capitalized components through the
+  component map; a literal <h2> would render unstyled. Same for <Break/> vs <hr/>.
+  The hero, CTA and footer live in the shell TSX (they are UI), not here.
+*/}
+
+<Section id="bigram-01" number="01" label="Predicting letters" heading="The trick: predicting">
+
+<Lead>When we're small, nobody hands us a manual for learning to talk. We learn by living: we hear the people around us, we tie a tone of voice to a smiling face, and little by little the meaning of things sinks in.</Lead>
+
+But how do you teach writing to a machine that has never lived a single day? To a box of wires and silicon, the word **apple** isn't sweet or red. It means nothing. If it can't understand the world, writing about it looks impossible.
+
+So before we build anything, a small experiment.
+
+<Stage><FillTheBlank /></Stage>
+
+You probably filled every blank without much effort. But look at the last one: you had no idea what *Fli fli fla* means. You just looked at what came before, sensed the logic, and guessed what came next.
+
+You just found the trick. Since engineers couldn't teach machines to understand the world the way we do, they changed the rules of the game. Instead of teaching them to reflect, they taught them to **predict**.
+
+Today, the big models do this with whole sentences. But to really understand the magic behind it, we'll go to the most basic thing of all: predicting what the next letter is.
+
+<Lead>Our final goal is to build exactly this: you give it a letter, and it bets on the one that comes next.</Lead>
+
+<Plane><HeroAutoComplete /></Plane>
+
+It looks like magic, but underneath it's just very basic math. Now the big question: how do we build this from scratch, when the machine can't even read?
+</Section>
+
+<Break />
+
+<Section id="bigram-02" number="02" label="The pattern" heading="Hunting the pattern">
+
+<Lead>Our language isn't chaos. Mash the keyboard at random and you get something like *asdfghjkl*, which means nothing. We write following an invisible structure: nobody ever explained that after «q» comes almost always a «u», or that three consonants in a row are rare. Your brain just absorbed it from reading and listening.</Lead>
+
+Since the language already hides that pattern, all we need is for the machine to read text and notice who goes hand in hand with whom. Let's start with a simple sentence.
+
+<Plane><PairHighlighter /></Plane>
+
+We've seen how it hunts for little pairs of letters. To really get it, let's focus on a single one: the «t». We'll give it different sentences and see which letter it decides is the «t»'s best partner.
+
+Change the text and watch which letter wins after the «t».
+
+<Plane><IsolateT /></Plane>
+
+Depending on the text you give it, it learns a different rule, and with so little text the count lies. Feed it very short texts and its view of the world is limited and biased. To learn the real rules, it needs far more information: a giant text.
+
+So let's get serious. Let's have our machine read all of Shakespeare.
+
+<Plane><RowTally /></Plane>
+
+That row is everything there is about the «t» in all of Shakespeare. The machine pulled out every one of its connections on its own, just by counting.
+
+This process —handing a machine a giant text so it reads, counts, and builds its own tables of rules— is called **training data**. You just watched, first-hand, how a model is trained. (One catch: it learned from Shakespeare, so it'll talk like it's 400 years ago. Change the book and you change the machine.)
+
+<Expandable title="One man, one book, a lot of patience" kicker="Story · long read · optional">
+What your machine just did in a millisecond, tallying little pairs of letters, is no modern invention. The first time anyone did it there were no computers, no internet, and not the slightest intention of building technology. It happened, quite literally, out of spite.
+
+Russia, 1913. A respected and deeply devout mathematician, Pavel Nekrasov, announced that he had proven the existence of free will with numbers. His reasoning: statistics only works when events are independent, like rolls of a die, where one roll doesn't affect the next. Since people decide things by free will, he concluded, the only way society could still be predictable was a divine plan.
+
+Enter our protagonist: Andrei Markov. Brilliant, a card-carrying atheist, and with a temper so short his students nicknamed him «Andrei the Furious» (he once formally asked to be struck from the Church rolls). Someone using his beloved mathematics to do theology struck him as a personal insult, and he took it as one.
+
+To dismantle his rival he had to show that statistics works even when events are not independent; when each step forces the next. And what is more chained together than language? If a «q» turns up, the next letter isn't free: it's almost forced to be a «u».
+
+So Markov grabbed a copy of «Eugene Onegin», Pushkin's novel in verse, stripped out the spaces and punctuation, and started counting its first 20,000 letters by hand. He split them into blocks of a hundred and spent months noting how often a vowel followed a consonant, and the other way round. He was hunting the invisible pattern.
+
+In the end, with paper and pencil, he built a probability table just like the one you have right above, and proved that although each letter depended on the one before it, the whole text settled into fixed percentages. Along the way, without meaning to, he had just invented the chains that now bear his name.
+
+His strangest rule is the one he called «memorylessness»: to bet on the next step, all that matters is where you are right now; everything before is erased. It's an idea with far more consequences than it first appears.
+</Expandable>
+</Section>
+
+<Break />
+
+<Section id="bigram-03" number="03" label="How to choose" heading="Too predictable">
+
+<Lead>Now the machine knows that after a «t», «h» shows up in droves and «o» far less. But a fistful of loose counts is useless for writing: 7,071 means nothing if you don't know out of how many. Those numbers have to become probabilities.</Lead>
+
+And it's plain old division: take the «t» row, add up everything in it, and see what slice each partner gets.
+
+<Plane><NormalizationVisualizer /></Plane>
+
+There it is: the same row, now as percentages that add up to 100%. The «h» takes about 36%, the space 29%, the «o» 10%… Those are the machine's bets.
+
+And now the real question: with those bets on the table, which letter does it pick? The safe move would be to always take the highest one. Let's see what happens.
+
+<Plane><AlwaysMaxLoop /></Plane>
+
+Always «h». The safe choice turns out to be the deadest one: this way, after a «t» nothing different would ever show up, one «h» after another. To write with any life it needs a pinch of randomness; but not just any kind.
+
+The engineers' idea was a die. A loaded one, of course: loads of «h» faces, plenty of space, the odd «o», and almost none of the rare letters. So the likely thing usually comes up, but every so often it surprises you. Roll it yourself and see.
+
+<Plane><LoadedDie /></Plane>
+
+Look at that! We've got the whole trick for the «t»: count it, turn it into percentages, and pick with a spark of randomness. And the question asks itself: what if we did exactly this for every letter at once?
+</Section>
+
+<Break />
+
+<Section id="bigram-04" number="04" label="The matrix" heading="The matrix is born">
+
+<Lead>We have a row for «t». What about «a»? And «h»? And all the rest?</Lead>
+
+<Plane><TinyMatrixExample showCounts /></Plane>
+
+Stack one row per letter and look what comes out: a grid. Each row is the letter you start from. Each column, the one that could come next. Each cell, how many times we saw it.
+
+You just built something with a name of its own: a **transition table**.
+
+<Plane><GrowingMatrix27 /></Plane>
+
+And that's only one corner of the language: lowercase. Capitals, periods, commas, numbers are still missing. Count them all and the table grows to its real size, with far more hidden rules inside.
+
+This is the whole table, for real. It looks like a mess of light, but it's the manual of a language written in numbers. Every lit cell is a rule; every dark gap, a pair that almost never happens. And nobody taught it any of them.
+
+<Plane><DetectiveMatrix /></Plane>
+</Section>
+
+<Break />
+
+<Section id="bigram-05" number="05" label="Writing alone" heading="Let's write!">
+
+<Lead>The table now holds every rule the language follows. And picking one letter we already know how to do: look at its row, roll the die. Here is that step in slow motion, and each letter that lands is the starting point for the next.</Lead>
+
+<Plane><LetterByLetter /></Plane>
+
+And there it is: a machine that writes on its own. Nobody taught it spelling, or grammar, or a single rule. It just counted pairs of letters in a pile of text, and everything came out of that. You built it, from scratch.
+
+You've seen it in slow motion. At full speed it's this: one letter after another, no brakes, whole phrases pour out at once.
+
+<Plane><TableWriter /></Plane>
+
+And now the bad news. Read it again and it almost sounds like a real language: the letters fit together… but they aren't words. Babble with a good accent. We pulled it off, it writes on its own. But what a mess, right? Why does it write so badly?
+
+<Reveal lead="And what you built has a name:" word="a bigram model" coda="The simplest language model there is. And it's the first brick of everything else. ChatGPT included." />
+
+<Expandable title="The man who measured language" kicker="History · long read · optional">
+In 1948, an engineer named Claude Shannon published a paper that, quite literally, lit the digital age. The curious part: he wasn't trying to build an artificial intelligence or teach a machine to write. His problem was far more down-to-earth — he worked at Bell Labs and needed to compress data to fit more calls and telegrams down a single wire.
+
+He noticed something fascinating: human language is wildly predictable — redundant, as he called it. If I write «Ques», your head doesn't need the final «o» to know the word. That «o» adds almost no new information, because you were already sure it was coming.
+
+To measure how much "real information" a language carries, Shannon did exactly what you just did: he worked out the letters' probabilities over mountains of text and let the maths write on their own, with his tables and a pinch of chance.
+
+Using a bigram model — looking only at the previous letter, just like your machine — here is what came out in his 1948 study:
+
+<Specimen>ON IE ANTSOUTINYS ARE T INCTORE ST BE S DEAMY ACHIN D ILONASIVE TUCOWE AT TEASONARE FUSO TIZIN ANDY TOBE SEACE CTISBE</Specimen>
+
+Exactly: the same babble-with-a-good-accent your model just produced. Letters that fit two by two, but unable to form real words, because the machine has no memory to speak of.
+
+With that experiment Shannon founded Information Theory, gave the world the "bit", and proved for the first time that human language could be translated into pure statistics. The pair tables you built on this page are an exact replica of the first language model in history. You reinvented, in an afternoon, the brick the whole modern internet rests on.
+</Expandable>
+</Section>
+
+<Break />
+
+<Section id="bigram-06" number="06" label="The ceiling" heading="The bigram's ceiling">
+
+Before we fix it, let's understand why it writes so badly. What comes after «th»? The machine couldn't care less about the «t»: it only looks at the «h». To it, «th», «sh» and «wh» are exactly the same thing.
+
+<Plane><ContextBlindnessDemo /></Plane>
+
+It's not forgetful. It's blind from birth. No matter how much text you give it, it will never tell «th» from «sh». This isn't a bug you fix with more data. It's the ceiling of the model.
+
+What if it could see more than one letter? Your turn: a word reveals itself one letter at a time, and you bet on the next.
+
+<Plane><ShannonContextLadder /></Plane>
+
+Did you feel it? With one letter you were guessing blind. With almost the whole word in front of you, almost certain. More context, better prediction. That's exactly what our model is missing: it only sees one piece back. Just like you with «hi»: it reacts to the last thing it heard, with no idea about the rest.
+
+What if we teach it to look at two letters? Three? Five? That's already a different model. And it's the next one.
+</Section>

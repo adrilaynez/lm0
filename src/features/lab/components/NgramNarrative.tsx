@@ -1,35 +1,24 @@
 "use client";
 
-import { lazy, Suspense, useState } from "react";
+import { lazy } from "react";
 import { useRouter } from "next/navigation";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, BrainCircuit, ChevronDown, FlaskConical } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, BrainCircuit, FlaskConical } from "lucide-react";
 
+import NgramEn from "@/content/lab/ngram.en.mdx";
+import NgramEs from "@/content/lab/ngram.es.mdx";
+import { ChapterSideRail } from "@/features/lab/components/ChapterSideRail";
 import { ContinueToast } from "@/features/lab/components/ContinueToast";
 import { FadeInView } from "@/features/lab/components/FadeInView";
-import { LazySection, SectionSkeleton } from "@/features/lab/components/LazySection";
+import { labMdxComponents } from "@/features/lab/components/mdx/labMdxComponents";
 import { ModeToggle } from "@/features/lab/components/ModeToggle";
-import { SectionAnchor } from "@/features/lab/components/SectionAnchor";
-import { ChapterSideRail } from "@/features/lab/components/ChapterSideRail";
 import { useLabMode } from "@/features/lab/context/LabModeContext";
 import { useLabTheme } from "@/features/lab/hooks/useLabTheme";
 import { useProgressTracker } from "@/features/lab/hooks/useProgressTracker";
 import { useI18n } from "@/i18n/context";
-import { en } from "@/i18n/en";
-import { es } from "@/i18n/es";
 
-import {
-    FigureWrapper as _FigureWrapper,
-    Heading,
-    Lead,
-    P,
-    Section,
-    SectionBreak,
-    SectionLabel as _SectionLabel,
-} from "./narrative-primitives";
-
-/* ─── n-gram v3 "La fila" widgets (amber, [data-ngram-theme]) ─── */
+/* ─── n-gram v3 "La fila" widgets (amber, [data-ngram-theme]), injected into the MDX ─── */
 const AmnesiaReplay = lazy(() => import("@/features/lab/components/ngram/AmnesiaReplay").then(m => ({ default: m.AmnesiaReplay })));
 const WidenWindow = lazy(() => import("@/features/lab/components/ngram/WidenWindow").then(m => ({ default: m.WidenWindow })));
 const SplitTheRow = lazy(() => import("@/features/lab/components/ngram/SplitTheRow").then(m => ({ default: m.SplitTheRow })));
@@ -38,65 +27,52 @@ const GrowingTable = lazy(() => import("@/features/lab/components/ngram/GrowingT
 const WriteFromMatrix = lazy(() => import("@/features/lab/components/ngram/WriteFromMatrix").then(m => ({ default: m.WriteFromMatrix })));
 const LookWhatYouBuilt = lazy(() => import("@/features/lab/components/ngram/LookWhatYouBuilt").then(m => ({ default: m.LookWhatYouBuilt })));
 const ExplosionZoom = lazy(() => import("@/features/lab/components/ngram/ExplosionZoom").then(m => ({ default: m.ExplosionZoom })));
+const WordsExplosion = lazy(() => import("@/features/lab/components/ngram/WordsExplosion").then(m => ({ default: m.WordsExplosion })));
 const BookFirehose = lazy(() => import("@/features/lab/components/ngram/BookFirehose").then(m => ({ default: m.BookFirehose })));
 const MuteSlot = lazy(() => import("@/features/lab/components/ngram/MuteSlot").then(m => ({ default: m.MuteSlot })));
 const EmptyMatrix = lazy(() => import("@/features/lab/components/ngram/EmptyMatrix").then(m => ({ default: m.EmptyMatrix })));
 const Progression = lazy(() => import("@/features/lab/components/ngram/Progression").then(m => ({ default: m.Progression })));
 const BigModelLimit = lazy(() => import("@/features/lab/components/ngram/BigModelLimit").then(m => ({ default: m.BigModelLimit })));
 
-/* ─── accent-bound primitive wrappers ─── */
-const NA = "ngram" as const;
-const SectionLabel = (p: { number: string; label: string }) => <_SectionLabel accent={NA} {...p} />;
-const Figure = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <LazySection>
-        <_FigureWrapper accent={NA} label={label} hint="">
-            <Suspense fallback={<SectionSkeleton />}>{children}</Suspense>
-        </_FigureWrapper>
-    </LazySection>
-);
-
-function ExpandableSection({ kicker, title, children }: { kicker?: string; title: string; children: React.ReactNode }) {
-    const [open, setOpen] = useState(false);
-    const { t } = useI18n();
-    return (
-        <div className="my-12">
-            <button onClick={() => setOpen(o => !o)} className="w-full flex items-center gap-3 text-left group mb-3" aria-expanded={open}>
-                <span className="w-1.5 h-1.5 rounded-full bg-ngram-accent shrink-0" />
-                <span className="flex-1">
-                    {kicker && <span className="block font-[family-name:var(--ngram-font-mono)] text-[10.5px] uppercase tracking-[0.18em] text-ngram-dim mb-1">{kicker}</span>}
-                    <span className="font-[family-name:var(--ngram-font-display)] text-[22px] font-semibold text-ngram-ink leading-snug">{title}</span>
-                </span>
-                <span className="shrink-0 font-[family-name:var(--ngram-font-mono)] text-[10px] uppercase tracking-widest text-ngram-dim mr-1">
-                    {open ? t("ngramNarrative.v3.ui.collapse") : t("ngramNarrative.v3.ui.expand")}
-                </span>
-                <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }} className="shrink-0">
-                    <ChevronDown className="w-4 h-4 text-ngram-dim" />
-                </motion.div>
-            </button>
-            <AnimatePresence initial={false}>
-                {open && (
-                    <motion.div key="c" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.38, ease: [0.25, 0, 0, 1] }} className="overflow-hidden">
-                        {children}
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-}
+/* The chapter's widgets, injected into the shared MDX component map. (These run on local
+   data, so no live props need pre-binding — see the old NgramNarrative `void` note.) */
+const NGRAM_WIDGETS = {
+    AmnesiaReplay,
+    WidenWindow,
+    SplitTheRow,
+    RowSharpens,
+    GrowingTable,
+    WriteFromMatrix,
+    LookWhatYouBuilt,
+    ExplosionZoom,
+    WordsExplosion,
+    BookFirehose,
+    MuteSlot,
+    EmptyMatrix,
+    Progression,
+    BigModelLimit,
+} as unknown as Record<string, React.ComponentType<Record<string, unknown>>>;
 
 interface NgramNarrativeProps {
     contextSize: number;
     vocabSize: number;
 }
 
+/* Thin shell: theme wrapper + hero + side-rail + CTA + footer in TSX; the chapter body
+   authored in ngram.{es,en}.mdx and rendered through the shared MDX component map. */
 export function NgramNarrative({ contextSize, vocabSize }: NgramNarrativeProps) {
     void contextSize; void vocabSize; // the narrative runs on local ngramData now, not these props
     const { t, language } = useI18n();
-    const dict = (language === "es" ? es : en) as typeof en;
     const router = useRouter();
     const { theme } = useLabTheme();
     const { setMode } = useLabMode();
     const { hasStoredProgress, storedSection, clearProgress } = useProgressTracker("ngram");
+
+    const Body = language === "es" ? NgramEs : NgramEn;
+    const mdxComponents = labMdxComponents("ngram", NGRAM_WIDGETS, {
+        open: t("ngramNarrative.v3.ui.expand"),
+        close: t("ngramNarrative.v3.ui.collapse"),
+    });
 
     const sectionNames = {
         "ngram-01": t("ngramNarrative.v3.sectionNames.s1"),
@@ -147,99 +123,13 @@ export function NgramNarrative({ contextSize, vocabSize }: NgramNarrativeProps) 
                     </motion.div>
                 </header>
 
-                {/* ───── §1 · Mirar más atrás ───── */}
-                <Section id="ngram-01">
-                    <SectionLabel number="01" label={sectionNames["ngram-01"]} />
-                    <SectionAnchor id="ngram-01"><Heading accent={NA}>{sectionNames["ngram-01"]}</Heading></SectionAnchor>
-                    <P accent={NA}>{t("ngramNarrative.v3.s1.recap")}</P>
-                    <Lead accent={NA}>{t("ngramNarrative.v3.s1.amnesiaLead")}</Lead>
-                    <Figure label="solo recuerda la última letra"><AmnesiaReplay /></Figure>
-                    <P accent={NA}>{t("ngramNarrative.v3.s1.afterAmnesia")}</P>
-                    <Lead accent={NA}>{t("ngramNarrative.v3.s1.ask")}</Lead>
-                    <Figure label="dale más memoria"><WidenWindow /></Figure>
-                    <P accent={NA}>{t("ngramNarrative.v3.s1.payoff")}</P>
-                    <P accent={NA}>{t("ngramNarrative.v3.s1.name")}</P>
-                    <P accent={NA}>{t("ngramNarrative.v3.s1.bridge")}</P>
-                </Section>
-                <SectionBreak accent={NA} />
+                {/* ═══════════ Chapter body — authored in ngram.{es,en}.mdx ═══════════ */}
+                <Body components={mdxComponents} />
 
-                {/* ───── §2 · Construirla tú ───── */}
-                <Section id="ngram-02">
-                    <SectionLabel number="02" label={sectionNames["ngram-02"]} />
-                    <SectionAnchor id="ngram-02"><Heading accent={NA}>{sectionNames["ngram-02"]}</Heading></SectionAnchor>
-                    <P accent={NA}>{t("ngramNarrative.v3.s2.lead")}</P>
-                    <Figure label="pártela tú"><SplitTheRow /></Figure>
-                    <P accent={NA}>{t("ngramNarrative.v3.s2.payoff")}</P>
-                    <Lead accent={NA}>{t("ngramNarrative.v3.s2.sharpenLead")}</Lead>
-                    <Figure label="la fila se afila"><RowSharpens /></Figure>
-                    <Lead accent={NA}>{t("ngramNarrative.v3.s2.growLead")}</Lead>
-                    <Figure label="y la tabla crece"><GrowingTable /></Figure>
-                    <P accent={NA}>{t("ngramNarrative.v3.s2.bridge")}</P>
-                </Section>
-                <SectionBreak accent={NA} />
-
-                {/* ───── §3 · Lo que has construido ───── */}
-                <Section id="ngram-03">
-                    <SectionLabel number="03" label={sectionNames["ngram-03"]} />
-                    <SectionAnchor id="ngram-03"><Heading accent={NA}>{sectionNames["ngram-03"]}</Heading></SectionAnchor>
-                    <P accent={NA}>{t("ngramNarrative.v3.s3.writeLead")}</P>
-                    <Figure label="escribir es leer un número"><WriteFromMatrix /></Figure>
-                    <P accent={NA}>{t("ngramNarrative.v3.s3.afterWrite")}</P>
-                    <Lead accent={NA}>{t("ngramNarrative.v3.s3.celebrateLead")}</Lead>
-                    <Figure label="mira lo que has construido"><LookWhatYouBuilt /></Figure>
-                    <P accent={NA}>{t("ngramNarrative.v3.s3.triumph")}</P>
-                    <Lead accent={NA}>{t("ngramNarrative.v3.s3.temptation")}</Lead>
-                </Section>
-                <SectionBreak accent={NA} />
-
-                {/* ───── §4 · Hasta dónde llega ───── */}
-                <Section id="ngram-04">
-                    <SectionLabel number="04" label={sectionNames["ngram-04"]} />
-                    <SectionAnchor id="ngram-04"><Heading accent={NA}>{sectionNames["ngram-04"]}</Heading></SectionAnchor>
-                    <P accent={NA}>{t("ngramNarrative.v3.s4.zoomLead")}</P>
-                    <Figure label="la tabla no tiene fondo"><ExplosionZoom /></Figure>
-                    <P accent={NA}>{t("ngramNarrative.v3.s4.afterZoom")}</P>
-                    <P accent={NA}>{t("ngramNarrative.v3.s4.firehoseLead")}</P>
-                    <Figure label="un océano de texto"><BookFirehose /></Figure>
-                    <P accent={NA}>{t("ngramNarrative.v3.s4.afterFirehose")}</P>
-                    <P accent={NA}>{t("ngramNarrative.v3.s4.bridge")}</P>
-                </Section>
-                <SectionBreak accent={NA} />
-
-                {/* ───── §5 · El hueco ───── */}
-                <Section id="ngram-05">
-                    <SectionLabel number="05" label={sectionNames["ngram-05"]} />
-                    <SectionAnchor id="ngram-05"><Heading accent={NA}>{sectionNames["ngram-05"]}</Heading></SectionAnchor>
-                    <Lead accent={NA}>{t("ngramNarrative.v3.s5.before")}</Lead>
-                    <Figure label="cámbiale una letra"><MuteSlot /></Figure>
-                    <P accent={NA}>{t("ngramNarrative.v3.s5.after")}</P>
-                    <Figure label="asómate a la tabla entera"><EmptyMatrix /></Figure>
-                    <P accent={NA}>{t("ngramNarrative.v3.s5.close")}</P>
-                </Section>
-                <SectionBreak accent={NA} />
-
-                {/* ───── §6 · El puente ───── */}
-                <Section id="ngram-06">
-                    <SectionLabel number="06" label={sectionNames["ngram-06"]} />
-                    <SectionAnchor id="ngram-06"><Heading accent={NA}>{sectionNames["ngram-06"]}</Heading></SectionAnchor>
-                    <P accent={NA}>{t("ngramNarrative.v3.s6.progressLead")}</P>
-                    <Figure label="mira de dónde vienes"><Progression /></Figure>
-                    <P accent={NA}>{t("ngramNarrative.v3.s6.afterProgress")}</P>
-                    <Figure label="escribe bien, pero…"><BigModelLimit /></Figure>
-                    <P accent={NA}>{t("ngramNarrative.v3.s6.afterLimit")}</P>
-
-                    <ExpandableSection kicker={t("ngramNarrative.v3.history.kicker")} title={t("ngramNarrative.v3.history.title")}>
-                        <div className="space-y-4 pl-5 border-l-2 border-ngram-rule-2">
-                            {dict.ngramNarrative.v3.history.paras.map((para, i) => (
-                                <p key={i} className="font-[family-name:var(--ngram-font-serif)] text-[17px] leading-[1.7] text-ngram-body">{para}</p>
-                            ))}
-                        </div>
-                    </ExpandableSection>
-                </Section>
-                <SectionBreak accent={NA} />
+                <div className="my-12 md:my-16" aria-hidden />
 
                 {/* ───── CTA ───── */}
-                <Section>
+                <section className="mb-20 md:mb-28">
                     <FadeInView margin="-60px" className="my-6 md:my-10">
                         <div className="relative rounded-[var(--ngram-r-lg)] border border-[color:var(--ngram-rule-2)] bg-ngram-surface p-8 md:p-12 text-center overflow-hidden">
                             <div className="w-16 h-px bg-[color-mix(in_oklab,var(--ngram-accent)_45%,transparent)] mx-auto mb-8" />
@@ -270,7 +160,7 @@ export function NgramNarrative({ contextSize, vocabSize }: NgramNarrativeProps) 
                             </div>
                         </div>
                     </FadeInView>
-                </Section>
+                </section>
 
                 {/* ───── FOOTER ───── */}
                 <FadeInView as="footer" className="mt-10 pt-12 border-t border-ngram-rule text-center">

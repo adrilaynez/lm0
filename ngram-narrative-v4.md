@@ -1,0 +1,160 @@
+{/*
+  N-gram — narrativa v4 (FUENTE legible). Esta es la reescritura que el usuario pidió: voz de historia /
+  artículo, nada de órdenes, nada de "muy ella", nada de hype ni moraleja, todo DESCUBIERTO, construir
+  CUESTA, una celebración + un muro, escala mostrada, y la respuesta de verdad al sparsity.
+
+  Es la FUENTE. Se PORTEA a src/content/lab/ngram.{es,en}.mdx cuando la migración del otro chat se asiente
+  (mismos componentes: <Section heading=>, <Lead>, <Figure label=>, <Break/>, <Expandable>). Añade UN widget
+  nuevo: <WordsExplosion/> en §4 (palabras → 50.000×50.000). Lo demás reusa los 13 nombres ya registrados en
+  NGRAM_WIDGETS. Reglas: narrative-guidelines.md (voz) + prose-anti-ai-tells. Acento ámbar.
+*/}
+
+<Section id="ngram-01" number="01" label="Mirar más atrás" heading="Mirar más atrás">
+
+La máquina del capítulo anterior ya escribía sola. Contaba parejas de letras, miraba la última que había puesto y apostaba por la siguiente. Y funcionaba, a su manera. Pero arrastraba un problema curioso: tenía la memoria de un pez. Escribía una letra y, en ese mismo instante, se olvidaba de todo lo de antes. Solo le quedaba la última.
+
+¿Y eso cuánto pesa, en realidad? Mejor verlo que contarlo.
+
+<Figure label="solo le queda la última letra"><AmnesiaReplay /></Figure>
+
+Fíjate en lo que pasa. Tres palabras que empiezan de tres maneras distintas y, en cuanto la máquina llega a la misma letra, las tres se le funden en una. Ha perdido por dónde iban. A las tres les da la misma respuesta, porque para ella ya son la misma cosa: una sola letra suelta, sin pasado. Tú no la habrías dado igual, claro. Todavía llevas la palabra entera en la cabeza.
+
+Eso que tú llevas en la cabeza y ella tira a la basura —el trozo que ya has escrito— tiene un nombre, y es la palabra que va a gobernar todo este capítulo: **contexto**. La máquina de antes usaba el contexto más corto posible, una letra. Lo raro no es que se equivoque; lo raro es que acierte tanto viendo tan poco.
+
+Así que la idea aparece casi sola: ¿y si la dejáramos mirar un poco más atrás?
+
+<Figure label="dale algo más de memoria"><WidenWindow /></Figure>
+
+Pruébalo. Con una sola letra de contexto vas a ciegas, y se nota: la apuesta es casi un volado. Pero deja que mire dos letras, tres, cuatro, y la cosa cambia de color: de repente cantas la siguiente antes de que aparezca. Por dentro la máquina no ha cambiado nada —sigue contando, como siempre—; lo único que has tocado es **cuánto la dejas recordar**.
+
+Y ahí está el truco entero del capítulo, dicho en una línea: más memoria, mejores apuestas. La máquina de una letra del capítulo anterior no era más que la versión enana de esto.
+
+Queda la pregunta difícil, la de verdad: ¿cómo se le da memoria a algo que lo único que sabe hacer es contar?
+
+</Section>
+
+<Break />
+
+<Section id="ngram-02" number="02" label="Construirla tú" heading="Construirla tú">
+
+No hay magia nueva. Es el mismo gesto de siempre, contar, pero apuntando otra cosa. Antes guardabas «lo que suele venir después de una h». Ahora quieres guardar algo más fino: «lo que suele venir después de **th**», que no es lo mismo que después de **sh**.
+
+¿Cómo lo harías tú, con las mismas cuentas y nada más? Piénsalo un segundo antes de seguir; la solución es más sencilla de lo que parece. Y luego constrúyela tú mismo, con las manos.
+
+<Figure label="pártela en parejas"><SplitTheRow /></Figure>
+
+Lo que acabas de hacer es esto: coger la fila de la «h», esa única lista de «lo que sigue a una h», y partirla en una lista por cada letra que pueda ir delante. Una para «ah», otra para «eh», otra para «th»… Donde antes había una sola fila, ahora hay veintisiete, una por pareja. Y si lo repites con todas las letras, no acabas con veintisiete filas: acabas con setecientas veintinueve, una por cada pareja posible.
+
+Te ha costado clics, y a propósito. Porque eso que has levantado a mano, fila a fila, ya no es la máquina del capítulo anterior. Es la siguiente, la que recuerda dos letras en vez de una. Acabas de construirla sin que nadie te dijera cómo se llamaba.
+
+Y ahora la parte que merece la pena: asómate a una de esas filas nuevas y compárala con la vieja.
+
+<Figure label="la pareja afina la apuesta"><RowSharpens /></Figure>
+
+Mira la diferencia. La fila de la «h» a secas era un caos: detrás de una h puede ir casi cualquier cosa. Pero la fila de «th» apunta casi siempre al mismo sitio, a la «e». Pasó de encogerse de hombros a saber la respuesta. Cada letra de memoria que añades **afila** la apuesta. Juega un rato: salta de pareja en pareja y verás que unas son cuchillas («qu» casi obliga a una «u») y otras no aparecen jamás.
+
+Si una letra más afila tanto, la tentación es evidente: ¿y si subimos otro nivel? Hazlo y mira qué le pasa a la tabla.
+
+<Figure label="y la tabla crece"><GrowingTable /></Figure>
+
+Eso es lo que cuesta de verdad. Subir de nivel no añade ideas nuevas; añade **tamaño**. Cada letra más de memoria multiplica las filas, y la tabla se hincha a ojos vistas. Guárdate esa sensación, porque dentro de un momento se va a volver el centro de todo.
+
+De momento, tenemos una tabla más grande y más lista. Vamos a dejarla escribir.
+
+</Section>
+
+<Break />
+
+<Section id="ngram-03" number="03" label="Lo que has construido" heading="Lo que has construido">
+
+Antes de presumir, abramos la tapa. ¿Cómo escribe, exactamente, una máquina que solo tiene una tabla de cuentas?
+
+<Figure label="escribir es leer un número"><WriteFromMatrix /></Figure>
+
+Pues así, y no hay nada más debajo. Coge lo que llevas escrito, busca esa fila en la tabla, mira a qué letra apunta, la escribe, y vuelve a empezar con la ventana corrida una letra. No piensa, no entiende, no improvisa. **Lee un número de una tabla.** Eso es todo lo que hay dentro.
+
+Lo curioso es lo lejos que llega ese «todo lo que hay». Pon a escribir, con la misma semilla, a la máquina de una letra y a la de cuatro, una al lado de la otra.
+
+<Figure label="mira lo que has construido"><LookWhatYouBuilt /></Figure>
+
+La de una letra escupe una sopa impronunciable. La de cuatro casi hila frases de verdad: palabras que existen, encadenadas con un ritmo que cuela. Y entre las dos no metiste ni una regla de ortografía, ni una de gramática, ni le explicaste qué es una palabra. Solo le diste unas pocas letras más de pasado en cada apuesta. Escríbele tu propio nombre y míralo continuar; es difícil no sonreír al ver esto funcionar.
+
+Lo cual deja una tentación servida en bandeja. Si cuatro escribe mucho mejor que una, ¿quién nos para? ¿Por qué no diez? ¿Por qué no cien?
+
+</Section>
+
+<Break />
+
+<Section id="ngram-04" number="04" label="Hasta dónde llega" heading="Hasta dónde llega">
+
+Vamos a hacerle caso a esa tentación. Súbele la memoria, una letra más, y aléjate para ver la tabla entera.
+
+<Figure label="la tabla no tiene fondo"><ExplosionZoom /></Figure>
+
+Aléjate otra vez. Y otra. Cada letra de memoria que pides multiplica las filas por veintisiete, así que la tabla no crece: estalla. Con tres letras son miles de filas. Con seis, cientos de millones. Si pidieras una memoria de cuarenta letras —que para una frase no es nada—, tu tabla tendría más filas que átomos hay en el universo conocido. Ya no es una tabla que puedas guardar en ningún sitio; no cabría ni escribiendo una fila en cada átomo de todo lo que existe.
+
+Y eso contando solo con veintisiete letras. ¿Qué pasa si en vez de letras quieres trabajar con palabras enteras, como hacen los modelos de hoy?
+
+<Figure label="y si fueran palabras"><WordsExplosion /></Figure>
+
+Ahí el suelo se hunde de golpe. Un idioma tiene del orden de cincuenta mil palabras. Una tabla de «qué palabra sigue a qué palabra» ya no es de veintisiete por veintisiete: es de cincuenta mil por cincuenta mil. Y si quieres recordar dos palabras de contexto en vez de una, ese número se multiplica otra vez por cincuenta mil. Cada palabra de memoria que añades no suma: arrasa.
+
+Una tabla así pide texto, montañas de texto, para tener algo en cada fila. Así que vamos a darle de comer sin piedad: vuélcale un Shakespeare entero, y otro, y mil libros más. Abre el grifo.
+
+<Figure label="un océano de texto"><BookFirehose /></Figure>
+
+Has volcado miles de libros, más de lo que cualquier persona leería en cien vidas, y mira el nivel del depósito. Apenas se ha movido. No porque el texto sea poco —es muchísimo—, sino porque la tabla es tan absurdamente grande que se lo traga sin inmutarse. Por mucho que eches, la mayoría de las filas siguen sin estrenar.
+
+Y aquí es donde la historia se pone interesante. Porque hasta ahora todo parecía ir a mejor. Vamos a coger esta máquina, la grande, la bien alimentada, y a pedirle algo de lo más normal.
+
+</Section>
+
+<Break />
+
+<Section id="ngram-05" number="05" label="El hueco" heading="El hueco">
+
+Con lo que ya ha visto, va como un tiro. Así que escríbele algo de lo más corriente, una palabra cualquiera, y luego cámbiale una sola letra. Antes de mirar, apuesta tú: ¿qué crees que hará?
+
+<Figure label="cámbiale una letra"><MuteSlot /></Figure>
+
+Se ha quedado muda. Una letra de diferencia, una que tú apenas notas, y la apuesta segurísima se ha convertido en nada. No es mala suerte de una casilla concreta. Asómate a la tabla entera y cuéntalas tú.
+
+<Figure label="asómate a la tabla entera"><EmptyMatrix /></Figure>
+
+Casi todo está vacío. Y ahora la pregunta de verdad, la que parece tonta y no lo es: ¿pasa nada porque esté vacía? Al fin y al cabo, es evidente que va a estarlo, con lo enorme que la hemos hecho.
+
+El problema no es el vacío. El problema es lo que esconde el vacío. Mira de cerca las pocas filas que sí tienen algo: la mayoría tienen un único conteo. Esa frase de cuatro letras apareció **una sola vez** en mil libros. Y una fila con un solo conteo no es conocimiento, es una anécdota: la máquina dirá «cien por cien seguro» de algo que vio una vez por casualidad. No ha aprendido una regla; ha memorizado un accidente.
+
+Por eso echarle más texto no la salva, y esta es la parte que cuesta tragar. El lenguaje no se acaba nunca: siempre puedes escribir una frase nueva, perfectamente correcta, que nadie escribió jamás. Da igual cuántos libros le eches; siempre habrá huecos, porque siempre hay frases que aún no existen. Contar solo sabe repetir lo que ya vio.
+
+Y fíjate en lo que eso significa de verdad. Para ti, «cámbiale una letra» es casi la misma palabra. Para ella son dos casillas distintas, sin nada que ver la una con la otra. No tiene forma de pensar «esto se parece a aquello, tiraré por ahí». O tenía esa fila exacta guardada, o no la tenía. Es la fila plana del principio, la del pez sin memoria, que ha vuelto por la puerta de atrás.
+
+</Section>
+
+<Break />
+
+<Section id="ngram-06" number="06" label="El puente" heading="El puente">
+
+Tiene un techo, está claro. Pero antes de buscarle el sustituto, date la vuelta y mira el camino.
+
+<Figure label="mira de dónde vienes"><Progression /></Figure>
+
+Empezaste con una máquina que daba cabezazos al teclado, pura sopa de letras. Le diste memoria y, solo contando, acabó escribiendo palabras de verdad. Ni una regla de gramática por el camino. Y no fue un juguete de clase: durante años, esta misma idea movió los traductores automáticos, el reconocimiento de voz y el teclado que te adivina la palabra en el móvil.
+
+Llevada al extremo, con todos los datos del mundo, escribe tan bien que casi te la cuela.
+
+<Figure label="escribe bien, pero…"><BigModelLimit /></Figure>
+
+Casi. Porque fíjate dónde ha dejado a «gato» y a «perro»: cada uno en su rincón, tan lejos como dos completos desconocidos. Tú sabes que van de la mano. Ella, no. Y no es por falta de datos: por mucho que viera la palabra «gato», no aprendió absolutamente nada sobre «perro». Lo que cae en una casilla se queda en esa casilla y en ninguna otra. Eso, contando, no se arregla. No hay cantidad de texto que enseñe a una tabla que dos cosas se parecen.
+
+Y justo ahí, en esa grieta, empieza el siguiente capítulo. La pregunta cambia de forma: ya no es «¿cómo cuento mejor?», sino «¿cómo consigo que la máquina entienda que dos cosas parecidas deberían comportarse parecido?». Esa es otra manera de pensar, y necesita otra clase de máquina.
+
+<Expandable title="Cuando contar gobernaba el mundo" kicker="Historia · opcional">
+Durante décadas, esto que acabas de tocar fue lo más avanzado que había. No una curiosidad de pizarra, sino el motor real detrás del reconocimiento de voz, los correctores y la primera traducción automática que de verdad funcionó.
+
+En los laboratorios de IBM, en los años ochenta, un equipo dirigido por Fred Jelinek lo apostó todo a contar. Cuanta más transcripción le metían, mejor reconocía el habla su sistema. De ahí salió una frase que se hizo famosa en el campo, casi un lema: no hay mejor dato que más dato.
+
+Y así aguantaron años, tragando cantidades absurdas de texto y conviviendo con tablas medio vacías, porque a más texto, un poco menos vacías. Hasta que ese mismo muro contra el que acabas de chocar dejó de moverse por mucho dato que le echaran. Fue entonces cuando a alguien se le ocurrió la herejía que lo cambió todo: dejar de contar.
+</Expandable>
+
+</Section>

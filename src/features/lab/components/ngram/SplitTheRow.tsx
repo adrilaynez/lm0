@@ -43,10 +43,9 @@ const VOCAB = ALPHA.length; // 27
 const FULL_729 = VOCAB * VOCAB; // 729 — the climax figure
 const MAX_STAGE = 2;
 
-/** A context row («prev + h») rendered as N coloured segments — the recognisable "row of the table" object.
- *  Returns the css `background` gradient string. Busy contexts brightest; a never-seen slot a faint base. */
-function rowGradient(prev: string): string {
-    const counts = contextRow(2, prev + ANCHOR); // 27-length vector of what follows "·h"
+/** Render a 27-length count vector as coloured segments — the recognisable "row of the table" object.
+ *  Busy slots brightest; a never-seen slot a faint base. */
+function gradFromCounts(counts: number[]): string {
     let mx = 1;
     for (const v of counts) if (v > mx) mx = v;
     const n = counts.length;
@@ -60,17 +59,36 @@ function rowGradient(prev: string): string {
     return `linear-gradient(90deg, ${stops.join(", ")})`;
 }
 
+/** A real word that contains each «prev·h» pair — so hovering a daughter row shows WHERE the pair lives.
+ *  Only the pairs the language truly uses; the rest are (correctly) almost-never, foreshadowing §5. */
+const PAIR_WORD: Record<string, string> = {
+    t: "the", s: "she", w: "what", c: "much", g: "night", p: "graph", r: "rhythm",
+    a: "ah", e: "eh", o: "oh", u: "uh",
+};
+
 export const SplitTheRow = memo(function SplitTheRow({ accent }: { accent?: "ngram" }) {
     void accent;
     const reduce = useReducedMotion();
 
     const [stage, setStage] = useState(0);
 
-    // The 27 daughter rows: one per possible previous letter, each a real «prev·h» heat-strip + its tag.
+    // The 27 daughter rows: one per possible previous letter, each a real «prev·h» heat-strip + its tag,
+    // plus the real total count + top continuation (for the hover readout / the "appears N times" insight).
     const rows = useMemo(
-        () => ALPHA.map((prev) => ({ prev, tag: `${displayChar(prev)}·${ANCHOR}`, grad: rowGradient(prev) })),
+        () => ALPHA.map((prev) => {
+            const counts = contextRow(2, prev + ANCHOR);
+            let total = 0, top = 0;
+            for (let i = 0; i < counts.length; i++) { total += counts[i]; if (counts[i] > counts[top]) top = i; }
+            return { prev, tag: `${displayChar(prev)}·${ANCHOR}`, grad: gradFromCounts(counts), total, topChar: NGRAM_ALPHABET[top] };
+        }),
         [],
     );
+    // The MOTHER row — the bigram's «h» row (1-letter context): what follows ANY h, before we split it.
+    const motherGrad = useMemo(() => gradFromCounts(contextRow(1, ANCHOR)), []);
+
+    // Hover a daughter row → reveal which real pair it is, how often it shows up, and an example word.
+    const [hoveredPrev, setHoveredPrev] = useState<string | null>(null);
+    const hovered = hoveredPrev ? rows.find((r) => r.prev === hoveredPrev) ?? null : null;
 
     const split = useCallback(() => setStage((s) => Math.min(MAX_STAGE, s + 1)), []);
     const reset = useCallback(() => setStage(0), []);
@@ -87,8 +105,8 @@ export const SplitTheRow = memo(function SplitTheRow({ accent }: { accent?: "ngr
             {/* TITLE — states the question/answer for the current beat. The idea is carried by the visual; this
                only names it. */}
             <h3 className="nw-spl__title">
-                {stage === 0 ? <>una fila de la tabla: <span className="nw-spl__pill">·h</span></>
-                 : stage === 1 ? <>1 fila se abre en <em>27</em> — una por cada letra de antes</>
+                {stage === 0 ? <>la fila de la <span className="nw-spl__pill">h</span> del capítulo anterior</>
+                 : stage === 1 ? <>una fila se abre en <em>27</em> — una por cada letra de antes</>
                  : <>27 × 27 = <strong>729</strong> filas — así nace el trigrama</>}
             </h3>
 
@@ -101,11 +119,29 @@ export const SplitTheRow = memo(function SplitTheRow({ accent }: { accent?: "ngr
                     <div className="nw-spl__stack" data-stage={stage} aria-hidden>
                         {stage === 0 ? (
                             <div className="nw-spl__one">
-                                <span className="nw-spl__tag nw-spl__tag--big">·{ANCHOR}</span>
-                                <span className="nw-spl__strip nw-spl__strip--tall" style={{ background: rows[ALPHA.indexOf(ANCHOR)]?.grad }} />
+                                <span className="nw-spl__tag nw-spl__tag--big">{ANCHOR}</span>
+                                <span className="nw-spl__strip nw-spl__strip--tall" style={{ background: motherGrad }} />
                             </div>
                         ) : (
                             <>
+                                {/* HOVER READOUT — names the pair the cursor is on, how often it shows up, an example
+                                    word, and what follows. Fixed height so hovering never shifts the 27 rows. */}
+                                <div className="nw-spl__peek" aria-live="polite">
+                                    {hovered ? (
+                                        hovered.total > 0 ? (
+                                            <>
+                                                <b>«{displayChar(hovered.prev)}{ANCHOR}»</b> aparece <b>{hovered.total.toLocaleString("es-ES")}</b> veces
+                                                {PAIR_WORD[hovered.prev] ? <> · como en <b>«{PAIR_WORD[hovered.prev]}»</b></> : null}
+                                                <span className="nw-spl__peekarrow"> → </span>
+                                                <span className="nw-spl__peekbet">{displayChar(hovered.topChar)}</span>
+                                            </>
+                                        ) : (
+                                            <><b>«{displayChar(hovered.prev)}{ANCHOR}»</b> casi <b>nunca</b> aparece — el idioma no usa esa pareja</>
+                                        )
+                                    ) : (
+                                        <span className="nw-spl__peekhint">pasa el ratón por una fila para ver qué pareja es</span>
+                                    )}
+                                </div>
                                 {/* Column header — makes «letra de antes» explicit at a glance. */}
                                 <div className="nw-spl__colhdr" aria-hidden>
                                     <span className="nw-spl__colhdr-lbl">letra de antes</span>
@@ -114,8 +150,12 @@ export const SplitTheRow = memo(function SplitTheRow({ accent }: { accent?: "ngr
                                 {rows.map((r, i) => (
                                     <div
                                         key={r.prev}
-                                        className="nw-spl__daughter"
+                                        className={`nw-spl__daughter${hoveredPrev === r.prev ? " is-hover" : ""}${hoveredPrev && hoveredPrev !== r.prev ? " is-dim" : ""}`}
                                         style={{ animationDelay: reduce ? "0s" : `${i * 12}ms` }}
+                                        tabIndex={0}
+                                        onMouseEnter={() => setHoveredPrev(r.prev)}
+                                        onFocus={() => setHoveredPrev(r.prev)}
+                                        onMouseLeave={() => setHoveredPrev(null)}
                                     >
                                         {/* The tag: a chip for the previous letter + ·h suffix.
                                             The chip makes "one slot per previous letter" unmissable. */}
@@ -280,6 +320,25 @@ export const SplitTheRow = memo(function SplitTheRow({ accent }: { accent?: "ngr
                 .nw-spl__stack[data-stage="2"] .nw-spl__strip {
                     box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ngram-accent) 18%, transparent),
                                 0 2px 8px -6px var(--ngram-accent-bright);
+                }
+                /* hover: lift the row the cursor is on, gently fade the rest, so the pair you're inspecting pops. */
+                .nw-spl__daughter { cursor: pointer; outline: none; border-radius: 4px; transition: opacity .16s ease, transform .16s ease; }
+                .nw-spl__daughter.is-hover { transform: translateX(2px); }
+                .nw-spl__daughter.is-hover .nw-spl__strip { box-shadow: inset 0 0 0 1.5px var(--ngram-accent-bright), 0 3px 12px -6px var(--ngram-accent-bright); }
+                .nw-spl__daughter.is-hover .nw-spl__chip { background: var(--ngram-accent-bright); color: var(--ngram-on-accent); border-color: var(--ngram-accent-bright); }
+                .nw-spl__daughter.is-dim { opacity: .42; }
+
+                /* HOVER READOUT — concrete: which pair, how often, an example word, what follows. */
+                .nw-spl__peek {
+                    font-family: ${MONO}; font-size: clamp(11px, 1.5vw, 13px); line-height: 1.4;
+                    color: var(--ngram-muted); min-height: 20px; margin-bottom: 6px; text-align: center;
+                }
+                .nw-spl__peek b { color: var(--ngram-accent-ink); font-weight: 800; }
+                .nw-spl__peekhint { color: var(--ngram-dim); opacity: .7; }
+                .nw-spl__peekarrow { color: var(--ngram-dim); }
+                .nw-spl__peekbet {
+                    font-weight: 900; color: var(--ngram-on-accent); background: var(--ngram-accent-bright);
+                    border-radius: 5px; padding: 0 6px 1px; margin-left: 1px;
                 }
 
                 @keyframes nwSplIn { from { opacity: 0; transform: translateY(-4px) scaleY(.6); } to { opacity: 1; transform: none; } }

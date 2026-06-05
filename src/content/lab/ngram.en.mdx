@@ -1,0 +1,153 @@
+{/*
+  N-gram — chapter narrative (EN). Editorial content, not UI.
+  v4 rewrite, in sync with ngram.es.mdx (discovery-first, story voice, no orders / no hype / no morals;
+  building COSTS, one celebration + one wall, scale SHOWN, and the real answer to sparsity).
+  Components injected via labMdxComponents().
+
+  MDX: title as the `heading=` prop of <Section>; <Break/> instead of <hr/>; figures via <Figure label=>.
+  Hero, CTA and footer live in the TSX shell (they are UI), not here.
+*/}
+
+<Section id="ngram-01" number="01" label="Looking further back" heading="Looking further back">
+
+The machine from the last chapter already wrote on its own. It counted pairs of letters, looked at the last one it had placed, and bet on the next. And it worked, in its way. But it carried a curious flaw: it had the memory of a goldfish. It wrote a letter and, that very instant, forgot everything before it. Only the last one was left.
+
+And how much does that really cost? Better to see it than to be told.
+
+<Figure label="only the last letter is left"><AmnesiaReplay /></Figure>
+
+Watch what happens. Three words that begin three different ways and, the moment the machine reaches the same letter, the three melt into one. It has lost track of where they were going. It gives all three the same answer, because to it they are already the same thing: a single loose letter, with no past. You wouldn't have answered the same, of course. You still have the whole word in your head.
+
+That thing you carry in your head and it throws away — the part you've already written — has a name, and it's the word that will rule this whole chapter: **context**. The earlier machine used the shortest context possible, a single letter. The strange thing isn't that it gets things wrong; it's that it gets so much right while seeing so little.
+
+<Lead>So the idea turns up almost on its own: what if we let it look a little further back?</Lead>
+
+<Figure label="give it a little more memory"><WidenWindow /></Figure>
+
+Try it. With a single letter of context you're flying blind, and it shows: the bet is little more than a coin toss. But let it look at two letters, three, four, and the whole thing changes colour: suddenly you call the next one before it appears. Inside, the machine hasn't changed at all — it's still counting, as always; the only thing you touched is **how much you let it remember**.
+
+There's the whole trick of the chapter, in one line: more memory, better bets. The single-letter machine from the last chapter was just the dwarf version of this.
+
+Which leaves the hard question, the real one: how do you give memory to something whose only skill is counting?
+</Section>
+
+<Break />
+
+<Section id="ngram-02" number="02" label="Build it yourself" heading="Build it yourself">
+
+There's no new magic. It's the same old gesture, counting, just aimed somewhere else. Before, you kept "what tends to come after an h". Now you want to keep something finer: "what comes after **th**", which isn't the same as after **sh**.
+
+How would you do it, with the same counts and nothing more? Think for a second before you go on; the answer is simpler than it looks. And then build it yourself, by hand.
+
+<Figure label="split it into pairs"><SplitTheRow /></Figure>
+
+What you just did is this: take the row for "h", that single list of "what follows an h", and split it into one list for every letter that could come in front. One for "ah", one for "eh", one for "th"… Where there was a single row, there are now twenty-seven, one per pair. And if you repeat it with every letter, you don't end up with twenty-seven rows: you end up with seven hundred and twenty-nine, one for every possible pair.
+
+It cost you clicks, on purpose. Because that thing you raised by hand, row by row, is no longer the machine from the last chapter. It's the next one, the one that remembers two letters instead of one. You built it without anyone telling you what it was called.
+
+And now the part worth the trouble: peek into one of those new rows and compare it with the old one.
+
+<Figure label="the pair sharpens the bet"><RowSharpens /></Figure>
+
+Look at the difference. The row for plain "h" was chaos: after an h, almost anything could come. But the row for "th" points nearly always to the same place, to "e". It went from a shrug to knowing the answer. Every letter of memory you add **sharpens** the bet. Play around: hop from pair to pair and you'll see some are razors ("qu" all but forces a "u") and others never show up at all.
+
+<Lead>If one more letter sharpens it this much, the temptation is obvious: what if we go up another level?</Lead>
+
+<Figure label="and the table grows"><GrowingTable /></Figure>
+
+That's what really costs. Going up a level adds no new ideas; it adds **size**. Every extra letter of memory multiplies the rows, and the table swells before your eyes. Hold on to that feeling, because in a moment it's going to become the centre of everything.
+
+For now, we have a bigger, smarter table. Let's let it write.
+</Section>
+
+<Break />
+
+<Section id="ngram-03" number="03" label="What you've built" heading="What you've built">
+
+Before showing off, let's lift the lid. How does a machine that only has a table of counts actually write?
+
+<Figure label="writing is reading a number"><WriteFromMatrix /></Figure>
+
+Like this, and there's nothing underneath. It takes what you've written, finds that row in the table, looks at which letter it points to, writes it, and starts again with the window shifted one letter. It doesn't think, doesn't understand, doesn't improvise. **It reads a number off a table.** That's all there is inside.
+
+The curious thing is how far that "all there is" reaches. Set the one-letter machine and the four-letter machine writing from the same seed, side by side.
+
+<Figure label="look what you've built"><LookWhatYouBuilt /></Figure>
+
+The one-letter machine spits out unpronounceable soup. The four-letter one almost strings together real sentences: words that exist, linked with a rhythm that passes. And between the two you slipped in not one spelling rule, not one of grammar, never told it what a word is. You just gave it a few more letters of past in each bet. Type your own word and watch it carry on; it's hard not to smile when this thing works.
+
+<Lead>And there the temptation is served on a plate: if four writes so much better than one, why stop? Why not ten? Why not a hundred?</Lead>
+</Section>
+
+<Break />
+
+<Section id="ngram-04" number="04" label="How far it goes" heading="How far it goes">
+
+Let's give in to that temptation. Bump the memory up, one more letter, and pull back to see the whole table.
+
+<Figure label="the table has no bottom"><ExplosionZoom /></Figure>
+
+Pull back again. And again. Every letter of memory you ask for multiplies the rows by twenty-seven, so the table doesn't grow: it detonates. With three letters it's thousands of rows. With six, hundreds of millions. If you asked for a memory of forty letters — nothing for a single sentence — your table would have more rows than there are atoms in the known universe. It's no longer something you could store anywhere; it wouldn't fit even writing one row on every atom in existence.
+
+And that's counting with just twenty-seven letters. What happens if the unit isn't letters, but whole words, as in today's models?
+
+<Figure label="what if they were words"><WordsExplosion /></Figure>
+
+There the floor drops out from under you. A language has something like fifty thousand words. The table of "which word follows which" is no longer twenty-seven by twenty-seven: it's fifty thousand by fifty thousand. And remembering two words instead of one multiplies that number by fifty thousand again. Every word of memory you add doesn't add: it razes.
+
+A table like that demands text, mountains of it, just to have something in each row. So let's feed it without mercy: pour in a whole Shakespeare, and another, and a thousand more books. Open the hose.
+
+<Figure label="an ocean of text"><BookFirehose /></Figure>
+
+You've poured in thousands of books, more than anyone would read in a hundred lifetimes, and look at the level in the tank. It's barely moved. Not because the text is little — it's enormous — but because the table is so absurdly large that it swallows it without flinching. However much you pour, most of the rows are still untouched.
+
+And here the story gets interesting. Up to now everything kept getting better. Let's take this machine — the big one, the well-fed one — and ask it for something perfectly ordinary.
+</Section>
+
+<Break />
+
+<Section id="ngram-05" number="05" label="The gap" heading="The gap">
+
+<Lead>With what it's already seen, it flies. So type something utterly ordinary, any word, and then change a single letter. Before you look, place your own bet: what do you think it'll do?</Lead>
+
+<Figure label="change one letter"><MuteSlot /></Figure>
+
+It's gone silent. One letter of difference, one you barely notice, and the rock-solid bet has turned into nothing. It isn't bad luck on one particular cell. Peek at the whole table and count them yourself.
+
+<Figure label="peek at the whole table"><EmptyMatrix /></Figure>
+
+Almost everything is empty. And now the real question, the one that sounds silly and isn't: does it matter that it's empty? After all, of course it will be, as enormous as we made it.
+
+The problem isn't the emptiness. The problem is what the emptiness hides. Look closely at the few rows that do have something: most have a single count. That string of letters showed up **just once** in a thousand books. And a row with a single count isn't knowledge, it's an anecdote: the machine will say "a hundred percent sure" about something it saw once by chance. It didn't learn a rule; it memorised an accident.
+
+That's why feeding it more text doesn't save it, and this is the part that's hard to swallow. Language never runs out: you can always write a new, perfectly correct sentence that nobody ever wrote. No matter how many books you give it, there will always be gaps, because there are always sentences that don't exist yet. Counting only knows how to repeat what it already saw.
+
+And notice what that means. To you, changing a letter leaves almost the same word. To it, they're two different cells, with nothing to do with one another. It has no way to think "this is like that, I'll go that way". Either it had that exact row stored, or it didn't. It's the flat row from the start, the goldfish's row, back through the side door.
+</Section>
+
+<Break />
+
+<Section id="ngram-06" number="06" label="The bridge" heading="The bridge">
+
+It has a ceiling, clearly. But before we look for its replacement, turn around and look at the road.
+
+<Figure label="look how far you've come"><Progression /></Figure>
+
+You started with a machine that banged its head on the keyboard, pure letter soup. You gave it memory and, just by counting, it ended up writing real words. Not one rule of grammar along the way. And it wasn't a classroom toy: for years, this same idea drove machine translation, speech recognition, and the keyboard that guesses your next word on your phone.
+
+Pushed to the extreme, with all the data in the world, it writes so well it almost fools you.
+
+<Figure label="it writes well, but…"><BigModelLimit /></Figure>
+
+Almost. Because look where it's put "cat" and "dog": each in its own corner, as far apart as two complete strangers. You know they go together. It doesn't. And it isn't for lack of data: however many times it saw the word "cat", it learned absolutely nothing about "dog". What falls into one cell stays in that cell and no other. That, by counting, can't be fixed. No amount of text teaches a table that two things resemble each other.
+
+And right there, in that crack, the next chapter begins. The question changes shape: it's no longer "how do I count better?", but "how do I get the machine to understand that two similar things should behave similarly?". That's a different way of thinking, and it needs a different kind of machine.
+
+<Expandable title="When counting ruled the world" kicker="History · optional">
+For decades, this thing you've just been playing with was the most advanced there was. Not a blackboard curiosity, but the real engine behind speech recognition, spell-checkers, and the first machine translation that actually worked.
+
+At the IBM labs, in the eighties, a team led by Fred Jelinek bet everything on counting. The more transcription they fed it, the better their system recognised speech. Out of that came a line that grew famous in the field, almost a motto: there's no data like more data.
+
+And so they held on for years, swallowing absurd amounts of text and living with half-empty tables, because more text meant a little less empty. Until that same wall you've just hit stopped moving no matter how much data they threw at it. That was when someone had the heresy that changed everything: stop counting.
+</Expandable>
+</Section>

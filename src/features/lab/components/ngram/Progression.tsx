@@ -193,17 +193,28 @@ export const Progression = memo(function Progression({ accent }: { accent?: "ngr
                     >
                         <defs>
                             <linearGradient id="ng-prog-grad" x1="0" y1="1" x2="1" y2="0">
-                                <stop offset="0%" stopColor="var(--ngram-dim)" stopOpacity="0.25" />
-                                <stop offset="60%" stopColor="var(--ngram-accent)" stopOpacity="0.5" />
-                                <stop offset="100%" stopColor="var(--ngram-accent-bright)" stopOpacity="0.9" />
+                                <stop offset="0%" stopColor="var(--ngram-dim)" stopOpacity="0.45" />
+                                <stop offset="55%" stopColor="var(--ngram-accent)" stopOpacity="0.8" />
+                                <stop offset="100%" stopColor="var(--ngram-accent-bright)" stopOpacity="1" />
                             </linearGradient>
                         </defs>
-                        {/* the connecting line — skip step 0 in the ramp line (it's the floor/excluded) */}
+                        {/* the rising ramp — the roofline of the staircase, from the "sin bigram" floor up to
+                            "palabras de verdad". Step 0 → 1 is a faint dotted leap ("from nothing"); 1 → 2 → 3 is
+                            the solid climb (more memory = higher). */}
                         <polyline
-                            points={svgPts.map((p) => `${p.x},${p.y}`).join(" ")}
+                            points={svgPts.slice(0, 2).map((p) => `${p.x},${p.y}`).join(" ")}
+                            fill="none"
+                            stroke="var(--ngram-dim)"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeDasharray="2 5"
+                            opacity={reveal * 0.6}
+                        />
+                        <polyline
+                            points={svgPts.slice(1).map((p) => `${p.x},${p.y}`).join(" ")}
                             fill="none"
                             stroke="url(#ng-prog-grad)"
-                            strokeWidth="2"
+                            strokeWidth="2.6"
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeDasharray={dashLen}
@@ -223,11 +234,11 @@ export const Progression = memo(function Progression({ accent }: { accent?: "ngr
                                         isTop
                                             ? "var(--ngram-accent-bright)"
                                             : i === 0
-                                              ? "var(--ngram-surface)"
-                                              : "var(--ngram-dim)"
+                                              ? "var(--ngram-dim)"
+                                              : "var(--ngram-accent)"
                                     }
-                                    stroke={i === 0 ? "var(--ngram-dim)" : "none"}
-                                    strokeWidth={i === 0 ? 1.5 : 0}
+                                    stroke="none"
+                                    strokeWidth={0}
                                     opacity={reveal}
                                     style={{
                                         transition: reduce

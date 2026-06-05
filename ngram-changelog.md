@@ -5,6 +5,47 @@
 
 ---
 
+## v4 (2026-06-05) — reescritura de narrativa + reworks, sobre la estructura MDX nueva
+
+Tras la review dura del usuario (audio largo): la narrativa estaba **muy floja** (órdenes, "muy ella", frases
+pegadas a widgets que no les tocaban, escala sin sentir, sparsity sin explicar el porqué) y varios widgets no
+se entendían. Plan en `ngram-v4-plan.md`. Hecho **sin tocar** la migración MDX que corría en paralelo en otro
+chat (bigram + i18n por namespaces): yo solo el **contenido** (narrativa + widgets).
+
+- **Estructura nueva (del otro chat, ya estable):** la narrativa vive en `src/content/lab/ngram.{es,en}.mdx`
+  (prosa + widgets embebidos vía `labMdxComponents`), no en i18n. Documentado en `narrative-guidelines.md`
+  («Autoría en MDX»). Se aprovechó para escribir la voz de verdad.
+- **Narrativa reescrita entera (ES+EN, en sync)** — descubrimiento-first, voz de historia, sin órdenes / sin
+  hype / sin moralejas; construir CUESTA; **una** celebración (§3) + **un** muro (§5). Fuente legible en
+  `ngram-narrative-v4.md`. Fixes concretos: fuera la frase desconectada de §1; SplitTheRow ahora **demuestra**
+  «guardamos parejas»; fuera el remate «nadie te dijo que es un trigrama»; §6 con bookend y el porqué real.
+- **La respuesta al sparsity (que el usuario me dejó resolver):** el problema NO es el vacío (es obvio). Es
+  que (1) las pocas filas llenas se vieron **una o dos veces** = accidente, no regla → confianza falsa; (2) el
+  lenguaje **no se acaba nunca** → siempre hay contextos nuevos → contar nunca generaliza. Mostrado en
+  EmptyMatrix (verdad emergente: «X% vacío» + «de las llenas, Y% vistas una o dos veces»).
+- **Widgets:**
+  - **AmnesiaReplay** — REBUILD a **embudo**: 3 palabras distintas → la venda deja solo la última letra →
+    **una** apuesta. El héroe es la PÉRDIDA (antes «no se entendía / muy flojo»).
+  - **SplitTheRow** — fila madre real de la «h» + **hover** en cada hija → frecuencia real + palabra de
+    ejemplo + qué sigue (y foreshadow de sparsity: unas miles de veces, otras nunca).
+  - **ExplosionZoom** — la cifra ahora llega a **«más filas que átomos en el universo»** con anclas
+    graspables (estrellas, arena, átomos) + «10ⁿ»; antes topaba en «387 millones» (no se siente).
+  - **BookFirehose** — ancla la escala («1,5 billones de letras ≈ 5,2 millones de libros») y glosa
+    **«atascada»** («se para aquí · 6% lleno» + caption explicativa).
+  - **EmptyMatrix** — añadido el **porqué** (filas vistas una o dos veces).
+  - **WordsExplosion** — NUEVO: letras (27²) → **palabras (50.000² = 2.500 millones)**, ×50.000 por palabra
+    de memoria. Restaura la idea de "palabras" que se había quitado.
+  - **Progression** — barra de unión arreglada (rampa: salto punteado desde «sin bigram» + climb sólido) +
+    nivel 0 «sin bigram» (aporreo) ya presente.
+  - **LookWhatYouBuilt** — semilla **editable** («escribe tu palabra»).
+  - write / mute / limit — cold-review: PASS (comunican su idea), sin cambios forzados.
+- **Verificación:** `tsc` 0 y `eslint` 0 (arreglados de paso 2 errores `react-hooks/refs` pre-existentes en
+  BookFirehose + 1 unused en LookWhatYouBuilt). Cada widget validado en el bench (ambos temas) y la página
+  viva `/lab/ngram` renderiza la narrativa nueva con los widgets en contexto. **Sin commits** (a la espera del
+  usuario). EN aún puede afinarse; pendiente regresión visual de bigram/transformers cuando cierre el otro chat.
+
+---
+
 ## Decisiones clave (qué se decidió y por qué)
 
 - **Método: narrativa primero.** Corrección del usuario antes de tocar widgets: escribir la narrativa

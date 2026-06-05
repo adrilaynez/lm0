@@ -126,6 +126,8 @@ export const EmptyMatrix = memo(function EmptyMatrix({ accent }: EmptyMatrixProp
     const [peeks, setPeeks] = useState(0);
     const [emptySeen, setEmptySeen] = useState(0); // running tally of empty cells the reader has peeked at
     const [cellsSeen, setCellsSeen] = useState(0); // total cells peeked at (for the emergent %)
+    const [filledSeen, setFilledSeen] = useState(0); // running tally of NON-empty cells peeked at
+    const [rareSeen, setRareSeen] = useState(0);     // of those, how many were seen only once or twice (the WHY)
     const rngRef = useRef(0xc0ffee);
 
     // deterministic LCG so peeks are reproducible (no Math.random → stable captures)
@@ -137,8 +139,8 @@ export const EmptyMatrix = memo(function EmptyMatrix({ accent }: EmptyMatrixProp
     // Count empty vs valid cells in a PATCH×PATCH block (the rows are scattered, so every patch is a fair,
     // representative sample of the table — no rigging needed, and the honest ~80% empty shows up in each peek).
     const computePatch = useCallback((col: number, row: number) => {
-        let empties = 0;
-        let total = 0;
+        let empties = 0, total = 0, filled = 0, rare = 0;
+        const counts = getCounts(K);
         for (let dr = 0; dr < PATCH; dr++) {
             for (let dc = 0; dc < PATCH; dc++) {
                 const c = col + dc;
@@ -147,20 +149,29 @@ export const EmptyMatrix = memo(function EmptyMatrix({ accent }: EmptyMatrixProp
                 const pos = r * MAP_COLS + c;
                 if (pos >= ROWS_TOTAL) continue; // outside the real table
                 total++;
-                if (!seenSet.has(displayToRow(pos))) empties++;
+                const idx = displayToRow(pos);
+                if (!seenSet.has(idx)) { empties++; continue; }
+                filled++;
+                // how many times this context was seen at all — the WHY: most filled rows are 1–2 times.
+                const rc = counts.get(indexToContext(idx));
+                let cnt = 0;
+                if (rc) for (const v of rc.values()) cnt += v;
+                if (cnt <= 2) rare++;
             }
         }
-        return { empties, total };
+        return { empties, total, filled, rare };
     }, [seenSet]);
 
     const peekAt = useCallback((col: number, row: number) => {
         const c = Math.max(0, Math.min(MAP_COLS - PATCH, col));
         const r = Math.max(0, Math.min(MAP_ROWS - PATCH, row));
         setLens({ col: c, row: r });
-        const { empties, total } = computePatch(c, r);
+        const { empties, total, filled, rare } = computePatch(c, r);
         setPeeks((p) => p + 1);
         setEmptySeen((e) => e + empties);
         setCellsSeen((s) => s + total);
+        setFilledSeen((f) => f + filled);
+        setRareSeen((rr) => rr + rare);
     }, [computePatch]);
 
     // "abrir otra zona" (matches the bench autoplay regex via `abrir`): jump the lens to a fresh random patch.
@@ -217,6 +228,9 @@ export const EmptyMatrix = memo(function EmptyMatrix({ accent }: EmptyMatrixProp
 
     // emergent % of empty cells across everything the reader has peeked at — earned, not announced.
     const emptyPct = cellsSeen > 0 ? Math.round((emptySeen / cellsSeen) * 100) : 0;
+    // of the FEW filled rows, what share were seen only once or twice — the WHY (a count of 1 is an accident,
+    // not a rule). This is the answer to "¿por qué importa que esté vacía?": even the filled part barely counts.
+    const rarePct = filledSeen > 0 ? Math.round((rareSeen / filledSeen) * 100) : 0;
     const verdictReady = peeks >= VERDICT_AFTER;
 
     const tr = reduce ? { duration: 0.18, ease: STD } : { duration: 0.4, ease: STD };
@@ -363,10 +377,19 @@ export const EmptyMatrix = memo(function EmptyMatrix({ accent }: EmptyMatrixProp
                         animate={{ opacity: 1, y: 0 }}
                         transition={tr}
                     >
-                        <span className="nw-em__verdict-pct">{emptyPct}%</span>
-                        <span className="nw-em__verdict-txt">
-                            de lo que has mirado está vacío · te asomes donde te asomes, casi nada
-                        </span>
+                        <div className="nw-em__verdict-row">
+                            <span className="nw-em__verdict-pct">{emptyPct}%</span>
+                            <span className="nw-em__verdict-txt">
+                                de lo que has mirado está vacío · te asomes donde te asomes, casi nada
+                            </span>
+                        </div>
+                        {/* THE WHY — the empty isn't the problem; it's that even the filled rows barely count. */}
+                        {filledSeen > 0 && (
+                            <div className="nw-em__verdict-why">
+                                y de las pocas que tienen algo, <b>{rarePct}%</b> las vio <b>una o dos veces</b> —
+                                y una vez no es una regla, es una casualidad
+                            </div>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -518,11 +541,17 @@ export const EmptyMatrix = memo(function EmptyMatrix({ accent }: EmptyMatrixProp
 
                 /* ── verdict (emergent) ── */
                 .nw-em__verdict {
-                    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+                    display: flex; flex-direction: column; gap: 10px;
                     width: 100%; padding: 14px 18px; border-radius: var(--ngram-r-md);
                     background: var(--ngram-sage-soft);
                     box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ngram-sage) 30%, transparent);
                 }
+                .nw-em__verdict-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+                .nw-em__verdict-why {
+                    font-family: ${SERIF}; font-size: 14px; line-height: 1.4; color: var(--ngram-ink-2);
+                    padding-top: 10px; border-top: 1px solid color-mix(in oklab, var(--ngram-sage) 22%, transparent);
+                }
+                .nw-em__verdict-why b { color: var(--ngram-sage); font-weight: 800; font-style: normal; }
                 .nw-em__verdict-pct {
                     font-family: ${MONO}; font-weight: 800; font-size: clamp(30px, 6vw, 44px); line-height: 1;
                     color: var(--ngram-sage); font-variant-numeric: tabular-nums;

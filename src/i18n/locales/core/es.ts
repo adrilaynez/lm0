@@ -1,0 +1,41 @@
+// core namespace (es). Slice of the original i18n dictionary — see src/i18n/README.md.
+export const core = {
+    common: {
+        language: "Idioma",
+        loading: "Cargando...",
+        error: "Error",
+        comingSoon: "Próximamente",
+        backToProjects: "Volver a Proyectos",
+        toggleLanguage: "Cambiar idioma",
+        toggleTheme: "Cambiar tema",
+        code: "Código",
+        liveDemo: "Demo en Vivo",
+        viewCaseStudy: "Ver Caso de Estudio",
+    },
+    nav: {
+        home: "Inicio",
+        projects: "Proyectos",
+        lab: "Laboratorio",
+        notes: "Notas",
+    },
+    footer: {
+        builtBy: "Construido por",
+        sourceAvailable: "El código fuente está disponible en",
+    },
+    datasetExplorer: {
+        title: "Evidencia del Corpus",
+        subtitle: "¿Por qué el modelo aprendió '{context}' -> '{next}'?",
+        scanning: "Escaneando corpus de entrenamiento...",
+        occurrencesFound: "Ocurrencias Encontradas",
+        source: "Fuente",
+        contextSnippets: "Fragmentos de Contexto",
+        noExamples: "No se encontraron ejemplos para esta transición.",
+        fetchError: "No se pudieron obtener ejemplos del dataset",
+        explorerTitle: "Explorador del Corpus",
+        searching: "Buscando en el Dataset...",
+        querySequence: "Secuencia Consultada",
+        found: "Se encontraron {count} ocurrencias",
+        exampleContexts: "Contextos de Ejemplo",
+        noExamplesValidation: "No se encontraron ejemplos en el fragmento de validación.",
+    }
+};

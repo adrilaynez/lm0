@@ -204,8 +204,6 @@ export const RowSharpens = memo(function RowSharpens({ accent }: { accent?: "ngr
     // as the wide spread, so the collapse in magnitude is honest
     const colData = useMemo(() => {
         const shs = rows.map((r) => shares(r));
-        const wins = shs.map((sh) => argmax(sh.map((v, i) => rows[shs.indexOf(sh)][i])));
-        // use raw argmax on raw rows
         const rawWins = rows.map((r) => argmax(r));
         const totals = rows.map((r) => total(r));
         const pcts = rows.map((r, i) => (totals[i] ? (r[rawWins[i]] / totals[i]) * 100 : 0));

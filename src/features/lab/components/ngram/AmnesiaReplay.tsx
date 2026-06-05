@@ -14,60 +14,46 @@ import {
 import { contextRow, displayChar, NGRAM_ALPHABET } from "@/features/lab/data/ngramData";
 
 /**
- * §1 · AmnesiaReplay — ONE idea, seen without reading a paragraph:
+ * §1 · AmnesiaReplay — ONE idea, felt before reading a word: the machine from the last chapter keeps ONLY
+ * the last letter, so three DIFFERENT words collapse into the SAME thing and get the SAME bet. The hero is
+ * the LOSS, drawn as a FUNNEL: three distinct words pour in at the top → a blindfold crops each to its last
+ * letter → all three merge into ONE bet at the bottom. Three roads in, one road out = "it can't tell them
+ * apart". (Rebuild per user: the old version showed the collapse but not the loss.)
  *
- * Three CLEARLY DIFFERENT words (am · him · them) that a person would continue in three different
- * directions. But the machine keeps ONLY the last letter — so it erases everything that made them
- * different, all three become the same "…m", and it is FORCED to give the exact SAME bet to all three.
- *
- * The punch is the LOSS, not the collapse: three distinct words on the left → the machine's blindfold
- * crops each to its last letter → one identical bet, STAMPED three times, the same letter and the same
- * percentage on every row. The reader sees "it can't tell these three apart" before reading anything.
- *
- * The bet is real (contextRow over the Shakespeare corpus). «OTRA VEZ» cycles trios. Reduced-motion safe:
- * the still already shows distinct-words → identical-bet; the toggle deepens it, it isn't required.
+ * The bet is REAL — argmax of the 1-letter count row over the Shakespeare corpus. «otra vez» cycles trios;
+ * the «¿qué ve ella?» toggle masks the words down to the shared last letter so you SEE why the bet is one.
  */
 
 interface Trio {
-    /** Three different words sharing the same last letter, each with a different natural continuation. */
-    rows: { word: string; tail: string }[]; // word as typed; tail = a human-plausible continuation
-    shared: string;
+    shared: string;            // the surviving last letter
+    words: { stem: string; rest: string }[]; // stem ends in `shared`; rest = the (faded) tail of a real word
 }
 
-// Curated so each trio's REAL argmax (over the Shakespeare corpus) is a clear, confident LETTER — never a
-// space (after s/n/d/r/y the corpus bets a word boundary, which renders as an obscure glyph and breaks the
-// "confident identical bet" read). Verified bets: m→e · o→u · t→h · w→h.
+// Curated so (a) the three words are clearly DIFFERENT, (b) all share their last letter, (c) the corpus
+// argmax after that letter is a clean, confident LETTER (never a space): t→h · w→h · m→e (verified in v3).
 const TRIOS: Trio[] = [
     {
-        shared: "m",
-        rows: [
-            { word: "am", tail: "ber" },   // amber
-            { word: "him", tail: "self" }, // himself
-            { word: "them", tail: "e" },   // theme
-        ],
-    },
-    {
         shared: "t",
-        rows: [
-            { word: "cat", tail: "ch" }, // catch
-            { word: "bit", tail: "e" },  // bite
-            { word: "hot", tail: "el" }, // hotel
-        ],
-    },
-    {
-        shared: "o",
-        rows: [
-            { word: "to", tail: "wn" },  // town
-            { word: "who", tail: "le" }, // whole
-            { word: "no", tail: "se" },  // nose
+        words: [
+            { stem: "cat", rest: "alog" },  // catalog
+            { stem: "hot", rest: "el" },    // hotel
+            { stem: "art", rest: "ist" },   // artist
         ],
     },
     {
         shared: "w",
-        rows: [
-            { word: "how", tail: "l" },  // howl
-            { word: "new", tail: "s" },  // news
-            { word: "low", tail: "er" }, // lower
+        words: [
+            { stem: "how", rest: "l" },     // howl
+            { stem: "new", rest: "s" },     // news
+            { stem: "low", rest: "er" },    // lower
+        ],
+    },
+    {
+        shared: "m",
+        words: [
+            { stem: "arm", rest: "y" },     // army
+            { stem: "aim", rest: "ing" },   // aiming
+            { stem: "sum", rest: "mer" },   // summer
         ],
     },
 ];
@@ -77,28 +63,20 @@ export const AmnesiaReplay = memo(function AmnesiaReplay({ accent }: { accent?: 
     const reduce = useReducedMotion() === true;
 
     const [idx, setIdx] = useState(0);
+    const [blind, setBlind] = useState(false);
+    const [interacted, setInteracted] = useState(false);
+
     const trio = TRIOS[idx % TRIOS.length];
     const shared = trio.shared;
 
-    // The real machine bet after a 1-letter context: argmax of the count row for `shared`.
+    // The real machine bet after a 1-letter context.
     const row = useMemo(() => contextRow(1, shared), [shared]);
-    const total = useMemo(() => row.reduce((a, b) => a + b, 0), [row]);
-    const winIdx = useMemo(() => {
+    const { betChar, betPct } = useMemo(() => {
+        const total = row.reduce((a, b) => a + b, 0) || 1;
         let best = 0;
         for (let i = 1; i < row.length; i++) if (row[i] > row[best]) best = i;
-        return best;
+        return { betChar: NGRAM_ALPHABET[best], betPct: Math.round((row[best] / total) * 100) };
     }, [row]);
-    const betChar = NGRAM_ALPHABET[winIdx];
-    const betPct = Math.round((row[winIdx] / Math.max(1, total)) * 100);
-
-    // DEFAULT shows the contrast in one still: three DIFFERENT words (left) → the SAME bet (right). The
-    // interaction "tapar el contexto" then covers the forgotten prefixes, proving all three become the
-    // literal same "▨ m" — that's WHY the bet is identical. Default false so the still carries the idea.
-    const [blind, setBlind] = useState(false);
-
-    // The verdict caption is gated: it must NOT appear on frame 0 — the reader has to interact first
-    // and see the identical bets repeat across multiple words before the conclusion is confirmed.
-    const [interacted, setInteracted] = useState(false);
 
     const next = () => {
         setIdx((i) => (i + 1) % TRIOS.length);
@@ -107,63 +85,102 @@ export const AmnesiaReplay = memo(function AmnesiaReplay({ accent }: { accent?: 
     };
 
     return (
-        <div
-            style={{
-                display: "flex",
-                flexDirection: "column",
-                width: "100%",
-                maxWidth: 720,
-                margin: "0 auto",
-                padding: "8px 0 12px",
-            }}
-        >
-            {/* two tiny column headers — affordance for "left = the words / right = what the machine bets" */}
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 96px 1fr",
-                    alignItems: "end",
-                    marginBottom: 12,
-                }}
-            >
-                <CaptionLine gap={0} align="left">tres palabras distintas</CaptionLine>
-                <span />
-                <CaptionLine gap={0} align="left">una sola apuesta</CaptionLine>
-            </div>
+        <div style={{ width: "100%", maxWidth: 640, margin: "0 auto", padding: "6px 0 10px" }}>
+            <CaptionLine align="center">{blind ? "lo único que recuerda" : "tres palabras distintas"}</CaptionLine>
 
-            {/* ── THE DIAGRAM: 3 rows, each word → blindfold → identical bet ── */}
+            {/* ── TOP: three different words pour in ── */}
             <AnimatePresence mode="wait">
                 <motion.div
-                    key={`rows-${idx}`}
-                    initial={reduce ? false : { opacity: 0, y: 10 }}
+                    key={`words-${idx}`}
+                    initial={reduce ? false : { opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={reduce ? {} : { opacity: 0, y: -8 }}
-                    transition={{ duration: 0.32, ease: STD }}
+                    exit={reduce ? {} : { opacity: 0, y: -6 }}
+                    transition={{ duration: 0.3, ease: STD }}
                     style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "clamp(14px, 2.6vh, 26px)",
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr 1fr",
+                        gap: "clamp(8px, 3vw, 28px)",
+                        alignItems: "end",
+                        marginTop: 14,
                     }}
                 >
-                    {trio.rows.map((r, i) => (
-                        <WordRow
-                            key={`${idx}-${i}`}
-                            word={r.word}
-                            tail={r.tail}
-                            shared={shared}
-                            betChar={betChar}
-                            betPct={betPct}
-                            blind={blind}
-                            reduce={reduce}
-                            delay={reduce ? 0 : i * 0.06}
-                        />
+                    {trio.words.map((w, i) => (
+                        <Word key={`${idx}-${i}`} stem={w.stem} rest={w.rest} shared={shared} blind={blind} reduce={reduce} delay={reduce ? 0 : i * 0.05} />
                     ))}
                 </motion.div>
             </AnimatePresence>
 
-            {/* the one-line verdict — gated: only appears AFTER the first interaction.
-                On frame 0 the identical bets already insinuate the conclusion visually;
-                the caption confirms it only once the reader has seen the pattern repeat. */}
+            {/* ── THE FUNNEL: three lanes converge to one node ── */}
+            <Funnel reduce={reduce} />
+
+            {/* ── THE NODE: "only sees the last letter" ── */}
+            <div style={{ display: "flex", justifyContent: "center", marginTop: -2 }}>
+                <div
+                    style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 9,
+                        padding: "5px 13px",
+                        borderRadius: 999,
+                        border: "1px solid var(--ngram-rule-2)",
+                        background: "color-mix(in oklab, var(--ngram-ink) 3%, transparent)",
+                    }}
+                >
+                    <span style={{ fontFamily: MONO, fontSize: "clamp(10px,1.4vw,12px)", color: "var(--ngram-dim)", letterSpacing: ".02em" }}>
+                        solo recuerda
+                    </span>
+                    <span
+                        style={{
+                            fontFamily: MONO,
+                            fontWeight: 800,
+                            fontSize: "clamp(18px,2.6vw,24px)",
+                            lineHeight: 1,
+                            color: "var(--ngram-on-accent)",
+                            background: "var(--ngram-accent)",
+                            borderRadius: 7,
+                            padding: "1px 9px 3px",
+                        }}
+                    >
+                        {displayChar(shared)}
+                    </span>
+                </div>
+            </div>
+
+            {/* the single stem from node → bet */}
+            <div style={{ display: "flex", justifyContent: "center" }}>
+                <svg viewBox="0 0 40 30" aria-hidden style={{ width: 40, height: 30 }}>
+                    <motion.line
+                        x1={20} y1={2} x2={20} y2={22}
+                        stroke="var(--ngram-accent)" strokeWidth={2.5} strokeLinecap="round" opacity={0.65}
+                        initial={reduce ? false : { pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.3, ease: STD }}
+                    />
+                    <path d="M14 16 L20 23 L26 16" fill="none" stroke="var(--ngram-accent-bright)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            </div>
+
+            {/* ── ONE BET for all three ── */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                <CaptionLine align="center">una sola apuesta, igual para las tres</CaptionLine>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 4 }}>
+                    <span
+                        style={{
+                            fontFamily: MONO,
+                            fontSize: "clamp(48px,8vw,76px)",
+                            fontWeight: 900,
+                            lineHeight: 0.85,
+                            color: "var(--ngram-accent-bright)",
+                            letterSpacing: "-0.03em",
+                        }}
+                    >
+                        {displayChar(betChar)}
+                    </span>
+                    <span style={{ fontFamily: MONO, fontSize: "clamp(13px,1.9vw,17px)", fontWeight: 700, color: "var(--ngram-accent-ink)" }}>
+                        {betPct}%
+                    </span>
+                </div>
+            </div>
+
+            {/* the gated verdict */}
             <AnimatePresence>
                 {interacted && (
                     <motion.div
@@ -172,46 +189,15 @@ export const AmnesiaReplay = memo(function AmnesiaReplay({ accent }: { accent?: 
                         animate={{ opacity: 1, y: 0 }}
                         exit={reduce ? {} : { opacity: 0 }}
                         transition={{ duration: 0.35, ease: STD }}
-                        style={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 96px 1fr",
-                            marginTop: 10,
-                        }}
+                        style={{ display: "flex", justifyContent: "center", marginTop: 12 }}
                     >
-                        <span />
-                        <span />
-                        <div
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 9,
-                            }}
-                        >
-                            <span
-                                aria-hidden
-                                style={{
-                                    width: 14,
-                                    height: 1,
-                                    background: "var(--ngram-accent)",
-                                    opacity: 0.5,
-                                    flexShrink: 0,
-                                }}
-                            />
-                            <span
-                                style={{
-                                    fontFamily: MONO,
-                                    fontSize: "clamp(11px, 1.5vw, 13px)",
-                                    letterSpacing: ".01em",
-                                    color: "var(--ngram-dim)",
-                                    lineHeight: 1.4,
-                                }}
-                            >
-                                <span style={{ color: "var(--ngram-accent-ink)", fontWeight: 700 }}>
-                                    no las distingue
-                                </span>
-                                : la misma apuesta para las tres
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 9 }}>
+                            <span aria-hidden style={{ width: 14, height: 1, background: "var(--ngram-accent)", opacity: 0.5 }} />
+                            <span style={{ fontFamily: MONO, fontSize: "clamp(11px,1.5vw,13px)", color: "var(--ngram-dim)", lineHeight: 1.4 }}>
+                                <span style={{ color: "var(--ngram-accent-ink)", fontWeight: 700 }}>no las distingue</span>
+                                : pierde por dónde iban
                             </span>
-                        </div>
+                        </span>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -229,252 +215,113 @@ export const AmnesiaReplay = memo(function AmnesiaReplay({ accent }: { accent?: 
                     paddingTop: 16,
                 }}
             >
-                <PlayButton
-                    onClick={next}
-                    aria-label="ver otro trío de palabras que colapsan en la misma apuesta"
-                >
+                <PlayButton onClick={next} aria-label="ver otras tres palabras que colapsan en la misma apuesta">
                     otra vez
                 </PlayButton>
                 <GhostButton
                     onClick={() => { setBlind((b) => !b); setInteracted(true); }}
-                    aria-label={blind ? "destapar lo que la máquina ignora del contexto" : "tapar el contexto otra vez"}
+                    aria-label={blind ? "ver las palabras enteras" : "ver solo lo que la máquina recuerda"}
                 >
-                    {blind ? "destapar el contexto" : "tapar otra vez"}
+                    {blind ? "ver las palabras" : "¿qué ve ella?"}
                 </GhostButton>
             </div>
         </div>
     );
 });
 
-/**
- * One row: [readable word, last letter lit] → [blindfold: keeps only the last letter] → [the bet chip].
- *
- * When `blind` is false the masked prefix is revealed (dim) WITH its human continuation, so you see what
- * the machine threw away — three different words heading three different places. When `blind` is true the
- * prefix is covered and only the shared last letter survives; the bet is identical on every row.
- */
-function WordRow({
-    word,
-    tail,
-    shared,
-    betChar,
-    betPct,
-    blind,
-    reduce,
-    delay,
-}: {
-    word: string;
-    tail: string;
-    shared: string;
-    betChar: string;
-    betPct: number;
-    blind: boolean;
-    reduce: boolean;
-    delay: number;
-}) {
-    const head = word.slice(0, -1); // the part the machine forgets
+/** One word: the real word, with the part the machine forgets dimmed and the surviving last letter lit.
+ *  When `blind`, the forgotten head is replaced by a hatch so all three collapse to the same last letter. */
+function Word({ stem, rest, shared, blind, reduce, delay }: { stem: string; rest: string; shared: string; blind: boolean; reduce: boolean; delay: number }) {
+    const head = stem.slice(0, -1); // forgotten
 
     return (
-        <div
+        <motion.div
+            initial={reduce ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.25, ease: STD, delay }}
             style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 96px 1fr",
-                alignItems: "center",
+                display: "flex",
+                alignItems: "baseline",
+                justifyContent: "center",
+                fontFamily: MONO,
+                fontWeight: 700,
+                lineHeight: 1,
+                whiteSpace: "nowrap",
+                minWidth: 0,
             }}
         >
-            {/* LEFT — the word, RIGHT-aligned so the lit last-letter chip lands in a fixed vertical column.
-                Reading the column down: am · him · them all funnel through the SAME amber "m". The faint
-                tail (amBER, himSELF, theME) overflows to the right WITHOUT shifting the chip, hinting these
-                are three different words a person would carry three different ways. */}
-            <div
+            <AnimatePresence mode="wait" initial={false}>
+                {blind ? (
+                    <motion.span
+                        key="hatch"
+                        initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={reduce ? {} : { opacity: 0 }} transition={{ duration: 0.2 }}
+                        aria-hidden
+                        style={{
+                            display: "inline-block",
+                            width: "clamp(16px,2.4vw,26px)",
+                            height: "clamp(22px,3vw,32px)",
+                            marginRight: 2,
+                            borderRadius: 4,
+                            border: "1px solid var(--ngram-rule)",
+                            background: "repeating-linear-gradient(135deg, var(--ngram-rule-2) 0 5px, transparent 5px 10px)",
+                            alignSelf: "center",
+                        }}
+                    />
+                ) : (
+                    <motion.span
+                        key="head"
+                        initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={reduce ? {} : { opacity: 0 }} transition={{ duration: 0.2 }}
+                        style={{ fontSize: "clamp(20px,3vw,30px)", color: "var(--ngram-dim)" }}
+                    >
+                        {head}
+                    </motion.span>
+                )}
+            </AnimatePresence>
+
+            {/* surviving last letter — lit */}
+            <span
                 style={{
-                    position: "relative",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "flex-end",
-                    fontFamily: MONO,
-                    fontWeight: 700,
-                    lineHeight: 1,
-                    minWidth: 0,
-                    // the chip column sits this far from the centre arrow; tail overflows into the gap
-                    paddingRight: "clamp(26px, 4vw, 48px)",
+                    fontSize: "clamp(22px,3.4vw,34px)",
+                    fontWeight: 800,
+                    color: "var(--ngram-on-accent)",
+                    background: "var(--ngram-accent)",
+                    borderRadius: 7,
+                    padding: "1px 7px 3px",
+                    alignSelf: "center",
                 }}
             >
-                {/* the forgotten prefix — shown dim, or replaced by the blindfold hatch */}
-                <AnimatePresence mode="wait" initial={false}>
-                    {blind ? (
-                        <motion.span
-                            key="mask"
-                            initial={reduce ? false : { opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={reduce ? {} : { opacity: 0 }}
-                            transition={{ duration: 0.22, ease: STD }}
-                            aria-label="contexto tapado"
-                            style={{ display: "inline-flex", alignItems: "center", gap: 2, marginRight: 3 }}
-                        >
-                            {head.split("").map((_, j) => (
-                                <span
-                                    key={j}
-                                    style={{
-                                        display: "inline-block",
-                                        width: "clamp(20px, 2.8vw, 30px)",
-                                        height: "clamp(30px, 4.2vw, 46px)",
-                                        borderRadius: 4,
-                                        background:
-                                            "repeating-linear-gradient(135deg, var(--ngram-rule-2) 0 5px, transparent 5px 10px)",
-                                        border: "1px solid var(--ngram-rule)",
-                                    }}
-                                />
-                            ))}
-                        </motion.span>
-                    ) : (
-                        <motion.span
-                            key="head"
-                            initial={reduce ? false : { opacity: 0, x: 6 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={reduce ? {} : { opacity: 0, x: 6 }}
-                            transition={{ duration: 0.22, ease: STD }}
-                            style={{
-                                fontSize: "clamp(30px, 4.2vw, 46px)",
-                                color: "var(--ngram-dim)",
-                                whiteSpace: "nowrap",
-                                marginRight: 3,
-                            }}
-                        >
-                            {head}
-                        </motion.span>
-                    )}
-                </AnimatePresence>
+                {displayChar(shared)}
+            </span>
 
-                {/* the surviving last letter — the lit amber chip (the vertical-column anchor) */}
-                <span
-                    style={{
-                        fontSize: "clamp(32px, 4.6vw, 48px)",
-                        fontWeight: 800,
-                        lineHeight: 1,
-                        color: "var(--ngram-on-accent)",
-                        background: "var(--ngram-accent)",
-                        borderRadius: 9,
-                        padding: "2px 10px 4px",
-                        flexShrink: 0,
-                    }}
-                >
-                    {displayChar(shared)}
+            {/* faded rest of the real word — only when not blind */}
+            {!blind && (
+                <span style={{ fontSize: "clamp(15px,2vw,20px)", fontWeight: 500, color: "var(--ngram-muted)", opacity: 0.5 }}>
+                    {rest}
                 </span>
-
-                {/* the human continuation — absolutely placed so it never pushes the chip column. Only when
-                    the prefix is visible: the road a person would take, that the machine is about to lose. */}
-                <AnimatePresence>
-                    {!blind && tail && (
-                        <motion.span
-                            key="tail"
-                            initial={reduce ? false : { opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={reduce ? {} : { opacity: 0 }}
-                            transition={{ duration: 0.22, ease: STD, delay: reduce ? 0 : 0.05 }}
-                            style={{
-                                position: "absolute",
-                                left: "calc(100% - clamp(24px, 3.6vw, 44px))",
-                                bottom: "clamp(2px, 0.8vh, 7px)",
-                                fontSize: "clamp(14px, 1.8vw, 18px)",
-                                fontWeight: 500,
-                                color: "var(--ngram-accent-2)",
-                                opacity: 0.7,
-                                whiteSpace: "nowrap",
-                                pointerEvents: "none",
-                            }}
-                        >
-                            {tail}
-                        </motion.span>
-                    )}
-                </AnimatePresence>
-            </div>
-
-            {/* CENTRE — the blindfold arrow: "everything but the last letter is gone" */}
-            <div
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-            >
-                <BlindArrow reduce={reduce} delay={delay} />
-            </div>
-
-            {/* RIGHT — the bet. IDENTICAL on every row: same letter, same %. The repetition IS the point. */}
-            <motion.div
-                initial={reduce ? false : { opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, ease: STD, delay: reduce ? 0 : delay + 0.12 }}
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    justifyContent: "flex-start",
-                }}
-            >
-                <span
-                    aria-label={`apuesta: ${displayChar(betChar)}`}
-                    style={{
-                        fontFamily: MONO,
-                        fontSize: "clamp(40px, 6vw, 64px)",
-                        fontWeight: 900,
-                        lineHeight: 0.9,
-                        color: "var(--ngram-accent-bright)",
-                        letterSpacing: "-0.03em",
-                    }}
-                >
-                    {displayChar(betChar)}
-                </span>
-                <span
-                    style={{
-                        fontFamily: MONO,
-                        fontSize: "clamp(12px, 1.7vw, 15px)",
-                        fontWeight: 700,
-                        color: "var(--ngram-accent-ink)",
-                        letterSpacing: ".02em",
-                        lineHeight: 1.1,
-                    }}
-                >
-                    {betPct}%
-                </span>
-            </motion.div>
-        </div>
+            )}
+        </motion.div>
     );
 }
 
-/** The blindfold connector: a short crop bracket + arrow saying "only the last letter survives". */
-function BlindArrow({ reduce, delay }: { reduce: boolean; delay: number }) {
+/** The funnel: three lanes from the three words converge to a single point. The convergence is the loss. */
+function Funnel({ reduce }: { reduce: boolean }) {
     return (
-        <svg
-            viewBox="0 0 96 40"
-            aria-hidden
-            style={{ width: "100%", maxWidth: 96, height: 40, overflow: "visible" }}
-        >
-            <motion.line
-                x1={6}
-                y1={20}
-                x2={78}
-                y2={20}
-                stroke="var(--ngram-accent)"
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                opacity={0.7}
-                initial={reduce ? false : { pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.3, ease: STD, delay }}
-            />
-            <motion.path
-                d="M70 13 L80 20 L70 27"
-                fill="none"
-                stroke="var(--ngram-accent-bright)"
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                initial={reduce ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.2, ease: STD, delay: delay + 0.18 }}
-            />
+        <svg viewBox="0 0 300 56" aria-hidden preserveAspectRatio="none" style={{ width: "100%", height: 56, marginTop: 6, overflow: "visible" }}>
+            {[50, 150, 250].map((x, i) => (
+                <motion.path
+                    key={i}
+                    d={`M${x} 4 Q ${x} 34 150 52`}
+                    fill="none"
+                    stroke="var(--ngram-accent)"
+                    strokeWidth={1.6}
+                    strokeLinecap="round"
+                    opacity={0.5}
+                    initial={reduce ? false : { pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 0.5 }}
+                    transition={{ duration: 0.5, ease: STD, delay: i * 0.06 }}
+                />
+            ))}
+            <circle cx={150} cy={52} r={3} fill="var(--ngram-accent-bright)" />
         </svg>
     );
 }

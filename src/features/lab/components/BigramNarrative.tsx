@@ -1,23 +1,22 @@
 "use client";
 
-import { lazy, Suspense, useState } from "react";
+import { lazy } from "react";
 import Link from "next/link";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Beaker, ChevronDown, FlaskConical } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight, Beaker, FlaskConical } from "lucide-react";
 
+import BigramEn from "@/content/lab/bigram.en.mdx";
+import BigramEs from "@/content/lab/bigram.es.mdx";
 import { BigramSideRail } from "@/features/lab/components/BigramSideRail";
 import { ContinueToast } from "@/features/lab/components/ContinueToast";
 import { FadeInView } from "@/features/lab/components/FadeInView";
-import { LazySection, SectionSkeleton } from "@/features/lab/components/LazySection";
+import { labMdxComponents } from "@/features/lab/components/mdx/labMdxComponents";
 import { ModeToggle } from "@/features/lab/components/ModeToggle";
-import { SectionAnchor } from "@/features/lab/components/SectionAnchor";
 import { useLabMode } from "@/features/lab/context/LabModeContext";
 import { useProgressTracker } from "@/features/lab/hooks/useProgressTracker";
 import type { TrainingViz, TransitionMatrixViz } from "@/features/lab/types/lmLab";
 import { useI18n } from "@/i18n/context";
-import { en } from "@/i18n/en";
-import { es } from "@/i18n/es";
 import { cn } from "@/lib/utils";
 
 /* Bigram type families (Playfair display · Source Serif body · JetBrains Mono data),
@@ -26,13 +25,15 @@ const BIGRAM_DISPLAY = "font-[family-name:var(--bigram-font-display)]";
 const BIGRAM_SERIF = "font-[family-name:var(--bigram-font-serif)]";
 const BIGRAM_MONO = "font-[family-name:var(--bigram-font-mono)]";
 
-/* ─── Lazy-loaded interactive visualizers (one concept each) ─── */
+/* ─── Lazy-loaded interactive visualizers (one concept each), injected into the MDX ─── */
 const FillTheBlank = lazy(() => import("@/features/lab/components/FillTheBlank").then(m => ({ default: m.FillTheBlank })));
 const HeroAutoComplete = lazy(() => import("@/features/lab/components/HeroAutoComplete").then(m => ({ default: m.HeroAutoComplete })));
 const PairHighlighter = lazy(() => import("@/features/lab/components/PairHighlighter").then(m => ({ default: m.PairHighlighter })));
-const IsolateT = lazy(() => import("@/features/lab/components/IsolateT").then(m => ({ default: m.IsolateT })));const RowTally = lazy(() => import("@/features/lab/components/RowTally").then(m => ({ default: m.RowTally })));
+const IsolateT = lazy(() => import("@/features/lab/components/IsolateT").then(m => ({ default: m.IsolateT })));
+const RowTally = lazy(() => import("@/features/lab/components/RowTally").then(m => ({ default: m.RowTally })));
 const GrowingMatrix27 = lazy(() => import("@/features/lab/components/GrowingMatrix27").then(m => ({ default: m.GrowingMatrix27 })));
-const TinyMatrixExample = lazy(() => import("@/features/lab/components/TinyMatrixExample").then(m => ({ default: m.TinyMatrixExample })));const DetectiveMatrix = lazy(() => import("@/features/lab/components/DetectiveMatrix").then(m => ({ default: m.DetectiveMatrix })));
+const TinyMatrixExample = lazy(() => import("@/features/lab/components/TinyMatrixExample").then(m => ({ default: m.TinyMatrixExample })));
+const DetectiveMatrix = lazy(() => import("@/features/lab/components/DetectiveMatrix").then(m => ({ default: m.DetectiveMatrix })));
 const NormalizationVisualizer = lazy(() => import("@/features/lab/components/NormalizationVisualizer").then(m => ({ default: m.NormalizationVisualizer })));
 const AlwaysMaxLoop = lazy(() => import("@/features/lab/components/AlwaysMaxLoop").then(m => ({ default: m.AlwaysMaxLoop })));
 const LoadedDie = lazy(() => import("@/features/lab/components/LoadedDie").then(m => ({ default: m.LoadedDie })));
@@ -41,173 +42,67 @@ const TableWriter = lazy(() => import("@/features/lab/components/TableWriter").t
 const ContextBlindnessDemo = lazy(() => import("@/features/lab/components/ContextBlindnessDemo").then(m => ({ default: m.ContextBlindnessDemo })));
 const ShannonContextLadder = lazy(() => import("@/features/lab/components/ShannonContextLadder").then(m => ({ default: m.ShannonContextLadder })));
 
-import {
-    Heading as _Heading,
-    Lead as _Lead, type NarrativeAccent,
-    P as _P,
-    Section,
-    SectionBreak as _SectionBreak,
-    SectionLabel as _SectionLabel,
-} from "./narrative-primitives";
+/* ─── Bigram-specific editorial components used inside the MDX ─── */
 
-/* ─── Accent-bound wrappers ───
-   Every shared primitive opts into the editorial-green accent. The green resolves
-   through the [data-bigram-theme] scope on the page wrapper, so no other chapter
-   is affected. */
-const NA: NarrativeAccent = "bigram";
-const SectionLabel = (p: { number: string; label: string }) => <_SectionLabel accent={NA} {...p} />;
-const Heading = (p: { children: React.ReactNode; className?: string }) => <_Heading accent={NA} {...p} />;
-const Lead = (p: { children: React.ReactNode }) => <_Lead accent={NA} {...p} />;
-const SectionBreak = () => <_SectionBreak accent={NA} />;
-
-/* Body paragraph. Routed through innerHTML so the v2 copy's inline <strong>/<em>
-   accents (e.g. "tabla de transición", "texto de entrenamiento") render as the
-   editorial accent rather than as literal tags. The copy is authored in-repo
-   (i18n), never user input. */
-const RICH =
-    "[&_strong]:text-bigram-accent-ink [&_strong]:font-semibold [&_em]:italic [&_em]:text-bigram-accent-ink";
-function P({ html }: { html: string }) {
+/* The naming moment ("…has a name: a bigram model"): quiet serif lead, oversized
+   accent display word, serif coda. Pulled into the MDX as <Reveal lead word coda />. */
+function Reveal({ lead, word, coda }: { lead: string; word: string; coda: string }) {
     return (
-        <_P accent={NA}>
-            <span className={RICH} dangerouslySetInnerHTML={{ __html: html }} />
-        </_P>
-    );
-}
-
-/* The Markov history, told in paragraphs (an opt-in aside, so it can run long). The paragraph
-   array is read straight from the active dictionary — t() returns strings only. */
-function MarkovStory() {
-    const { language } = useI18n();
-    const dict = (language === "es" ? es : en) as typeof en;
-    const paras = dict.bigramNarrative.v2.markov.paras;
-    return (
-        <>
-            {paras.map((para, i) => (
-                <P key={i} html={para} />
-            ))}
-        </>
-    );
-}
-
-/* The single faint interactive plane — the only "this is interactive" signal.
-   No frame, no chrome, no traffic-light dots. Self-captioning widgets render
-   their own label inside; the surrounding prose is the editorial caption. */
-function Plane({ children }: { children: React.ReactNode }) {
-    return (
-        <LazySection>
-            <div className="my-10 md:my-14 -mx-2 sm:mx-0 rounded-[var(--bigram-r-md)] bg-[color-mix(in_oklab,var(--bigram-surface)_55%,var(--bigram-bg))] px-4 py-7 sm:px-7 sm:py-8">
-                <Suspense fallback={<SectionSkeleton />}>{children}</Suspense>
-            </div>
-        </LazySection>
-    );
-}
-
-/* Skeleton marker. `ok` → the real widget; `rework` → the real widget with a small "to redo" tag;
-   `todo` → a dashed placeholder for a widget not built yet. Lets the whole chapter skeleton render
-   end-to-end so we can see exactly what is done, what is pending, and what is missing. */
-function Slot({ tag, status = "ok", children }: { tag?: string; status?: "ok" | "rework" | "todo"; children?: React.ReactNode }) {
-    if (status === "todo") {
-        return (
-            <LazySection>
-                <div className="my-10 md:my-14 rounded-[var(--bigram-r-md)] border border-dashed border-[color-mix(in_oklab,var(--bigram-accent)_38%,var(--bigram-rule))] bg-[color-mix(in_oklab,var(--bigram-accent)_5%,transparent)] px-6 py-12 text-center">
-                    <span className={cn(BIGRAM_MONO, "text-[11px] uppercase tracking-[0.2em] text-bigram-accent")}>⬜ Por resolver</span>
-                    {tag && <p className={cn(BIGRAM_SERIF, "mx-auto mt-2 max-w-[42ch] text-[15px] text-bigram-muted")}>{tag}</p>}
-                </div>
-            </LazySection>
-        );
-    }
-    return (
-        <>
-            {status === "rework" && tag && (
-                <div className={cn(BIGRAM_MONO, "mt-9 -mb-1 text-[10.5px] uppercase tracking-[0.16em] text-[color-mix(in_oklab,var(--bigram-accent)_72%,var(--bigram-muted))]")}>
-                    🔧 Rehacer · {tag}
-                </div>
-            )}
-            <Plane>{children}</Plane>
-        </>
-    );
-}
-
-/* ─────────────────────────────────────────────
-   ExpandableSection · history "plegable"
-   Optional depth at the right emotional moment (Markov §4, Shannon §5). The
-   whole summary row is a card-like control: accent dot, serif title, +/− disc.
-   States read by FILL, not by piling on borders. Tokens only.
-   ───────────────────────────────────────────── */
-function ExpandableSection({
-    title,
-    kicker,
-    children,
-    defaultOpen = false,
-}: {
-    title: string;
-    kicker?: string;
-    children: React.ReactNode;
-    defaultOpen?: boolean;
-}) {
-    const [open, setOpen] = useState(defaultOpen);
-    return (
-        <div className="my-9">
-            <button
-                type="button"
-                onClick={() => setOpen(o => !o)}
-                aria-expanded={open}
-                className={cn(
-                    "group w-full flex items-center gap-3.5 text-left",
-                    "rounded-[var(--bigram-r-md)] border px-[18px] py-4",
-                    "border-[color:var(--bigram-rule)] bg-[color-mix(in_oklab,var(--bigram-ink)_3%,transparent)]",
-                    "transition-colors duration-200",
-                    "hover:bg-[var(--bigram-accent-soft)] hover:border-[color-mix(in_oklab,var(--bigram-accent)_32%,var(--bigram-rule))]",
-                    "focus-visible:outline-none focus-visible:border-bigram-accent focus-visible:shadow-[0_0_0_3px_var(--bigram-accent-soft)]"
-                )}
+        <FadeInView className="my-12 text-center">
+            <p className={cn(BIGRAM_SERIF, "text-[clamp(19px,2vw,22px)] text-bigram-ink-2 mb-3")}>{lead}</p>
+            <p
+                className={cn(BIGRAM_DISPLAY, "italic text-bigram-accent")}
+                style={{ fontWeight: 600, fontSize: "clamp(40px,6.4vw,72px)", lineHeight: 1.04, letterSpacing: "-0.018em" }}
             >
-                <span className="shrink-0 w-[9px] h-[9px] rounded-full bg-bigram-accent" />
-                <div className="flex-1 min-w-0">
-                    {kicker && (
-                        <span className={cn(BIGRAM_MONO, "block mb-1 text-[10px] uppercase tracking-[0.2em] text-bigram-accent")}>
-                            {kicker}
-                        </span>
-                    )}
-                    <h3 className={cn(BIGRAM_SERIF, "m-0 text-[18px] font-semibold leading-snug text-bigram-ink")}>
-                        {title}
-                    </h3>
-                </div>
-                <span
-                    className={cn(
-                        BIGRAM_MONO,
-                        "shrink-0 inline-flex items-center gap-2 rounded-[var(--bigram-r-pill)]",
-                        "pl-[13px] pr-1.5 py-1.5 text-[10.5px] uppercase tracking-[0.18em] text-bigram-accent",
-                        "border border-[color-mix(in_oklab,var(--bigram-accent)_32%,var(--bigram-rule))]",
-                        "bg-[color-mix(in_oklab,var(--bigram-accent)_8%,transparent)]",
-                        "transition-colors duration-200 group-hover:bg-[color-mix(in_oklab,var(--bigram-accent)_16%,transparent)]"
-                    )}
-                >
-                    {open ? "cerrar" : "leer"}
-                    <span className="inline-grid place-items-center w-[18px] h-[18px] rounded-full bg-bigram-accent text-[var(--bigram-on-accent)] leading-none">
-                        <ChevronDown className={cn("w-3 h-3 transition-transform", open && "rotate-180")} />
-                    </span>
-                </span>
-            </button>
-            <AnimatePresence initial={false}>
-                {open && (
-                    <motion.div
-                        key="content"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.38, ease: [0.25, 0, 0, 1] }}
-                        className="overflow-hidden"
-                    >
-                        <div className="pt-[20px] px-1">{children}</div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
+                {word}
+            </p>
+            <p className={cn(BIGRAM_SERIF, "mt-5 text-[clamp(17px,1.9vw,20px)] text-bigram-body leading-relaxed max-w-[34em] mx-auto text-pretty")}>
+                {coda}
+            </p>
+        </FadeInView>
     );
 }
 
+/* Shannon's real 1948 output as a specimen — a distinct element, not another paragraph. */
+function Specimen({ children }: { children: React.ReactNode }) {
+    return (
+        <blockquote
+            className={cn(
+                BIGRAM_MONO,
+                "my-7 mx-auto max-w-[46ch] rounded-[var(--bigram-r-md)] bg-bigram-bg-2 px-6 py-5 text-center text-[clamp(13px,1.5vw,16px)] leading-[1.7] tracking-[0.04em] text-bigram-accent-ink",
+            )}
+            style={{ boxShadow: "inset 0 0 0 1px var(--bigram-rule-2)", borderLeft: "2px solid var(--bigram-accent)" }}
+        >
+            “{children}”
+        </blockquote>
+    );
+}
+
+/* The chapter's widgets + bespoke components, injected into the shared MDX component map. */
+const BIGRAM_WIDGETS = {
+    FillTheBlank,
+    HeroAutoComplete,
+    PairHighlighter,
+    IsolateT,
+    RowTally,
+    GrowingMatrix27,
+    TinyMatrixExample,
+    DetectiveMatrix,
+    NormalizationVisualizer,
+    AlwaysMaxLoop,
+    LoadedDie,
+    LetterByLetter,
+    TableWriter,
+    ContextBlindnessDemo,
+    ShannonContextLadder,
+    Reveal,
+    Specimen,
+} as unknown as Record<string, React.ComponentType<Record<string, unknown>>>;
+
 /* ─────────────────────────────────────────────
-   Main narrative component
+   Main narrative component — a thin shell: hero + side-rail + CTA + footer in TSX,
+   the chapter body authored in bigram.{es,en}.mdx and rendered through the shared
+   MDX component map. (The body's prose, widgets and expandables all live in the .mdx.)
    ───────────────────────────────────────────── */
 
 interface BigramNarrativeProps {
@@ -225,9 +120,15 @@ export function BigramNarrative(props: BigramNarrativeProps) {
     // VIS 11 now generates LOCALLY (TableWriter); the page's generation props are accepted for
     // compatibility but no longer used by the narrative.
     void props;
-    const { t } = useI18n();
+    const { t, language } = useI18n();
     const { setMode } = useLabMode();
     const { hasStoredProgress, storedSection, clearProgress } = useProgressTracker("bigram");
+
+    const Body = language === "es" ? BigramEs : BigramEn;
+    const mdxComponents = labMdxComponents("bigram", BIGRAM_WIDGETS, {
+        open: language === "es" ? "leer" : "read",
+        close: language === "es" ? "cerrar" : "close",
+    });
 
     /* Hero title — accent the final word ("Bigrama") in italic, per the editorial spec. */
     const heroTitle = t("bigramNarrative.v2.hero.title");
@@ -295,196 +196,13 @@ export function BigramNarrative(props: BigramNarrativeProps) {
                 </motion.div>
             </header>
 
-            {/* ═══════════ §1 · El truco: predecir (toda la intro vive aquí) ═══════════ */}
-            <Section id="bigram-01">
-                <SectionLabel number="01" label={t("bigramNarrative.v2.sectionKickers.s1")} />
-                <SectionAnchor id="bigram-01"><Heading>{t("bigramNarrative.v2.s1.label")}</Heading></SectionAnchor>
+            {/* ═══════════ Chapter body — authored in bigram.{es,en}.mdx ═══════════ */}
+            <Body components={mdxComponents} />
 
-                {/* Intro: teach writing to something that never lived a day. */}
-                <Lead>{t("bigramNarrative.v2.intro.p1")}</Lead>
-                <P html={t("bigramNarrative.v2.intro.p2")} />
-                <P html={t("bigramNarrative.v2.intro.p3")} />
-
-                {/* VIS 1 · the fill-the-blank keystone — the game holds the idea (no plane, full type). */}
-                <LazySection>
-                    <div className="my-10 md:my-14">
-                        <Suspense fallback={<SectionSkeleton />}><FillTheBlank /></Suspense>
-                    </div>
-                </LazySection>
-
-                {/* The reframe (predict instead of understand) + the bridge down to letters. */}
-                <P html={t("bigramNarrative.v2.fillBlank.afterPlay")} />
-                <P html={t("bigramNarrative.v2.fillBlank.reframe")} />
-                <P html={t("bigramNarrative.v2.fillBlank.toLetters")} />
-
-                {/* VIS 1.5 · the goal, shown up front: type a letter, it bets on the next. */}
-                <Lead>{t("bigramNarrative.v2.goalIntro.lead")}</Lead>
-                <Plane><HeroAutoComplete /></Plane>
-                <P html={t("bigramNarrative.v2.goalIntro.after")} />
-            </Section>
-
-            <SectionBreak />
-
-            {/* ─────────── §2 · A la caza del patrón (la letra t) ─────────── */}
-            <Section id="bigram-02">
-                <SectionLabel number="02" label={t("bigramNarrative.v2.sectionKickers.s2")} />
-                <SectionAnchor id="bigram-02"><Heading>{t("bigramNarrative.v2.s2.label")}</Heading></SectionAnchor>
-                <Lead>{t("bigramNarrative.v2.s2.lead")}</Lead>
-
-                <P html={t("bigramNarrative.v2.s2.pairPrompt")} />
-                <Plane><PairHighlighter /></Plane>
-                <P html={t("bigramNarrative.v2.s2.afterPair")} />
-
-                <P html={t("bigramNarrative.v2.s2.focusTPrompt")} />
-                <Slot><IsolateT /></Slot>
-                <P html={t("bigramNarrative.v2.s2.afterCorpusCounting")} />
-
-                <P html={t("bigramNarrative.v2.s2.bookPrompt")} />
-                <Slot><RowTally /></Slot>
-                <P html={t("bigramNarrative.v2.s2.afterShakespeare")} />
-                <P html={t("bigramNarrative.v2.s2.honestyNote")} />
-
-                {/* Plegable · Markov — al hilo de leer y contar */}
-                <ExpandableSection
-                    title={t("bigramNarrative.v2.markov.title")}
-                    kicker={t("bigramNarrative.v2.markov.kicker")}
-                >
-                    <MarkovStory />
-                </ExpandableSection>
-            </Section>
-
-            <SectionBreak />
-
-            {/* ─────────── §3 · Demasiado predecible (todo aún sobre la t) ─────────── */}
-            <Section id="bigram-03">
-                <SectionLabel number="03" label={t("bigramNarrative.v2.sectionKickers.s3")} />
-                <SectionAnchor id="bigram-03"><Heading>{t("bigramNarrative.v2.s5.label")}</Heading></SectionAnchor>
-                <Lead>{t("bigramNarrative.v2.s5.lead")}</Lead>
-                <P html={t("bigramNarrative.v2.s5.lead2")} />
-
-                {/* VIS 5 · de números a porcentajes (la misma fila de la «t», normalizada) */}
-                <Plane><NormalizationVisualizer /></Plane>
-                <P html={t("bigramNarrative.v2.s5.afterNormalization")} />
-
-                {/* VIS 6 · siempre el máximo → bucle «the the the» */}
-                <P html={t("bigramNarrative.v2.s5.choosePrompt")} />
-                <Plane><AlwaysMaxLoop /></Plane>
-                <P html={t("bigramNarrative.v2.s5.afterAlwaysMax")} />
-
-                {/* VIS 7 · el dado trucado (muestreo que respeta los %) */}
-                <P html={t("bigramNarrative.v2.s5.dicePrompt")} />
-                <Plane><LoadedDie /></Plane>
-                <P html={t("bigramNarrative.v2.s5.toMatrix")} />
-            </Section>
-
-            <SectionBreak />
-
-            {/* ─────────── §4 · Nace la matriz ─────────── */}
-            <Section id="bigram-04">
-                <SectionLabel number="04" label={t("bigramNarrative.v2.sectionKickers.s4")} />
-                <SectionAnchor id="bigram-04"><Heading>{t("bigramNarrative.v2.s3.label")}</Heading></SectionAnchor>
-                <Lead>{t("bigramNarrative.v2.s3.lead")}</Lead>
-
-                {/* VIS 8 · mini-matriz que apila una fila por letra → cuadrícula */}
-                <Plane><TinyMatrixExample showCounts /></Plane>
-                <P html={t("bigramNarrative.v2.s3.rowByRowReveal")} />
-                <P html={t("bigramNarrative.v2.s3.rowByRowName")} />
-
-                {/* VIS 9 · la matriz 27×27 que crece leyendo */}
-                <Plane><GrowingMatrix27 /></Plane>
-
-                {/* El giro: el mundo real es más sucio → 92×92 */}
-                <P html={t("bigramNarrative.v2.s4.charsetPrompt")} />
-                {/* El encuadre del detective va en el CUERPO (no dentro del widget): la tabla entera, las
-                    casillas negras son reglas que nadie le enseñó. */}
-                <P html={t("bigramNarrative.v2.detective.intro")} />
-                {/* VIS 10 · la matriz 92×92 detective.
-                    (El concepto «datos de entrenamiento / de dónde sale esto» YA está en §2:
-                    RowTally `payoff` + `s2.honestyNote`. No repetirlo aquí.) */}
-                <Plane><DetectiveMatrix /></Plane>
-            </Section>
-
-            <SectionBreak />
-
-            {/* ─────────── §5 · ¡Vamos a escribir! ─────────── */}
-            <Section id="bigram-05">
-                <SectionLabel number="05" label={t("bigramNarrative.v2.sectionKickers.s5")} />
-                <SectionAnchor id="bigram-05"><Heading>{t("bigramNarrative.v2.s6.label")}</Heading></SectionAnchor>
-                <Lead>{t("bigramNarrative.v2.s5.writePrompt")}</Lead>
-
-                {/* VIS 10.5 · una letra paso a paso (el puente: mira su fila → cuenta → % → dado → repite) */}
-                <Plane><LetterByLetter /></Plane>
-
-                {/* El logro, JUSTO tras ver a la máquina elegir letra a letra: escribe sola, desde cero */}
-                <P html={t("bigramNarrative.v2.naming.buildup")} />
-
-                {/* …y ahora a toda velocidad */}
-                <P html={t("bigramNarrative.v2.s5.toFullSpeed")} />
-
-                {/* VIS 11 · la máquina de escribir a toda velocidad (genera en local desde la matriz) */}
-                <Plane><TableWriter /></Plane>
-
-                <P html={t("bigramNarrative.v2.disappointment.text")} />
-
-                {/* El nombre, en voz baja (el título ya lo dice) */}
-                <FadeInView className="my-12 text-center">
-                    <p className={cn(BIGRAM_SERIF, "text-[clamp(19px,2vw,22px)] text-bigram-ink-2 mb-3")}>
-                        {t("bigramNarrative.v2.naming.revealLead")}
-                    </p>
-                    <p
-                        className={cn(BIGRAM_DISPLAY, "italic text-bigram-accent")}
-                        style={{ fontWeight: 600, fontSize: "clamp(40px,6.4vw,72px)", lineHeight: 1.04, letterSpacing: "-0.018em" }}
-                    >
-                        {t("bigramNarrative.v2.naming.revealWord")}
-                    </p>
-                    <p className={cn(BIGRAM_SERIF, "mt-5 text-[clamp(17px,1.9vw,20px)] text-bigram-body leading-relaxed max-w-[34em] mx-auto text-pretty")}>
-                        {t("bigramNarrative.v2.naming.revealCoda")}
-                    </p>
-                </FadeInView>
-
-                {/* Plegable · Shannon (Historia) — el primer modelo de lenguaje de verdad */}
-                <ExpandableSection
-                    title={t("bigramNarrative.v2.shannon.title")}
-                    kicker={t("bigramNarrative.v2.shannon.kicker")}
-                >
-                    <P html={t("bigramNarrative.v2.shannon.p1")} />
-                    <P html={t("bigramNarrative.v2.shannon.p2")} />
-                    <P html={t("bigramNarrative.v2.shannon.p3")} />
-                    <P html={t("bigramNarrative.v2.shannon.quoteIntro")} />
-                    {/* La salida real de Shannon (1948) como espécimen — un elemento distinto, no más párrafo */}
-                    <blockquote
-                        className={cn(
-                            BIGRAM_MONO,
-                            "my-7 mx-auto max-w-[46ch] rounded-[var(--bigram-r-md)] bg-bigram-bg-2 px-6 py-5 text-center text-[clamp(13px,1.5vw,16px)] leading-[1.7] tracking-[0.04em] text-bigram-accent-ink",
-                        )}
-                        style={{ boxShadow: "inset 0 0 0 1px var(--bigram-rule-2)", borderLeft: "2px solid var(--bigram-accent)" }}
-                    >
-                        “{t("bigramNarrative.v2.shannon.quote")}”
-                    </blockquote>
-                    <P html={t("bigramNarrative.v2.shannon.p4")} />
-                    <P html={t("bigramNarrative.v2.shannon.p5")} />
-                </ExpandableSection>
-            </Section>
-
-            <SectionBreak />
-
-            {/* ─────────── §6 · El techo (la amnesia → puente al n-gram) ─────────── */}
-            <Section id="bigram-06">
-                <SectionLabel number="06" label={t("bigramNarrative.v2.sectionKickers.s6")} />
-                <SectionAnchor id="bigram-06"><Heading>{t("bigramNarrative.v2.s6.heading")}</Heading></SectionAnchor>
-                <P html={t("bigramNarrative.v2.s6.lead")} />
-                <Plane><ContextBlindnessDemo /></Plane>
-                <P html={t("bigramNarrative.v2.s6.afterBlindness")} />
-                <P html={t("bigramNarrative.v2.s6.ladderPrompt")} />
-                <Plane><ShannonContextLadder /></Plane>
-                <P html={t("bigramNarrative.v2.s6.afterLadder")} />
-                <P html={t("bigramNarrative.v2.s6.ladderCoda")} />
-            </Section>
-
-            <SectionBreak />
+            <div className="my-12 md:my-16" aria-hidden />
 
             {/* ─────────── CTA · puente al n-gram (asimétrico) ─────────── */}
-            <Section>
+            <section className="mb-20 md:mb-28">
                 <div className="space-y-4">
                     {/* Primary — the bridge to the next chapter. Editorial, inviting, alive on hover. */}
                     <Link href={t("bigramNarrative.v2.cta.primaryHref")} className="block focus:outline-none">
@@ -551,7 +269,7 @@ export function BigramNarrative(props: BigramNarrativeProps) {
                         <ArrowRight className="h-4 w-4 shrink-0 -translate-x-1 text-[color-mix(in_oklab,var(--bigram-accent)_50%,transparent)] opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100" />
                     </motion.button>
                 </div>
-            </Section>
+            </section>
 
             {/* ───────────────── FOOTER ───────────────── */}
             <FadeInView as="footer" className="mt-8 pt-12 border-t border-[color:var(--bigram-rule)] text-center">

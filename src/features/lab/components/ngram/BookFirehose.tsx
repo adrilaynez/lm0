@@ -67,6 +67,15 @@ function letterLabel(n: number): { value: string; unit: string } {
     return { value: (n / 1_000_000_000_000).toFixed(1), unit: "billones de letras" };
 }
 
+/** Anchor the abstract letter count to something graspable: how many WHOLE BOOKS that text would be.
+ *  "1,5 billones de letras" means nothing; "≈ 5 millones de libros enteros" lands. */
+function booksLabel(n: number): { value: string; unit: string } {
+    if (n < 1_000) return { value: Math.round(n).toLocaleString("es-ES"), unit: n < 2 ? "libro" : "libros enteros" };
+    if (n < 1_000_000) return { value: (n / 1_000).toFixed(0), unit: "mil libros" };
+    if (n < 1_000_000_000) return { value: (n / 1_000_000).toFixed(n < 10_000_000 ? 1 : 0), unit: "millones de libros" };
+    return { value: (n / 1_000_000_000).toFixed(1), unit: "mil millones de libros" };
+}
+
 /** A short ribbon of real corpus letters to rain down the spout (deterministic, no Math.random). */
 const RAIN_SAMPLE = (() => {
     const s = ngramStream();
@@ -86,7 +95,8 @@ export const BookFirehose = memo(function BookFirehose({ accent }: BookFirehoseP
     // ONE source of truth: how many presses (continuous, eased) of pouring we are at.
     const [p, setP] = useState(0);
     const [pouring, setPouring] = useState(false);
-    const targetRef = useRef(0);          // integer press target (steps)
+    const [target, setTarget] = useState(0); // integer press target as STATE (read during render, not the ref)
+    const targetRef = useRef(0);          // integer press target (steps) — mirror of `target` for the rAF loop
     const curRef = useRef(0);             // eased continuous value
     const rafRef = useRef<number | null>(null);
     const stopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -120,6 +130,7 @@ export const BookFirehose = memo(function BookFirehose({ accent }: BookFirehoseP
     const pour = useCallback(() => {
         const nextTarget = Math.min(MAX_PRESSES, Math.round(targetRef.current) + 1);
         targetRef.current = nextTarget;
+        setTarget(nextTarget);
         animateTo(nextTarget);
     }, [animateTo]);
 
@@ -132,16 +143,17 @@ export const BookFirehose = memo(function BookFirehose({ accent }: BookFirehoseP
     const corpora = START_CORPORA * Math.pow(POUR_FACTOR, p);
     const letters = corpora * CORPUS_LEN;
     const { value: lettersValue, unit: lettersUnit } = letterLabel(letters);
+    const { value: booksValue, unit: booksUnit } = booksLabel(corpora);
 
     const fillFrac = heroFill(p);                  // 0..1 of the 27^4 table
     const fillPct = fillFrac * 100;                // ~0.5% .. ~5%
     const filledSlots = Math.round(fillFrac * HERO_SLOTS);
 
     const started = p > 0.05;
-    const atMax = Math.round(targetRef.current) >= MAX_PRESSES && p > MAX_PRESSES - 0.05;
+    const atMax = target >= MAX_PRESSES && p > MAX_PRESSES - 0.05;
 
     // Stream intensity grows with how hard the hose is open (target, not eased) — thicker, faster, more streaks.
-    const intensity = Math.min(1, Math.round(targetRef.current) / MAX_PRESSES);
+    const intensity = Math.min(1, target / MAX_PRESSES);
 
     // Falling glyphs: a fixed set of columns; their density/speed scale with intensity. Deterministic positions
     // spread EVENLY across the spout mouth (a golden-ratio jitter so it reads as a torrent, not a grid).
@@ -171,6 +183,10 @@ export const BookFirehose = memo(function BookFirehose({ accent }: BookFirehoseP
                     <span className="nw-fh__meterCap">texto vertido</span>
                     <span className="nw-fh__meterVal" key={lettersValue + lettersUnit}>{lettersValue}</span>
                     <span className="nw-fh__meterUnit">{lettersUnit}</span>
+                    {/* the human anchor: that abstract count, in whole books. */}
+                    <span className="nw-fh__meterAnchor" data-on={started ? "1" : "0"}>
+                        ≈ {booksValue} {booksUnit}
+                    </span>
                     <span className="nw-fh__meterSub" data-on={started ? "1" : "0"}>
                         {atMax ? "un océano entero" : started ? "y subiendo…" : "pulsa el grifo →"}
                     </span>
@@ -240,7 +256,7 @@ export const BookFirehose = memo(function BookFirehose({ accent }: BookFirehoseP
                                 GATING: only visible after the user has poured (started); at frame 0 this is hidden
                                 so the verdict emerges from interaction, not announced up front. */}
                             <div className="nw-fh__line" data-visible={started ? "1" : "0"} style={{ bottom: `${Math.max(1.6, fillPct)}%` }}>
-                                <span className="nw-fh__lineTag">ATASCADA · {fillPct < 1 ? fillPct.toFixed(1) : Math.round(fillPct)}%</span>
+                                <span className="nw-fh__lineTag">se para aquí · {fillPct < 1 ? fillPct.toFixed(1) : Math.round(fillPct)}% lleno</span>
                                 <span className="nw-fh__lineDash" />
                             </div>
                         </div>
@@ -265,7 +281,7 @@ export const BookFirehose = memo(function BookFirehose({ accent }: BookFirehoseP
 
             <CaptionLine gap={12}>
                 {atMax
-                    ? "un océano de texto vertido · la tabla de 4 letras sigue casi vacía"
+                    ? "millones de libros vertidos y la tabla apenas se ha llenado: se queda «atascada», por mucho texto que eches"
                     : started
                       ? "más y más texto cae · y el nivel de 4 letras apenas sube"
                       : "abre el grifo: vierte un océano de texto en la tabla de 4 letras"}
@@ -328,6 +344,11 @@ export const BookFirehose = memo(function BookFirehose({ accent }: BookFirehoseP
                     font-family: ${MONO}; font-size: 14px; font-weight: 700; letter-spacing: .04em;
                     color: var(--ngram-accent); margin-top: 6px;
                 }
+                .nw-fh__meterAnchor {
+                    font-family: ${SERIF}; font-style: italic; font-size: 14px; line-height: 1.3;
+                    color: var(--ngram-ink-2); margin-top: 8px; opacity: 0; transition: opacity .3s ease;
+                }
+                .nw-fh__meterAnchor[data-on="1"] { opacity: 1; }
                 .nw-fh__meterSub {
                     font-family: ${SERIF}; font-style: italic; font-size: 14.5px; line-height: 1.35;
                     color: var(--ngram-muted); margin-top: 14px; max-width: 16ch;

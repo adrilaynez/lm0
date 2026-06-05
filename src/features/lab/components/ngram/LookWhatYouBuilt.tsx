@@ -28,8 +28,6 @@ type BattleK = (typeof BATTLE_KS)[number];
 const BATTLE_LEN = 80;
 const TEMP = 0.66;
 const TYPE_MS = 2400;
-// Each column starts typing with a slight stagger (left columns slightly ahead)
-const STAGGER_MS = 60;
 
 /** Deterministic [0, 1) float seeded from integer n. */
 function det(n: number): number {
@@ -153,11 +151,24 @@ export const LookWhatYouBuilt = memo(function LookWhatYouBuilt({ accent }: { acc
     const reduce = useReducedMotion();
 
     const [seedIdx, setSeedIdx] = useState(0);
+    const [custom, setCustom] = useState("");
     const [runId, setRunId] = useState(1);
     const [elapsed, setElapsed] = useState(0);
     const rafRef = useRef<number | null>(null);
 
-    const seed = SEEDS[seedIdx];
+    // active seed = the reader's OWN word if they typed one, else the chosen preset. Sanitised to the corpus
+    // alphabet (lowercase letters + space) and given a trailing space so it starts a fresh word.
+    const activeSeed = useMemo(() => {
+        const c = custom.toLowerCase().replace(/[^a-z ]/g, "").slice(0, 16);
+        if (!c.trim()) return SEEDS[seedIdx];
+        return c.endsWith(" ") ? c : c + " ";
+    }, [custom, seedIdx]);
+    const seedHash = useMemo(() => {
+        let h = 0;
+        for (let i = 0; i < activeSeed.length; i++) h = (Math.imul(h, 31) + activeSeed.charCodeAt(i)) >>> 0;
+        return h;
+    }, [activeSeed]);
+    const seed = activeSeed;
 
     // Generate text for all battle columns
     const battleTexts = useMemo(
@@ -167,10 +178,10 @@ export const LookWhatYouBuilt = memo(function LookWhatYouBuilt({ accent }: { acc
                     k,
                     length: BATTLE_LEN,
                     temperature: TEMP,
-                    rngSeed: 70001 * runId + seedIdx * 17 + k,
+                    rngSeed: 70001 * runId + seedHash + k,
                 }),
             ),
-        [runId, seedIdx, seed],
+        [runId, seed, seedHash],
     );
 
     useEffect(() => {
@@ -194,7 +205,7 @@ export const LookWhatYouBuilt = memo(function LookWhatYouBuilt({ accent }: { acc
     };
 
     const pickSeed = (i: number) => {
-        if (i === seedIdx) return;
+        setCustom("");
         setSeedIdx(i);
         setElapsed(0);
         setRunId((r) => r + 1);
@@ -250,9 +261,19 @@ export const LookWhatYouBuilt = memo(function LookWhatYouBuilt({ accent }: { acc
                     <span className="nw-lwb__ctllabel">empieza por</span>
                     <Tabs
                         tabs={SEEDS.map((s) => `«${s.trim()}»`)}
-                        active={seedIdx}
+                        active={custom.trim() ? -1 : seedIdx}
                         onChange={pickSeed}
                         ariaLabel="Semilla"
+                    />
+                    <input
+                        className="nw-lwb__seedinput"
+                        type="text"
+                        value={custom}
+                        onChange={(e) => { setCustom(e.target.value); setElapsed(0); setRunId((r) => r + 1); }}
+                        placeholder="o la tuya…"
+                        maxLength={16}
+                        spellCheck={false}
+                        aria-label="escribe tu propia palabra de arranque"
                     />
                 </div>
                 <button
@@ -426,7 +447,16 @@ export const LookWhatYouBuilt = memo(function LookWhatYouBuilt({ accent }: { acc
                     display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
                     justify-content: center; margin-top: 2px;
                 }
-                .nw-lwb__ctlgroup { display: inline-flex; align-items: center; gap: 9px; }
+                .nw-lwb__ctlgroup { display: inline-flex; align-items: center; gap: 9px; flex-wrap: wrap; justify-content: center; }
+                .nw-lwb__seedinput {
+                    font-family: ${MONO}; font-size: 12px; width: 96px;
+                    padding: 7px 12px; border-radius: var(--ngram-r-pill);
+                    background: var(--ngram-bg-2); color: var(--ngram-ink);
+                    border: 1px solid var(--ngram-rule); outline: none;
+                    transition: border-color .2s ease, background .2s ease;
+                }
+                .nw-lwb__seedinput::placeholder { color: var(--ngram-dim); }
+                .nw-lwb__seedinput:focus { border-color: color-mix(in oklab, var(--ngram-accent) 55%, transparent); background: var(--ngram-bg); }
                 .nw-lwb__ctllabel {
                     font-family: ${MONO}; font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
                     color: var(--ngram-dim);

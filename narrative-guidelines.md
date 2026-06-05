@@ -17,6 +17,34 @@ Este documento es **chapter-agnostic**. Para no repetir la crítica a mano en ca
 
 ---
 
+## Dónde vive la narrativa — autoría en MDX (estructura nueva, 2026-06)
+
+> El doble idioma se rehízo. **La prosa de cada capítulo YA NO vive troceada en `i18n/{en,es}.ts`**
+> (`t('ruta.con.puntos')` + `<P html=…/>`, ilegible). Ahora se escribe como un **artículo** en MDX.
+> Esto es lo que hace que la voz por fin se pueda controlar: editas UN archivo y lo lees de corrido.
+
+- **Hogar:** `src/content/lab/<capítulo>.es.mdx` y `.en.mdx`. Prosa normal con `**negrita**`, `*cursiva*`
+  y `«comillas»`; los visualizadores van **embebidos en orden de lectura** como JSX.
+- **Render:** el *shell* TSX del capítulo (`<Chapter>Narrative.tsx`) importa los dos cuerpos
+  (`import NgramEs from "@/content/lab/ngram.es.mdx"`), elige por idioma y los pinta con
+  `labMdxComponents("<acento>", WIDGETS, {open, close})`.
+- **Componentes disponibles dentro del `.mdx`** (los inyecta `labMdxComponents`):
+  `<Section id number label heading>`, `<Lead>`, `<Figure label hint>` (envuelve un widget),
+  `<Break/>`, `<Expandable title kicker>`, `<PullQuote>`, `<KeyTakeaway>`, `<Callout>`, `<Highlight>`,
+  más `**strong**`/`*em*` que ya cogen el acento. **El título de sección es la prop `heading=`**, no un `<h2>`
+  literal; y se usa `<Break/>`, no `<hr/>`.
+- **Widgets:** cada capítulo los registra en el mapa `…_WIDGETS` de su shell (un `lazy()` + entrada en el
+  objeto) y los referencia por nombre en el `.mdx` (`<Figure label="…"><MiWidget /></Figure>`).
+- **El chrome NO va en el MDX:** hero, CTA y footer viven en el shell (son UI, micro-copy por `t()`).
+- **Reglas de oro:** (a) escribe primero el `.mdx` como cuento y léelo entero — si no es un viaje, se
+  rehace antes de tocar widgets; (b) **ES y EN siempre en sync** (misma estructura, mismos widgets, mismas
+  secciones); (c) el `heading=` de cada sección **no debe duplicar** el título del hero del shell.
+- **Por qué importa para la voz:** en el i18n no se veía el flujo y la prosa salía mala (órdenes, ritmo de
+  metralleta, frases sueltas pegadas a un widget que no les correspondía). En el `.mdx` el texto y su figura
+  se leen juntos → desaparece el "párrafo pegado sin contexto" y se puede cuidar el tono de verdad.
+
+---
+
 ## Qué buscas, en una frase
 
 > **Una historia que engancha y hace gracia, donde el usuario —sin saber nada de mates ni de

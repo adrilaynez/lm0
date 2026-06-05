@@ -40,17 +40,21 @@ import { contextSpace } from "@/features/lab/data/ngramData";
 
 const VOCAB = 27; // [space, a–z]
 
-// Start a few levels in so the FIRST frame already reads as a vast table whose lit cell is a small speck —
-// the magnitude must be felt in a still, not only after diving.
-const START_DEPTH = 3;
-// The math keeps going; we stop counting at a number already impossible to picture.
-const MAX_DEPTH = 7;
-
-// How many cells span the LENS width at each step (depth − START_DEPTH, 0..4). The camera pulls back fast —
-// the grid roughly doubles in density per dive — so even the FIRST frame is a sizeable grid with a small lit
-// cell, and it floods into an ever-finer sea as you fall. (We don't render 27× literal cells; the eye reads
-// "vastly more, off the edges", which is the honest message of the magnitude.)
-const CELLS_ACROSS = [13, 24, 44, 72, 104] as const;
+/** The dive path. Each click pulls the camera back to the next stop. The first stops show a readable grid;
+ *  the deep stops fast-forward through magnitudes, each anchored to something a person can actually picture —
+ *  because "387 millones" means nothing, but "más que átomos en el universo" lands. Real math: rows = 27^n. */
+const STAGES: { n: number; cells: number; cmp?: string }[] = [
+    { n: 3,  cells: 13 },
+    { n: 4,  cells: 22 },
+    { n: 5,  cells: 38 },
+    { n: 6,  cells: 64 },
+    { n: 8,  cells: 104, cmp: "más filas que estrellas en la Vía Láctea" },
+    { n: 14, cells: 104, cmp: "más filas que granos de arena en toda la Tierra" },
+    { n: 17, cells: 104, cmp: "más filas que estrellas en el universo entero" },
+    { n: 35, cells: 104, cmp: "más filas que átomos hay en la Tierra" },
+    { n: 56, cells: 104, cmp: "más filas que átomos hay en el universo observable" },
+];
+const LAST = STAGES.length - 1;
 
 export interface ExplosionZoomProps {
     accent?: "ngram";
@@ -60,11 +64,13 @@ export const ExplosionZoom = memo(function ExplosionZoom({ accent }: ExplosionZo
     void accent;
     const reduce = useReducedMotion();
 
-    // depth = how many letters of memory we've fallen through. Starts a couple levels down.
-    const [depth, setDepth] = useState<number>(START_DEPTH);
+    // stageIdx = which stop on the dive path. depth = letters of memory at that stop.
+    const [stageIdx, setStageIdx] = useState<number>(0);
+    const stage = STAGES[stageIdx];
+    const depth = stage.n;
 
-    const atBottom = depth >= MAX_DEPTH;
-    const atSurface = depth <= START_DEPTH;
+    const atBottom = stageIdx >= LAST;
+    const atSurface = stageIdx <= 0;
 
     // Real math: 27^depth = how many rows the whole table COULD have. This is the HERO number.
     const rows = useMemo(() => contextSpace(depth), [depth]);
@@ -72,9 +78,10 @@ export const ExplosionZoom = memo(function ExplosionZoom({ accent }: ExplosionZo
     // The share you can SEE = 100 / rows, rendered "0,000…%" with a zero-run that GROWS each dive. It is the
     // tag on the lit cell, not a second hero.
     const fraction = useMemo(() => buildFraction(rows), [rows]);
+    // The hero number — a real grouped figure while it's still graspable, then "10ⁿ" once it isn't.
+    const big = useMemo(() => buildBig(rows), [rows]);
 
-    const step = Math.min(depth - START_DEPTH, CELLS_ACROSS.length - 1);
-    const cells = CELLS_ACROSS[step];
+    const cells = stage.cells;
 
     // The lit cell IS exactly one cell of the visible grid: its edge = 1 / cells of the lens width. As the grid
     // densifies each dive, that single cell collapses toward a speck — the picture you can see shrinks while the
@@ -83,12 +90,8 @@ export const ExplosionZoom = memo(function ExplosionZoom({ accent }: ExplosionZo
     // Leader starts just under the lit cell (cell is centred): bottom edge = 50% + half the cell height.
     const litEdge = 50 + (litFrac * 100) / 2;
 
-    const dive = useCallback(() => {
-        setDepth((d) => Math.min(MAX_DEPTH, d + 1));
-    }, []);
-    const climb = useCallback(() => {
-        setDepth((d) => Math.max(START_DEPTH, d - 1));
-    }, []);
+    const dive = useCallback(() => setStageIdx((s) => Math.min(LAST, s + 1)), []);
+    const climb = useCallback(() => setStageIdx((s) => Math.max(0, s - 1)), []);
 
     const tr = reduce ? { duration: 0.2, ease: STD } : { duration: 0.62, ease: STD };
 
@@ -99,19 +102,34 @@ export const ExplosionZoom = memo(function ExplosionZoom({ accent }: ExplosionZo
                 <span className="nw-ez__hero-eyebrow">la tabla entera tiene</span>
                 <div className="nw-ez__hero-row">
                     <motion.span
-                        key={rows}
+                        key={depth}
                         className="nw-ez__hero-num"
                         initial={reduce ? false : { y: 12, opacity: 0, filter: "blur(4px)" }}
                         animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
                         transition={reduce ? { duration: 0.18 } : { duration: 0.42, ease: STD }}
                     >
-                        {rows.toLocaleString("es-ES")}
+                        {big.kind === "num"
+                            ? big.v
+                            : <>10<sup className="nw-ez__sup">{big.zeros}</sup></>}
                     </motion.span>
                     <span className="nw-ez__hero-unit">filas</span>
                 </div>
                 <span className="nw-ez__hero-sub">
-                    {depth} letras de memoria · ×{VOCAB} filas por cada letra más
+                    {big.kind === "exp" ? <>un 1 seguido de {big.zeros} ceros · </> : null}
+                    {depth} letras de memoria
                 </span>
+                {/* the comparison anchor — what makes "astronomical" actually mean something. */}
+                {stage.cmp && (
+                    <motion.span
+                        key={`cmp-${depth}`}
+                        className="nw-ez__cmp"
+                        initial={reduce ? false : { opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.34, ease: STD }}
+                    >
+                        {stage.cmp}
+                    </motion.span>
+                )}
             </div>
 
             {/* THE LENS — a fixed window onto the table. The grid PLANE inside is bigger than the lens and
@@ -187,9 +205,9 @@ export const ExplosionZoom = memo(function ExplosionZoom({ accent }: ExplosionZo
             {/* ONE primary control. Climb-out is a quiet hairline link, never a second CTA competing for the eye. */}
             <div className="nw-ez__controls">
                 {!atBottom ? (
-                    <PlayButton onClick={dive}>caer más hondo · ×{VOCAB} la tabla</PlayButton>
+                    <PlayButton onClick={dive}>{stageIdx < 3 ? <>caer más hondo · ×{VOCAB} la tabla</> : "seguir alejándote"}</PlayButton>
                 ) : (
-                    <span className="nw-ez__bottom">y aún no hemos llegado al fondo</span>
+                    <span className="nw-ez__bottom">y ni así cabría en ningún ordenador del mundo</span>
                 )}
                 {!atSurface && (
                     <button type="button" className="nw-ez__climb" onClick={climb}>
@@ -231,6 +249,14 @@ export const ExplosionZoom = memo(function ExplosionZoom({ accent }: ExplosionZo
                 .nw-ez__hero-sub {
                     font-family: ${MONO}; font-size: 12px; letter-spacing: .06em;
                     color: var(--ngram-ink-2);
+                }
+                .nw-ez__sup { font-size: 0.5em; vertical-align: super; font-weight: 800; margin-left: 1px; }
+                /* the comparison anchor — the line that makes the number mean something. */
+                .nw-ez__cmp {
+                    margin-top: 4px; max-width: 22em;
+                    font-family: ${SERIF}; font-style: italic; font-weight: 600;
+                    font-size: clamp(15px, 2.4vw, 19px); line-height: 1.25;
+                    color: var(--ngram-accent-ink);
                 }
 
                 /* THE LENS — a fixed square window. overflow:hidden so the oversized grid plane is clipped at
@@ -367,8 +393,19 @@ function buildFraction(rows: number): string {
         // shallow: show the real digits, e.g. "0,014 %"
         return `${pct.toPrecision(2)} %`.replace(".", ",");
     }
-    // deep: a long visible run of zeros ending in 1 — "vanishing", growing a zero per ×27
-    return `0,${"0".repeat(zeros)}1 %`;
+    if (zeros <= 8) {
+        // a growing run of zeros ending in 1 — "vanishing", a zero longer each dive
+        return `0,${"0".repeat(zeros)}1 %`;
+    }
+    // beyond readable: an explicit ellipsis so the tag never becomes an 80-char string
+    return "0,000…1 %";
+}
+
+/** The hero figure: a real grouped number while it's still graspable (≤ ~hundreds of millions), then an
+ *  order-of-magnitude "10ⁿ" once a literal digit string would be meaningless (and unrenderable). */
+function buildBig(rows: number): { kind: "num"; v: string } | { kind: "exp"; zeros: number } {
+    if (rows < 1e9) return { kind: "num", v: Math.round(rows).toLocaleString("es-ES") };
+    return { kind: "exp", zeros: Math.round(Math.log10(rows)) };
 }
 
 export default ExplosionZoom;

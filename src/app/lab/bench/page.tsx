@@ -57,6 +57,7 @@ const MuteSlot = lazy(() => import("@/features/lab/components/ngram/MuteSlot").t
 const Progression = lazy(() => import("@/features/lab/components/ngram/Progression").then(m => ({ default: m.Progression })));
 const BigModelLimit = lazy(() => import("@/features/lab/components/ngram/BigModelLimit").then(m => ({ default: m.BigModelLimit })));
 const EmptyMatrix = lazy(() => import("@/features/lab/components/ngram/EmptyMatrix").then(m => ({ default: m.EmptyMatrix })));
+const WordsExplosion = lazy(() => import("@/features/lab/components/ngram/WordsExplosion").then(m => ({ default: m.WordsExplosion })));
 
 /** slug → { label, node, chapter }. Order here is the chapter order, for the picker. */
 const WIDGETS: { slug: string; label: string; node: React.ReactNode; chapter?: "bigram" | "ngram" }[] = [
@@ -95,6 +96,7 @@ const WIDGETS: { slug: string; label: string; node: React.ReactNode; chapter?: "
     { slug: "ng-built", label: "v3§3 · LookWhatYouBuilt", node: <LookWhatYouBuilt />, chapter: "ngram" },
     { slug: "ng-amnesia", label: "v3§1 · AmnesiaReplay", node: <AmnesiaReplay />, chapter: "ngram" },
     { slug: "ng-zoom", label: "v3§4 · ExplosionZoom", node: <ExplosionZoom />, chapter: "ngram" },
+    { slug: "ng-words", label: "v3§4 · WordsExplosion", node: <WordsExplosion />, chapter: "ngram" },
     { slug: "ng-firehose", label: "v3§4 · BookFirehose", node: <BookFirehose />, chapter: "ngram" },
     { slug: "ng-mute", label: "v3§5 · MuteSlot", node: <MuteSlot />, chapter: "ngram" },
     { slug: "ng-empty", label: "v3§5 · EmptyMatrix", node: <EmptyMatrix />, chapter: "ngram" },
