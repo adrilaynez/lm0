@@ -18,6 +18,7 @@ Pero, ¿cómo le enseñas a escribir a una máquina que jamás ha vivido un solo
 
 Así que, antes de construir nada, un pequeño experimento.
 
+{/* FillTheBlank — el lector descubre, viéndolo, que predecir no requiere entender: basta mirar lo anterior y adivinar. (Mecánica: ver el .tsx) */}
 <Stage><FillTheBlank /></Stage>
 
 Seguramente has rellenado todos los huecos sin mucho esfuerzo. Pero fíjate en el último: no tenías ni idea de qué significaba *Fli fli fla*. Solo miraste lo que había escrito antes, intuiste la lógica y adivinaste lo que tocaba a continuación.
@@ -28,6 +29,7 @@ Hoy en día, los grandes modelos hacen esto con frases enteras. Pero para entend
 
 <Lead>Nuestro objetivo final es conseguir construir exactamente esto: le das una letra y apuesta por la que viene después.</Lead>
 
+{/* HeroAutoComplete — la máquina hace en vivo lo que tu cabeza hace sin pensarlo: ve una letra y apuesta por la siguiente. */}
 <Plane><HeroAutoComplete /></Plane>
 
 Parece magia, pero en el fondo solo son matemáticas muy básicas. Ahora la gran pregunta es: ¿cómo conseguimos construir esto desde cero, si la máquina no sabe leer?
@@ -41,18 +43,21 @@ Parece magia, pero en el fondo solo son matemáticas muy básicas. Ahora la gran
 
 Como el lenguaje ya esconde ese patrón, solo necesitamos que la máquina lea textos y se fije en quién va de la mano de quién. Empecemos con una frase sencilla.
 
+{/* PairHighlighter — al caminar una frase de dos en dos, los pares repetidos saltan a la vista como el patrón invisible. */}
 <Plane><PairHighlighter /></Plane>
 
 Ya hemos visto cómo busca parejitas de letras. Para entenderlo a fondo, vamos a fijarnos en una sola: la «t». Le daremos distintas frases y veremos qué letra decide que es su mejor compañera.
 
 Cambia el texto y observa qué letra gana después de la «t».
 
+{/* IsolateT — la misma letra en textos distintos elige compañeras distintas: el texto corto miente sobre lo que vendrá. */}
 <Plane><IsolateT /></Plane>
 
 Según el texto que le des, aprende una regla distinta, y con tan poco texto el conteo miente. Si le damos textos muy cortos, su visión del mundo es limitada y sesgada. Para aprender las reglas de verdad, necesita muchísima más información: un texto gigante.
 
 Así que vamos a ponernos serios. Vamos a hacer que nuestra máquina lea a Shakespeare entero.
 
+{/* RowTally — leer un libro entero y contar de verdad: los patrones reales emergen sin que nadie los enseñe. */}
 <Plane><RowTally /></Plane>
 
 Esa fila es todo lo que hay sobre la «t» en todo Shakespeare. La máquina ha sacado ella sola todas sus relaciones, solo contando.
@@ -84,18 +89,21 @@ Su regla más curiosa es la que llamó «falta de memoria»: para apostar por el
 
 Y es una división de toda la vida: coges la fila de la «t», sumas todo lo que hay en ella y miras qué porción se lleva cada compañera.
 
+{/* NormalizationVisualizer — los conteos crudos no sirven; dividirlos por el total convierte números en apuestas (suman 100%). */}
 <Plane><NormalizationVisualizer /></Plane>
 
 Ahí está: la misma fila, ahora en porcentajes que suman 100%. La «h» se queda con un 36%, el espacio con un 29%, la «o» con un 10%… Eso son las apuestas de la máquina.
 
 Y ahora la pregunta del millón: con esas apuestas sobre la mesa, ¿qué letra elige? Lo seguro sería quedarse siempre con la más alta. Veamos qué pasa.
 
+{/* AlwaysMaxLoop — elegir siempre lo más probable atrapa la máquina en un bucle muerto: la misma letra una y otra vez. */}
 <Plane><AlwaysMaxLoop /></Plane>
 
 Siempre la «h». La opción segura resulta también la más muerta: así, tras la «t» nunca aparecería nada distinto, una «h» detrás de otra. Para escribir con algo de vida hace falta una pizca de azar; pero no uno cualquiera.
 
 La idea de los ingenieros fue un dado. Eso sí, un dado trucado: con un montón de caras de «h», bastantes de espacio, alguna de «o» y casi ninguna de las raras. Así casi siempre cae lo probable, pero de vez en cuando sorprende. Tíralo tú y verás.
 
+{/* LoadedDie — un dado trucado que respeta los porcentajes: casi siempre lo probable, pero a veces sorprende y escapa del bucle. */}
 <Plane><LoadedDie /></Plane>
 
 ¡Fíjate! Ya tenemos el truco completo para la «t»: contarla, sacarle porcentajes y elegir con una chispa de azar. Y aquí la pregunta se cae sola: ¿y si hacemos esto mismo con todas las letras a la vez?
@@ -107,18 +115,21 @@ La idea de los ingenieros fue un dado. Eso sí, un dado trucado: con un montón 
 
 <Lead>Tenemos una fila para la «t». ¿Y la «a»? ¿Y la «h»? ¿Y todas las demás?</Lead>
 
+{/* TinyMatrixExample — cada letra nueva crea una fila de 27 columnas; apilarlas es la matriz, el objeto que resume todas las reglas. */}
 <Plane><TinyMatrixExample showCounts /></Plane>
 
 Apila una fila por cada letra y mira lo que sale: una cuadrícula. Cada fila es la letra de la que partes. Cada columna, la que podría venir después. Cada casilla, cuántas veces lo vimos.
 
 Acabas de construir algo con nombre propio: una **tabla de transición**.
 
+{/* GrowingMatrix27 — la estructura no se impone; emerge del conteo: leer un libro real y ver la tabla 27×27 calentarse sola. */}
 <Plane><GrowingMatrix27 /></Plane>
 
 Y eso es solo un rincón del idioma: minúsculas. Faltan las mayúsculas, los puntos, las comas, los números. Cuéntalos todos y la tabla crece hasta su tamaño real, con muchísimas más reglas escondidas dentro.
 
 Esta es la tabla entera, de verdad. Parece un caos de luces, pero es el manual de un idioma escrito en números. Cada casilla encendida es una regla; cada hueco negro, una pareja que casi nunca pasa. Y ninguna se la enseñó nadie.
 
+{/* DetectiveMatrix — la matriz completa es el código fuente del idioma: casillas oscuras son reglas que nadie escribió, solo contó. */}
 <Plane><DetectiveMatrix /></Plane>
 </Section>
 
@@ -128,16 +139,19 @@ Esta es la tabla entera, de verdad. Parece un caos de luces, pero es el manual d
 
 <Lead>La tabla ya guarda todas las reglas que sigue el idioma. Y elegir una letra ya sabemos: se mira su fila y se tira el dado. Aquí está ese paso a cámara lenta, y cada letra que cae es el punto de partida de la siguiente.</Lead>
 
+{/* LetterByLetter — un paso de generación en cámara lenta, repetido: el output de hoy se vuelve el input de mañana, y la máquina escribe. */}
 <Plane><LetterByLetter /></Plane>
 
 Y ahí lo tienes: una máquina que escribe sola. Nadie le enseñó ortografía, ni gramática, ni una sola regla. Solo contó parejas de letras en un montón de texto, y de ahí salió todo. Lo has levantado tú, desde cero.
 
 Lo has visto a cámara lenta. A toda velocidad es esto: una letra tras otra, sin frenos, salen frases enteras de un tirón.
 
+{/* TableWriter — ese paso en bucle, sin frenos: la máquina escribe sola, suena a idioma de lejos, galimatías de cerca. */}
 <Plane><TableWriter /></Plane>
 
 Y ahora la mala noticia. Si lo lees otra vez, casi suena a un idioma de verdad: las letras encajan… pero no son palabras. Un balbuceo con buen acento. Lo hemos conseguido, escribe sola. Pero vaya mierda, ¿no? ¿Por qué escribe tan mal?
 
+{/* Reveal — el momento de nombrar en voz baja: todo lo que construiste, desde cero, tiene un nombre que ya existe desde 1948. */}
 <Reveal lead="Y eso que has levantado tiene un nombre:" word="modelo de bigramas" coda="El modelo de lenguaje más simple que existe. Y es el primer ladrillo de todo lo demás. ChatGPT incluido." />
 
 <Expandable title="El hombre que midió el lenguaje" kicker="Historia · lectura larga · opcional">
@@ -149,6 +163,7 @@ Para medir cuánta «información de verdad» lleva un idioma, Shannon hizo just
 
 Usando un modelo de bigramas —mirando solo la letra anterior, igual que tu máquina—, esto fue lo que salió en su estudio de 1948:
 
+{/* Specimen — Shannon lo hizo hace 75 años; su máquina escribe exactamente como la tuya: el mismo galimatías con buen acento, nada más. */}
 <Specimen>ON IE ANTSOUTINYS ARE T INCTORE ST BE S DEAMY ACHIN D ILONASIVE TUCOWE AT TEASONARE FUSO TIZIN ANDY TOBE SEACE CTISBE</Specimen>
 
 Exacto: el mismo balbuceo con buen acento que acaba de soltar tu modelo. Letras que encajan de dos en dos, pero incapaces de formar palabras con sentido, porque la máquina no tiene memoria suficiente.
@@ -163,12 +178,14 @@ Con ese experimento Shannon fundó la Teoría de la Información, le dio al mund
 
 Antes de arreglarlo, entendamos por qué escribe tan mal. ¿Qué viene tras «th»? A la máquina la «t» le da igual: solo mira la «h». Para ella, «th», «sh» y «wh» son exactamente lo mismo.
 
+{/* ContextBlindnessDemo — solo ve la última letra: «th», «sh», «wh» son lo mismo para ella. No se arregla con datos; es el techo del modelo. */}
 <Plane><ContextBlindnessDemo /></Plane>
 
 No es que sea olvidadiza. Es ciega de nacimiento. Por mucho texto que le des, jamás distinguirá «th» de «sh». No es un fallo que se arregle con más datos. Es el techo del modelo.
 
 ¿Y si pudiera ver más de una letra? El turno es tuyo: una palabra se va revelando letra a letra y tú apuestas por la siguiente.
 
+{/* ShannonContextLadder — más contexto, mejor predicción: ciega con una letra, casi segura con la palabra casi completa. El defecto, arreglado. */}
 <Plane><ShannonContextLadder /></Plane>
 
 ¿Lo notaste? Con una letra ibas a ciegas. Con casi toda la palabra delante, casi seguro. Más contexto, mejor predicción. Eso es justo lo que a nuestro modelo le falta: solo ve una pieza hacia atrás. Igual que tú con la «hola»: reacciona a lo último que oyó, sin enterarse del resto.

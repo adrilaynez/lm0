@@ -14,6 +14,7 @@ The machine from the last chapter already wrote on its own. It counted pairs of 
 
 And how much does that really cost? Better to see it than to be told.
 
+{/* AmnesiaReplay — the reader feels how one letter of memory collapses three different words into a single, identical bet. (Mechanics: see the .tsx) */}
 <Figure label="only the last letter is left"><AmnesiaReplay /></Figure>
 
 Watch what happens. Three words that begin three different ways and, the moment the machine reaches the same letter, the three melt into one. It has lost track of where they were going. It gives all three the same answer, because to it they are already the same thing: a single loose letter, with no past. You wouldn't have answered the same, of course. You still have the whole word in your head.
@@ -22,6 +23,7 @@ That thing you carry in your head and it throws away — the part you've already
 
 <Lead>So the idea turns up almost on its own: what if we let it look a little further back?</Lead>
 
+{/* WidenWindow — more memory sharpens the bet: from a coin-flip guess to near-certain prediction as the window widens. */}
 <Figure label="give it a little more memory"><WidenWindow /></Figure>
 
 Try it. With a single letter of context you're flying blind, and it shows: the bet is little more than a coin toss. But let it look at two letters, three, four, and the whole thing changes colour: suddenly you call the next one before it appears. Inside, the machine hasn't changed at all — it's still counting, as always; the only thing you touched is **how much you let it remember**.
@@ -39,6 +41,7 @@ There's no new magic. It's the same old gesture, counting, just aimed somewhere 
 
 How would you do it, with the same counts and nothing more? Think for a second before you go on; the answer is simpler than it looks. And then build it yourself, by hand.
 
+{/* SplitTheRow — looking one letter further back splits one row into 27, and repeating it builds 729: you raise the trigram by hand. */}
 <Figure label="split it into pairs"><SplitTheRow /></Figure>
 
 What you just did is this: take the row for "h", that single list of "what follows an h", and split it into one list for every letter that could come in front. One for "ah", one for "eh", one for "th"… Where there was a single row, there are now twenty-seven, one per pair. And if you repeat it with every letter, you don't end up with twenty-seven rows: you end up with seven hundred and twenty-nine, one for every possible pair.
@@ -47,12 +50,14 @@ It cost you clicks, on purpose. Because that thing you raised by hand, row by ro
 
 And now the part worth the trouble: peek into one of those new rows and compare it with the old one.
 
+{/* RowSharpens — a pair sharpens the bet far more than a single letter: "th" nearly always leads to "e", while plain "h" is chaos. */}
 <Figure label="the pair sharpens the bet"><RowSharpens /></Figure>
 
 Look at the difference. The row for plain "h" was chaos: after an h, almost anything could come. But the row for "th" points nearly always to the same place, to "e". It went from a shrug to knowing the answer. Every letter of memory you add **sharpens** the bet. Play around: hop from pair to pair and you'll see some are razors ("qu" all but forces a "u") and others never show up at all.
 
 <Lead>If one more letter sharpens it this much, the temptation is obvious: what if we go up another level?</Lead>
 
+{/* GrowingTable — leveling up isn't a new idea; it's the same table, bigger. The rows physically grow taller as memory depth climbs. */}
 <Figure label="and the table grows"><GrowingTable /></Figure>
 
 That's what really costs. Going up a level adds no new ideas; it adds **size**. Every extra letter of memory multiplies the rows, and the table swells before your eyes. Hold on to that feeling, because in a moment it's going to become the centre of everything.
@@ -66,12 +71,14 @@ For now, we have a bigger, smarter table. Let's let it write.
 
 Before showing off, let's lift the lid. How does a machine that only has a table of counts actually write?
 
+{/* WriteFromMatrix — writing is not thinking: find your context in the table, read a number, pick that letter, repeat. No understanding, just reading. */}
 <Figure label="writing is reading a number"><WriteFromMatrix /></Figure>
 
 Like this, and there's nothing underneath. It takes what you've written, finds that row in the table, looks at which letter it points to, writes it, and starts again with the window shifted one letter. It doesn't think, doesn't understand, doesn't improvise. **It reads a number off a table.** That's all there is inside.
 
 The curious thing is how far that "all there is" reaches. Set the one-letter machine and the four-letter machine writing from the same seed, side by side.
 
+{/* LookWhatYouBuilt — left to right, gibberish to real sentences: you see how climbing memory alone gets you there, with no grammar taught. */}
 <Figure label="look what you've built"><LookWhatYouBuilt /></Figure>
 
 The one-letter machine spits out unpronounceable soup. The four-letter one almost strings together real sentences: words that exist, linked with a rhythm that passes. And between the two you slipped in not one spelling rule, not one of grammar, never told it what a word is. You just gave it a few more letters of past in each bet. Type your own word and watch it carry on; it's hard not to smile when this thing works.
@@ -85,18 +92,21 @@ The one-letter machine spits out unpronounceable soup. The four-letter one almos
 
 Let's give in to that temptation. Bump the memory up, one more letter, and pull back to see the whole table.
 
+{/* ExplosionZoom — every extra letter multiplies the table by 27: it becomes so vast that all the world's text disappears into its empty gaps. */}
 <Figure label="the table has no bottom"><ExplosionZoom /></Figure>
 
 Pull back again. And again. Every letter of memory you ask for multiplies the rows by twenty-seven, so the table doesn't grow: it detonates. With three letters it's thousands of rows. With six, hundreds of millions. If you asked for a memory of forty letters — nothing for a single sentence — your table would have more rows than there are atoms in the known universe. It's no longer something you could store anywhere; it wouldn't fit even writing one row on every atom in existence.
 
 And that's counting with just twenty-seven letters. What happens if the unit isn't letters, but whole words, as in today's models?
 
+{/* WordsExplosion — if memory worked with 50,000 words instead of 27 letters, that same exploding growth would be utterly inconceivable. */}
 <Figure label="what if they were words"><WordsExplosion /></Figure>
 
 There the floor drops out from under you. A language has something like fifty thousand words. The table of "which word follows which" is no longer twenty-seven by twenty-seven: it's fifty thousand by fifty thousand. And remembering two words instead of one multiplies that number by fifty thousand again. Every word of memory you add doesn't add: it razes.
 
 A table like that demands text, mountains of it, just to have something in each row. So let's feed it without mercy: pour in a whole Shakespeare, and another, and a thousand more books. Open the hose.
 
+{/* BookFirehose — pour in an ocean of books and the table barely moves: the vessel is so vast that all human text is a thin sediment. */}
 <Figure label="an ocean of text"><BookFirehose /></Figure>
 
 You've poured in thousands of books, more than anyone would read in a hundred lifetimes, and look at the level in the tank. It's barely moved. Not because the text is little — it's enormous — but because the table is so absurdly large that it swallows it without flinching. However much you pour, most of the rows are still untouched.
@@ -110,10 +120,12 @@ And here the story gets interesting. Up to now everything kept getting better. L
 
 <Lead>With what it's already seen, it flies. So type something utterly ordinary, any word, and then change a single letter. Before you look, place your own bet: what do you think it'll do?</Lead>
 
+{/* MuteSlot — one letter of difference drops into an empty cell: the confident machine goes silent. The emptiness is why it can't generalize. */}
 <Figure label="change one letter"><MuteSlot /></Figure>
 
 It's gone silent. One letter of difference, one you barely notice, and the rock-solid bet has turned into nothing. It isn't bad luck on one particular cell. Peek at the whole table and count them yourself.
 
+{/* EmptyMatrix — peeking patch by patch, you discover it yourself: almost everything is untouched, despite being enormous. */}
 <Figure label="peek at the whole table"><EmptyMatrix /></Figure>
 
 Almost everything is empty. And now the real question, the one that sounds silly and isn't: does it matter that it's empty? After all, of course it will be, as enormous as we made it.
@@ -131,12 +143,14 @@ And notice what that means. To you, changing a letter leaves almost the same wor
 
 It has a ceiling, clearly. But before we look for its replacement, turn around and look at the road.
 
+{/* Progression — look back: you started with pure noise. Just by counting, you reached real words. That same idea, escalated, powers real machines. */}
 <Figure label="look how far you've come"><Progression /></Figure>
 
 You started with a machine that banged its head on the keyboard, pure letter soup. You gave it memory and, just by counting, it ended up writing real words. Not one rule of grammar along the way. And it wasn't a classroom toy: for years, this same idea drove machine translation, speech recognition, and the keyboard that guesses your next word on your phone.
 
 Pushed to the extreme, with all the data in the world, it writes so well it almost fools you.
 
+{/* BigModelLimit — even well-fed, it treats "cat" and "dog" as unrelated strangers: no way to know that similar things should behave similarly. */}
 <Figure label="it writes well, but…"><BigModelLimit /></Figure>
 
 Almost. Because look where it's put "cat" and "dog": each in its own corner, as far apart as two complete strangers. You know they go together. It doesn't. And it isn't for lack of data: however many times it saw the word "cat", it learned absolutely nothing about "dog". What falls into one cell stays in that cell and no other. That, by counting, can't be fixed. No amount of text teaches a table that two things resemble each other.

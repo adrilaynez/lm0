@@ -17,6 +17,7 @@ But how do you teach writing to a machine that has never lived a single day? To 
 
 So before we build anything, a small experiment.
 
+{/* FillTheBlank — prediction doesn't require understanding; it only needs the pattern that came before. (Mechanics: see the .tsx) */}
 <Stage><FillTheBlank /></Stage>
 
 You probably filled every blank without much effort. But look at the last one: you had no idea what *Fli fli fla* means. You just looked at what came before, sensed the logic, and guessed what came next.
@@ -27,6 +28,7 @@ Today, the big models do this with whole sentences. But to really understand the
 
 <Lead>Our final goal is to build exactly this: you give it a letter, and it bets on the one that comes next.</Lead>
 
+{/* HeroAutoComplete — your brain does this already: one letter pulls the next from your mind without thinking. */}
 <Plane><HeroAutoComplete /></Plane>
 
 It looks like magic, but underneath it's just very basic math. Now the big question: how do we build this from scratch, when the machine can't even read?
@@ -40,18 +42,21 @@ It looks like magic, but underneath it's just very basic math. Now the big quest
 
 Since the language already hides that pattern, all we need is for the machine to read text and notice who goes hand in hand with whom. Let's start with a simple sentence.
 
+{/* PairHighlighter — walking through pairs letter by letter reveals which combinations repeat — that's the hidden pattern. */}
 <Plane><PairHighlighter /></Plane>
 
 We've seen how it hunts for little pairs of letters. To really get it, let's focus on a single one: the «t». We'll give it different sentences and see which letter it decides is the «t»'s best partner.
 
 Change the text and watch which letter wins after the «t».
 
+{/* IsolateT — the same letter learns different rules depending on its text — small samples teach lies. */}
 <Plane><IsolateT /></Plane>
 
 Depending on the text you give it, it learns a different rule, and with so little text the count lies. Feed it very short texts and its view of the world is limited and biased. To learn the real rules, it needs far more information: a giant text.
 
 So let's get serious. Let's have our machine read all of Shakespeare.
 
+{/* RowTally — reading a whole book reveals real patterns — no one taught them; the count just finds them. */}
 <Plane><RowTally /></Plane>
 
 That row is everything there is about the «t» in all of Shakespeare. The machine pulled out every one of its connections on its own, just by counting.
@@ -83,18 +88,21 @@ His strangest rule is the one he called «memorylessness»: to bet on the next s
 
 And it's plain old division: take the «t» row, add up everything in it, and see what slice each partner gets.
 
+{/* NormalizationVisualizer — raw counts become bets: divide by the total and the numbers become probabilities that sum to 100%. */}
 <Plane><NormalizationVisualizer /></Plane>
 
 There it is: the same row, now as percentages that add up to 100%. The «h» takes about 36%, the space 29%, the «o» 10%… Those are the machine's bets.
 
 And now the real question: with those bets on the table, which letter does it pick? The safe move would be to always take the highest one. Let's see what happens.
 
+{/* AlwaysMaxLoop — always picking the highest odds locks the machine in a dead loop: the same letter forever. */}
 <Plane><AlwaysMaxLoop /></Plane>
 
 Always «h». The safe choice turns out to be the deadest one: this way, after a «t» nothing different would ever show up, one «h» after another. To write with any life it needs a pinch of randomness; but not just any kind.
 
 The engineers' idea was a die. A loaded one, of course: loads of «h» faces, plenty of space, the odd «o», and almost none of the rare letters. So the likely thing usually comes up, but every so often it surprises you. Roll it yourself and see.
 
+{/* LoadedDie — a loaded die that respects the odds: mostly likely, but sometimes surprising — it breaks the loop. */}
 <Plane><LoadedDie /></Plane>
 
 Look at that! We've got the whole trick for the «t»: count it, turn it into percentages, and pick with a spark of randomness. And the question asks itself: what if we did exactly this for every letter at once?
@@ -106,18 +114,21 @@ Look at that! We've got the whole trick for the «t»: count it, turn it into pe
 
 <Lead>We have a row for «t». What about «a»? And «h»? And all the rest?</Lead>
 
+{/* TinyMatrixExample — new letters create new rows; stacking them makes the matrix — one object holding all the rules. */}
 <Plane><TinyMatrixExample showCounts /></Plane>
 
 Stack one row per letter and look what comes out: a grid. Each row is the letter you start from. Each column, the one that could come next. Each cell, how many times we saw it.
 
 You just built something with a name of its own: a **transition table**.
 
+{/* GrowingMatrix27 — structure emerges from counting — read a real book and watch the 27×27 table heat itself into being. */}
 <Plane><GrowingMatrix27 /></Plane>
 
 And that's only one corner of the language: lowercase. Capitals, periods, commas, numbers are still missing. Count them all and the table grows to its real size, with far more hidden rules inside.
 
 This is the whole table, for real. It looks like a mess of light, but it's the manual of a language written in numbers. Every lit cell is a rule; every dark gap, a pair that almost never happens. And nobody taught it any of them.
 
+{/* DetectiveMatrix — the full matrix is a language's source code: dark cells are rules the machine discovered just by counting. */}
 <Plane><DetectiveMatrix /></Plane>
 </Section>
 
@@ -127,16 +138,19 @@ This is the whole table, for real. It looks like a mess of light, but it's the m
 
 <Lead>The table now holds every rule the language follows. And picking one letter we already know how to do: look at its row, roll the die. Here is that step in slow motion, and each letter that lands is the starting point for the next.</Lead>
 
+{/* LetterByLetter — one generation step in slow motion, repeated: each output becomes the next input — and the machine writes. */}
 <Plane><LetterByLetter /></Plane>
 
 And there it is: a machine that writes on its own. Nobody taught it spelling, or grammar, or a single rule. It just counted pairs of letters in a pile of text, and everything came out of that. You built it, from scratch.
 
 You've seen it in slow motion. At full speed it's this: one letter after another, no brakes, whole phrases pour out at once.
 
+{/* TableWriter — that step in a loop at full speed: the machine writes on its own, sounding like language from afar, gibberish up close. */}
 <Plane><TableWriter /></Plane>
 
 And now the bad news. Read it again and it almost sounds like a real language: the letters fit together… but they aren't words. Babble with a good accent. We pulled it off, it writes on its own. But what a mess, right? Why does it write so badly?
 
+{/* Reveal — the quiet moment of naming: everything you just built has a name that's already existed since 1948. */}
 <Reveal lead="And what you built has a name:" word="a bigram model" coda="The simplest language model there is. And it's the first brick of everything else. ChatGPT included." />
 
 <Expandable title="The man who measured language" kicker="History · long read · optional">
@@ -148,6 +162,7 @@ To measure how much "real information" a language carries, Shannon did exactly w
 
 Using a bigram model — looking only at the previous letter, just like your machine — here is what came out in his 1948 study:
 
+{/* Specimen — Shannon built this 75 years ago; his machine wrote exactly like yours: the same babble with a good accent. */}
 <Specimen>ON IE ANTSOUTINYS ARE T INCTORE ST BE S DEAMY ACHIN D ILONASIVE TUCOWE AT TEASONARE FUSO TIZIN ANDY TOBE SEACE CTISBE</Specimen>
 
 Exactly: the same babble-with-a-good-accent your model just produced. Letters that fit two by two, but unable to form real words, because the machine has no memory to speak of.
@@ -162,12 +177,14 @@ With that experiment Shannon founded Information Theory, gave the world the "bit
 
 Before we fix it, let's understand why it writes so badly. What comes after «th»? The machine couldn't care less about the «t»: it only looks at the «h». To it, «th», «sh» and «wh» are exactly the same thing.
 
+{/* ContextBlindnessDemo — it only sees the last letter — «th», «sh», «wh» are identical to it. No amount of data fixes this ceiling. */}
 <Plane><ContextBlindnessDemo /></Plane>
 
 It's not forgetful. It's blind from birth. No matter how much text you give it, it will never tell «th» from «sh». This isn't a bug you fix with more data. It's the ceiling of the model.
 
 What if it could see more than one letter? Your turn: a word reveals itself one letter at a time, and you bet on the next.
 
+{/* ShannonContextLadder — more context means sharper prediction: blind with one letter, almost certain with most of the word. */}
 <Plane><ShannonContextLadder /></Plane>
 
 Did you feel it? With one letter you were guessing blind. With almost the whole word in front of you, almost certain. More context, better prediction. That's exactly what our model is missing: it only sees one piece back. Just like you with «hi»: it reacts to the last thing it heard, with no idea about the rest.
