@@ -1,8 +1,14 @@
 # Migration guide — porting chapters & pages to the MDX + i18n-namespace architecture
 
-This is the step-by-step playbook for moving the **remaining** lab chapters
-(MLP, Neural Networks, Transformer) and, later, the rest of the site onto the
-architecture already shipped for **bigram** and **ngram**.
+> **STATUS (updated):** All five lab chapters are now migrated — **bigram, ngram,
+> neural-networks, mlp, transformer**. This guide is kept as the reference for any
+> future chapter and for the "rest of the site" work in §5. One open follow-up:
+> **transformer.es.mdx currently holds the English body** (the chapter had no i18n
+> source to port), so it needs a real Spanish translation — the shell already
+> switches on `language`, so it's a drop-in.
+
+This was the step-by-step playbook for moving the lab chapters onto the
+architecture first shipped for **bigram** and **ngram**.
 
 Read this once, then follow the checklist per chapter. The two reference
 implementations are `BigramNarrative.tsx` + `src/content/lab/bigram.{es,en}.mdx`
