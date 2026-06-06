@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import {
-  getBacklinksFor,
-  getMindNotes,
-  getNoteBySlug,
-  getNoteSlugs,
-} from "@/lib/mdx";
+import { getBacklinksFor, getMindNotes, getNoteBySlug, getNoteSlugs } from "@/lib/mdx";
 
+import { localizedMetadata } from "../../../_meta";
 import { BacklinksPanel } from "../../_components/backlinks-panel";
 import { MindGraph } from "../../_components/mind-graph";
 import { MindMDX } from "../../_components/mind-mdx";
@@ -15,7 +11,7 @@ import { MindSidebar } from "../../_components/mind-sidebar";
 import { MindToc } from "../../_components/mind-toc";
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }
 
 export async function generateStaticParams() {
@@ -23,13 +19,16 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const note = getNoteBySlug(slug);
   if (!note) return { title: "Not found" };
-  return {
+  return localizedMetadata({
+    locale,
+    path: `/latent-space/mind/${slug}`,
     title: `${note.title} | Mind | Latent Space`,
     description: note.description,
-  };
+    type: "article",
+  });
 }
 
 const KIND_LABEL: Record<string, string> = {
@@ -38,17 +37,16 @@ const KIND_LABEL: Record<string, string> = {
   essay: "essay",
 };
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
+function formatDate(iso: string, locale: string): string {
+  return new Date(iso).toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
   });
 }
 
-
 export default async function MindNotePage({ params }: PageProps) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const note = getNoteBySlug(slug);
 
   if (!note || (note.kind !== "seed" && note.kind !== "evergreen")) {
@@ -81,10 +79,7 @@ export default async function MindNotePage({ params }: PageProps) {
 
         {/* Center — flush content, no card */}
         <div className="flex flex-col">
-          <article
-            className="w-full py-12 flex-1"
-            style={{ background: "var(--ls-bg-panel)" }}
-          >
+          <article className="w-full py-12 flex-1" style={{ background: "var(--ls-bg-panel)" }}>
             {/* Centered reading column */}
             <div className="mx-auto w-full max-w-[42rem] px-6 lg:px-8">
               <header className="mb-12 flex flex-col gap-5">
@@ -112,14 +107,19 @@ export default async function MindNotePage({ params }: PageProps) {
                   <ul className="flex flex-wrap items-center gap-x-5 gap-y-1.5">
                     {note.tags.map((tag) => (
                       <li key={tag}>
-                        <span className="capitalize transition-opacity hover:opacity-80" style={{ color: "color-mix(in oklch, var(--ls-accent) 80%, var(--ls-fg))" }}>
+                        <span
+                          className="capitalize transition-opacity hover:opacity-80"
+                          style={{
+                            color: "color-mix(in oklch, var(--ls-accent) 80%, var(--ls-fg))",
+                          }}
+                        >
                           {tag}
                         </span>
                       </li>
                     ))}
                   </ul>
                   <span className="text-[var(--ls-fg-subtle)]">
-                    {formatDate(note.date)}
+                    {formatDate(note.date, locale)}
                   </span>
                 </div>
               </header>

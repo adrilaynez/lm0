@@ -7,12 +7,13 @@ import { MDXContent } from "@/components/mdx-content";
 import { Link } from "@/i18n/navigation";
 import { getEssays, getNoteBySlug, getNoteSlugs } from "@/lib/mdx";
 
+import { localizedMetadata } from "../../../_meta";
 import { EssayCover } from "../../_components/essay-cover";
-import { EssayToc,type TocItem } from "../../_components/essay-toc";
+import { EssayToc, type TocItem } from "../../_components/essay-toc";
 import { ReadingProgress } from "../../_components/reading-progress";
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; locale: string }>;
 }
 
 export async function generateStaticParams() {
@@ -21,17 +22,20 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const note = getNoteBySlug(slug);
   if (!note) return { title: "Not found" };
-  return {
+  return localizedMetadata({
+    locale,
+    path: `/latent-space/essays/${slug}`,
     title: `${note.title} | Latent Space`,
     description: note.description,
-  };
+    type: "article",
+  });
 }
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
+function formatDate(iso: string, locale: string) {
+  return new Date(iso).toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -44,7 +48,10 @@ function estimateReadMinutes(content: string): number {
 }
 
 function toAnchor(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function parseToc(content: string): TocItem[] {
@@ -60,7 +67,7 @@ function parseToc(content: string): TocItem[] {
 }
 
 export default async function EssayPage({ params }: PageProps) {
-  const { slug } = await params;
+  const { slug, locale } = await params;
   const note = getNoteBySlug(slug);
 
   if (!note || note.kind !== "essay") {
@@ -111,7 +118,7 @@ export default async function EssayPage({ params }: PageProps) {
           </p>
         )}
         <p className="mt-5 font-[family-name:var(--ls-font-meta)] text-[0.68rem] tracking-wide text-[var(--ls-fg-subtle)]">
-          {formatDate(note.date)}
+          {formatDate(note.date, locale)}
           {" · "}
           {readMinutes} min read
           {" · "}
@@ -135,7 +142,6 @@ export default async function EssayPage({ params }: PageProps) {
       {/* Content area: ToC sidebar + article */}
       <div className="mx-auto max-w-6xl px-6 pb-24">
         <div className="grid grid-cols-1 lg:grid-cols-[200px_minmax(0,1fr)_200px]">
-
           {/* ToC sidebar — sticky */}
           <aside className="hidden lg:block">
             <div className="sticky top-16 pt-2">
@@ -177,7 +183,9 @@ export default async function EssayPage({ params }: PageProps) {
             )}
           </div>
 
-          <span aria-hidden className="mx-8 text-[var(--ls-accent)] opacity-40 text-lg">✦</span>
+          <span aria-hidden className="mx-8 text-[var(--ls-accent)] opacity-40 text-lg">
+            ✦
+          </span>
 
           <div className="min-w-0 flex-1 text-right">
             {nextEssay && (

@@ -3,13 +3,26 @@ import type { Metadata } from "next";
 import { Link } from "@/i18n/navigation";
 import { getMindNotes } from "@/lib/mdx";
 
+import { localizedMetadata } from "../../_meta";
 import { MindSidebar } from "../_components/mind-sidebar";
 import { MindStream } from "../_components/mind-stream";
 
-export const metadata: Metadata = {
-  title: "Mind | Latent Space | Adrian Laynez",
-  description: "All notes, ideas and seeds — my mind in progress.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return localizedMetadata({
+    locale,
+    path: "/latent-space/mind",
+    title: "Mind | Latent Space | Adrián Laynez",
+    description:
+      locale === "es"
+        ? "Todas las notas, ideas y semillas — mi mente en progreso."
+        : "All notes, ideas and seeds — my mind in progress.",
+  });
+}
 
 export default function MindIndexPage() {
   const notes = getMindNotes();
@@ -37,7 +50,10 @@ export default function MindIndexPage() {
         <div className="flex flex-col py-8 px-4 lg:px-8">
           {/* Breadcrumb */}
           <nav className="mb-8 flex items-center gap-2 font-mono text-[0.72rem] text-[var(--ls-fg-subtle)]">
-            <Link href="/latent-space?mode=mind" className="transition-colors hover:text-[var(--ls-fg)]">
+            <Link
+              href="/latent-space?mode=mind"
+              className="transition-colors hover:text-[var(--ls-fg)]"
+            >
               Latent Space
             </Link>
             <span>/</span>
