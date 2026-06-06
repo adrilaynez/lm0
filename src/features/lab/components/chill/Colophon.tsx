@@ -9,27 +9,29 @@ import { Link } from "@/i18n/navigation";
  * copyright. Stacks centered on mobile.
  */
 export function ChillColophon() {
-    const { t } = useI18n();
+  const { t } = useI18n();
 
-    return (
-        <footer className="colophon">
-            <div className="brand-big">
-                <img
-                    src="/lab/chill/lm-lab-logo.png"
-                    alt={t("lab.landing.chill.masthead.brandAlt")}
-                    className="brand-logo"
-                />
-            </div>
-            <Link href="/" className="notebook-text" aria-label="Visit Adrian Laynez's homepage">
-                <span className="notebook-kicker">{t("lab.landing.chill.colophon.kicker")}</span>
-                <span className="notebook-name">
-                    {t("lab.landing.chill.colophon.authorFirst")}
-                    <span className="dot">·</span>
-                    {t("lab.landing.chill.colophon.authorLast")}
-                    <span className="notebook-arrow" aria-hidden="true">↗</span>
-                </span>
-            </Link>
-            <div className="copyright">{t("lab.landing.chill.colophon.copyright")}</div>
-        </footer>
-    );
+  return (
+    <footer className="colophon">
+      <div className="brand-big">
+        <img
+          src="/lab/chill/lm-lab-logo.webp"
+          alt={t("lab.landing.chill.masthead.brandAlt")}
+          className="brand-logo"
+        />
+      </div>
+      <Link href="/" className="notebook-text" aria-label="Visit Adrian Laynez's homepage">
+        <span className="notebook-kicker">{t("lab.landing.chill.colophon.kicker")}</span>
+        <span className="notebook-name">
+          {t("lab.landing.chill.colophon.authorFirst")}
+          <span className="dot">·</span>
+          {t("lab.landing.chill.colophon.authorLast")}
+          <span className="notebook-arrow" aria-hidden="true">
+            ↗
+          </span>
+        </span>
+      </Link>
+      <div className="copyright">{t("lab.landing.chill.colophon.copyright")}</div>
+    </footer>
+  );
 }

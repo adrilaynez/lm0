@@ -64,7 +64,7 @@ export const PROJECTS: Project[] = [
     featured: true,
     color: { a: "#34d399", d: "#10b981", ink: "#06120c" },
     mock: "dash",
-    image: "/lab/chill/hero-facility.png",
+    image: "/lab/chill/hero-facility.webp",
     href: "/lab",
     repo: GITHUB,
     tags: { en: ["Next.js", "AI"], es: ["Next.js", "AI"] },
@@ -98,8 +98,18 @@ export const PROJECTS: Project[] = [
         ],
       },
       features: {
-        en: ["Interactive visualizations", "5 guided chapters", "Live inference", "Bilingual (EN · ES)"],
-        es: ["Visualizaciones interactivas", "5 capítulos guiados", "Inferencia en vivo", "Bilingüe (EN · ES)"],
+        en: [
+          "Interactive visualizations",
+          "5 guided chapters",
+          "Live inference",
+          "Bilingual (EN · ES)",
+        ],
+        es: [
+          "Visualizaciones interactivas",
+          "5 capítulos guiados",
+          "Inferencia en vivo",
+          "Bilingüe (EN · ES)",
+        ],
       },
       steps: {
         en: [
@@ -118,8 +128,20 @@ export const PROJECTS: Project[] = [
         es: ["5 capítulos", "~45 min", "Next.js"],
       },
       spec: {
-        en: { Type: "Interactive notebook", Chapters: "05", Duration: "~45 min", Stack: "Next.js", Language: "EN · ES" },
-        es: { Tipo: "Cuaderno interactivo", Capítulos: "05", Duración: "~45 min", Stack: "Next.js", Idioma: "EN · ES" },
+        en: {
+          Type: "Interactive notebook",
+          Chapters: "05",
+          Duration: "~45 min",
+          Stack: "Next.js",
+          Language: "EN · ES",
+        },
+        es: {
+          Tipo: "Cuaderno interactivo",
+          Capítulos: "05",
+          Duración: "~45 min",
+          Stack: "Next.js",
+          Idioma: "EN · ES",
+        },
       },
     },
   },
@@ -164,8 +186,18 @@ export const PROJECTS: Project[] = [
         ],
       },
       features: {
-        en: ["Static types", "Functions by value and reference", "Arrays and records", "Runs in Node.js and the browser"],
-        es: ["Tipos estáticos", "Funciones por valor y referencia", "Arrays y registros", "Ejecución en Node.js y navegador"],
+        en: [
+          "Static types",
+          "Functions by value and reference",
+          "Arrays and records",
+          "Runs in Node.js and the browser",
+        ],
+        es: [
+          "Tipos estáticos",
+          "Funciones por valor y referencia",
+          "Arrays y registros",
+          "Ejecución en Node.js y navegador",
+        ],
       },
       steps: {
         en: [
@@ -184,8 +216,20 @@ export const PROJECTS: Project[] = [
         es: ["WebAssembly", "Lexer + Parser", "Node · Web"],
       },
       spec: {
-        en: { Language: "Spanish pseudocode", Target: "WebAssembly (.wasm)", Lexer: "JFlex", Parser: "CUP (LALR)", License: "MIT" },
-        es: { Lenguaje: "Pseudocódigo ES", Objetivo: "WebAssembly (.wasm)", Lexer: "JFlex", Parser: "CUP (LALR)", Licencia: "MIT" },
+        en: {
+          Language: "Spanish pseudocode",
+          Target: "WebAssembly (.wasm)",
+          Lexer: "JFlex",
+          Parser: "CUP (LALR)",
+          License: "MIT",
+        },
+        es: {
+          Lenguaje: "Pseudocódigo ES",
+          Objetivo: "WebAssembly (.wasm)",
+          Lexer: "JFlex",
+          Parser: "CUP (LALR)",
+          Licencia: "MIT",
+        },
       },
       code: {
         fn: "factorial.sova",
@@ -246,7 +290,12 @@ export const PROJECTS: Project[] = [
       },
       features: {
         en: ["Thought map", "Notes and essays", "Linked concepts", "Always evolving"],
-        es: ["Mapa de pensamiento", "Notas y ensayos", "Conceptos enlazados", "Siempre en evolución"],
+        es: [
+          "Mapa de pensamiento",
+          "Notas y ensayos",
+          "Conceptos enlazados",
+          "Siempre en evolución",
+        ],
       },
       steps: {
         en: [
@@ -265,8 +314,18 @@ export const PROJECTS: Project[] = [
         es: ["Mind · Essays", "Notas", "En evolución"],
       },
       spec: {
-        en: { Type: "Digital garden", Modes: "Mind · Essays", Format: "Notes · Essays", Status: "Alive" },
-        es: { Tipo: "Jardín digital", Modos: "Mind · Essays", Formato: "Notas · Ensayos", Estado: "Vivo" },
+        en: {
+          Type: "Digital garden",
+          Modes: "Mind · Essays",
+          Format: "Notes · Essays",
+          Status: "Alive",
+        },
+        es: {
+          Tipo: "Jardín digital",
+          Modos: "Mind · Essays",
+          Formato: "Notas · Ensayos",
+          Estado: "Vivo",
+        },
       },
     },
   },
@@ -330,8 +389,18 @@ export const PROJECTS: Project[] = [
         es: ["C++ · CUDA", "Kernels propios", "En progreso"],
       },
       spec: {
-        en: { Type: "Inference engine", Language: "C++ · CUDA", Status: "In progress", Year: "2025" },
-        es: { Tipo: "Motor de inferencia", Lenguaje: "C++ · CUDA", Estado: "En progreso", Año: "2025" },
+        en: {
+          Type: "Inference engine",
+          Language: "C++ · CUDA",
+          Status: "In progress",
+          Year: "2025",
+        },
+        es: {
+          Tipo: "Motor de inferencia",
+          Lenguaje: "C++ · CUDA",
+          Estado: "En progreso",
+          Año: "2025",
+        },
       },
     },
   },
@@ -375,8 +444,18 @@ export const PROJECTS: Project[] = [
         ],
       },
       features: {
-        en: ["DFT in the browser", "Adjustable number of terms", "Export the SVG", "No dependencies"],
-        es: ["DFT en el navegador", "Número de términos ajustable", "Exporta el SVG", "Sin dependencias"],
+        en: [
+          "DFT in the browser",
+          "Adjustable number of terms",
+          "Export the SVG",
+          "No dependencies",
+        ],
+        es: [
+          "DFT en el navegador",
+          "Número de términos ajustable",
+          "Exporta el SVG",
+          "Sin dependencias",
+        ],
       },
       steps: {
         en: [
@@ -395,8 +474,20 @@ export const PROJECTS: Project[] = [
         es: ["Canvas", "DFT en vivo", "~3 KB"],
       },
       spec: {
-        en: { Type: "Visualization", Technique: "DFT", Stack: "Canvas 2D", Size: "~3 KB", Year: "2024" },
-        es: { Tipo: "Visualización", Técnica: "DFT", Stack: "Canvas 2D", Tamaño: "~3 KB", Año: "2024" },
+        en: {
+          Type: "Visualization",
+          Technique: "DFT",
+          Stack: "Canvas 2D",
+          Size: "~3 KB",
+          Year: "2024",
+        },
+        es: {
+          Tipo: "Visualización",
+          Técnica: "DFT",
+          Stack: "Canvas 2D",
+          Tamaño: "~3 KB",
+          Año: "2024",
+        },
       },
     },
   },
@@ -441,7 +532,12 @@ export const PROJECTS: Project[] = [
       },
       features: {
         en: ["GPU simulation", "Editable rules", "Reaction-diffusion", "Paintable initial state"],
-        es: ["Simulación en GPU", "Reglas editables", "Reacción-difusión", "Estado inicial pintable"],
+        es: [
+          "Simulación en GPU",
+          "Reglas editables",
+          "Reacción-difusión",
+          "Estado inicial pintable",
+        ],
       },
       steps: {
         en: [
@@ -460,8 +556,20 @@ export const PROJECTS: Project[] = [
         es: ["WebGL", "Rust → WASM", "60 fps"],
       },
       spec: {
-        en: { Type: "Lab", Compute: "WebGL · GPU", Core: "Rust → WASM", Status: "In progress", Year: "2024" },
-        es: { Tipo: "Laboratorio", Cómputo: "WebGL · GPU", Núcleo: "Rust → WASM", Estado: "En progreso", Año: "2024" },
+        en: {
+          Type: "Lab",
+          Compute: "WebGL · GPU",
+          Core: "Rust → WASM",
+          Status: "In progress",
+          Year: "2024",
+        },
+        es: {
+          Tipo: "Laboratorio",
+          Cómputo: "WebGL · GPU",
+          Núcleo: "Rust → WASM",
+          Estado: "En progreso",
+          Año: "2024",
+        },
       },
     },
   },
