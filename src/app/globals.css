@@ -161,6 +161,21 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* ─── Accessibility: honor prefers-reduced-motion globally ───
+   Safety net for CSS animations/transitions (the lab's Framer-Motion widgets
+   already gate on useReducedMotion). Near-zero durations rather than `none`,
+   so end states still apply and layouts don't break. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ─── Lab theme tokens (Dark Island approach) ─── */
 [data-lab-theme="dark"] {
   --lab-bg: #0a0a0f;
