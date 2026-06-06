@@ -23,19 +23,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!p) return { title: "Not found" };
   const lang = locale === "es" ? "es" : "en";
   const path = (l: string) =>
-    l === routing.defaultLocale ? `${SITE_URL}/projects/${slug}` : `${SITE_URL}/${l}/projects/${slug}`;
+    l === routing.defaultLocale
+      ? `${SITE_URL}/projects/${slug}`
+      : `${SITE_URL}/${l}/projects/${slug}`;
+  const title = `${p.name} | Adrián Laynez`;
   return {
-    title: `${p.name} | Adrián Laynez`,
+    title,
     description: p.desc[lang],
     alternates: {
       canonical: path(lang),
-      languages: Object.fromEntries(routing.locales.map((l) => [l, path(l)])),
+      languages: {
+        ...Object.fromEntries(routing.locales.map((l) => [l, path(l)])),
+        "x-default": path(routing.defaultLocale),
+      },
     },
     openGraph: {
       locale: lang,
-      title: `${p.name} | Adrián Laynez`,
+      title,
       description: p.desc[lang],
       url: path(lang),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: p.desc[lang],
     },
   };
 }

@@ -71,14 +71,17 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "common" });
-  // hreflang alternates: default locale at root, others prefixed.
-  const languages = Object.fromEntries(
+  // hreflang alternates: default locale at root, others prefixed, plus x-default.
+  const languages: Record<string, string> = Object.fromEntries(
     routing.locales.map((l) => [l, l === routing.defaultLocale ? SITE_URL : `${SITE_URL}/${l}`]),
   );
+  languages["x-default"] = SITE_URL;
+  const title = "Adrián Laynez | Research & Engineering";
+  const description = t("siteDescription");
   return {
     metadataBase: new URL(SITE_URL),
-    title: "Adrián Laynez | Research & Engineering",
-    description: t("siteDescription"),
+    title,
+    description,
     alternates: {
       canonical: locale === routing.defaultLocale ? SITE_URL : `${SITE_URL}/${locale}`,
       languages,
@@ -86,9 +89,14 @@ export async function generateMetadata({
     openGraph: {
       locale,
       type: "website",
-      title: "Adrián Laynez | Research & Engineering",
-      description: t("siteDescription"),
+      title,
+      description,
       url: locale === routing.defaultLocale ? SITE_URL : `${SITE_URL}/${locale}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
     },
   };
 }
