@@ -8,7 +8,6 @@ import {
   Playfair_Display,
   Silkscreen,
   Source_Serif_4,
-  Space_Grotesk,
 } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
@@ -24,7 +23,11 @@ import { routing } from "@/i18n/routing";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://adrianlaynez.dev";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: "swap" });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
 const sourceSerif = Source_Serif_4({
   variable: "--font-source-serif",
   subsets: ["latin"],
@@ -38,11 +41,24 @@ const playfair = Playfair_Display({
   display: "swap",
   style: ["normal", "italic"],
 });
-const jetbrainsMono = JetBrains_Mono({ variable: "--font-jetbrains-mono", subsets: ["latin"], display: "swap" });
-const spaceGrotesk = Space_Grotesk({ variable: "--font-space-grotesk", subsets: ["latin"], display: "swap" });
-const bebasNeue = Bebas_Neue({ variable: "--font-bebas", weight: "400", subsets: ["latin"], display: "swap" });
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
+const bebasNeue = Bebas_Neue({
+  variable: "--font-bebas",
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+});
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
-const silkscreen = Silkscreen({ variable: "--font-pixel", weight: ["400", "700"], subsets: ["latin"], display: "swap" });
+const silkscreen = Silkscreen({
+  variable: "--font-pixel",
+  weight: ["400", "700"],
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -111,7 +127,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} ${bebasNeue.variable} ${inter.variable} ${silkscreen.variable} ${sourceSerif.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${jetbrainsMono.variable} ${bebasNeue.variable} ${inter.variable} ${silkscreen.variable} ${sourceSerif.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <NextIntlClientProvider>

@@ -10,7 +10,6 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-serif: var(--font-playfair);
-  --font-space-grotesk: var(--font-space-grotesk);
   --font-jetbrains-mono: var(--font-jetbrains-mono);
   --font-pixel: var(--font-pixel);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -205,25 +204,25 @@
   --bigram-bg-2: oklch(0.138 0.014 195);
   --bigram-bg: oklch(0.176 0.016 193);
   --bigram-surface: oklch(0.223 0.018 193);
-  --bigram-elev: oklch(0.265 0.020 193);
+  --bigram-elev: oklch(0.265 0.02 193);
   --bigram-rule: oklch(0.99 0.02 195 / 10%);
   --bigram-rule-2: oklch(0.99 0.03 195 / 18%);
   --bigram-ink: oklch(0.94 0.012 85);
   --bigram-ink-2: oklch(0.86 0.012 85);
   --bigram-body: oklch(0.82 0.013 88);
   --bigram-muted: oklch(0.73 0.012 90);
-  --bigram-dim: oklch(0.62 0.010 95);
-  --bigram-accent: oklch(0.70 0.148 164);
-  --bigram-accent-2: oklch(0.60 0.132 166);
+  --bigram-dim: oklch(0.62 0.01 95);
+  --bigram-accent: oklch(0.7 0.148 164);
+  --bigram-accent-2: oklch(0.6 0.132 166);
   --bigram-accent-deep: oklch(0.48 0.108 167);
   --bigram-accent-bright: oklch(0.78 0.142 167);
   --bigram-accent-ink: oklch(0.72 0.152 163);
-  --bigram-accent-soft: oklch(0.70 0.148 164 / 16%);
+  --bigram-accent-soft: oklch(0.7 0.148 164 / 16%);
   --bigram-on-accent: oklch(0.16 0.03 165);
   --bigram-sage: oklch(0.82 0.062 152);
   --bigram-sage-soft: oklch(0.82 0.062 152 / 13%);
-  --bigram-wrong: oklch(0.70 0.135 38);
-  --bigram-wrong-soft: oklch(0.70 0.135 38 / 16%);
+  --bigram-wrong: oklch(0.7 0.135 38);
+  --bigram-wrong-soft: oklch(0.7 0.135 38 / 16%);
 }
 
 [data-bigram-theme="light"] {
@@ -257,13 +256,13 @@
    Monospace has no oldstyle glyphs and data rows set lining-tabular inline, so this
    only touches the Playfair / Source-Serif prose. */
 [data-bigram-theme] {
-    font-variant-numeric: oldstyle-nums proportional-nums;
-    /* Match the v8 body exactly: optical-sizing + legibility kerning/ligatures so
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  /* Match the v8 body exactly: optical-sizing + legibility kerning/ligatures so
        Playfair display + Source Serif render with the same refined letterfit. */
-    font-optical-sizing: auto;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ── Document scrollbar (Bigram chapter only) ──
@@ -309,12 +308,17 @@ html:has([data-bigram-theme="light"])::-webkit-scrollbar-thumb:hover {
 }
 
 /* Bigram page grain + vignette (v8 .page-grain) — subtle depth on the cream / slate field. */
-.bigram-grain { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.bigram-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
 [data-bigram-theme="dark"] .bigram-grain {
   background: radial-gradient(135% 105% at 50% 0%, transparent 60%, oklch(0 0 0 / 0.18) 100%);
 }
 [data-bigram-theme="light"] .bigram-grain {
-  background: radial-gradient(130% 100% at 50% 0%, transparent 62%, oklch(0.3 0.03 70 / 0.10) 100%);
+  background: radial-gradient(130% 100% at 50% 0%, transparent 62%, oklch(0.3 0.03 70 / 0.1) 100%);
 }
 .bigram-grain::before {
   content: "";
@@ -324,7 +328,10 @@ html:has([data-bigram-theme="light"])::-webkit-scrollbar-thumb:hover {
   opacity: 0.035;
   mix-blend-mode: overlay;
 }
-[data-bigram-theme="light"] .bigram-grain::before { opacity: 0.025; mix-blend-mode: multiply; }
+[data-bigram-theme="light"] .bigram-grain::before {
+  opacity: 0.025;
+  mix-blend-mode: multiply;
+}
 
 /* ─── N-gram chapter tokens (editorial-amber) ───
    Additive + scoped: only the n-gram chapter content opts in via [data-ngram-theme].
@@ -353,18 +360,18 @@ html:has([data-bigram-theme="light"])::-webkit-scrollbar-thumb:hover {
   --ngram-ink-2: oklch(0.86 0.012 85);
   --ngram-body: oklch(0.82 0.013 86);
   --ngram-muted: oklch(0.73 0.012 88);
-  --ngram-dim: oklch(0.62 0.010 90);
-  --ngram-accent: oklch(0.77 0.150 75);
-  --ngram-accent-2: oklch(0.69 0.140 72);
+  --ngram-dim: oklch(0.62 0.01 90);
+  --ngram-accent: oklch(0.77 0.15 75);
+  --ngram-accent-2: oklch(0.69 0.14 72);
   --ngram-accent-deep: oklch(0.55 0.115 70);
   --ngram-accent-bright: oklch(0.84 0.158 80);
   --ngram-accent-ink: oklch(0.82 0.155 78);
-  --ngram-accent-soft: oklch(0.77 0.150 75 / 16%);
-  --ngram-on-accent: oklch(0.20 0.040 70);
-  --ngram-sage: oklch(0.82 0.050 100);
-  --ngram-sage-soft: oklch(0.82 0.050 100 / 13%);
-  --ngram-wrong: oklch(0.70 0.135 38);
-  --ngram-wrong-soft: oklch(0.70 0.135 38 / 16%);
+  --ngram-accent-soft: oklch(0.77 0.15 75 / 16%);
+  --ngram-on-accent: oklch(0.2 0.04 70);
+  --ngram-sage: oklch(0.82 0.05 100);
+  --ngram-sage-soft: oklch(0.82 0.05 100 / 13%);
+  --ngram-wrong: oklch(0.7 0.135 38);
+  --ngram-wrong-soft: oklch(0.7 0.135 38 / 16%);
 }
 
 [data-ngram-theme="light"] {
@@ -388,18 +395,18 @@ html:has([data-bigram-theme="light"])::-webkit-scrollbar-thumb:hover {
   --ngram-accent-soft: #f0e4c4;
   --ngram-on-accent: #fdf7e8;
   --ngram-sage: #7a6a3f;
-  --ngram-sage-soft: oklch(0.62 0.050 95 / 14%);
+  --ngram-sage-soft: oklch(0.62 0.05 95 / 14%);
   --ngram-wrong: #b1492f;
   --ngram-wrong-soft: #eedacf;
 }
 
 /* N-gram serif prose uses old-style figures like bigram (numbers sit in the line). */
 [data-ngram-theme] {
-    font-variant-numeric: oldstyle-nums proportional-nums;
-    font-optical-sizing: auto;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  font-optical-sizing: auto;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ── Document scrollbar (N-gram chapter only) — same technique as bigram. ── */
@@ -438,12 +445,17 @@ html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
 }
 
 /* N-gram page grain + vignette (mirror of .bigram-grain). */
-.ngram-grain { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.ngram-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
 [data-ngram-theme="dark"] .ngram-grain {
   background: radial-gradient(135% 105% at 50% 0%, transparent 60%, oklch(0 0 0 / 0.18) 100%);
 }
 [data-ngram-theme="light"] .ngram-grain {
-  background: radial-gradient(130% 100% at 50% 0%, transparent 62%, oklch(0.3 0.03 70 / 0.10) 100%);
+  background: radial-gradient(130% 100% at 50% 0%, transparent 62%, oklch(0.3 0.03 70 / 0.1) 100%);
 }
 .ngram-grain::before {
   content: "";
@@ -453,7 +465,10 @@ html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
   opacity: 0.035;
   mix-blend-mode: overlay;
 }
-[data-ngram-theme="light"] .ngram-grain::before { opacity: 0.025; mix-blend-mode: multiply; }
+[data-ngram-theme="light"] .ngram-grain::before {
+  opacity: 0.025;
+  mix-blend-mode: multiply;
+}
 
 /* ─── Latent Space tokens (Essays = light editorial / Mind = dark warm) ─── */
 [data-ls-mode="essays"] {
@@ -461,17 +476,17 @@ html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
   /* warm cream/paper */
   --ls-bg-elevated: oklch(0.964 0.007 87);
   /* card — almost same as bg, near-zero contrast */
-  --ls-bg-subtle: oklch(0.970 0.005 85);
-  --ls-fg: oklch(0.20 0.04 265);
+  --ls-bg-subtle: oklch(0.97 0.005 85);
+  --ls-fg: oklch(0.2 0.04 265);
   /* deep indigo near-black */
-  --ls-fg-muted: oklch(0.40 0.03 265);
+  --ls-fg-muted: oklch(0.4 0.03 265);
   --ls-fg-subtle: oklch(0.55 0.02 265);
-  --ls-border: oklch(0.20 0.04 265 / 9%);
-  --ls-border-strong: oklch(0.20 0.04 265 / 16%);
+  --ls-border: oklch(0.2 0.04 265 / 9%);
+  --ls-border-strong: oklch(0.2 0.04 265 / 16%);
   --ls-accent: oklch(0.32 0.13 265);
   /* deep indigo */
   --ls-accent-soft: oklch(0.32 0.13 265 / 9%);
-  --ls-accent-secondary: oklch(0.40 0.10 15);
+  --ls-accent-secondary: oklch(0.4 0.1 15);
   /* muted maroon/garnet */
   --ls-font-display: var(--font-playfair);
   /* Playfair Display — high-contrast serif for titles only */
@@ -484,13 +499,13 @@ html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
 [data-ls-mode="mind"] {
   --ls-bg: oklch(0.175 0.008 70);
   /* warm dark gray, NOT pure black */
-  --ls-bg-elevated: oklch(0.215 0.010 70);
+  --ls-bg-elevated: oklch(0.215 0.01 70);
   --ls-bg-panel: oklch(0.195 0.009 70);
   --ls-fg: oklch(0.93 0.014 75);
   /* warm parchment headings */
   --ls-fg-body: oklch(0.84 0.013 75);
   /* warm cream body */
-  --ls-fg-muted: oklch(0.66 0.010 75);
+  --ls-fg-muted: oklch(0.66 0.01 75);
   /* secondary muted */
   --ls-fg-subtle: oklch(0.52 0.008 75);
   /* metadata subtle */
@@ -521,8 +536,8 @@ html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
 /* Essays light mode — bridge ShadCN vars so Alert/UI components adapt */
 [data-ls-mode="essays"] {
   --background: oklch(0.962 0.008 85);
-  --foreground: oklch(0.20 0.04 265);
-  --border: oklch(0.20 0.04 265 / 11%);
+  --foreground: oklch(0.2 0.04 265);
+  --border: oklch(0.2 0.04 265 / 11%);
 }
 
 /* Pixel title override for cream essays bg — refined indigo shadow, tighter tracking */
@@ -530,7 +545,7 @@ html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
   letter-spacing: 0.019em;
   text-shadow:
     2.4px 2.4px 0 var(--ls-accent),
-    4.8px 4.8px 0 oklch(0.20 0.04 265 / 12%),
+    4.8px 4.8px 0 oklch(0.2 0.04 265 / 12%),
     0 0 38px oklch(0.32 0.13 265 / 0.08);
 }
 
@@ -569,22 +584,72 @@ html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
 }
 
 /* Mock-thumbnail SVG fills (structure = monochrome, data = project accent) */
-.proj-mk .mk-bg { fill: var(--proj-panel); }
-.proj-mk .mk-pn { fill: var(--proj-panel-2); }
-.proj-mk .mk-ln { fill: var(--proj-fg); fill-opacity: 0.10; }
-.proj-mk .mk-ln2 { fill: var(--proj-fg); fill-opacity: 0.18; }
-.proj-mk .mk-tx { fill: var(--proj-fg); fill-opacity: 0.32; }
-.proj-mk .mk-acc { fill: var(--accent); }
-.proj-mk text { fill: var(--proj-fg); fill-opacity: 0.45; font-family: var(--font-jetbrains-mono), monospace; }
-.proj-mk .mk-blink { animation: projblink 1.5s steps(1) infinite; }
-.proj-mk .mk-pulse { animation: projpulse 2.6s ease-in-out infinite; }
-@keyframes projblink { 50% { opacity: 0; } }
-@keyframes projpulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
-@keyframes projping { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(1.5); } }
-.proj-dot-live { animation: projping 1.7s ease-in-out infinite; }
+.proj-mk .mk-bg {
+  fill: var(--proj-panel);
+}
+.proj-mk .mk-pn {
+  fill: var(--proj-panel-2);
+}
+.proj-mk .mk-ln {
+  fill: var(--proj-fg);
+  fill-opacity: 0.1;
+}
+.proj-mk .mk-ln2 {
+  fill: var(--proj-fg);
+  fill-opacity: 0.18;
+}
+.proj-mk .mk-tx {
+  fill: var(--proj-fg);
+  fill-opacity: 0.32;
+}
+.proj-mk .mk-acc {
+  fill: var(--accent);
+}
+.proj-mk text {
+  fill: var(--proj-fg);
+  fill-opacity: 0.45;
+  font-family: var(--font-jetbrains-mono), monospace;
+}
+.proj-mk .mk-blink {
+  animation: projblink 1.5s steps(1) infinite;
+}
+.proj-mk .mk-pulse {
+  animation: projpulse 2.6s ease-in-out infinite;
+}
+@keyframes projblink {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes projpulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes projping {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(1.5);
+  }
+}
+.proj-dot-live {
+  animation: projping 1.7s ease-in-out infinite;
+}
 
 /* Rich inline markup inside project prose / steps (<b>, <span>) */
-.proj-rich b { color: var(--proj-fg); font-weight: 500; }
+.proj-rich b {
+  color: var(--proj-fg);
+  font-weight: 500;
+}
 .proj-rich span {
   font-family: var(--font-jetbrains-mono), monospace;
   font-size: 0.9em;
@@ -595,10 +660,26 @@ html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
 }
 
 /* Detail code block */
-.proj-code { background: #0b0d0c; border: 1px solid var(--proj-rule); overflow: hidden; }
-.proj-code pre { margin: 0; padding: 20px 22px; font-family: var(--font-jetbrains-mono), monospace; font-size: 13.5px; line-height: 1.7; color: rgba(255, 255, 255, 0.82); overflow-x: auto; }
-.proj-code .kw { color: #34d399; }
-.proj-code .out { color: #34d399; }
+.proj-code {
+  background: #0b0d0c;
+  border: 1px solid var(--proj-rule);
+  overflow: hidden;
+}
+.proj-code pre {
+  margin: 0;
+  padding: 20px 22px;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.82);
+  overflow-x: auto;
+}
+.proj-code .kw {
+  color: #34d399;
+}
+.proj-code .out {
+  color: #34d399;
+}
 
 @layer base {
   * {
@@ -803,7 +884,7 @@ html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
     /* ── Body paragraphs — editorial serif, airy ── */
     p {
       font-family: var(--ls-font-prose);
-      color: oklch(0.88 0.010 75);
+      color: oklch(0.88 0.01 75);
       font-weight: 400;
       margin-bottom: 2.1rem;
       max-width: 62ch;
@@ -814,7 +895,7 @@ html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
     }
 
     /* ── Drop cap — same warm color as title, not accent ── */
-    >p:first-of-type::first-letter {
+    > p:first-of-type::first-letter {
       font-family: var(--ls-font-display);
       float: left;
       font-size: 3.6rem;
@@ -891,7 +972,7 @@ html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
       font-family: var(--ls-font-prose);
     }
 
-    ul>li {
+    ul > li {
       @apply mt-2.5;
       color: oklch(0.86 0.014 70);
       line-height: 1.75;
@@ -902,7 +983,7 @@ html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
       font-family: var(--ls-font-prose);
     }
 
-    ol>li {
+    ol > li {
       @apply mt-2.5;
       color: oklch(0.86 0.014 70);
       line-height: 1.75;
@@ -921,7 +1002,7 @@ html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
       border-radius: 0.5rem;
       border-left: 3px solid var(--ls-accent);
       background: oklch(0.74 0.16 45 / 0.07);
-      color: oklch(0.90 0.008 40);
+      color: oklch(0.9 0.008 40);
       max-width: 68ch;
       font-size: 1.05rem;
       line-height: 1.85;
@@ -1013,7 +1094,6 @@ html:has([data-ngram-theme="light"])::-webkit-scrollbar-thumb:hover {
 
 /* ─── Print ─── */
 @media print {
-
   .sticky,
   [data-feedback],
   [aria-label="Back to top"] {
