@@ -25,12 +25,12 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      # Lint is non-blocking for now: there are pre-existing lint errors (React-compiler
-      # memoization rules, etc.) unrelated to this work. tsc/test/build stay blocking.
-      # TODO: remove continue-on-error once the existing lint errors are cleared.
+      # Lint is BLOCKING on errors (e.g. react-hooks/rules-of-hooks — catches conditional
+      # hook crashes). The React-Compiler advisory rules + a style/type backlog are set to
+      # `warn` in eslint.config.mjs so they're visible without failing CI; eslint exits 0 on
+      # warnings. Burn the warnings down over time, then re-promote rules to error.
       - name: Lint
         run: npx eslint .
-        continue-on-error: true
 
       - name: Test
         run: npm run test
