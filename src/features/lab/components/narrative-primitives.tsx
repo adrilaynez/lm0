@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { BlockMath } from "react-katex";
 
 import { Lightbulb } from "lucide-react";
 
+import { BlockMath } from "@/components/math/LazyMath";
 import { FadeInView } from "@/features/lab/components/FadeInView";
 import { cn } from "@/lib/utils";
 
