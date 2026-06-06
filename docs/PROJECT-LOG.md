@@ -8,6 +8,35 @@ Format: `## YYYY-MM-DD — title` · what changed · why · (optional) commit re
 
 ---
 
+## 2026-06-06 — Second-audit fixes (Rounds 1–3) ✅
+
+Acted on a fresh 4-auditor professional review. Plan: `docs/audit-fixes-plan.md`. Each item was its own
+verified commit (tsc + build green) on `redesign/ngram-amber-v1`.
+
+**Round 1 — real bugs + security:** unified the backend URL so every lab call goes through the `/api` rewrite
+(it defaulted to an absolute `localhost:8000` that broke inference in prod); fixed a conditional-hook crash in
+`CompareMode`; bumped **next 16.1.6 → 16.2.7** + `npm audit fix` (cleared the High advisory + yaml; prod vulns
+3→2, the remaining two live inside next's own deps); retuned ESLint so CI lint is **blocking on errors**
+(`rules-of-hooks` stays an error) while the React-Compiler/style backlog is `warn`, and dropped
+`continue-on-error`; removed debug logs, the unused Space Grotesk font, and a `/notes` redirect mismatch.
+
+**Round 2 — performance:** KaTeX (~260 KB) now loads on demand via a shared `LazyMath` wrapper instead of riding
+the eager narrative chunk (verified: 0 katex refs in the bigram first-load HTML); re-exported the three landing
+PNGs to WebP (**~9.5 MB → ~0.5 MB**, ~95% smaller).
+
+**Round 3 — SEO / a11y / i18n:** added `x-default` hreflang + Twitter Cards; gave the `/lab` landing,
+`/projects`, `/latent-space`, `/latent-space/mind` and the essay/mind detail pages proper localized metadata
+(canonical/hreflang/OG) via a shared `localizedMetadata` helper, and localized the article dates; fixed the
+`useI18n` shim to preserve the query string on locale switch and to interpolate `$`-containing values safely;
+added a global `prefers-reduced-motion` CSS safety net; and made each chapter (bigram, nn, mlp, transformer)
+ship **only the active-locale MDX** (one `dynamic()` per locale, SSR preserved — verified prose renders in the
+prerendered HTML in the active locale only). n-gram chapter files were left untouched (worked on in parallel).
+
+**Deferred on purpose:** the low-contrast-text sweep (~2000 `text-white/20–35` — a design decision, not a
+mechanical find-replace, would regress the lab aesthetic); the real Spanish translation of `transformer.es.mdx`
+(content authoring); an enforcing CSP + report endpoint; and migrating the hardcoded-English global chrome
+(navbar/footer/lab banner) to i18n.
+
 ## 2026-06-05 — Prettier + husky/lint-staged pre-commit (Phase 11) ✅
 
 Added **Prettier** (`.prettierrc`: 100 print width, 2-space, double quotes, trailing commas — 2-space matches
