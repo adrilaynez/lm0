@@ -1,13 +1,12 @@
 "use client";
 
 import React, { lazy, Suspense, useMemo } from "react";
+import dynamic from "next/dynamic";
 
 import { motion } from "framer-motion";
 import { AlertTriangle, ArrowDown, BookOpen, Brain, Layers, Sparkles, Zap } from "lucide-react";
 
 import { BlockMath } from "@/components/math/LazyMath";
-import TransformerEn from "@/content/lab/transformer.en.mdx";
-import TransformerEs from "@/content/lab/transformer.es.mdx";
 import { ContinueToast } from "@/features/lab/components/ContinueToast";
 import { FadeInView } from "@/features/lab/components/FadeInView";
 import { KeyTakeaway as _KeyTakeaway } from "@/features/lab/components/KeyTakeaway";
@@ -26,6 +25,11 @@ import {
   type NarrativeAccent,
   PullQuote as _PullQuote,
 } from "./narrative-primitives";
+
+/* Chapter narrative MDX — one dynamic() per locale so only the active language ships
+   (SSR stays on → prose is server-rendered; the other locale loads on toggle). */
+const TransformerEnBody = dynamic(() => import("@/content/lab/transformer.en.mdx"));
+const TransformerEsBody = dynamic(() => import("@/content/lab/transformer.es.mdx"));
 
 /* ─── Lazy-loaded visualizers: §01 ─── */
 const WordToEmbeddingViz = lazy(() =>
@@ -1362,7 +1366,7 @@ export function TransformerNarrative() {
   const { language } = useI18n();
   const { hasStoredProgress, storedSection, clearProgress } = useProgressTracker("transformer");
 
-  const Body = language === "es" ? TransformerEs : TransformerEn;
+  const Body = language === "es" ? TransformerEsBody : TransformerEnBody;
   const mdxComponents = useMemo(
     () =>
       labMdxComponents(NA, TF_WIDGETS, {

@@ -1,6 +1,7 @@
 "use client";
 
 import { lazy, Suspense, useCallback, useState } from "react";
+import dynamic from "next/dynamic";
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -15,8 +16,6 @@ import {
 } from "lucide-react";
 
 import { BlockMath } from "@/components/math/LazyMath";
-import NnEn from "@/content/lab/nn.en.mdx";
-import NnEs from "@/content/lab/nn.es.mdx";
 import { ContinueToast } from "@/features/lab/components/ContinueToast";
 import { FadeInView } from "@/features/lab/components/FadeInView";
 import { Term } from "@/features/lab/components/GlossaryTooltip";
@@ -32,6 +31,11 @@ import { useLabMode } from "@/features/lab/context/LabModeContext";
 import { useProgressTracker } from "@/features/lab/hooks/useProgressTracker";
 import { useI18n } from "@/i18n/context";
 import { useRouter } from "@/i18n/navigation";
+
+/* Chapter narrative MDX — one dynamic() per locale so only the active language ships
+   (SSR stays on → prose is server-rendered; the other locale loads on toggle). */
+const NnEnBody = dynamic(() => import("@/content/lab/nn.en.mdx"));
+const NnEsBody = dynamic(() => import("@/content/lab/nn.es.mdx"));
 
 /* ─── Lazy-loaded interactive visualizers, injected into the MDX ─── */
 const ActivationDerivativeVisualizer = lazy(() =>
@@ -924,7 +928,7 @@ export function NeuralNetworkNarrative() {
   const { setMode } = useLabMode();
   const { hasStoredProgress, storedSection, clearProgress } = useProgressTracker("neural-networks");
 
-  const Body = language === "es" ? NnEs : NnEn;
+  const Body = language === "es" ? NnEsBody : NnEnBody;
   const mdxComponents = labMdxComponents("rose", NN_WIDGETS, {
     open: language === "es" ? "leer" : "read",
     close: language === "es" ? "cerrar" : "close",
