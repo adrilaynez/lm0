@@ -21,47 +21,55 @@ import type { Language } from "./types";
      stray ICU brace during rollout never throws in the UI.
    ───────────────────────────────────────────── */
 export function useI18n() {
-    const language = useLocale() as Language;
-    const tRoot = useTranslations();
-    const router = useRouter();
-    const pathname = usePathname();
+  const language = useLocale() as Language;
+  const tRoot = useTranslations();
+  const router = useRouter();
+  const pathname = usePathname();
 
-    // Reproduce the OLD hand-rolled t() semantics exactly: take the RAW message string
-    // (no ICU parsing) and do `{param}` replacement ourselves. This is required because
-    // many strings embed literal <strong>/<em> HTML (rendered via dangerouslySetInnerHTML)
-    // which next-intl's ICU formatter would mis-parse as tag placeholders and throw on.
-    // Using tRoot.raw() sidesteps ICU entirely — same behavior the app always had.
-    const t = React.useCallback(
-        (key: string, params?: Record<string, string | number>): string => {
-            let raw: unknown;
-            try {
-                raw = tRoot.raw(key);
-            } catch {
-                return key;
-            }
-            if (typeof raw !== "string") return key;
-            if (!params) return raw;
-            let out = raw;
-            for (const [k, v] of Object.entries(params)) {
-                out = out.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
-            }
-            return out;
-        },
-        [tRoot],
-    );
+  // Reproduce the OLD hand-rolled t() semantics exactly: take the RAW message string
+  // (no ICU parsing) and do `{param}` replacement ourselves. This is required because
+  // many strings embed literal <strong>/<em> HTML (rendered via dangerouslySetInnerHTML)
+  // which next-intl's ICU formatter would mis-parse as tag placeholders and throw on.
+  // Using tRoot.raw() sidesteps ICU entirely — same behavior the app always had.
+  const t = React.useCallback(
+    (key: string, params?: Record<string, string | number>): string => {
+      let raw: unknown;
+      try {
+        raw = tRoot.raw(key);
+      } catch {
+        return key;
+      }
+      if (typeof raw !== "string") return key;
+      if (!params) return raw;
+      let out = raw;
+      for (const [k, v] of Object.entries(params)) {
+        // Replacer function (not a string) so values containing `$&`, `$1`, `$$`
+        // etc. are inserted literally instead of being treated as regex patterns.
+        out = out.replace(new RegExp(`\\{${k}\\}`, "g"), () => String(v));
+      }
+      return out;
+    },
+    [tRoot],
+  );
 
-    const setLanguage = React.useCallback(
-        (lang: Language) => {
-            router.replace(pathname, { locale: lang });
-        },
-        [router, pathname],
-    );
+  const setLanguage = React.useCallback(
+    (lang: Language) => {
+      // Preserve the query string (e.g. latent-space?mode=essays) across the switch —
+      // next-intl's usePathname() drops it. Read it from the live URL at click time
+      // (a callback, not a hook) to avoid forcing useSearchParams() — which would
+      // deopt every useI18n() consumer out of static rendering.
+      const search = typeof window !== "undefined" ? window.location.search : "";
+      const query = Object.fromEntries(new URLSearchParams(search).entries());
+      router.replace({ pathname, query }, { locale: lang });
+    },
+    [router, pathname],
+  );
 
-    return { language, setLanguage, t };
+  return { language, setLanguage, t };
 }
 
 /* Back-compat no-op: the old <I18nProvider> wrapper is replaced by NextIntlClientProvider
    in app/[locale]/layout.tsx. Kept as a pass-through so any lingering import doesn't break. */
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
+  return <>{children}</>;
 }
