@@ -1,755 +1,944 @@
 // ngram namespace (en). Slice of the original i18n dictionary — see src/i18n/README.md.
 export const ngram = {
-    ngram: {
-        training: {
-            title: "Training Insights",
-            stats: {
-                totalTokens: "Total Tokens",
-                uniqueContexts: "Unique Contexts",
-                utilization: "Context Utilization",
-                sparsity: "Sparsity",
-                transitionDensity: "Transition Density",
-                subs: {
-                    possiblePrefix: "of",
-                    possibleSuffix: "possible",
-                    fractionObserved: "Fraction of contexts observed",
-                    unseen: "Unseen context fraction",
-                },
-            },
+  /* "Train your own n-gram" — the playground hero (bench-only for now). */
+  trainNgramLab: {
+    lead: "Let's train an n-gram on your own text, and this time you choose the memory.",
+    placeholder: "a whole book fits here…",
+    upload: "upload a .txt",
+    sample: "Shakespeare sample",
+    clear: "empty",
+    count: "{n} characters · up to {cap}",
+    truncated: "over the limit: the first {cap} characters will be used",
+    tiny: "with this little text it'll come out stuttering — still worth it",
+    train: "train",
+    memLabel: "letters of memory",
+    memSpace: "{rows} possible rows",
+    kName1: "bigram",
+    kName2: "trigram",
+    kName3: "4-gram",
+    kName4: "5-gram",
+    kName5: "6-gram",
+    readingMarker: "reading your text",
+    rowsLabel: "rows with data ({name})",
+    windowsRead: "{n} windows read",
+    coverage: "{obs} of {space} possible rows · {pct}%",
+    skip: "skip to the end",
+    foldReport: "{letters} letters · {accents} accents flattened (á→a) · {symbols} symbols→␣",
+    foldTruncated: "cut at {cap}",
+    tabTable: "the table",
+    tabWrite: "write",
+    retrain: "another text",
+    searchLabel: "{k}-letter row",
+    randomRow: "a random one",
+    rowAfter: "after “{ctx}”",
+    rowTotal: "{n} times in total",
+    rowSlot: "“{ch}” · {n} times · {pct}%",
+    rowEmpty: "“{ctx}” · empty row — your text never went there",
+    topLabel: "the most-seen rows",
+    modeSolo: "solo",
+    modePaso: "step by step",
+    modeManual: "you choose",
+    tempLabel: "temperature",
+    tempCold: "faithful",
+    tempHot: "chaos",
+    seedLabel: "start from",
+    seedRandom: "a frequent one",
+    ctxLabel: "looking at",
+    backoff: "empty row → memory cut to {k}",
+    go: "write",
+    pause: "pause",
+    more: "keep going",
+    lettersWritten: "{n} letters",
+    copy: "copy",
+    copied: "copied",
+    clearOut: "erase",
+    next: "next letter",
+    auto: "auto",
+    autoStop: "stop",
+    stepRow: "the row of “{ctx}”",
+    stepSpin: "the loaded dice is spinning…",
+    stepLanded: "out comes “{ch}”",
+    manualHint: "you are the dice: any lit slot works; the dark ones, never",
+    pickSlot: "“{ch}” · {n} times · {pct}%",
+    pickZero: "“{ch}” · 0 times — the model can't choose it",
+    rollForMe: "roll the dice for me",
+    outEmpty: "whatever it writes will appear here…",
+  },
+  ngram: {
+    training: {
+      title: "Training Insights",
+      stats: {
+        totalTokens: "Total Tokens",
+        uniqueContexts: "Unique Contexts",
+        utilization: "Context Utilization",
+        sparsity: "Sparsity",
+        transitionDensity: "Transition Density",
+        subs: {
+          possiblePrefix: "of",
+          possibleSuffix: "possible",
+          fractionObserved: "Fraction of contexts observed",
+          unseen: "Unseen context fraction",
         },
-        widgets: {
-            typoBreaker: {
-                title: "Break the Model",
-                subtitle: "Type a misspelled word or novel phrase — watch the model fail",
-                placeholder: "Type a misspelled word or new phrase…",
-                reset: "Reset",
-                test: "Test",
-                tryLabel: "Try:",
-                contextLookup: "Context lookup",
-                modelConfidence: "Model confidence",
-                randomMarker: "↑ random (1/{vocab} ≈ 1%)",
-                verdictKnownPrefix: "The model found a familiar context",
-                verdictKnownSuffix: "and can make a reasonable prediction. But change even one character and the entire context becomes unknown.",
-                verdictUnknownStrong: "No matching context found.",
-                verdictUnknownBody: "The model has never seen this exact character sequence in training. Confidence collapses to random chance (1/{vocab} per character). A human would easily understand the intent — the N-gram model cannot.",
-                examples: {
-                    swapTwoLetters: "Swap two letters",
-                    commonMisspelling: "Common misspelling",
-                    novelWord: "Novel word",
-                    missingVowel: "Missing vowel",
-                },
-            },
-            generalizationFailure: {
-                seenInTraining: "Seen in training",
-                neverSeenInTraining: "Never seen in training",
-                nextWord: "next word →",
-                confidence: "confidence",
-                neverSeenNoPrediction: "Never seen. No prediction possible.",
-                explanation: "Swapping \"cat\" for \"dog\" creates a brand-new row in the table. The model cannot transfer what it knows about cats — each context is completely isolated.",
-            },
-            sparsityHeatmap: {
-                title: "Table Density Heatmap",
-                subtitle: "How much of the probability table actually has data?",
-                entriesSuffix: "entries",
-                fill: "Fill",
-                density: "Density:",
-                legend: {
-                    high: "High",
-                    medium: "Medium",
-                    low: "Low",
-                    empty: "Empty",
-                },
-                insights: {
-                    n1: "The bigram table is mostly filled — with only 96 possible contexts, even a modest corpus covers most character pairs. But this model only sees one character of history.",
-                    n2: "The trigram table is already noticeably sparser. With 9,216 possible contexts, many 2-character combinations never appear in training. The model starts guessing randomly for unseen contexts.",
-                    n3: "The 4-gram table is almost entirely empty. With 884,736 possible contexts, the vast majority have zero training examples. The model is essentially blind for most inputs.",
-                    n4: "The 5-gram table is a desert of zeros. Over 8 billion possible contexts, and your training data covers a vanishingly small fraction. This is not a solvable problem — it's a mathematical certainty.",
-                },
-            },
-            confidenceImprovement: {
-                title: "How Context Sharpens Predictions",
-                subtitle: "Click any row to see the full candidate distribution",
-                after: "After",
-                summary: "32% → 85% → 91% — more context = sharper predictions",
-                hints: {
-                    n1: "After just \"h\", many vowels and consonants are plausible. The model spreads probability thinly.",
-                    n2: "\"th\" is a powerful signal — in English, \"the\" is the most common word. Confidence jumps dramatically.",
-                    n3: "\"the\" almost always ends with a space. The model is now 91% sure — very little ambiguity remains.",
-                },
-            },
-            contextDrilldown: {
-                lookupTitle: "Context Lookup",
-                lookupSubtitle: "Type a {n}-character context to see its next-character distribution",
-                lookupPlaceholder: "Enter {n} characters…",
-                lookupButton: "Lookup",
-                progressSuffix: "characters",
-                noDataFree: "No data found for this context. The model may not have seen \"{context}\" in training. This is the sparsity problem in action.",
-                drilldownTitle: "Context Drilldown",
-                drilldownSubtitle: "Pick {n} character{suffix} to explore the model's predictions",
-                breadcrumbStart: "Start",
-                breadcrumbDistribution: "distribution",
-                pickFirst: "Pick the first character ({remaining} remaining)",
-                pickNext: "After \"{context}\" — pick next ({remaining} remaining)",
-                back: "Back",
-                fetching: "Fetching distribution for \"{context}\"…",
-                fetchError: "Failed to fetch distribution",
-                noDataDrilldown: "No data for context \"{context}\". This context was never observed in training — the sparsity problem in action.",
-                chartTitle: "P(next | \"{context}\")",
-                chartTop: "Top {count} predictions",
-            },
-            infiniteTable: {
-                title: "The Data Coverage Problem",
-                subtitle: "How much of each N-gram table can you fill with real data?",
-                trainingDataSize: "Training data size",
-                tokensLabel: "{count} tokens",
-                entriesLabel: "{count} entries",
-                scale: {
-                    s0: "\u2248 a paragraph",
-                    s1: "\u2248 4 Word pages",
-                    s2: "\u2248 40 Word pages",
-                    s3: "\u2248 \u00bd Don Quixote",
-                    s4: "\u2248 5 Don Quixotes",
-                    s5: "\u2248 50 Don Quixotes",
-                    s6: "\u2248 500 Don Quixotes",
-                    s7: "\u2248 500,000 Don Quixotes",
-                },
-                insight: {
-                    v0: "Even with {tokens} tokens of training data, the 5-gram table ({entries} entries) is virtually empty. The model would have no prediction for almost any context it encounters.",
-                    v1: "With {tokens} tokens, the 5-gram table is less than 1% filled. Most contexts the model encounters at test time will have zero training examples.",
-                    v2: "With {tokens} tokens, low-N tables fill up — but the 5-gram table is still only {pct} covered. Sparsity is a data problem, not just a storage problem.",
-                },
-            },
-            countingComparison: {
-                bigramTitle: "Bigram (N=1)",
-                bigramContext: "1 char context",
-                bigramNote: "Wide spread — many characters plausibly follow \"h\".",
-                trigramTitle: "Trigram (N=2)",
-                trigramContext: "2 char context",
-                trigramNote: "Sharper — \"th\" almost always leads to \"e\".",
-                tooltips: {
-                    h_e: "After 'h', 'e' is the most common next character — but many other letters also follow 'h'.",
-                    h_a: "After 'h', 'a' appears in words like 'have', 'hand', 'hard'.",
-                    h_i: "After 'h', 'i' appears in words like 'his', 'him', 'hit'.",
-                    th_e: "After 'th', 'e' is overwhelmingly likely — 'the' is the most common English word.",
-                    th_a: "After 'th', 'a' appears in 'that', 'than', 'thank'.",
-                    th_i: "After 'th', 'i' appears in 'this', 'thing', 'think'.",
-                },
-            },
-        },
+      },
     },
-    ngramNarrative: {
-        v2: {
-            hero: {
-                eyebrow: "Chapter 2 · The counting era",
-                title: "A wider",
-                titleAccent: "window",
-                subtitle: "The bigram only remembered the last letter you wrote. Let's give it a little more memory.",
-                readTime: "12 min · still counting",
-            },
-            sectionNames: {
-                s01: "Looking further back",
-                s02: "Counting with context",
-                s03: "The leap, felt",
-                s04: "The cost",
-                s05: "The wall",
-                s06: "It doesn't generalize",
-                s07: "The bridge",
-            },
-            ui: { collapse: "close", expand: "open" },
-            s1: {
-                recap1: "The bigram stopped halfway. It wrote fine, letter by letter, but it had the memory of a goldfish: the moment it placed a letter it forgot everything before it, and only that last one was left to decide the next. That's why «th», «sh» and «wh» were all the same to it. All three end in h, and that was the whole story.",
-                recap2: "You don't read like that. When you've written «th» you don't start from scratch, you still have the t in your head, and the whole chunk of the word, so you sense what's coming even though nobody taught you the rule. That thing you carry has a name, and you'll recognize it the moment you see it: context.",
-                ask: "So the question asks itself. What if we let it look more than one letter back?",
-                payoff1: "With a single letter of hint you were blind, and you knew it. With four you were practically calling the answer before it showed up. The only thing that changed was how much you let it remember.",
-                payoff2: "And it turns out that has names, one per size of memory. Looking two letters back is a trigram. Three, a 4-gram. And up it goes, all the way to the n-gram, which looks at n. The lovely part is what it means looking backward: the bigram was never a separate model, it was the smallest of the family, an n-gram with n equal to two.",
-                pull: "The bigram was never a separate model. It was a tiny n-gram.",
-                bridge: "Fine, looking back helps. But how does a machine learn to do that, if all it knows how to do is count?",
-            },
-            s2: {
-                lead1: "The best part is there's no new trick. It's the same one as always, counting, and only one tiny thing changes.",
-                lead2: "Before, the machine kept one row per letter, the list of what tends to come after t. Now it keeps one row per pair: what comes after t-h, which isn't the same as what comes after any old lone h. The drawer's key is longer, that's all. But a longer key opens a more specific drawer.",
-                payoff: "The t row bet on h, sure, but half-heartedly: it won and still left life scattered across half a dozen other slots. The t-h row has no such doubts. After «th», the «e» eats almost everything and leaves the rest crumbs.",
-                bridge: "If each extra letter sharpens the bet this much, the question is unavoidable: what comes out if we actually let it write, whole paragraphs, remembering two letters, or three, or four?",
-            },
-            s3: {
-                stage: "Only fair to watch it run. Four machines, identical but for one thing: each gets to remember one more letter than the one on its left. Same seed for all of them, and off they write.",
-                triumph1: "The one on the left spits out letter soup and the one on the right almost strings sentences together, and between them there isn't a single new trick, just three more letters of memory. You just made a machine write better without teaching it a word, or a rule, or anything. You only gave it a little past.",
-                triumph2: "And there's the temptation. If four beats one, why stop? Why not ten letters of memory? Why not a hundred?",
-            },
-            s4: {
-                lead1: "This is where the idea, which was going so well, slams into a wall made not of cleverness but of plain arithmetic.",
-                lead2: "The bigram's table had one row per letter. Twenty-seven rows, something that fits on a page. The trigram already needs one row per possible pair of letters, twenty-seven by twenty-seven: seven hundred and twenty-nine. The 4-gram, one per triple: nearly twenty thousand. Each letter of memory you add doesn't tack on a few rows, it multiplies the whole table by twenty-seven.",
-                after: "Ten letters of memory aren't ten times more table. They're trillions of rows.",
-                wordsTitle: "and with words?",
-                words: "And all this counting only letters, which are twenty-seven. If the machine worked with whole words, the alphabet would jump to tens of thousands of pieces, and these numbers would look like a toy.",
-                bridge: "But a giant table, however giant, can be stored on some disk. The real problem is another one, and it's quite a bit worse.",
-            },
-            s5: {
-                lead1: "A table of twenty thousand rows is worth nothing if it's empty.",
-                lead2: "To fill the t-h-e row you need to have seen «the» somewhere, and that happens at every step, so that row fills itself. But the table also keeps a slot for «zxq», and another for «qjp», and for thousands of combinations nobody ever writes. There they sit, reserved, waiting for a visit that never comes.",
-                lead3: "And the longer you make the memory, the more the table fills with bizarre rows you'll never see. It grows and empties at the same time.",
-                afterSparsity: "Almost all black. And those gaps aren't a glitch in the drawing, they're combinations that simply never get used.",
-                moreDataAsk: "By here almost everyone thinks the same thing: fine, I'll give it more text. More books, more data, whatever it takes to fill it.",
-                afterInfinite: "No way. However much text you feed it, the big windows stay almost empty, because there are more possible combinations than seconds the universe has been alive. It isn't a matter of trying harder. It just doesn't fit.",
-                bridge: "And even so, the worst part isn't the empty table. It's what the machine does when it hits a blank slot.",
-            },
-            s6: {
-                lead: "Give it a context it's seen a thousand times and it answers without blinking, dead sure. Change a single letter, one, to something it never saw, and it goes blank. Truly blank, without half a word to offer.",
-                after: "And the absurd thing is those two contexts are as alike as two drops of water. You'd answer both the same without thinking, because to you they're alike. To the machine they're nothing alike: either it saw that exact row, letter for letter, or it didn't, and between those two there's no middle ground.",
-                typoBridge: "And you don't have to dig up rare words. A clumsy finger is enough.",
-                diagnosis: "The bigram predicted without understanding a word of what it did. Its grown-up version, the n-gram, predicts quite a bit better, but understanding, actually understanding, it still understands nothing. The difference is that now it hides it. Until you change a letter.",
-                takeaway: "The n-gram doesn't learn rules, it memorizes chunks. And whatever it didn't memorize doesn't exist for it.",
-                bridge: "The failure has one concrete root, and naming it is already half the way to the next chapter.",
-            },
-            s7: {
-                lead: "To the machine, «cat» and «dog» have nothing to do with each other. They're two different rows of the table, two labels, two plain numbers, and two different numbers are as alike as any two phone numbers: not at all.",
-                after1: "If the machine knew that «cat» and «dog» belong together, what it learns about one would serve for the other for free, and it wouldn't need to have seen every context in the world, just a few similar ones. It would stop memorizing by rote and start actually understanding.",
-                after2: "That's no longer something you get by counting. It takes something else, and that something else is the next chapter.",
-            },
-            history: {
-                kicker: "History · optional",
-                title: "When counting ruled the world",
-                paras: [
-                    "For decades, this thing you just played with was the state of the art. Not a classroom curiosity, but the real engine behind speech recognition, spell-checkers, and the first machine translation that actually worked.",
-                    "At IBM's labs, in the eighties, a team led by Fred Jelinek bet everything on counting. The more transcripts they fed it, the better their system recognized speech. Out of that came a line that grew famous in the field: there's no data like more data.",
-                    "And it held up for years like that, swallowing absurd amounts of text and living with the half-empty tables. Until the wall you just saw became impassable, and someone tried not counting.",
-                ],
-            },
-            cta: {
-                quote: "Counting brought us this far. To cross the wall, you have to stop counting.",
-                hook: "It takes a new idea: that things which look alike should be treated alike. That's what neural networks are about.",
-                button: "Neural networks",
-                buttonDesc: "The jump from memorizing to understanding.",
-            },
-            footer: {
-                text: "Chapter 2 of the counting era. You built it yourself, just by counting.",
-                brand: "LM-Lab",
-            },
+    widgets: {
+      typoBreaker: {
+        title: "Break the Model",
+        subtitle: "Type a misspelled word or novel phrase — watch the model fail",
+        placeholder: "Type a misspelled word or new phrase…",
+        reset: "Reset",
+        test: "Test",
+        tryLabel: "Try:",
+        contextLookup: "Context lookup",
+        modelConfidence: "Model confidence",
+        randomMarker: "↑ random (1/{vocab} ≈ 1%)",
+        verdictKnownPrefix: "The model found a familiar context",
+        verdictKnownSuffix:
+          "and can make a reasonable prediction. But change even one character and the entire context becomes unknown.",
+        verdictUnknownStrong: "No matching context found.",
+        verdictUnknownBody:
+          "The model has never seen this exact character sequence in training. Confidence collapses to random chance (1/{vocab} per character). A human would easily understand the intent — the N-gram model cannot.",
+        examples: {
+          swapTwoLetters: "Swap two letters",
+          commonMisspelling: "Common misspelling",
+          novelWord: "Novel word",
+          missingVowel: "Missing vowel",
         },
-        v3: {
-            hero: {
-                eyebrow: "Chapter 2 · The counting era",
-                title: "A longer",
-                titleAccent: "memory",
-                subtitle: "The last machine only remembered the last letter you typed. Let's give it more memory and see how far it goes.",
-                readTime: "12 min · keep counting",
-            },
-            sectionNames: {
-                s1: "Looking further back",
-                s2: "Build it yourself",
-                s3: "What you built",
-                s4: "How far it goes",
-                s5: "The gap",
-                s6: "The bridge",
-            },
-            ui: { collapse: "close", expand: "open" },
-            s1: {
-                recap: "The machine from the last chapter wrote on its own, letter by letter, reading a table of counts. It had one weak spot: a goldfish memory. The moment it placed a letter it forgot everything else, keeping only that one — the last — to decide the next.",
-                amnesiaLead: "Before you touch anything, hand it three different words and watch how it bets.",
-                afterAmnesia: "You don't read like that. Once you've written «th», the t is still in your head, and that's why you smell what's coming. The machine doesn't have it: the moment it places the h, the t is gone. That's why all three end the same way for it. And that thing you carry, the half-finished word in your head, has a name you'll recognize the moment you see it. Context.",
-                ask: "So the question asks itself: what if we let it look more than one letter back?",
-                payoff: "With one letter you were flying blind, and you knew it. With three or four you were calling the answer before it even showed up, and the machine underneath was the same as ever: all you touched was how much you let it remember.",
-                name: "And the single-letter machine, the one from the last chapter, turns out to have been just the smallest version of this.",
-                bridge: "Looking back helps. But how does a machine that can only count learn to do that?",
-            },
-            s2: {
-                lead: "It's still the same old trick, counting. But now you want to store «what follows th», not «what follows any old h». How would you store that, with the same counts? Think for a second before you touch anything. Then try it: this time you build it.",
-                payoff: "You started with one row and ended with seven hundred twenty-nine, splitting them by hand, one at a time. Nobody told you «this is a trigram». You built it.",
-                sharpenLead: "Lean in on one of those children, the one that stores what follows «th». And put it next to the old one, the lone-h row.",
-                growLead: "And it doesn't stop at pairs. What happens to the table if you go up one more level?",
-                bridge: "If every level sharpens the bet, the question asks itself. What comes out if we actually let it write?",
-            },
-            s3: {
-                writeLead: "Before we celebrate anything, let's open the hood and watch how it writes.",
-                afterWrite: "That's all there is to it, no trick anywhere: it finds the context you've written so far, checks which letter tends to follow, puts it down, and starts over. It isn't thinking. It's reading a table.",
-                celebrateLead: "Set them writing at the same time, the one-letter and the four-letter, from the same seed.",
-                triumph: "The one-letter machine spits out letter soup; the four-letter one almost strings sentences together. Between them you didn't add a single rule, not one word of grammar, just a few more letters of the past in the bet.",
-                temptation: "And there's the temptation. If four beats one, why stop? Why not ten? Why not a hundred?",
-            },
-            s4: {
-                zoomLead: "Crank up the memory and pull back, see how far the table holds.",
-                afterZoom: "Add another letter and pull back again. Reached the edge? Keep pulling back. How about now?",
-                firehoseLead: "A table like that wants text, and lots of it. So let's feed it: pour in a whole Shakespeare, and another, and a thousand. Open the tap.",
-                afterFirehose: "You've poured in a thousand books. Look where the level sits.",
-                bridge: "A table like that, fed all of that, you put to the test with any word you hadn't written yet.",
-            },
-            s5: {
-                before: "It does great with what it's already seen. So write something perfectly ordinary, change a single letter, and before you look, place your bet: what do you think it'll do?",
-                after: "One letter of difference. And that gap needn't be the bad luck of a single cell: lean into the whole table and see how many more there are.",
-                close: "Does this look familiar? It's the flat row from the start, the goldfish with no memory, back again. To you the two contexts are nearly the same. To it they're not: either it had that row saved, exactly, or it didn't.",
-            },
-            s6: {
-                progressLead: "It has a ceiling, yes. And even with that ceiling, look where you came from.",
-                afterProgress: "From banging its head on the keyboard to writing real words, without teaching it a single rule. And it didn't stay a classroom toy: this same idea powered translators, speech recognition and your phone's keyboard for years.",
-                afterLimit: "Pushed to the limit, with data to spare, it writes well enough to almost pass. And yet, look where it put «cat» and «dog»: miles apart, like two complete strangers. You know they belong together. How many times did it have to see «cat» to know anything about «dog»? Not once helped. What it learned in one context stayed in that context, and in no other.",
-            },
-            history: {
-                kicker: "History · optional",
-                title: "When counting ruled the world",
-                paras: [
-                    "For decades, what you just touched was the state of the art. Not a classroom curiosity, but the real engine behind speech recognition, spell-checkers and the first machine translation that actually worked.",
-                    "At IBM's labs in the eighties, a team led by Fred Jelinek bet everything on counting. The more transcripts they fed it, the better their system recognized speech. Out of that came a line that became famous in the field: there's no data like more data.",
-                    "And it held on for years, swallowing absurd amounts of text and living with the half-empty tables. Until that same limit you just ran into stopped budging no matter how much data they threw at it, and someone thought of giving up counting.",
-                ],
-            },
-            cta: {
-                quote: "Counting brought us this far. Crossing the wall means giving up counting.",
-                hook: "That things which look alike should be treated alike. That's what neural networks are about.",
-                button: "Neural networks",
-                buttonDesc: "Where the counting stops.",
-            },
-            footer: {
-                text: "You built it yourself, just by counting.",
-                brand: "LM-Lab",
-            },
+      },
+      generalizationFailure: {
+        seenInTraining: "Seen in training",
+        neverSeenInTraining: "Never seen in training",
+        nextWord: "next word →",
+        confidence: "confidence",
+        neverSeenNoPrediction: "Never seen. No prediction possible.",
+        explanation:
+          'Swapping "cat" for "dog" creates a brand-new row in the table. The model cannot transfer what it knows about cats — each context is completely isolated.',
+      },
+      sparsityHeatmap: {
+        title: "Table Density Heatmap",
+        subtitle: "How much of the probability table actually has data?",
+        entriesSuffix: "entries",
+        fill: "Fill",
+        density: "Density:",
+        legend: {
+          high: "High",
+          medium: "Medium",
+          low: "Low",
+          empty: "Empty",
         },
-        hero: {
-            eyebrow: "Understanding Language Models",
-            titlePrefix: "What If We",
-            titleSuffix: "Remember More?",
-            description: "The bigram model could only see one character behind. What happens when we give it two? Three? Five? The answer is both thrilling and devastating.",
+        insights: {
+          n1: "The bigram table is mostly filled — with only 96 possible contexts, even a modest corpus covers most character pairs. But this model only sees one character of history.",
+          n2: "The trigram table is already noticeably sparser. With 9,216 possible contexts, many 2-character combinations never appear in training. The model starts guessing randomly for unseen contexts.",
+          n3: "The 4-gram table is almost entirely empty. With 884,736 possible contexts, the vast majority have zero training examples. The model is essentially blind for most inputs.",
+          n4: "The 5-gram table is a desert of zeros. Over 8 billion possible contexts, and your training data covers a vanishingly small fraction. This is not a solvable problem — it's a mathematical certainty.",
         },
-        moreContext: {
-            label: "More Context",
-            title: "Beyond a Single Character",
-            lead: "Remember the fatal flaw? 'th', 'sh', 'wh' all gave identical predictions because the model saw only one character. What if we gave it two? Three? Five?",
-            confidenceBridge: "Notice how confidence jumps from 18% at N=1 to 94% at N=5. More memory transforms a blind guesser into a capable predictor.",
-            p1: "An N-gram model looks at the",
-            p1Highlight: "previous N characters",
-            p1End: " before it guesses the next one. Example: N=2 means it can see two characters of context.",
-            p2: "More context makes guesses smarter. After \"th\", the model can strongly expect \"e\" — it has seen that pattern many times.",
-            p3: "But more memory has a hidden cost. We are about to watch that cost grow faster than your intuition expects.",
-            calloutTitle: "The N-gram Assumption",
-            calloutText: "The key assumption: the next character depends only on the previous N characters. Everything before that is forgotten. It's like a sliding window — and the question is: how big should it be?",
-            tryPrompt: "Click the buttons above. What happens to the prediction as N grows?",
+      },
+      confidenceImprovement: {
+        title: "How Context Sharpens Predictions",
+        subtitle: "Click any row to see the full candidate distribution",
+        after: "After",
+        summary: "32% → 85% → 91% — more context = sharper predictions",
+        hints: {
+          n1: 'After just "h", many vowels and consonants are plausible. The model spreads probability thinly.',
+          n2: '"th" is a powerful signal — in English, "the" is the most common word. Confidence jumps dramatically.',
+          n3: '"the" almost always ends with a space. The model is now 91% sure — very little ambiguity remains.',
         },
-        contextWindow: {
-            label: "Context Window",
-            title: "Seeing More of the Past",
-            lead: "The context window is how many previous characters the model can \"see\" before it makes a guess.",
-            caption: "As the window gets larger, the model can use richer patterns. But the number of possible windows grows extremely fast.",
-            hint: "Watch how the context grows as N increases.",
-            p1: "Each step up in N gives the model more clues. It also creates many more situations the model might need to remember later.",
+      },
+      contextDrilldown: {
+        lookupTitle: "Context Lookup",
+        lookupSubtitle: "Type a {n}-character context to see its next-character distribution",
+        lookupPlaceholder: "Enter {n} characters…",
+        lookupButton: "Lookup",
+        progressSuffix: "characters",
+        noDataFree:
+          'No data found for this context. The model may not have seen "{context}" in training. This is the sparsity problem in action.',
+        drilldownTitle: "Context Drilldown",
+        drilldownSubtitle: "Pick {n} character{suffix} to explore the model's predictions",
+        breadcrumbStart: "Start",
+        breadcrumbDistribution: "distribution",
+        pickFirst: "Pick the first character ({remaining} remaining)",
+        pickNext: 'After "{context}" — pick next ({remaining} remaining)',
+        back: "Back",
+        fetching: 'Fetching distribution for "{context}"…',
+        fetchError: "Failed to fetch distribution",
+        noDataDrilldown:
+          'No data for context "{context}". This context was never observed in training — the sparsity problem in action.',
+        chartTitle: 'P(next | "{context}")',
+        chartTop: "Top {count} predictions",
+      },
+      infiniteTable: {
+        title: "The Data Coverage Problem",
+        subtitle: "How much of each N-gram table can you fill with real data?",
+        trainingDataSize: "Training data size",
+        tokensLabel: "{count} tokens",
+        entriesLabel: "{count} entries",
+        scale: {
+          s0: "\u2248 a paragraph",
+          s1: "\u2248 4 Word pages",
+          s2: "\u2248 40 Word pages",
+          s3: "\u2248 \u00bd Don Quixote",
+          s4: "\u2248 5 Don Quixotes",
+          s5: "\u2248 50 Don Quixotes",
+          s6: "\u2248 500 Don Quixotes",
+          s7: "\u2248 500,000 Don Quixotes",
         },
-        howItWorks: {
-            label: "Mechanics",
-            title: "Counting with Context",
-            lead: "The core idea is unchanged from bigrams — we still count. But now, instead of asking 'what follows this one character?', we ask 'what follows this sequence of N characters?' The table gets deeper, but the logic stays simple.",
-            p1: "For every position in the training text, the model extracts the",
-            p1Highlight: " N-character context",
-            p1End: " and records which character comes next. At prediction time it looks up the matching context row and reads off the stored probability distribution — pure table lookup, no math.",
-            p2: "With N=1 (bigram) the table is a flat V\u00d7V grid. With N=2 it becomes a stack of grids — one per two-character prefix. Each additional character of context adds another dimension. The table doesn't just grow; it multiplies.",
-            discoveryPrompt: "Remember the bigram\u2019s fatal flaw? \u2018th\u2019, \u2018sh\u2019, and \u2018wh\u2019 gave identical predictions because the model only saw the last \u2018h\u2019. Now look at what N=2 sees instead:",
-            tableInsight: "Each row is now a two-character context. The distributions for \u2018th\u2019 and \u2018sh\u2019 are different \u2014 the model can finally tell them apart. This is the whole point.",
-            bridge: "That difference is real. The widget below puts bigram and trigram counting side by side on the same training text so you can measure it directly.",
+        insight: {
+          v0: "Even with {tokens} tokens of training data, the 5-gram table ({entries} entries) is virtually empty. The model would have no prediction for almost any context it encounters.",
+          v1: "With {tokens} tokens, the 5-gram table is less than 1% filled. Most contexts the model encounters at test time will have zero training examples.",
+          v2: "With {tokens} tokens, low-N tables fill up — but the 5-gram table is still only {pct} covered. Sparsity is a data problem, not just a storage problem.",
         },
-        improvement: {
-            label: "Improvement",
-            title: "The Prediction Gets Better",
-            lead: "More context means less ambiguity. When the model can see two characters instead of one, it rules out far more candidates — and the remaining predictions become dramatically more confident.",
-            example: "After 'h', dozens of characters are plausible. After 'th', the model strongly expects 'e'. After 'the', a space becomes almost certain. Each extra character of context narrows the field.",
-            improvementReflection: "Notice the jump: 18% confidence at N=1, over 80% at N=3. Each extra character of context collapses ambiguity. The model isn\u2019t guessing \u2014 it\u2019s remembering.",
-            battleBridge: "That confidence gain compounds across a whole sentence. Below, the same seed feeds models with different memory sizes simultaneously \u2014 watch what one extra character of memory does to the output:",
-            battleReflection: "Look at the N=4 column: phrases that almost read like English. Look at N=1: random noise. Same logic, same training data \u2014 only the memory window differs. Three extra characters bought us a language model.",
-            generatorBridge: "Now it's your turn. Pick a seed phrase, choose how much memory the model gets (N=2, 3, or 4), and watch it write.",
-            expandableGenTitle: "Try It Yourself: Your Own N-gram Generator",
+      },
+      countingComparison: {
+        bigramTitle: "Bigram (N=1)",
+        bigramContext: "1 char context",
+        bigramNote: 'Wide spread — many characters plausibly follow "h".',
+        trigramTitle: "Trigram (N=2)",
+        trigramContext: "2 char context",
+        trigramNote: 'Sharper — "th" almost always leads to "e".',
+        tooltips: {
+          h_e: "After 'h', 'e' is the most common next character — but many other letters also follow 'h'.",
+          h_a: "After 'h', 'a' appears in words like 'have', 'hand', 'hard'.",
+          h_i: "After 'h', 'i' appears in words like 'his', 'him', 'hit'.",
+          th_e: "After 'th', 'e' is overwhelmingly likely — 'the' is the most common English word.",
+          th_a: "After 'th', 'a' appears in 'that', 'than', 'thank'.",
+          th_i: "After 'th', 'i' appears in 'this', 'thing', 'think'.",
         },
-        celebration: {
-            text: "You've built a much more powerful predictor. The 4-gram writes phrases that almost look like English. But every improvement has a price — and this one grows faster than you think.",
+      },
+    },
+  },
+  ngramNarrative: {
+    v2: {
+      hero: {
+        eyebrow: "Chapter 2 · The counting era",
+        title: "A wider",
+        titleAccent: "window",
+        subtitle:
+          "The bigram only remembered the last letter you wrote. Let's give it a little more memory.",
+        readTime: "12 min · still counting",
+      },
+      sectionNames: {
+        s01: "Looking further back",
+        s02: "Counting with context",
+        s03: "The leap, felt",
+        s04: "The cost",
+        s05: "The wall",
+        s06: "It doesn't generalize",
+        s07: "The bridge",
+      },
+      ui: { collapse: "close", expand: "open" },
+      s1: {
+        recap1:
+          "The bigram stopped halfway. It wrote fine, letter by letter, but it had the memory of a goldfish: the moment it placed a letter it forgot everything before it, and only that last one was left to decide the next. That's why «th», «sh» and «wh» were all the same to it. All three end in h, and that was the whole story.",
+        recap2:
+          "You don't read like that. When you've written «th» you don't start from scratch, you still have the t in your head, and the whole chunk of the word, so you sense what's coming even though nobody taught you the rule. That thing you carry has a name, and you'll recognize it the moment you see it: context.",
+        ask: "So the question asks itself. What if we let it look more than one letter back?",
+        payoff1:
+          "With a single letter of hint you were blind, and you knew it. With four you were practically calling the answer before it showed up. The only thing that changed was how much you let it remember.",
+        payoff2:
+          "And it turns out that has names, one per size of memory. Looking two letters back is a trigram. Three, a 4-gram. And up it goes, all the way to the n-gram, which looks at n. The lovely part is what it means looking backward: the bigram was never a separate model, it was the smallest of the family, an n-gram with n equal to two.",
+        pull: "The bigram was never a separate model. It was a tiny n-gram.",
+        bridge:
+          "Fine, looking back helps. But how does a machine learn to do that, if all it knows how to do is count?",
+      },
+      s2: {
+        lead1:
+          "The best part is there's no new trick. It's the same one as always, counting, and only one tiny thing changes.",
+        lead2:
+          "Before, the machine kept one row per letter, the list of what tends to come after t. Now it keeps one row per pair: what comes after t-h, which isn't the same as what comes after any old lone h. The drawer's key is longer, that's all. But a longer key opens a more specific drawer.",
+        payoff:
+          "The t row bet on h, sure, but half-heartedly: it won and still left life scattered across half a dozen other slots. The t-h row has no such doubts. After «th», the «e» eats almost everything and leaves the rest crumbs.",
+        bridge:
+          "If each extra letter sharpens the bet this much, the question is unavoidable: what comes out if we actually let it write, whole paragraphs, remembering two letters, or three, or four?",
+      },
+      s3: {
+        stage:
+          "Only fair to watch it run. Four machines, identical but for one thing: each gets to remember one more letter than the one on its left. Same seed for all of them, and off they write.",
+        triumph1:
+          "The one on the left spits out letter soup and the one on the right almost strings sentences together, and between them there isn't a single new trick, just three more letters of memory. You just made a machine write better without teaching it a word, or a rule, or anything. You only gave it a little past.",
+        triumph2:
+          "And there's the temptation. If four beats one, why stop? Why not ten letters of memory? Why not a hundred?",
+      },
+      s4: {
+        lead1:
+          "This is where the idea, which was going so well, slams into a wall made not of cleverness but of plain arithmetic.",
+        lead2:
+          "The bigram's table had one row per letter. Twenty-seven rows, something that fits on a page. The trigram already needs one row per possible pair of letters, twenty-seven by twenty-seven: seven hundred and twenty-nine. The 4-gram, one per triple: nearly twenty thousand. Each letter of memory you add doesn't tack on a few rows, it multiplies the whole table by twenty-seven.",
+        after: "Ten letters of memory aren't ten times more table. They're trillions of rows.",
+        wordsTitle: "and with words?",
+        words:
+          "And all this counting only letters, which are twenty-seven. If the machine worked with whole words, the alphabet would jump to tens of thousands of pieces, and these numbers would look like a toy.",
+        bridge:
+          "But a giant table, however giant, can be stored on some disk. The real problem is another one, and it's quite a bit worse.",
+      },
+      s5: {
+        lead1: "A table of twenty thousand rows is worth nothing if it's empty.",
+        lead2:
+          "To fill the t-h-e row you need to have seen «the» somewhere, and that happens at every step, so that row fills itself. But the table also keeps a slot for «zxq», and another for «qjp», and for thousands of combinations nobody ever writes. There they sit, reserved, waiting for a visit that never comes.",
+        lead3:
+          "And the longer you make the memory, the more the table fills with bizarre rows you'll never see. It grows and empties at the same time.",
+        afterSparsity:
+          "Almost all black. And those gaps aren't a glitch in the drawing, they're combinations that simply never get used.",
+        moreDataAsk:
+          "By here almost everyone thinks the same thing: fine, I'll give it more text. More books, more data, whatever it takes to fill it.",
+        afterInfinite:
+          "No way. However much text you feed it, the big windows stay almost empty, because there are more possible combinations than seconds the universe has been alive. It isn't a matter of trying harder. It just doesn't fit.",
+        bridge:
+          "And even so, the worst part isn't the empty table. It's what the machine does when it hits a blank slot.",
+      },
+      s6: {
+        lead: "Give it a context it's seen a thousand times and it answers without blinking, dead sure. Change a single letter, one, to something it never saw, and it goes blank. Truly blank, without half a word to offer.",
+        after:
+          "And the absurd thing is those two contexts are as alike as two drops of water. You'd answer both the same without thinking, because to you they're alike. To the machine they're nothing alike: either it saw that exact row, letter for letter, or it didn't, and between those two there's no middle ground.",
+        typoBridge: "And you don't have to dig up rare words. A clumsy finger is enough.",
+        diagnosis:
+          "The bigram predicted without understanding a word of what it did. Its grown-up version, the n-gram, predicts quite a bit better, but understanding, actually understanding, it still understands nothing. The difference is that now it hides it. Until you change a letter.",
+        takeaway:
+          "The n-gram doesn't learn rules, it memorizes chunks. And whatever it didn't memorize doesn't exist for it.",
+        bridge:
+          "The failure has one concrete root, and naming it is already half the way to the next chapter.",
+      },
+      s7: {
+        lead: "To the machine, «cat» and «dog» have nothing to do with each other. They're two different rows of the table, two labels, two plain numbers, and two different numbers are as alike as any two phone numbers: not at all.",
+        after1:
+          "If the machine knew that «cat» and «dog» belong together, what it learns about one would serve for the other for free, and it wouldn't need to have seen every context in the world, just a few similar ones. It would stop memorizing by rote and start actually understanding.",
+        after2:
+          "That's no longer something you get by counting. It takes something else, and that something else is the next chapter.",
+      },
+      history: {
+        kicker: "History · optional",
+        title: "When counting ruled the world",
+        paras: [
+          "For decades, this thing you just played with was the state of the art. Not a classroom curiosity, but the real engine behind speech recognition, spell-checkers, and the first machine translation that actually worked.",
+          "At IBM's labs, in the eighties, a team led by Fred Jelinek bet everything on counting. The more transcripts they fed it, the better their system recognized speech. Out of that came a line that grew famous in the field: there's no data like more data.",
+          "And it held up for years like that, swallowing absurd amounts of text and living with the half-empty tables. Until the wall you just saw became impassable, and someone tried not counting.",
+        ],
+      },
+      cta: {
+        quote: "Counting brought us this far. To cross the wall, you have to stop counting.",
+        hook: "It takes a new idea: that things which look alike should be treated alike. That's what neural networks are about.",
+        button: "Neural networks",
+        buttonDesc: "The jump from memorizing to understanding.",
+      },
+      footer: {
+        text: "Chapter 2 of the counting era. You built it yourself, just by counting.",
+        brand: "LM-Lab",
+      },
+    },
+    v3: {
+      hero: {
+        eyebrow: "Chapter 2 · The counting era",
+        title: "A longer",
+        titleAccent: "memory",
+        subtitle:
+          "The last machine only remembered the last letter you typed. Let's give it more memory and see how far it goes.",
+        readTime: "12 min · keep counting",
+      },
+      sectionNames: {
+        s1: "Looking further back",
+        s2: "Boxes within boxes",
+        s3: "Generation",
+        s4: "The price of memory",
+        s5: "The end of counting",
+        s6: "The end of counting",
+      },
+      ui: { collapse: "close", expand: "open" },
+      s1: {
+        recap:
+          "The machine from the last chapter wrote on its own, letter by letter, reading a table of counts. It had one weak spot: a goldfish memory. The moment it placed a letter it forgot everything else, keeping only that one — the last — to decide the next.",
+        amnesiaLead:
+          "Before you touch anything, hand it three different words and watch how it bets.",
+        afterAmnesia:
+          "You don't read like that. Once you've written «th», the t is still in your head, and that's why you smell what's coming. The machine doesn't have it: the moment it places the h, the t is gone. That's why all three end the same way for it. And that thing you carry, the half-finished word in your head, has a name you'll recognize the moment you see it. Context.",
+        ask: "So the question asks itself: what if we let it look more than one letter back?",
+        payoff:
+          "With one letter you were flying blind, and you knew it. With three or four you were calling the answer before it even showed up, and the machine underneath was the same as ever: all you touched was how much you let it remember.",
+        name: "And the single-letter machine, the one from the last chapter, turns out to have been just the smallest version of this.",
+        bridge: "Looking back helps. But how does a machine that can only count learn to do that?",
+      },
+      s2: {
+        lead: "It's still the same old trick, counting. But now you want to store «what follows th», not «what follows any old h». How would you store that, with the same counts? Think for a second before you touch anything. Then try it: this time you build it.",
+        payoff:
+          "You started with one row and ended with seven hundred twenty-nine, splitting them by hand, one at a time. Nobody told you «this is a trigram». You built it.",
+        sharpenLead:
+          "Lean in on one of those children, the one that stores what follows «th». And put it next to the old one, the lone-h row.",
+        growLead:
+          "And it doesn't stop at pairs. What happens to the table if you go up one more level?",
+        bridge:
+          "If every level sharpens the bet, the question asks itself. What comes out if we actually let it write?",
+      },
+      s3: {
+        writeLead: "Before we celebrate anything, let's open the hood and watch how it writes.",
+        afterWrite:
+          "That's all there is to it, no trick anywhere: it finds the context you've written so far, checks which letter tends to follow, puts it down, and starts over. It isn't thinking. It's reading a table.",
+        celebrateLead:
+          "Set them writing at the same time, the one-letter and the four-letter, from the same seed.",
+        triumph:
+          "The one-letter machine spits out letter soup; the four-letter one almost strings sentences together. Between them you didn't add a single rule, not one word of grammar, just a few more letters of the past in the bet.",
+        temptation:
+          "And there's the temptation. If four beats one, why stop? Why not ten? Why not a hundred?",
+      },
+      s4: {
+        zoomLead: "Crank up the memory and pull back, see how far the table holds.",
+        afterZoom:
+          "Add another letter and pull back again. Reached the edge? Keep pulling back. How about now?",
+        firehoseLead:
+          "A table like that wants text, and lots of it. So let's feed it: pour in a whole Shakespeare, and another, and a thousand. Open the tap.",
+        afterFirehose: "You've poured in a thousand books. Look where the level sits.",
+        bridge:
+          "A table like that, fed all of that, you put to the test with any word you hadn't written yet.",
+      },
+      s5: {
+        before:
+          "It does great with what it's already seen. So write something perfectly ordinary, change a single letter, and before you look, place your bet: what do you think it'll do?",
+        after:
+          "One letter of difference. And that gap needn't be the bad luck of a single cell: lean into the whole table and see how many more there are.",
+        close:
+          "Does this look familiar? It's the flat row from the start, the goldfish with no memory, back again. To you the two contexts are nearly the same. To it they're not: either it had that row saved, exactly, or it didn't.",
+      },
+      s6: {
+        progressLead:
+          "It has a ceiling, yes. And even with that ceiling, look where you came from.",
+        afterProgress:
+          "From banging its head on the keyboard to writing real words, without teaching it a single rule. And it didn't stay a classroom toy: this same idea powered translators, speech recognition and your phone's keyboard for years.",
+        afterLimit:
+          "Pushed to the limit, with data to spare, it writes well enough to almost pass. And yet, look where it put «cat» and «dog»: miles apart, like two complete strangers. You know they belong together. How many times did it have to see «cat» to know anything about «dog»? Not once helped. What it learned in one context stayed in that context, and in no other.",
+      },
+      history: {
+        kicker: "History · optional",
+        title: "When counting ruled the world",
+        paras: [
+          "For decades, what you just touched was the state of the art. Not a classroom curiosity, but the real engine behind speech recognition, spell-checkers and the first machine translation that actually worked.",
+          "At IBM's labs in the eighties, a team led by Fred Jelinek bet everything on counting. The more transcripts they fed it, the better their system recognized speech. Out of that came a line that became famous in the field: there's no data like more data.",
+          "And it held on for years, swallowing absurd amounts of text and living with the half-empty tables. Until that same limit you just ran into stopped budging no matter how much data they threw at it, and someone thought of giving up counting.",
+        ],
+      },
+      cta: {
+        quote: "Counting brought us this far. Crossing the wall means giving up counting.",
+        hook: "That things which look alike should be treated alike. That's what neural networks are about.",
+        button: "Neural networks",
+        buttonDesc: "Where the counting stops.",
+      },
+      footer: {
+        text: "You built it yourself, just by counting.",
+        brand: "LM-Lab",
+      },
+    },
+    hero: {
+      eyebrow: "Understanding Language Models",
+      titlePrefix: "What If We",
+      titleSuffix: "Remember More?",
+      description:
+        "The bigram model could only see one character behind. What happens when we give it two? Three? Five? The answer is both thrilling and devastating.",
+    },
+    moreContext: {
+      label: "More Context",
+      title: "Beyond a Single Character",
+      lead: "Remember the fatal flaw? 'th', 'sh', 'wh' all gave identical predictions because the model saw only one character. What if we gave it two? Three? Five?",
+      confidenceBridge:
+        "Notice how confidence jumps from 18% at N=1 to 94% at N=5. More memory transforms a blind guesser into a capable predictor.",
+      p1: "An N-gram model looks at the",
+      p1Highlight: "previous N characters",
+      p1End:
+        " before it guesses the next one. Example: N=2 means it can see two characters of context.",
+      p2: 'More context makes guesses smarter. After "th", the model can strongly expect "e" — it has seen that pattern many times.',
+      p3: "But more memory has a hidden cost. We are about to watch that cost grow faster than your intuition expects.",
+      calloutTitle: "The N-gram Assumption",
+      calloutText:
+        "The key assumption: the next character depends only on the previous N characters. Everything before that is forgotten. It's like a sliding window — and the question is: how big should it be?",
+      tryPrompt: "Click the buttons above. What happens to the prediction as N grows?",
+    },
+    contextWindow: {
+      label: "Context Window",
+      title: "Seeing More of the Past",
+      lead: 'The context window is how many previous characters the model can "see" before it makes a guess.',
+      caption:
+        "As the window gets larger, the model can use richer patterns. But the number of possible windows grows extremely fast.",
+      hint: "Watch how the context grows as N increases.",
+      p1: "Each step up in N gives the model more clues. It also creates many more situations the model might need to remember later.",
+    },
+    howItWorks: {
+      label: "Mechanics",
+      title: "Counting with Context",
+      lead: "The core idea is unchanged from bigrams — we still count. But now, instead of asking 'what follows this one character?', we ask 'what follows this sequence of N characters?' The table gets deeper, but the logic stays simple.",
+      p1: "For every position in the training text, the model extracts the",
+      p1Highlight: " N-character context",
+      p1End:
+        " and records which character comes next. At prediction time it looks up the matching context row and reads off the stored probability distribution — pure table lookup, no math.",
+      p2: "With N=1 (bigram) the table is a flat V\u00d7V grid. With N=2 it becomes a stack of grids — one per two-character prefix. Each additional character of context adds another dimension. The table doesn't just grow; it multiplies.",
+      discoveryPrompt:
+        "Remember the bigram\u2019s fatal flaw? \u2018th\u2019, \u2018sh\u2019, and \u2018wh\u2019 gave identical predictions because the model only saw the last \u2018h\u2019. Now look at what N=2 sees instead:",
+      tableInsight:
+        "Each row is now a two-character context. The distributions for \u2018th\u2019 and \u2018sh\u2019 are different \u2014 the model can finally tell them apart. This is the whole point.",
+      bridge:
+        "That difference is real. The widget below puts bigram and trigram counting side by side on the same training text so you can measure it directly.",
+    },
+    improvement: {
+      label: "Improvement",
+      title: "The Prediction Gets Better",
+      lead: "More context means less ambiguity. When the model can see two characters instead of one, it rules out far more candidates — and the remaining predictions become dramatically more confident.",
+      example:
+        "After 'h', dozens of characters are plausible. After 'th', the model strongly expects 'e'. After 'the', a space becomes almost certain. Each extra character of context narrows the field.",
+      improvementReflection:
+        "Notice the jump: 18% confidence at N=1, over 80% at N=3. Each extra character of context collapses ambiguity. The model isn\u2019t guessing \u2014 it\u2019s remembering.",
+      battleBridge:
+        "That confidence gain compounds across a whole sentence. Below, the same seed feeds models with different memory sizes simultaneously \u2014 watch what one extra character of memory does to the output:",
+      battleReflection:
+        "Look at the N=4 column: phrases that almost read like English. Look at N=1: random noise. Same logic, same training data \u2014 only the memory window differs. Three extra characters bought us a language model.",
+      generatorBridge:
+        "Now it's your turn. Pick a seed phrase, choose how much memory the model gets (N=2, 3, or 4), and watch it write.",
+      expandableGenTitle: "Try It Yourself: Your Own N-gram Generator",
+    },
+    celebration: {
+      text: "You've built a much more powerful predictor. The 4-gram writes phrases that almost look like English. But every improvement has a price — and this one grows faster than you think.",
+    },
+    whyNotMore: {
+      title: "Why Not N=100?",
+      lead: "If more context makes predictions better, why stop at 3 or 4? Why not look at the last 100 characters?",
+      p1: "Because every extra character of context multiplies the table by the vocabulary size. A bigram table has 9,216 entries (96\u00b2). A trigram jumps to 884,736 (96\u00b3). A 4-gram reaches over 84 million (96\u2074). Going to N=100 would require a table with more entries than atoms in the observable universe. The next section makes this explosion visceral.",
+      calloutInsight:
+        "More memory always improves predictions \u2014 but the cost grows exponentially. This is the core tension that defines the entire N-gram era.",
+    },
+    statistical: {
+      label: "Statistical Nature",
+      title: "A Purely Statistical Model",
+      lead: "N-gram models have no understanding of language. They are sophisticated counting machines.",
+      p1: "Every prediction is a",
+      p1Highlight: "table lookup",
+      p1End:
+        " — the model finds the matching context in its table and returns the stored probability distribution. There are no learned parameters, no gradients, no optimization.",
+      p2: 'This makes N-grams extremely fast at inference and trivially interpretable: you can always ask "why did the model predict X?" and trace the answer back to exact training examples.',
+      calloutTitle: "No Generalization",
+      calloutText:
+        "If the model has never seen a particular context in training, it has zero information about what comes next. Unlike neural networks, N-grams cannot generalize from similar contexts — each context is treated as completely independent.",
+    },
+    explosion: {
+      label: "The Explosion",
+      title: "The Price of Memory",
+      lead: "Here's where the math turns against us.",
+      concreteBridge:
+        "The numbers are abstract. Let's make this concrete — what do these tables actually look like?",
+    },
+    growingTables: {
+      label: "Interactive \u00b7 Growing Tables",
+      hint: "Watch how the table grows — and empties — as N increases.",
+      bigramLabel: "Bigram (N=1)",
+      trigramLabel: "Trigram (N=2)",
+      fourgramLabel: "4-gram (N=3)",
+      fivegramLabel: "5-gram (N=4)",
+      filledLabel: "Filled",
+      emptyLabel: "Empty",
+      replay: "Replay",
+    },
+    emptyTable: {
+      label: "The Empty Table",
+      title: "Most of the Table Is Empty",
+      lead: "The explosion creates another devastating problem: almost none of those entries will ever be filled with real data.",
+      bridge:
+        "The table below doesn't just grow \u2014 it hollows out. As N increases, the vast majority of possible contexts never appear in any realistic training text. This is called sparsity.",
+    },
+    priceOfMemory: {
+      label: "The Price",
+      title: "The Price of Memory",
+      lead: "Every improvement has a price. And this one grows faster than you think.",
+      sparsityBridge:
+        "But the explosion is only half the story. Building a bigger table is hard \u2014 but filling it is impossible. As N grows, most of the table stays empty:",
+      infiniteDataBridge:
+        "Even with all the text ever written, could you fill the table? Use the slider below:",
+      tokenizationBridge:
+        "So far we've been counting characters \u2014 just 96 possible tokens. Real language models use words instead. That changes everything:",
+      combinedInsight:
+        "The table is too big to build, too empty to use, and gets catastrophically worse with words. Three facets of one fundamental problem.",
+    },
+    complexity: {
+      label: "Complexity",
+      title: "The Price of Memory",
+      lead: "Here's where the math turns against us.",
+      p1: "With 96 possible characters, every extra character of context multiplies the table by 96. N=1: 96 contexts. N=2: 9,216. N=3: 884,736. N=4: 85 million. N=5: over 8 billion.",
+      p1Highlight: " 884,736",
+      p1End:
+        ". A 5-gram has over 84 million. Most of these contexts will never appear in any realistic training corpus.",
+      p2: "Most of those contexts never appear in real text. That means most of the table is empty — this is called sparsity — and empty rows cannot guide predictions.",
+      vocabCalloutTitle: "And it gets much worse with words",
+      vocabCalloutText:
+        "This lab uses characters (~96 possible). Real language models use words instead. With 50,000 words, even a bigram matrix needs 2.5 billion cells. A trigram table would need 125 trillion. The math turns catastrophic extremely fast.",
+      comparisonLabel: "N-Gram Comparison \u00b7 Live backend metrics",
+      comparisonHint:
+        "Compare perplexity, context utilization, and state space across different values of N.",
+      metricsLegend: {
+        perplexity:
+          'Perplexity means "how surprised the model is" on average; lower means better guesses and more confidence.',
+        utilization:
+          "Context utilization means how much of the huge table was actually filled by the training text; low utilization means many contexts were never seen.",
+        contextSpace:
+          "Context space means how many different contexts could exist in theory; it grows extremely fast as N increases.",
+      },
+    },
+    tokenization: {
+      intro: "This complexity becomes catastrophic when we move from characters to words.",
+      subsectionTitle: "Characters vs. Words: A Critical Trade-off",
+      charTitle: "Character-Level Tokens",
+      charDesc:
+        "Small, fixed vocabulary (~96 ASCII characters). Every input is representable. Simple to implement and visualize — ideal for understanding fundamentals. But each token carries almost no semantic meaning.",
+      charExample: "Vocab: ~96 | Example: ['t', 'h', 'e']",
+      wordTitle: "Word-Level Tokens",
+      wordDesc:
+        "Semantically rich units that convey meaning per token. But vocabulary explodes to 50,000–500,000 entries, making the transition matrix enormous. Rare words cause sparsity; unseen words cause complete failure.",
+      wordExample: "Vocab: ~50,000 | Example: ['the', 'cat', 'sat']",
+      explosionIntro:
+        "The combinatorial explosion at the word level makes even simple N-grams computationally infeasible:",
+      tableLabel: "Word-level N-gram explosion \u00b7 Combinatorial math",
+      tableHint:
+        "Assuming basic English vocabulary of 50,000 words. Most cells would be empty (sparse).",
+      tableHeaders: {
+        model: "Model",
+        formula: "Formula",
+        combinations: "Combinations",
+        scientific: "Scientific",
+      },
+      noteLabel: "Note:",
+      noteText:
+        "These numbers assume a full 50,000-word English vocabulary. Real systems use aggressive pruning, smoothing, and backoff strategies to make this tractable — but the fundamental scaling problem remains.",
+      languageP1: "Word-level models are also",
+      languageH1: "rigidly language-dependent",
+      languageP2:
+        ". A model tokenized for English words breaks completely when given Spanish input, requiring an entirely new vocabulary and matrix. Character-level models, while less semantically rich per token, can handle multiple languages sharing the same alphabet.",
+      multilingualCalloutTitle: "The Multilingual Problem",
+      multilingualCalloutText:
+        "An English word-level bigram trained on 'the cat sat' has no idea what to do with 'el gato se sent\u00f3'. Every word is out-of-vocabulary. Character models avoid this by operating at a lower, more universal level — though they sacrifice semantic density in the process.",
+    },
+    vocabulary: {
+      label: "Vocabulary",
+      title: "Characters vs. Words",
+      lead: "We use character-level tokens in this lab, but real-world N-grams often operate on words — making the explosion even worse.",
+      p1: "With a word vocabulary of 50,000 tokens, even a",
+      p1Highlight: " bigram matrix needs 2.5 billion cells",
+      p1End:
+        ". A trigram table would require 125 trillion entries. This is why word-level N-grams beyond N=3 are essentially impractical without aggressive smoothing and pruning.",
+      p2: "Character-level models keep the vocabulary small (~96), making it feasible to visualize and explore the full table. But the tradeoff is that individual characters carry almost no semantic meaning.",
+    },
+    noUnderstanding: {
+      label: "Limitations",
+      title: "No True Understanding",
+      lead: "N-gram models capture local co-occurrence patterns but have no notion of meaning, grammar, or long-range coherence.",
+      p1: 'The model treats "the cat sat on the" and "the dog sat on the" as completely unrelated contexts (for N < full sentence length). It cannot recognize that both involve an animal sitting on something.',
+      p2: "This inability to",
+      p2Highlight: "generalize across similar contexts",
+      p2End:
+        " is what ultimately limits N-gram models. No matter how much data you collect, there will always be valid contexts the model has never seen.",
+      p3: "This fundamental limitation is exactly what motivates the transition to neural approaches — models that learn dense, continuous representations capable of recognizing similarity between contexts.",
+    },
+    deeperProblem: {
+      label: "Limitations",
+      title: "The Deeper Problem",
+      lead: "The explosion is a practical problem — you can't build a big-enough table. But there's a conceptual problem that's even worse: even with infinite data, counting still fails.",
+      p1: "Imagine the text starts with 'the cat sat on the'. If the model has seen that exact context, it can predict what comes next from memory.",
+      p2: "Now change one word: 'the dog sat on the'. A human sees it's almost the same situation. The N-gram model treats it like a completely new, unrelated context.",
+      p3: "N-grams have no concept of 'similar.' The contexts 'the cat' and 'the dog' are as different to the model as 'the cat' and 'xyzq'. Each is a separate row in the table, with zero connection between them.",
+      infiniteData: {
+        title: "Even Infinite Data Can't Help",
+        p1: "Suppose you had unlimited training text — every book ever written. Could you fill the table? No. Language is creative: people invent new sentences constantly. The number of possible 10-word sequences vastly exceeds the number of sentences ever uttered. No corpus, however large, can cover every valid context.",
+      },
+      failureExamples: {
+        title: "When Counting Breaks Down",
+        typoLabel: "Typos",
+        typoText:
+          "A user types 'teh cat' instead of 'the cat'. The model has never seen the context 'teh' and returns a uniform (random) distribution. One wrong keystroke erases all learned knowledge.",
+        novelLabel: "Novel words",
+        novelText:
+          "A new word enters the language — 'selfie', 'blockchain', 'vibe-check'. The model has zero entries for any context containing these words. It cannot even guess that 'selfie' behaves like other nouns.",
+      },
+      typoBridge:
+        "These aren't edge cases — they're everyday situations. First, watch what happens when a user makes a single typo:",
+      similarityBridge:
+        "Even worse: the model can't recognize that similar words should behave similarly. Try it below:",
+      typoSectionTitle: "What Happens With a Single Typo?",
+      similaritySectionTitle: "Why Can't It See That 'Dog' \u2248 'Cat'?",
+      calloutTitle: "No Generalization",
+      calloutText:
+        "If the model has never seen a particular sequence in training, it has nothing to say. It can't guess. It can't reason by analogy. It just shrugs. This is the fundamental limitation that motivates neural approaches.",
+      sectionBridge:
+        "The table is too big and too empty. But even if we could fill it — even with infinite data — there's a deeper reason counting fails. It's time to step back and see the full picture.",
+    },
+    endOfCounting: {
+      label: "Reflection",
+      title: "The End of Counting",
+      lead: "We've reached the end of what counting can do.",
+      p1: "We started with bigrams, which remember one character. We pushed to N-grams, which remember more, and we watched predictions improve.",
+      p2: "Then we hit two walls. The explosion wall: the table grows too fast to fill. More memory multiplies the table again and again.",
+      p3: "The generalization wall: each context is an island. The model cannot share knowledge between similar contexts, so it fails on new phrases.",
+      consolidation: "Take a step back and notice what you've built in your mind:",
+      knows1: "You know how counting pairs becomes a prediction engine.",
+      knows2: "You know why more context helps — and why it has a cost.",
+      knows3: "You know that the table explodes and most of it stays empty.",
+      knows4: "You know that counting cannot generalize: unseen = unknown.",
+      bridge:
+        "Every one of these problems points to the same insight: we need models that don't just memorize — they need to learn patterns. What if, instead of storing each context as an isolated row in a table, we could compress contexts into dense vectors where similar meanings live close together? That's exactly what neural networks do.",
+      quote: "The era of counting is over. The era of learning begins.",
+      hookLine:
+        "In the next chapter, we replace the table with a neural network. Instead of counting, it learns. Instead of memorizing, it generalizes. The jump is dramatic — and it starts with a single idea: embeddings.",
+    },
+    sectionNames: {
+      s01: "More Context",
+      s02: "Counting With Context",
+      s03: "Better Predictions",
+      s04: "The Price of Memory",
+      s05: "The Deeper Problem",
+      s06: "End of Counting",
+    },
+    readTime: "~15 min read \u00b7 8 interactive demos",
+    keyTakeaways: {
+      deeperProblem:
+        "You just saw it firsthand: if the model hasn't seen a sequence in training, it has nothing to say. It can't guess. It can't reason by analogy. It memorizes — it doesn't understand.",
+      endOfCounting:
+        "You've reached the wall: exponential memory, zero generalization, no understanding of similarity. The next leap requires models that learn patterns instead of memorizing them.",
+    },
+    cta: {
+      title: "Continue Exploring",
+      labButton: "Open Free Lab",
+      labDesc:
+        "Switch to Free Lab mode to change N, test your own phrases, and see where the model becomes silent.",
+      neuralButton: "Next: From Counting to Learning",
+      neuralDesc: "We've pushed counting to its limit. Now we build something that learns.",
+    },
+    generationBattle: {
+      title: "Generation Battle",
+      subtitle: "Same seed, different memory",
+      description:
+        "Watch how the same starting text produces dramatically different output as the model's context window grows.",
+      columnHeader: "N = {n}",
+      qualityLabels: {
+        1: "Random noise",
+        2: "Letter patterns emerge",
+        3: "Word fragments appear",
+        4: "Recognizable phrases",
+      },
+      streaming: "Generating\u2026",
+      seedLabel: "Seed text",
+      generateButton: "Generate All",
+      regenerateButton: "Regenerate",
+      tokensLabel: "{count} characters",
+      emptyState: "Press Generate to start the battle",
+      temperatureLabel: "temperature",
+      copyToClipboard: "Copy to clipboard",
+    },
+    interactiveGenerator: {
+      seedLabel: "Your seed text",
+      contextLabel: "Context (N)",
+      tempLabel: "Temperature",
+      generate: "Generate",
+      generating: "Generating",
+      reset: "Reset",
+      chars: "chars",
+      hint: "Type a seed phrase above and press Generate to watch the N-gram model write.",
+      figureLabel: "Interactive \u00b7 Your N-gram Generator",
+      figureHint:
+        "Choose a seed, context size, and temperature — then watch the model generate text character by character.",
+    },
+    footer: {
+      text: "The statistical era is complete. You've seen what counting can do — and where it breaks. Next: models that learn.",
+      brand: "LM-Lab \u00b7 Educational Mode",
+    },
+    predictingAfter: "Predicting the next character after:",
+    readingChart: "Reading the chart",
+    ui: {
+      collapse: "collapse",
+      expand: "expand",
+    },
+    exponentialGrowth: {
+      possibleContexts: "possible contexts",
+      neverSeen: "Most never seen in training",
+      multiply: "Each extra character \u00d796 \u2014 vocabulary size",
+      replay: "Replay",
+    },
+    similarityBlindSpot: {
+      ngramView: "N-gram view \u2014 no similarity",
+      embeddingView: "Embedding view \u2014 similarity preserved",
+      noConnection: "N-grams see these as completely unrelated entries",
+      connected: "Embeddings place related words close together",
+      showEmbedding: "What if the model knew these were related?",
+      hideEmbedding: "Back to N-gram view",
+      figureLabel: "Blind Spot \u00b7 Why Counting Can't Generalize",
+      figureHint:
+        "N-grams treat every word as an isolated ID. Toggle the embedding view to see how neural models preserve meaning.",
+    },
+    statisticalEra: {
+      hoverHint: "Hover a node to learn more",
+      bigramLabel: "Bigram",
+      bigramSublabel: "One character of memory",
+      bigramEra: "Statistical era begins",
+      bigramSummary:
+        "One character of memory. Fast and simple. Surprisingly useful — but forgets everything beyond the last character.",
+      ngramLabel: "N-gram",
+      ngramSublabel: "More context, same limits",
+      ngramEra: "Dominant in NLP",
+      ngramSummary:
+        "More context, sharper predictions. But the table explodes exponentially, and the model still can't generalize from what it's seen.",
+      unknownLabel: "???",
+      unknownSublabel: "Something different",
+      unknownEra: "A new era",
+      unknownSummary:
+        "Neural Networks. We stop counting and start learning. Contexts are no longer islands — similar inputs share knowledge.",
+    },
+    figures: {
+      contextWindow: {
+        label: "Context window \u00b7 Natural language example",
+        predictingAfter: "Predicting the next character after:",
+        sees: "sees:",
+        next: "next?",
+        contextSize: "Context size:",
+        modelBestGuess: "Model's best guess",
+        confident: "{pct}% confident",
+        candidates: "Candidates:",
+        n1hint:
+          'After just "a", the model knows only one character — too little to narrow down the options.',
+        n2hint: 'Two characters give "za" — still ambiguous, but starting to form patterns.',
+        n3hint: 'Three characters reveal "zza" — the model starts recognizing word fragments.',
+        n4hint: 'Four characters show "izza" — strong signal that this is probably "pizza".',
+        n5hint: 'Five characters capture "pizza" — the model knows exactly what comes next.',
+      },
+      transitionExamples: {
+        label: "Transition table \u00b7 What more context unlocks",
+        hint: "Look at the rows for \u2018th\u2019 and \u2018sh\u2019 \u2014 two contexts the bigram treated identically. N=2 gives each its own distinct probability distribution.",
+      },
+      countingComparison: {
+        label: "Counting comparison \u00b7 Bigram vs. Trigram",
+        hint: "Same training text, different granularity. Notice how longer contexts produce more specific counts.",
+      },
+      confidenceImprovement: {
+        label: "Confidence improvement \u00b7 Context length effect",
+        hint: "Each extra character of context sharpens the prediction.",
+      },
+      exponentialGrowth: {
+        label: "Exponential growth \u00b7 Table size by N",
+        hint: "Each step multiplies the previous count by the vocabulary size.",
+      },
+      generalizationFailure: {
+        label: "Generalization failure \u00b7 Cat vs. Dog",
+        hint: "Hover the right column to see what the model returns for an unseen context.",
+      },
+      statisticalEra: {
+        label: "Statistical era \u00b7 Learning path",
+        hint: "The counting era is complete. Something fundamentally different comes next.",
+      },
+      generationBattle: {
+        label: "Generation battle \u00b7 Side-by-side comparison",
+        hint: "Each column uses the same seed text but a different context size. Longer context produces more coherent output — until sparsity takes over.",
+      },
+      sparsityHeatmap: {
+        label: "Sparsity heatmap \u00b7 Table density by N",
+        hint: "Switch between N values to see how quickly the probability table empties out.",
+      },
+      infiniteTable: {
+        label: "Data coverage \u00b7 The infinite data problem",
+        hint: "Drag the slider to see how much of each N-gram table can be filled with real training data.",
+      },
+      typoBreaker: {
+        label: "Break the model \u00b7 Typo & novel word failure",
+        hint: "Type a misspelled or novel word to see the N-gram model's confidence collapse.",
+      },
+    },
+  },
+  ngramPedagogy: {
+    primer: {
+      title: "What is a {name}?",
+      isEdu: {
+        p1: 'Imagine you are trying to guess the next letter someone will type. A <0>{name}</0> model peeks at the last <1>{length}</1> letter{suffix} and asks: <2>"Based on what I just saw, what usually comes next?"</2>',
+        n1: "With only 1 character of memory, the model is essentially guessing blindly from frequency alone.",
+        n2: "Two characters of context is enough to learn simple patterns like 'th' → 'e', but not much more.",
+        nSmall:
+          "With {n} characters, the model starts capturing short word fragments — but the number of possible contexts is already {count}.",
+        nLarge:
+          "At N={n}, the model theoretically has rich local context — but storing every possible {n}-character combination requires billions of entries.",
+      },
+      isFree: {
+        p1: "A {name} conditions on the last <0>{length}</0> token{suffix}. Context space grows as |V|<sup>{n}</sup>.",
+      },
+      liveWindow: "Live context window",
+    },
+    growth: {
+      title: "Context growth",
+      body: "Watch how the window of visible history expands as N increases. More context means sharper guesses — but also exponentially more possibilities.",
+    },
+    transitions: {
+      title: "Transition examples",
+      isEduBody:
+        'Instead of a giant table, let\'s trace a few transitions through the phrase <0>the qui</0>. Each row shows: "given this context, the next character was..." — plus real evidence from the training corpus.',
+      isFreeBody: "Sample transitions from <0>the qui</0> with corpus evidence.",
+      matches: "{count} match{suffix}",
+      searching: "Searching training data...",
+      noMatches: "No matches found in sampled corpus.",
+      corpusEvidence: "Corpus evidence",
+      noMatchesExpanded: {
+        title: "No matches in sample",
+        explanation:
+          "The training corpus sample doesn't contain this exact transition. This is expected — not every possible N-gram appears in a finite corpus. This is the sparsity problem.",
+        hint: "Try expanding a different row, or reduce N to see more matches.",
+      },
+    },
+    explosion: {
+      title: "Combinatorial Explosion",
+      body1:
+        "A {n}-gram model with V={vocabSize} characters would need to store probabilities for every possible {n}-character context. That's:",
+      entries: "{count} entries",
+      body2:
+        "Over {billionCount} combinations. Most would never be observed in training data, making the table astronomically sparse and impractical.",
+      limitReached: "Classical scaling limit reached",
+    },
+    comparison: {
+      title: "Model comparison",
+      isEduBody:
+        "As N grows, perplexity drops (the model gets better at predicting locally) — but context utilization plummets because most possible contexts are never seen in training.",
+      isFreeBody: "Backend-driven metrics per N. Lower perplexity = better local fit.",
+      quality: "Quality (↑ = lower ppl)",
+      utilization: "Utilization",
+    },
+    limitations: {
+      title: "Key limitations",
+      items: {
+        context: {
+          title: "Limited context",
+          isEdu:
+            "Even with N=5, the model forgets everything before those 5 characters. It can never learn that a paragraph is about cooking just because it saw the word 'recipe' ten sentences ago.",
+          isFree:
+            "Even N=5 captures only 5 tokens of history. Long-range dependencies remain invisible.",
         },
-        whyNotMore: {
-            title: "Why Not N=100?",
-            lead: "If more context makes predictions better, why stop at 3 or 4? Why not look at the last 100 characters?",
-            p1: "Because every extra character of context multiplies the table by the vocabulary size. A bigram table has 9,216 entries (96\u00b2). A trigram jumps to 884,736 (96\u00b3). A 4-gram reaches over 84 million (96\u2074). Going to N=100 would require a table with more entries than atoms in the observable universe. The next section makes this explosion visceral.",
-            calloutInsight: "More memory always improves predictions \u2014 but the cost grows exponentially. This is the core tension that defines the entire N-gram era.",
-        },
-        statistical: {
-            label: "Statistical Nature",
-            title: "A Purely Statistical Model",
-            lead: "N-gram models have no understanding of language. They are sophisticated counting machines.",
-            p1: "Every prediction is a",
-            p1Highlight: "table lookup",
-            p1End: " — the model finds the matching context in its table and returns the stored probability distribution. There are no learned parameters, no gradients, no optimization.",
-            p2: "This makes N-grams extremely fast at inference and trivially interpretable: you can always ask \"why did the model predict X?\" and trace the answer back to exact training examples.",
-            calloutTitle: "No Generalization",
-            calloutText: "If the model has never seen a particular context in training, it has zero information about what comes next. Unlike neural networks, N-grams cannot generalize from similar contexts — each context is treated as completely independent.",
-        },
-        explosion: {
-            label: "The Explosion",
-            title: "The Price of Memory",
-            lead: "Here's where the math turns against us.",
-            concreteBridge: "The numbers are abstract. Let's make this concrete — what do these tables actually look like?",
-        },
-        growingTables: {
-            label: "Interactive \u00b7 Growing Tables",
-            hint: "Watch how the table grows — and empties — as N increases.",
-            bigramLabel: "Bigram (N=1)",
-            trigramLabel: "Trigram (N=2)",
-            fourgramLabel: "4-gram (N=3)",
-            fivegramLabel: "5-gram (N=4)",
-            filledLabel: "Filled",
-            emptyLabel: "Empty",
-            replay: "Replay",
-        },
-        emptyTable: {
-            label: "The Empty Table",
-            title: "Most of the Table Is Empty",
-            lead: "The explosion creates another devastating problem: almost none of those entries will ever be filled with real data.",
-            bridge: "The table below doesn't just grow \u2014 it hollows out. As N increases, the vast majority of possible contexts never appear in any realistic training text. This is called sparsity.",
-        },
-        priceOfMemory: {
-            label: "The Price",
-            title: "The Price of Memory",
-            lead: "Every improvement has a price. And this one grows faster than you think.",
-            sparsityBridge: "But the explosion is only half the story. Building a bigger table is hard \u2014 but filling it is impossible. As N grows, most of the table stays empty:",
-            infiniteDataBridge: "Even with all the text ever written, could you fill the table? Use the slider below:",
-            tokenizationBridge: "So far we've been counting characters \u2014 just 96 possible tokens. Real language models use words instead. That changes everything:",
-            combinedInsight: "The table is too big to build, too empty to use, and gets catastrophically worse with words. Three facets of one fundamental problem.",
-        },
-        complexity: {
-            label: "Complexity",
-            title: "The Price of Memory",
-            lead: "Here's where the math turns against us.",
-            p1: "With 96 possible characters, every extra character of context multiplies the table by 96. N=1: 96 contexts. N=2: 9,216. N=3: 884,736. N=4: 85 million. N=5: over 8 billion.",
-            p1Highlight: " 884,736",
-            p1End: ". A 5-gram has over 84 million. Most of these contexts will never appear in any realistic training corpus.",
-            p2: "Most of those contexts never appear in real text. That means most of the table is empty — this is called sparsity — and empty rows cannot guide predictions.",
-            vocabCalloutTitle: "And it gets much worse with words",
-            vocabCalloutText: "This lab uses characters (~96 possible). Real language models use words instead. With 50,000 words, even a bigram matrix needs 2.5 billion cells. A trigram table would need 125 trillion. The math turns catastrophic extremely fast.",
-            comparisonLabel: "N-Gram Comparison \u00b7 Live backend metrics",
-            comparisonHint: "Compare perplexity, context utilization, and state space across different values of N.",
-            metricsLegend: {
-                perplexity: "Perplexity means \"how surprised the model is\" on average; lower means better guesses and more confidence.",
-                utilization: "Context utilization means how much of the huge table was actually filled by the training text; low utilization means many contexts were never seen.",
-                contextSpace: "Context space means how many different contexts could exist in theory; it grows extremely fast as N increases.",
-            },
-        },
-        tokenization: {
-            intro: "This complexity becomes catastrophic when we move from characters to words.",
-            subsectionTitle: "Characters vs. Words: A Critical Trade-off",
-            charTitle: "Character-Level Tokens",
-            charDesc: "Small, fixed vocabulary (~96 ASCII characters). Every input is representable. Simple to implement and visualize — ideal for understanding fundamentals. But each token carries almost no semantic meaning.",
-            charExample: "Vocab: ~96 | Example: ['t', 'h', 'e']",
-            wordTitle: "Word-Level Tokens",
-            wordDesc: "Semantically rich units that convey meaning per token. But vocabulary explodes to 50,000–500,000 entries, making the transition matrix enormous. Rare words cause sparsity; unseen words cause complete failure.",
-            wordExample: "Vocab: ~50,000 | Example: ['the', 'cat', 'sat']",
-            explosionIntro: "The combinatorial explosion at the word level makes even simple N-grams computationally infeasible:",
-            tableLabel: "Word-level N-gram explosion \u00b7 Combinatorial math",
-            tableHint: "Assuming basic English vocabulary of 50,000 words. Most cells would be empty (sparse).",
-            tableHeaders: {
-                model: "Model",
-                formula: "Formula",
-                combinations: "Combinations",
-                scientific: "Scientific",
-            },
-            noteLabel: "Note:",
-            noteText: "These numbers assume a full 50,000-word English vocabulary. Real systems use aggressive pruning, smoothing, and backoff strategies to make this tractable — but the fundamental scaling problem remains.",
-            languageP1: "Word-level models are also",
-            languageH1: "rigidly language-dependent",
-            languageP2: ". A model tokenized for English words breaks completely when given Spanish input, requiring an entirely new vocabulary and matrix. Character-level models, while less semantically rich per token, can handle multiple languages sharing the same alphabet.",
-            multilingualCalloutTitle: "The Multilingual Problem",
-            multilingualCalloutText: "An English word-level bigram trained on 'the cat sat' has no idea what to do with 'el gato se sent\u00f3'. Every word is out-of-vocabulary. Character models avoid this by operating at a lower, more universal level — though they sacrifice semantic density in the process.",
+        scalability: {
+          title: "Exponential scalability",
+          isEdu:
+            "Every extra character of context multiplies the table size by the vocabulary size (~96×). Going from N=3 to N=4 means ~96× more rows to store.",
+          isFree:
+            "Context space grows as |V|^N. Storage and data requirements become intractable for N > 4.",
         },
         vocabulary: {
-            label: "Vocabulary",
-            title: "Characters vs. Words",
-            lead: "We use character-level tokens in this lab, but real-world N-grams often operate on words — making the explosion even worse.",
-            p1: "With a word vocabulary of 50,000 tokens, even a",
-            p1Highlight: " bigram matrix needs 2.5 billion cells",
-            p1End: ". A trigram table would require 125 trillion entries. This is why word-level N-grams beyond N=3 are essentially impractical without aggressive smoothing and pruning.",
-            p2: "Character-level models keep the vocabulary small (~96), making it feasible to visualize and explore the full table. But the tradeoff is that individual characters carry almost no semantic meaning.",
+          title: "Vocabulary explosion",
+          isEdu:
+            "If we used words instead of characters, the vocabulary jumps from ~96 to tens of thousands — making even a bigram table enormous.",
+          isFree:
+            "Word-level N-grams face vocabulary sizes of 50k+, making tables impractical even for small N.",
         },
-        noUnderstanding: {
-            label: "Limitations",
-            title: "No True Understanding",
-            lead: "N-gram models capture local co-occurrence patterns but have no notion of meaning, grammar, or long-range coherence.",
-            p1: "The model treats \"the cat sat on the\" and \"the dog sat on the\" as completely unrelated contexts (for N < full sentence length). It cannot recognize that both involve an animal sitting on something.",
-            p2: "This inability to",
-            p2Highlight: "generalize across similar contexts",
-            p2End: " is what ultimately limits N-gram models. No matter how much data you collect, there will always be valid contexts the model has never seen.",
-            p3: "This fundamental limitation is exactly what motivates the transition to neural approaches — models that learn dense, continuous representations capable of recognizing similarity between contexts.",
-        },
-        deeperProblem: {
-            label: "Limitations",
-            title: "The Deeper Problem",
-            lead: "The explosion is a practical problem — you can't build a big-enough table. But there's a conceptual problem that's even worse: even with infinite data, counting still fails.",
-            p1: "Imagine the text starts with 'the cat sat on the'. If the model has seen that exact context, it can predict what comes next from memory.",
-            p2: "Now change one word: 'the dog sat on the'. A human sees it's almost the same situation. The N-gram model treats it like a completely new, unrelated context.",
-            p3: "N-grams have no concept of 'similar.' The contexts 'the cat' and 'the dog' are as different to the model as 'the cat' and 'xyzq'. Each is a separate row in the table, with zero connection between them.",
-            infiniteData: {
-                title: "Even Infinite Data Can't Help",
-                p1: "Suppose you had unlimited training text — every book ever written. Could you fill the table? No. Language is creative: people invent new sentences constantly. The number of possible 10-word sequences vastly exceeds the number of sentences ever uttered. No corpus, however large, can cover every valid context.",
-            },
-            failureExamples: {
-                title: "When Counting Breaks Down",
-                typoLabel: "Typos",
-                typoText: "A user types 'teh cat' instead of 'the cat'. The model has never seen the context 'teh' and returns a uniform (random) distribution. One wrong keystroke erases all learned knowledge.",
-                novelLabel: "Novel words",
-                novelText: "A new word enters the language — 'selfie', 'blockchain', 'vibe-check'. The model has zero entries for any context containing these words. It cannot even guess that 'selfie' behaves like other nouns.",
-            },
-            typoBridge: "These aren't edge cases — they're everyday situations. First, watch what happens when a user makes a single typo:",
-            similarityBridge: "Even worse: the model can't recognize that similar words should behave similarly. Try it below:",
-            typoSectionTitle: "What Happens With a Single Typo?",
-            similaritySectionTitle: "Why Can't It See That 'Dog' \u2248 'Cat'?",
-            calloutTitle: "No Generalization",
-            calloutText: "If the model has never seen a particular sequence in training, it has nothing to say. It can't guess. It can't reason by analogy. It just shrugs. This is the fundamental limitation that motivates neural approaches.",
-            sectionBridge: "The table is too big and too empty. But even if we could fill it — even with infinite data — there's a deeper reason counting fails. It's time to step back and see the full picture.",
-        },
-        endOfCounting: {
-            label: "Reflection",
-            title: "The End of Counting",
-            lead: "We've reached the end of what counting can do.",
-            p1: "We started with bigrams, which remember one character. We pushed to N-grams, which remember more, and we watched predictions improve.",
-            p2: "Then we hit two walls. The explosion wall: the table grows too fast to fill. More memory multiplies the table again and again.",
-            p3: "The generalization wall: each context is an island. The model cannot share knowledge between similar contexts, so it fails on new phrases.",
-            consolidation: "Take a step back and notice what you've built in your mind:",
-            knows1: "You know how counting pairs becomes a prediction engine.",
-            knows2: "You know why more context helps — and why it has a cost.",
-            knows3: "You know that the table explodes and most of it stays empty.",
-            knows4: "You know that counting cannot generalize: unseen = unknown.",
-            bridge: "Every one of these problems points to the same insight: we need models that don't just memorize — they need to learn patterns. What if, instead of storing each context as an isolated row in a table, we could compress contexts into dense vectors where similar meanings live close together? That's exactly what neural networks do.",
-            quote: "The era of counting is over. The era of learning begins.",
-            hookLine: "In the next chapter, we replace the table with a neural network. Instead of counting, it learns. Instead of memorizing, it generalizes. The jump is dramatic — and it starts with a single idea: embeddings.",
-        },
-        sectionNames: {
-            s01: "More Context",
-            s02: "Counting With Context",
-            s03: "Better Predictions",
-            s04: "The Price of Memory",
-            s05: "The Deeper Problem",
-            s06: "End of Counting",
-        },
-        readTime: "~15 min read \u00b7 8 interactive demos",
-        keyTakeaways: {
-            deeperProblem: "You just saw it firsthand: if the model hasn't seen a sequence in training, it has nothing to say. It can't guess. It can't reason by analogy. It memorizes — it doesn't understand.",
-            endOfCounting: "You've reached the wall: exponential memory, zero generalization, no understanding of similarity. The next leap requires models that learn patterns instead of memorizing them.",
-        },
-        cta: {
-            title: "Continue Exploring",
-            labButton: "Open Free Lab",
-            labDesc: "Switch to Free Lab mode to change N, test your own phrases, and see where the model becomes silent.",
-            neuralButton: "Next: From Counting to Learning",
-            neuralDesc: "We've pushed counting to its limit. Now we build something that learns.",
-        },
-        generationBattle: {
-            title: "Generation Battle",
-            subtitle: "Same seed, different memory",
-            description: "Watch how the same starting text produces dramatically different output as the model's context window grows.",
-            columnHeader: "N = {n}",
-            qualityLabels: {
-                1: "Random noise",
-                2: "Letter patterns emerge",
-                3: "Word fragments appear",
-                4: "Recognizable phrases",
-            },
-            streaming: "Generating\u2026",
-            seedLabel: "Seed text",
-            generateButton: "Generate All",
-            regenerateButton: "Regenerate",
-            tokensLabel: "{count} characters",
-            emptyState: "Press Generate to start the battle",
-            temperatureLabel: "temperature",
-            copyToClipboard: "Copy to clipboard",
-        },
-        interactiveGenerator: {
-            seedLabel: "Your seed text",
-            contextLabel: "Context (N)",
-            tempLabel: "Temperature",
-            generate: "Generate",
-            generating: "Generating",
-            reset: "Reset",
-            chars: "chars",
-            hint: "Type a seed phrase above and press Generate to watch the N-gram model write.",
-            figureLabel: "Interactive \u00b7 Your N-gram Generator",
-            figureHint: "Choose a seed, context size, and temperature — then watch the model generate text character by character.",
-        },
-        footer: {
-            text: "The statistical era is complete. You've seen what counting can do — and where it breaks. Next: models that learn.",
-            brand: "LM-Lab \u00b7 Educational Mode",
-        },
-        predictingAfter: "Predicting the next character after:",
-        readingChart: "Reading the chart",
-        ui: {
-            collapse: "collapse",
-            expand: "expand",
-        },
-        exponentialGrowth: {
-            possibleContexts: "possible contexts",
-            neverSeen: "Most never seen in training",
-            multiply: "Each extra character \u00d796 \u2014 vocabulary size",
-            replay: "Replay",
-        },
-        similarityBlindSpot: {
-            ngramView: "N-gram view \u2014 no similarity",
-            embeddingView: "Embedding view \u2014 similarity preserved",
-            noConnection: "N-grams see these as completely unrelated entries",
-            connected: "Embeddings place related words close together",
-            showEmbedding: "What if the model knew these were related?",
-            hideEmbedding: "Back to N-gram view",
-            figureLabel: "Blind Spot \u00b7 Why Counting Can't Generalize",
-            figureHint: "N-grams treat every word as an isolated ID. Toggle the embedding view to see how neural models preserve meaning.",
-        },
-        statisticalEra: {
-            hoverHint: "Hover a node to learn more",
-            bigramLabel: "Bigram",
-            bigramSublabel: "One character of memory",
-            bigramEra: "Statistical era begins",
-            bigramSummary: "One character of memory. Fast and simple. Surprisingly useful — but forgets everything beyond the last character.",
-            ngramLabel: "N-gram",
-            ngramSublabel: "More context, same limits",
-            ngramEra: "Dominant in NLP",
-            ngramSummary: "More context, sharper predictions. But the table explodes exponentially, and the model still can't generalize from what it's seen.",
-            unknownLabel: "???",
-            unknownSublabel: "Something different",
-            unknownEra: "A new era",
-            unknownSummary: "Neural Networks. We stop counting and start learning. Contexts are no longer islands — similar inputs share knowledge.",
-        },
-        figures: {
-            contextWindow: {
-                label: "Context window \u00b7 Natural language example",
-                predictingAfter: "Predicting the next character after:",
-                sees: "sees:",
-                next: "next?",
-                contextSize: "Context size:",
-                modelBestGuess: "Model's best guess",
-                confident: "{pct}% confident",
-                candidates: "Candidates:",
-                n1hint: "After just \"a\", the model knows only one character — too little to narrow down the options.",
-                n2hint: "Two characters give \"za\" — still ambiguous, but starting to form patterns.",
-                n3hint: "Three characters reveal \"zza\" — the model starts recognizing word fragments.",
-                n4hint: "Four characters show \"izza\" — strong signal that this is probably \"pizza\".",
-                n5hint: "Five characters capture \"pizza\" — the model knows exactly what comes next.",
-            },
-            transitionExamples: {
-                label: "Transition table \u00b7 What more context unlocks",
-                hint: "Look at the rows for \u2018th\u2019 and \u2018sh\u2019 \u2014 two contexts the bigram treated identically. N=2 gives each its own distinct probability distribution.",
-            },
-            countingComparison: {
-                label: "Counting comparison \u00b7 Bigram vs. Trigram",
-                hint: "Same training text, different granularity. Notice how longer contexts produce more specific counts.",
-            },
-            confidenceImprovement: {
-                label: "Confidence improvement \u00b7 Context length effect",
-                hint: "Each extra character of context sharpens the prediction.",
-            },
-            exponentialGrowth: {
-                label: "Exponential growth \u00b7 Table size by N",
-                hint: "Each step multiplies the previous count by the vocabulary size.",
-            },
-            generalizationFailure: {
-                label: "Generalization failure \u00b7 Cat vs. Dog",
-                hint: "Hover the right column to see what the model returns for an unseen context.",
-            },
-            statisticalEra: {
-                label: "Statistical era \u00b7 Learning path",
-                hint: "The counting era is complete. Something fundamentally different comes next.",
-            },
-            generationBattle: {
-                label: "Generation battle \u00b7 Side-by-side comparison",
-                hint: "Each column uses the same seed text but a different context size. Longer context produces more coherent output — until sparsity takes over.",
-            },
-            sparsityHeatmap: {
-                label: "Sparsity heatmap \u00b7 Table density by N",
-                hint: "Switch between N values to see how quickly the probability table empties out.",
-            },
-            infiniteTable: {
-                label: "Data coverage \u00b7 The infinite data problem",
-                hint: "Drag the slider to see how much of each N-gram table can be filled with real training data.",
-            },
-            typoBreaker: {
-                label: "Break the model \u00b7 Typo & novel word failure",
-                hint: "Type a misspelled or novel word to see the N-gram model's confidence collapse.",
-            },
-        },
+      },
     },
-    ngramPedagogy: {
-        primer: {
-            title: "What is a {name}?",
-            isEdu: {
-                p1: "Imagine you are trying to guess the next letter someone will type. A <0>{name}</0> model peeks at the last <1>{length}</1> letter{suffix} and asks: <2>\"Based on what I just saw, what usually comes next?\"</2>",
-                n1: "With only 1 character of memory, the model is essentially guessing blindly from frequency alone.",
-                n2: "Two characters of context is enough to learn simple patterns like 'th' → 'e', but not much more.",
-                nSmall: "With {n} characters, the model starts capturing short word fragments — but the number of possible contexts is already {count}.",
-                nLarge: "At N={n}, the model theoretically has rich local context — but storing every possible {n}-character combination requires billions of entries."
-            },
-            isFree: {
-                p1: "A {name} conditions on the last <0>{length}</0> token{suffix}. Context space grows as |V|<sup>{n}</sup>."
-            },
-            liveWindow: "Live context window"
+    story: {
+      title: "The story of N-grams",
+      subtitle: "Why more context seemed like the answer — and why it wasn't enough",
+      steps: {
+        s1: {
+          title: "The bigram bottleneck",
+          body: "We started with the simplest idea: predict the next character using only the previous one. But a bigram model has the memory of a goldfish — it immediately forgets everything except the last letter.",
         },
-        growth: {
-            title: "Context growth",
-            body: "Watch how the window of visible history expands as N increases. More context means sharper guesses — but also exponentially more possibilities."
+        s2: {
+          title: "A natural extension",
+          body: "The obvious fix? Look at more history. A trigram looks at 2 previous characters, a 4-gram at 3, and so on. Each step gives the model richer local context and noticeably better predictions.",
         },
-        transitions: {
-            title: "Transition examples",
-            isEduBody: "Instead of a giant table, let's trace a few transitions through the phrase <0>the qui</0>. Each row shows: \"given this context, the next character was...\" — plus real evidence from the training corpus.",
-            isFreeBody: "Sample transitions from <0>the qui</0> with corpus evidence.",
-            matches: "{count} match{suffix}",
-            searching: "Searching training data...",
-            noMatches: "No matches found in sampled corpus.",
-            corpusEvidence: "Corpus evidence",
-            noMatchesExpanded: {
-                title: "No matches in sample",
-                explanation: "The training corpus sample doesn't contain this exact transition. This is expected — not every possible N-gram appears in a finite corpus. This is the sparsity problem.",
-                hint: "Try expanding a different row, or reduce N to see more matches.",
-            },
+        s3: {
+          title: "The cost of memory",
+          body: "But there's a catch. Each extra character of context multiplies the number of possible states by the vocabulary size. A trigram with 96 characters already has 884,736 possible contexts. Most are never observed in training — the table becomes astronomically sparse.",
         },
-        explosion: {
-            title: "Combinatorial Explosion",
-            body1: "A {n}-gram model with V={vocabSize} characters would need to store probabilities for every possible {n}-character context. That's:",
-            entries: "{count} entries",
-            body2: "Over {billionCount} combinations. Most would never be observed in training data, making the table astronomically sparse and impractical.",
-            limitReached: "Classical scaling limit reached"
+        s4: {
+          title: "The scaling wall",
+          body: "By N=5, we would need over 8 billion table entries. No dataset is large enough to fill that table meaningfully. This is the fundamental reason N-grams were eventually replaced by neural models that can generalize across similar contexts.",
         },
-        comparison: {
-            title: "Model comparison",
-            isEduBody: "As N grows, perplexity drops (the model gets better at predicting locally) — but context utilization plummets because most possible contexts are never seen in training.",
-            isFreeBody: "Backend-driven metrics per N. Lower perplexity = better local fit.",
-            quality: "Quality (↑ = lower ppl)",
-            utilization: "Utilization"
-        },
-        limitations: {
-            title: "Key limitations",
-            items: {
-                context: {
-                    title: "Limited context",
-                    isEdu: "Even with N=5, the model forgets everything before those 5 characters. It can never learn that a paragraph is about cooking just because it saw the word 'recipe' ten sentences ago.",
-                    isFree: "Even N=5 captures only 5 tokens of history. Long-range dependencies remain invisible."
-                },
-                scalability: {
-                    title: "Exponential scalability",
-                    isEdu: "Every extra character of context multiplies the table size by the vocabulary size (~96×). Going from N=3 to N=4 means ~96× more rows to store.",
-                    isFree: "Context space grows as |V|^N. Storage and data requirements become intractable for N > 4."
-                },
-                vocabulary: {
-                    title: "Vocabulary explosion",
-                    isEdu: "If we used words instead of characters, the vocabulary jumps from ~96 to tens of thousands — making even a bigram table enormous.",
-                    isFree: "Word-level N-grams face vocabulary sizes of 50k+, making tables impractical even for small N."
-                }
-            }
-        },
-        story: {
-            title: "The story of N-grams",
-            subtitle: "Why more context seemed like the answer — and why it wasn't enough",
-            steps: {
-                s1: {
-                    title: "The bigram bottleneck",
-                    body: "We started with the simplest idea: predict the next character using only the previous one. But a bigram model has the memory of a goldfish — it immediately forgets everything except the last letter."
-                },
-                s2: {
-                    title: "A natural extension",
-                    body: "The obvious fix? Look at more history. A trigram looks at 2 previous characters, a 4-gram at 3, and so on. Each step gives the model richer local context and noticeably better predictions."
-                },
-                s3: {
-                    title: "The cost of memory",
-                    body: "But there's a catch. Each extra character of context multiplies the number of possible states by the vocabulary size. A trigram with 96 characters already has 884,736 possible contexts. Most are never observed in training — the table becomes astronomically sparse."
-                },
-                s4: {
-                    title: "The scaling wall",
-                    body: "By N=5, we would need over 8 billion table entries. No dataset is large enough to fill that table meaningfully. This is the fundamental reason N-grams were eventually replaced by neural models that can generalize across similar contexts."
-                }
-            }
-        }
-    }
+      },
+    },
+  },
 };

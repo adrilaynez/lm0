@@ -1,755 +1,945 @@
 // ngram namespace (es). Slice of the original i18n dictionary — see src/i18n/README.md.
 export const ngram = {
-    ngram: {
-        training: {
-            title: "Insights del Entrenamiento",
-            stats: {
-                totalTokens: "Tokens Totales",
-                uniqueContexts: "Contextos Únicos",
-                utilization: "Utilización de Contexto",
-                sparsity: "Espasidad",
-                transitionDensity: "Densidad de Transición",
-                subs: {
-                    possiblePrefix: "de",
-                    possibleSuffix: "posibles",
-                    fractionObserved: "Fracción de contextos observados",
-                    unseen: "Fracción de contexto no visto",
-                },
-            },
+  /* "Entrena tu propio n-grama" — the playground hero (bench-only for now). */
+  trainNgramLab: {
+    lead: "Vamos a entrenar un n-grama con tu propio texto, y esta vez la memoria la eliges tú.",
+    placeholder: "aquí cabe un libro entero…",
+    upload: "subir un .txt",
+    sample: "Shakespeare de ejemplo",
+    clear: "vaciar",
+    count: "{n} caracteres · hasta {cap}",
+    truncated: "más del tope: se usarán los primeros {cap} caracteres",
+    tiny: "con tan poco texto saldrá tartamudo — vale igual",
+    train: "entrenar",
+    memLabel: "letras de memoria",
+    memSpace: "{rows} filas posibles",
+    kName1: "bigrama",
+    kName2: "trigrama",
+    kName3: "4-grama",
+    kName4: "5-grama",
+    kName5: "6-grama",
+    readingMarker: "leyendo tu texto",
+    rowsLabel: "filas con datos ({name})",
+    windowsRead: "{n} ventanas leídas",
+    coverage: "{obs} de {space} filas posibles · {pct}%",
+    skip: "saltar al final",
+    foldReport: "{letters} letras · {accents} acentos planchados (á→a) · {symbols} signos→␣",
+    foldTruncated: "recortado a {cap}",
+    tabTable: "la tabla",
+    tabWrite: "escribir",
+    retrain: "otro texto",
+    searchLabel: "fila de {k} letras",
+    randomRow: "una al azar",
+    rowAfter: "después de «{ctx}»",
+    rowTotal: "{n} veces en total",
+    rowSlot: "«{ch}» · {n} veces · {pct}%",
+    rowEmpty: "«{ctx}» · fila vacía — tu texto nunca pasó por ahí",
+    topLabel: "las filas más vistas",
+    modeSolo: "solo",
+    modePaso: "paso a paso",
+    modeManual: "tú eliges",
+    tempLabel: "temperatura",
+    tempCold: "fiel",
+    tempHot: "caos",
+    seedLabel: "empezar desde",
+    seedRandom: "una frecuente",
+    ctxLabel: "mirando",
+    backoff: "fila vacía → memoria recortada a {k}",
+    go: "escribir",
+    pause: "pausa",
+    more: "seguir",
+    lettersWritten: "{n} letras",
+    copy: "copiar",
+    copied: "copiado",
+    clearOut: "borrar",
+    next: "siguiente letra",
+    auto: "auto",
+    autoStop: "parar",
+    stepRow: "la fila de «{ctx}»",
+    stepSpin: "el dado cargado gira…",
+    stepLanded: "sale «{ch}»",
+    manualHint: "el dado eres tú: cualquiera de las encendidas vale; las apagadas, jamás",
+    pickSlot: "«{ch}» · {n} veces · {pct}%",
+    pickZero: "«{ch}» · 0 veces — el modelo no puede elegirla",
+    rollForMe: "que tire el dado por mí",
+    outEmpty: "lo que escriba aparecerá aquí…",
+  },
+  ngram: {
+    training: {
+      title: "Insights del Entrenamiento",
+      stats: {
+        totalTokens: "Tokens Totales",
+        uniqueContexts: "Contextos Únicos",
+        utilization: "Utilización de Contexto",
+        sparsity: "Espasidad",
+        transitionDensity: "Densidad de Transición",
+        subs: {
+          possiblePrefix: "de",
+          possibleSuffix: "posibles",
+          fractionObserved: "Fracción de contextos observados",
+          unseen: "Fracción de contexto no visto",
         },
-        widgets: {
-            typoBreaker: {
-                title: "Rompe el modelo",
-                subtitle: "Escribe una palabra mal escrita o una frase nueva — mira cómo el modelo falla",
-                placeholder: "Escribe una palabra mal escrita o una frase nueva…",
-                reset: "Reiniciar",
-                test: "Probar",
-                tryLabel: "Prueba:",
-                contextLookup: "Búsqueda de contexto",
-                modelConfidence: "Confianza del modelo",
-                randomMarker: "↑ azar (1/{vocab} ≈ 1%)",
-                verdictKnownPrefix: "El modelo encontró un contexto familiar",
-                verdictKnownSuffix: "y puede hacer una predicción razonable. Pero cambia aunque sea un carácter y todo el contexto pasa a ser desconocido.",
-                verdictUnknownStrong: "No se encontró un contexto coincidente.",
-                verdictUnknownBody: "El modelo nunca ha visto esta secuencia exacta de caracteres en el entrenamiento. La confianza colapsa al azar (1/{vocab} por carácter). Un humano entendería la intención — el modelo N-grama no puede.",
-                examples: {
-                    swapTwoLetters: "Intercambia dos letras",
-                    commonMisspelling: "Error común",
-                    novelWord: "Palabra nueva",
-                    missingVowel: "Falta una vocal",
-                },
-            },
-            generalizationFailure: {
-                seenInTraining: "Visto en el entrenamiento",
-                neverSeenInTraining: "Nunca visto en el entrenamiento",
-                nextWord: "siguiente palabra →",
-                confidence: "confianza",
-                neverSeenNoPrediction: "Nunca visto. No hay predicción posible.",
-                explanation: "Cambiar \"cat\" por \"dog\" crea una fila totalmente nueva en la tabla. El modelo no puede transferir lo que sabe sobre gatos — cada contexto está completamente aislado.",
-            },
-            sparsityHeatmap: {
-                title: "Mapa de densidad de la tabla",
-                subtitle: "¿Cuánta parte de la tabla de probabilidades tiene datos reales?",
-                entriesSuffix: "entradas",
-                fill: "Relleno",
-                density: "Densidad:",
-                legend: {
-                    high: "Alta",
-                    medium: "Media",
-                    low: "Baja",
-                    empty: "Vacía",
-                },
-                insights: {
-                    n1: "La tabla de bigramas está mayormente llena — con solo 96 contextos posibles, incluso un corpus modesto cubre la mayoría de pares de caracteres. Pero este modelo solo ve un carácter de historia.",
-                    n2: "La tabla de trigramas ya es notablemente más dispersa. Con 9.216 contextos posibles, muchas combinaciones de 2 caracteres nunca aparecen en el entrenamiento. El modelo empieza a adivinar al azar en contextos no vistos.",
-                    n3: "La tabla de 4-gramas está casi completamente vacía. Con 884.736 contextos posibles, la gran mayoría no tiene ejemplos de entrenamiento. El modelo es esencialmente ciego para la mayoría de inputs.",
-                    n4: "La tabla de 5-gramas es un desierto de ceros. Más de 8 mil millones de contextos posibles, y tus datos cubren una fracción diminuta. Esto no es un problema resoluble — es una certeza matemática.",
-                },
-            },
-            confidenceImprovement: {
-                title: "Cómo el contexto afina las predicciones",
-                subtitle: "Haz clic en cualquier fila para ver la distribución completa",
-                after: "Después de",
-                summary: "32% → 85% → 91% — más contexto = predicciones más precisas",
-                hints: {
-                    n1: "Después de solo \"h\", muchas vocales y consonantes son plausibles. El modelo reparte la probabilidad de forma muy dispersa.",
-                    n2: "\"th\" es una señal muy potente — en inglés, \"the\" es la palabra más común. La confianza salta drásticamente.",
-                    n3: "\"the\" casi siempre termina con un espacio. Ahora el modelo está al 91% — queda muy poca ambigüedad.",
-                },
-            },
-            contextDrilldown: {
-                lookupTitle: "Búsqueda de contexto",
-                lookupSubtitle: "Escribe un contexto de {n} caracteres para ver su distribución del siguiente carácter",
-                lookupPlaceholder: "Introduce {n} caracteres…",
-                lookupButton: "Buscar",
-                progressSuffix: "caracteres",
-                noDataFree: "No se encontraron datos para este contexto. Puede que el modelo no haya visto \"{context}\" en el entrenamiento. Este es el problema de la dispersión en acción.",
-                drilldownTitle: "Exploración por contexto",
-                drilldownSubtitle: "Elige {n} carácter{suffix} para explorar las predicciones del modelo",
-                breadcrumbStart: "Inicio",
-                breadcrumbDistribution: "distribución",
-                pickFirst: "Elige el primer carácter ({remaining} restantes)",
-                pickNext: "Después de \"{context}\" — elige el siguiente ({remaining} restantes)",
-                back: "Atrás",
-                fetching: "Obteniendo distribución para \"{context}\"…",
-                fetchError: "No se pudo obtener la distribución",
-                noDataDrilldown: "Sin datos para el contexto \"{context}\". Este contexto nunca se observó en el entrenamiento — el problema de la dispersión en acción.",
-                chartTitle: "P(siguiente | \"{context}\")",
-                chartTop: "Top {count} predicciones",
-            },
-            infiniteTable: {
-                title: "El problema de cobertura de datos",
-                subtitle: "¿Cuánta parte de cada tabla N-grama puedes llenar con datos reales?",
-                trainingDataSize: "Tamaño de datos de entrenamiento",
-                tokensLabel: "{count} tokens",
-                entriesLabel: "{count} entradas",
-                scale: {
-                    s0: "\u2248 un párrafo",
-                    s1: "\u2248 4 páginas Word",
-                    s2: "\u2248 40 páginas Word",
-                    s3: "\u2248 ½ El Quijote",
-                    s4: "\u2248 5 El Quijotes",
-                    s5: "\u2248 50 El Quijotes",
-                    s6: "\u2248 500 El Quijotes",
-                    s7: "\u2248 500.000 El Quijotes",
-                },
-                insight: {
-                    v0: "Incluso con {tokens} tokens de datos de entrenamiento, la tabla de 5-gramas ({entries} entradas) está prácticamente vacía. El modelo no tendría predicción para casi cualquier contexto que encuentre.",
-                    v1: "Con {tokens} tokens, la tabla de 5-gramas está por debajo del 1%. La mayoría de contextos en inferencia tendrán cero ejemplos de entrenamiento.",
-                    v2: "Con {tokens} tokens, las tablas de N pequeño se llenan — pero la tabla de 5-gramas sigue cubierta solo en {pct}. La dispersión es un problema de datos, no solo de almacenamiento.",
-                },
-            },
-            countingComparison: {
-                bigramTitle: "Bigrama (N=1)",
-                bigramContext: "contexto de 1 carácter",
-                bigramNote: "Muy disperso — muchos caracteres pueden seguir plausiblemente a \"h\".",
-                trigramTitle: "Trigrama (N=2)",
-                trigramContext: "contexto de 2 caracteres",
-                trigramNote: "Más afilado — \"th\" casi siempre lleva a \"e\".",
-                tooltips: {
-                    h_e: "Después de 'h', 'e' es el siguiente carácter más común — pero muchas otras letras también pueden seguir a 'h'.",
-                    h_a: "Después de 'h', 'a' aparece en palabras como 'have', 'hand', 'hard'.",
-                    h_i: "Después de 'h', 'i' aparece en palabras como 'his', 'him', 'hit'.",
-                    th_e: "Después de 'th', 'e' es abrumadoramente probable — 'the' es la palabra más común en inglés.",
-                    th_a: "Después de 'th', 'a' aparece en 'that', 'than', 'thank'.",
-                    th_i: "Después de 'th', 'i' aparece en 'this', 'thing', 'think'.",
-                },
-            },
-        },
+      },
     },
-    ngramNarrative: {
-        v2: {
-            hero: {
-                eyebrow: "Capítulo 2 · La era del conteo",
-                title: "Una ventana más",
-                titleAccent: "ancha",
-                subtitle: "El bigrama solo recordaba la última letra que escribías. Vamos a darle algo más de memoria.",
-                readTime: "12 min · sigue contando",
-            },
-            sectionNames: {
-                s01: "Mirar más atrás",
-                s02: "Contar con contexto",
-                s03: "El salto se siente",
-                s04: "El coste",
-                s05: "El muro",
-                s06: "No generaliza",
-                s07: "El puente",
-            },
-            ui: { collapse: "cerrar", expand: "abrir" },
-            s1: {
-                recap1: "El bigrama se quedó a medias. Escribía bien, letra a letra, pero tenía la memoria de un pez: en cuanto ponía una letra se olvidaba de todo lo de antes y solo le quedaba esa, la última, para decidir la siguiente. Por eso «th», «sh» y «wh» le daban igual. Las tres acaban en h, y ahí se le acababa la historia.",
-                recap2: "Tú no lees así. Cuando llevas escrito «th» no arrancas de cero, todavía tienes la t metida en la cabeza, y el trozo de palabra entero, y por eso hueles lo que viene aunque nadie te enseñara la regla. Eso que arrastras tiene nombre, y lo vas a reconocer en cuanto lo veas: el contexto.",
-                ask: "Así que la pregunta se cae sola. ¿Y si le dejamos mirar más de una letra atrás?",
-                payoff1: "Con una sola letra de pista ibas a ciegas, y lo sabías. Con cuatro casi cantabas la respuesta antes de que apareciera. Lo único que cambió fue cuánto le dejaste recordar.",
-                payoff2: "Y resulta que eso tiene nombres, uno por cada tamaño de memoria. Mirar dos letras atrás ya tiene nombre: trigrama. Tres, 4-grama. Y así hacia arriba, hasta el n-grama, que mira n. Lo bonito es lo que significa hacia atrás: el bigrama nunca fue un modelo aparte, era el más pequeño de la familia, un n-grama con n igual a dos.",
-                pull: "El bigrama no era un modelo aparte. Era un n-grama diminuto.",
-                bridge: "Vale, mirar atrás ayuda. ¿Pero cómo aprende a hacer eso una máquina, si lo único que sabe hacer es contar?",
-            },
-            s2: {
-                lead1: "Lo mejor es que no hay truco nuevo. Es el mismo de siempre, contar, y solo cambia una cosa de nada.",
-                lead2: "Antes la máquina guardaba una fila por cada letra, la lista de lo que suele venir después de la t. Ahora guarda una fila por cada pareja: lo que viene después de t-h, que no es lo mismo que lo que viene después de una h suelta cualquiera. La llave del cajón es más larga, eso es todo. Pero una llave más larga abre un cajón más concreto.",
-                payoff: "La fila de la t apostaba por la h, sí, pero con la boca pequeña: ganaba y aun así quedaba vida repartida por media docena de casillas más. La fila de t-h no tiene esas dudas. Después de «th», la «e» se lo come casi todo y al resto le deja las migajas.",
-                bridge: "Si cada letra extra afila tanto la apuesta, la pregunta es inevitable: ¿qué sale si la dejamos escribir de verdad, párrafos enteros, recordando dos letras, o tres, o cuatro?",
-            },
-            s3: {
-                stage: "Lo justo es verlo en marcha. Cuatro máquinas idénticas salvo en una cosa: a cada una le dejamos recordar una letra más que a la de su izquierda. Misma semilla para todas, y a escribir.",
-                triumph1: "La de la izquierda escupe sopa de letras y la de la derecha casi hila frases, y entre una y otra no hay ni un solo truco nuevo, solo tres letras más de memoria. Acabas de hacer que una máquina escriba mejor sin enseñarle una palabra, ni una regla, ni nada. Solo le diste un poco de pasado.",
-                triumph2: "Y ahí salta la tentación. Si cuatro va mejor que uno, ¿por qué parar? ¿Por qué no diez letras de memoria? ¿Por qué no cien?",
-            },
-            s4: {
-                lead1: "Aquí es donde la idea, que venía tan bien, se estampa contra un muro que no es de ingenio sino de aritmética pura.",
-                lead2: "La tabla del bigrama tenía una fila por letra. Veintisiete filas, algo que cabe en una hoja. El trigrama ya necesita una fila por cada pareja posible de letras, veintisiete por veintisiete: setecientas veintinueve. El 4-grama, una por cada trío: casi veinte mil. Cada letra de memoria que le sumas no añade unas pocas filas, multiplica la tabla entera por veintisiete.",
-                after: "Diez letras de memoria no son diez veces más tabla. Son billones de filas.",
-                wordsTitle: "¿y con palabras?",
-                words: "Y todo esto contando solo letras, que son veintisiete. Si la máquina fuera con palabras enteras, el abecedario pasaría a tener decenas de miles de piezas, y estos números de ahora parecerían de juguete.",
-                bridge: "Pero una tabla gigante, por gigante que sea, se puede guardar en algún disco. El problema de verdad es otro, y es bastante peor.",
-            },
-            s5: {
-                lead1: "Una tabla de veinte mil filas no vale nada si está vacía.",
-                lead2: "Para rellenar la fila de t-h-e hace falta haber visto antes «the» en algún sitio, y eso pasa a cada paso, así que esa fila se llena sola. Pero la tabla guarda también un hueco para «zxq», y otro para «qjp», y para miles de combinaciones que no escribe nadie nunca. Ahí están, reservadas, esperando una visita que no llega.",
-                lead3: "Y cuanto más larga haces la memoria, más se llena la tabla de filas rarísimas que jamás vas a ver. Crece y se vacía a la vez.",
-                afterSparsity: "Casi todo negro. Y esos huecos no son un fallo del dibujo, son combinaciones que no se usan jamás.",
-                moreDataAsk: "Llegados aquí casi todo el mundo piensa lo mismo: vale, pues le doy más texto. Más libros, más datos, lo que haga falta hasta llenarla.",
-                afterInfinite: "No hay manera. Por mucho texto que le metas, las ventanas grandes siguen casi vacías, porque hay más combinaciones posibles que segundos lleva existiendo el universo. No es que falte esfuerzo. Es que no cabe.",
-                bridge: "Y aun así, lo peor no es la tabla vacía. Es lo que la máquina hace al toparse con una casilla en blanco.",
-            },
-            s6: {
-                lead: "Le das un contexto que ha visto mil veces y contesta sin pestañear, segurísima. Le cambias una sola letra, una, por algo que no vio nunca, y se queda en blanco. En blanco de verdad, sin media palabra que ofrecer.",
-                after: "Y lo absurdo es que esos dos contextos se parecen como dos gotas de agua. Tú contestarías lo mismo a los dos sin pensarlo, porque para ti se parecen. Para la máquina no se parecen en nada: o vio esa fila clavada, letra por letra, o no la vio, y entre esas dos opciones no hay término medio.",
-                typoBridge: "Y no hace falta rebuscar palabras raras. Un dedo torpe sobra.",
-                diagnosis: "El bigrama predecía sin entender una palabra de lo que hacía. Su versión grande, el n-grama, predice bastante mejor, pero entender, lo que se dice entender, sigue sin entender nada. La diferencia es que ahora lo disimula. Hasta que le cambias una letra.",
-                takeaway: "El n-grama no aprende reglas, memoriza trozos. Y lo que no memorizó no existe para él.",
-                bridge: "El fallo tiene una raíz concreta, y ponerle nombre es ya medio camino hacia el capítulo siguiente.",
-            },
-            s7: {
-                lead: "Para la máquina, «gato» y «perro» no tienen nada que ver el uno con el otro. Son dos filas distintas de la tabla, dos etiquetas, dos números sin más, y dos números distintos se parecen entre sí lo mismo que dos teléfonos cualesquiera: nada.",
-                after1: "Si la máquina supiera que «gato» y «perro» van juntos, lo que aprende de uno le serviría para el otro de regalo, y no necesitaría haber visto cada contexto del mundo, solo unos cuantos parecidos. Dejaría de memorizar de carrerilla y empezaría a entender de verdad.",
-                after2: "Eso ya no se consigue contando. Hace falta otra cosa, y esa otra cosa es el capítulo que viene.",
-            },
-            history: {
-                kicker: "Historia · opcional",
-                title: "Cuando contar gobernaba el mundo",
-                paras: [
-                    "Durante décadas, esto que acabas de tocar fue el estado del arte. No una curiosidad de clase, sino el motor de verdad detrás del reconocimiento de voz, los correctores y la primera traducción automática que llegó a funcionar.",
-                    "En los laboratorios de IBM, en los años ochenta, un equipo dirigido por Fred Jelinek apostó todo a contar. Cuanta más transcripción le echaban, mejor reconocía el habla su sistema. De ahí salió una frase que se hizo célebre en el campo: no hay mejor dato que más dato.",
-                    "Y aguantó años así, tragando cantidades absurdas de texto y conviviendo con las tablas medio vacías. Hasta que el muro que acabas de ver se volvió infranqueable, y a alguien se le ocurrió dejar de contar.",
-                ],
-            },
-            cta: {
-                quote: "Contar nos trajo hasta aquí. Para cruzar el muro hay que dejar de contar.",
-                hook: "Hace falta una idea nueva: que las cosas que se parecen se traten parecido. De eso van las redes neuronales.",
-                button: "Las redes neuronales",
-                buttonDesc: "El salto de memorizar a entender.",
-            },
-            footer: {
-                text: "Capítulo 2 de la era del conteo. Lo has construido tú, solo contando.",
-                brand: "LM-Lab",
-            },
+    widgets: {
+      typoBreaker: {
+        title: "Rompe el modelo",
+        subtitle: "Escribe una palabra mal escrita o una frase nueva — mira cómo el modelo falla",
+        placeholder: "Escribe una palabra mal escrita o una frase nueva…",
+        reset: "Reiniciar",
+        test: "Probar",
+        tryLabel: "Prueba:",
+        contextLookup: "Búsqueda de contexto",
+        modelConfidence: "Confianza del modelo",
+        randomMarker: "↑ azar (1/{vocab} ≈ 1%)",
+        verdictKnownPrefix: "El modelo encontró un contexto familiar",
+        verdictKnownSuffix:
+          "y puede hacer una predicción razonable. Pero cambia aunque sea un carácter y todo el contexto pasa a ser desconocido.",
+        verdictUnknownStrong: "No se encontró un contexto coincidente.",
+        verdictUnknownBody:
+          "El modelo nunca ha visto esta secuencia exacta de caracteres en el entrenamiento. La confianza colapsa al azar (1/{vocab} por carácter). Un humano entendería la intención — el modelo N-grama no puede.",
+        examples: {
+          swapTwoLetters: "Intercambia dos letras",
+          commonMisspelling: "Error común",
+          novelWord: "Palabra nueva",
+          missingVowel: "Falta una vocal",
         },
-        v3: {
-            hero: {
-                eyebrow: "Capítulo 2 · La era del conteo",
-                title: "Una memoria más",
-                titleAccent: "larga",
-                subtitle: "La máquina anterior solo recordaba la última letra que escribías. Vamos a darle más memoria y a ver hasta dónde llega.",
-                readTime: "12 min · sigue contando",
-            },
-            sectionNames: {
-                s1: "Mirar más atrás",
-                s2: "Construirla tú",
-                s3: "Lo que has construido",
-                s4: "Hasta dónde llega",
-                s5: "El hueco",
-                s6: "El puente",
-            },
-            ui: { collapse: "cerrar", expand: "abrir" },
-            s1: {
-                recap: "La máquina del capítulo anterior escribía sola, letra a letra, leyendo una tabla de cuentas. Tenía un punto flaco: memoria de pez. En cuanto ponía una letra se olvidaba de lo demás, le quedaba esa, la última, y a partir de ahí adivinaba.",
-                amnesiaLead: "Antes de tocar nada, dale tres palabras distintas y mira cómo apuesta.",
-                afterAmnesia: "Tú no lees así. Cuando llevas escrito «th», la t sigue en tu cabeza, y por eso hueles lo que viene. Ella no la tiene: en cuanto pone la h, la t ya no existe. Por eso las tres acaban igual para ella. Y eso que arrastras tú, la palabra a medias que llevas en la cabeza, tiene un nombre que vas a reconocer en cuanto lo veas. Contexto.",
-                ask: "Así que la pregunta cae sola: ¿y si la dejamos mirar más de una letra atrás?",
-                payoff: "Con una letra ibas a ciegas y lo notabas. Con tres o cuatro cantabas la respuesta antes de que saliera, y la máquina por dentro era la misma de siempre: lo único que tocaste fue cuánto la dejabas recordar.",
-                name: "Y la máquina de una sola letra, la del capítulo anterior, resulta que era solo la versión más pequeña de esto.",
-                bridge: "Mirar atrás ayuda. ¿Pero cómo aprende a hacer eso una máquina que solo sabe contar?",
-            },
-            s2: {
-                lead: "Sigue siendo el mismo truco de siempre, contar. Pero ahora quieres guardar «lo que sigue a th», no «lo que sigue a una h cualquiera». ¿Cómo lo guardarías tú, con las mismas cuentas? Piénsalo un segundo antes de tocar. Y luego pruébalo: esta vez la construyes tú.",
-                payoff: "Empezaste con una fila y acabaste con setecientas veintinueve, partiéndolas a mano, una a una. Nadie te dijo «esto es un trigrama». Lo levantaste tú.",
-                sharpenLead: "Asómate a una de esas hijas, la que guarda lo que sigue a «th». Y compárala con la vieja, la de la h suelta.",
-                growLead: "Y esto no se acaba en parejas. ¿Qué pasa con la tabla si subes un nivel más?",
-                bridge: "Si cada nivel afila la apuesta, la pregunta cae sola. ¿Qué sale si la dejamos escribir de verdad?",
-            },
-            s3: {
-                writeLead: "Antes de celebrar nada, abramos la tapa y miremos cómo escribe.",
-                afterWrite: "Ya está, sin truco por ninguna parte: busca el contexto que llevas escrito, mira qué letra le suele seguir, la pone, y vuelve a empezar. No está pensando. Está leyendo una tabla.",
-                celebrateLead: "Ponlas a escribir a la vez, la de una letra y la de cuatro, con la misma semilla.",
-                triumph: "La de una letra escupe sopa de letras; la de cuatro casi hila frases. Entre una y otra no metiste ni una regla, ni una palabra de gramática, solo unas cuantas letras más de pasado en la apuesta.",
-                temptation: "Y ahí salta la tentación. Si cuatro va mejor que una, ¿por qué parar? ¿Por qué no diez? ¿Por qué no cien?",
-            },
-            s4: {
-                zoomLead: "Súbele la memoria y aléjate, a ver hasta dónde aguanta la tabla.",
-                afterZoom: "Sube otra letra y aléjate otra vez. ¿Llegas al borde? Sigue alejándote. ¿Y ahora?",
-                firehoseLead: "Una tabla así pide texto, y mucho. Así que vamos a darle de comer: vuélcale un Shakespeare entero, y otro, y mil. Abre el grifo.",
-                afterFirehose: "Has volcado mil libros. Mira dónde está el nivel.",
-                bridge: "Una tabla así, alimentada con todo eso, la pones a prueba con una palabra cualquiera que aún no habías escrito.",
-            },
-            s5: {
-                before: "Le funciona de maravilla con lo que ya ha visto. Así que escribe algo de lo más normal, cámbiale una sola letra, y antes de mirar, apuesta: ¿qué crees que hará?",
-                after: "Una sola letra de diferencia. Y ese hueco no tiene por qué ser mala suerte de una sola casilla: asómate a la tabla entera y mira cuántos más hay.",
-                close: "¿Te suena lo que estás viendo? Es la fila plana del principio, la del pez sin memoria, vuelta a aparecer. Para ti los dos contextos son casi el mismo. Para ella no: o tenía esa fila guardada, exacta, o no la tenía.",
-            },
-            s6: {
-                progressLead: "Tiene un techo, sí. Y aun con ese techo, mira de dónde vienes.",
-                afterProgress: "De dar cabezazos al teclado a escribir palabras de verdad, sin enseñarle ni una regla. Y no se quedó en juguete de clase: con esta misma idea funcionaron durante años los traductores, el reconocimiento de voz y el teclado de tu móvil.",
-                afterLimit: "Llevada al límite, con datos de sobra, escribe tan bien que casi cuela. Y aun así, fíjate dónde ha puesto «gato» y «perro»: a tomar por saco el uno del otro, como dos desconocidos. Tú sabes que van juntos. ¿Cuántas veces tuvo que ver «gato» para saber algo de «perro»? Ni una le valió. Lo que aprendió de un contexto se quedó en ese contexto, y en ningún otro.",
-            },
-            history: {
-                kicker: "Historia · opcional",
-                title: "Cuando contar gobernaba el mundo",
-                paras: [
-                    "Durante décadas, esto que acabas de tocar fue el estado del arte. No una curiosidad de clase, sino el motor de verdad detrás del reconocimiento de voz, los correctores y la primera traducción automática que llegó a funcionar.",
-                    "En los laboratorios de IBM, en los años ochenta, un equipo dirigido por Fred Jelinek apostó todo a contar. Cuanta más transcripción le echaban, mejor reconocía el habla su sistema. De ahí salió una frase que se hizo célebre en el campo: no hay mejor dato que más dato.",
-                    "Aguantó años así, tragando cantidades absurdas de texto y conviviendo con las tablas medio vacías. Hasta que ese mismo tope contra el que acabas de chocar dejó de moverse por mucho dato que le echaran, y a alguien se le ocurrió dejar de contar.",
-                ],
-            },
-            cta: {
-                quote: "Contar nos trajo hasta aquí. Cruzar el muro pide dejar de contar.",
-                hook: "Que las cosas que se parecen se traten parecido. De eso van las redes neuronales.",
-                button: "Las redes neuronales",
-                buttonDesc: "Donde se deja de contar.",
-            },
-            footer: {
-                text: "Lo has construido tú, solo contando.",
-                brand: "LM-Lab",
-            },
+      },
+      generalizationFailure: {
+        seenInTraining: "Visto en el entrenamiento",
+        neverSeenInTraining: "Nunca visto en el entrenamiento",
+        nextWord: "siguiente palabra →",
+        confidence: "confianza",
+        neverSeenNoPrediction: "Nunca visto. No hay predicción posible.",
+        explanation:
+          'Cambiar "cat" por "dog" crea una fila totalmente nueva en la tabla. El modelo no puede transferir lo que sabe sobre gatos — cada contexto está completamente aislado.',
+      },
+      sparsityHeatmap: {
+        title: "Mapa de densidad de la tabla",
+        subtitle: "¿Cuánta parte de la tabla de probabilidades tiene datos reales?",
+        entriesSuffix: "entradas",
+        fill: "Relleno",
+        density: "Densidad:",
+        legend: {
+          high: "Alta",
+          medium: "Media",
+          low: "Baja",
+          empty: "Vacía",
         },
-        hero: {
-            eyebrow: "Comprendiendo los Modelos de Lenguaje",
-            titlePrefix: "¿Y si",
-            titleSuffix: "recordamos más?",
-            description: "El modelo bigrama solo podía mirar un carácter atrás. ¿Qué sucede cuando le damos dos? ¿Tres? ¿Cinco? La respuesta es tan fascinante como devastadora.",
+        insights: {
+          n1: "La tabla de bigramas está mayormente llena — con solo 96 contextos posibles, incluso un corpus modesto cubre la mayoría de pares de caracteres. Pero este modelo solo ve un carácter de historia.",
+          n2: "La tabla de trigramas ya es notablemente más dispersa. Con 9.216 contextos posibles, muchas combinaciones de 2 caracteres nunca aparecen en el entrenamiento. El modelo empieza a adivinar al azar en contextos no vistos.",
+          n3: "La tabla de 4-gramas está casi completamente vacía. Con 884.736 contextos posibles, la gran mayoría no tiene ejemplos de entrenamiento. El modelo es esencialmente ciego para la mayoría de inputs.",
+          n4: "La tabla de 5-gramas es un desierto de ceros. Más de 8 mil millones de contextos posibles, y tus datos cubren una fracción diminuta. Esto no es un problema resoluble — es una certeza matemática.",
         },
-        moreContext: {
-            label: "Más contexto",
-            title: "Más allá de un solo carácter",
-            lead: "¿Recuerdas el defecto fatal? 'th', 'sh', 'wh' daban predicciones idénticas porque el modelo solo veía un carácter. ¿Y si le diéramos dos? ¿Tres? ¿Cinco?",
-            confidenceBridge: "Fíjate cómo la confianza salta del 18% con N=1 al 94% con N=5. Más memoria transforma un adivinador ciego en un predictor capaz.",
-            p1: "Un modelo N-grama mira los",
-            p1Highlight: "N caracteres anteriores",
-            p1End: " antes de adivinar el siguiente. Ejemplo: N=2 significa que puede ver dos caracteres de contexto.",
-            p2: "Más contexto hace que las conjeturas sean más inteligentes. Después de \"qu\", el modelo puede esperar fuertemente una \"e\" — ha visto ese patrón muchas veces.",
-            p3: "Pero más memoria tiene un coste oculto. Estamos a punto de observar cómo ese coste crece más rápido de lo que dicta tu intuición.",
-            calloutTitle: "La suposición N-grama",
-            calloutText: "La suposición clave: el siguiente carácter depende solo de los N caracteres anteriores. Todo lo anterior se olvida. Es como una ventana deslizante — y la pregunta es: ¿cuánto debe medir?",
-            tryPrompt: "Haz clic en los botones de arriba. ¿Qué le pasa a la predicción a medida que N crece?",
+      },
+      confidenceImprovement: {
+        title: "Cómo el contexto afina las predicciones",
+        subtitle: "Haz clic en cualquier fila para ver la distribución completa",
+        after: "Después de",
+        summary: "32% → 85% → 91% — más contexto = predicciones más precisas",
+        hints: {
+          n1: 'Después de solo "h", muchas vocales y consonantes son plausibles. El modelo reparte la probabilidad de forma muy dispersa.',
+          n2: '"th" es una señal muy potente — en inglés, "the" es la palabra más común. La confianza salta drásticamente.',
+          n3: '"the" casi siempre termina con un espacio. Ahora el modelo está al 91% — queda muy poca ambigüedad.',
         },
-        contextWindow: {
-            label: "Ventana de contexto",
-            title: "Viendo más del pasado",
-            lead: "La ventana de contexto es cuántos caracteres anteriores puede \"ver\" el modelo antes de hacer una conjetura.",
-            caption: "A medida que la ventana se hace más grande, el modelo puede usar patrones más ricos. Pero el número de ventanas posibles crece extremadamente rápido.",
-            hint: "Observa cómo crece el contexto a medida que aumenta N.",
-            p1: "Cada aumento en N le da al modelo más pistas. También crea muchas más situaciones que el modelo podría necesitar recordar después.",
+      },
+      contextDrilldown: {
+        lookupTitle: "Búsqueda de contexto",
+        lookupSubtitle:
+          "Escribe un contexto de {n} caracteres para ver su distribución del siguiente carácter",
+        lookupPlaceholder: "Introduce {n} caracteres…",
+        lookupButton: "Buscar",
+        progressSuffix: "caracteres",
+        noDataFree:
+          'No se encontraron datos para este contexto. Puede que el modelo no haya visto "{context}" en el entrenamiento. Este es el problema de la dispersión en acción.',
+        drilldownTitle: "Exploración por contexto",
+        drilldownSubtitle: "Elige {n} carácter{suffix} para explorar las predicciones del modelo",
+        breadcrumbStart: "Inicio",
+        breadcrumbDistribution: "distribución",
+        pickFirst: "Elige el primer carácter ({remaining} restantes)",
+        pickNext: 'Después de "{context}" — elige el siguiente ({remaining} restantes)',
+        back: "Atrás",
+        fetching: 'Obteniendo distribución para "{context}"…',
+        fetchError: "No se pudo obtener la distribución",
+        noDataDrilldown:
+          'Sin datos para el contexto "{context}". Este contexto nunca se observó en el entrenamiento — el problema de la dispersión en acción.',
+        chartTitle: 'P(siguiente | "{context}")',
+        chartTop: "Top {count} predicciones",
+      },
+      infiniteTable: {
+        title: "El problema de cobertura de datos",
+        subtitle: "¿Cuánta parte de cada tabla N-grama puedes llenar con datos reales?",
+        trainingDataSize: "Tamaño de datos de entrenamiento",
+        tokensLabel: "{count} tokens",
+        entriesLabel: "{count} entradas",
+        scale: {
+          s0: "\u2248 un párrafo",
+          s1: "\u2248 4 páginas Word",
+          s2: "\u2248 40 páginas Word",
+          s3: "\u2248 ½ El Quijote",
+          s4: "\u2248 5 El Quijotes",
+          s5: "\u2248 50 El Quijotes",
+          s6: "\u2248 500 El Quijotes",
+          s7: "\u2248 500.000 El Quijotes",
         },
-        howItWorks: {
-            label: "Mecánica",
-            title: "Contando con contexto",
-            lead: "El proceso de conteo es el mismo que en los bigramas — pero ahora, en lugar de contar parejas, contamos grupos más largos: el contexto de N caracteres más lo que viene después.",
-            p1: "Para cada posición en el texto de entrenamiento, el modelo toma el",
-            p1Highlight: "contexto de N caracteres",
-            p1End: " y cuenta qué carácter le sigue. Después, usa esos conteos como una tabla de búsqueda: encuentra el contexto y lee el carácter siguiente habitual.",
-            p2: "A medida que N crece, la tabla de conteo gana dimensiones. Con N=1 (bigrama), es una cuadrícula simple. Con N=2, imagina una pila de cuadrículas — una para cada contexto posible de dos caracteres. La tabla crece en todas direcciones.",
-            bridge: "Cada fila representa un contexto específico. Compara 'th' vs 'sh' — esta es exactamente la distinción que el bigrama no podía hacer. El widget de abajo compara el conteo de bigramas y trigramas lado a lado sobre el mismo texto de entrenamiento para que veas la diferencia directamente.",
-            discoveryPrompt: "¿Recuerdas el defecto fatal del bigrama? 'th', 'sh' y 'wh' daban predicciones idénticas porque el modelo solo veía la última 'h'. Ahora observa lo que N=2 puede ver:",
-            tableInsight: "Cada fila es ahora un contexto de dos caracteres. Las distribuciones para 'th' y 'sh' son diferentes — el modelo por fin puede distinguirlos. Ese es el punto clave.",
+        insight: {
+          v0: "Incluso con {tokens} tokens de datos de entrenamiento, la tabla de 5-gramas ({entries} entradas) está prácticamente vacía. El modelo no tendría predicción para casi cualquier contexto que encuentre.",
+          v1: "Con {tokens} tokens, la tabla de 5-gramas está por debajo del 1%. La mayoría de contextos en inferencia tendrán cero ejemplos de entrenamiento.",
+          v2: "Con {tokens} tokens, las tablas de N pequeño se llenan — pero la tabla de 5-gramas sigue cubierta solo en {pct}. La dispersión es un problema de datos, no solo de almacenamiento.",
         },
-        improvement: {
-            label: "Mejora",
-            title: "La predicción se vuelve mejor",
-            lead: "Aquí está la recompensa. Cuando el modelo ve más contexto, sus conjeturas se vuelven mucho más seguras y correctas.",
-            example: "Después de \"h\", la siguiente letra no está clara. Después de \"th\", la \"e\" se vuelve muy probable. Después de \"the\", un espacio se vuelve muy probable.",
-            improvementReflection: "Fíjate en el salto: 18% de confianza con N=1, más del 80% con N=3. Cada carácter extra de contexto elimina ambigüedad. El modelo no adivina — recuerda.",
-            battleBridge: "Esa ganancia de confianza se acumula a lo largo de una frase entera. Abajo, la misma semilla alimenta modelos con diferentes tamaños de memoria simultáneamente — observa lo que un carácter extra de memoria hace al resultado:",
-            battleReflection: "Mira la columna N=4: frases que casi parecen inglés. Mira N=1: ruido aleatorio. Misma lógica, mismos datos — solo la ventana de memoria difiere. Tres caracteres extra nos compraron un modelo de lenguaje.",
-            generatorBridge: "Ahora es tu turno. Elige una frase semilla, elige cuánta memoria tiene el modelo (N=2, 3, o 4), y observa cómo escribe.",
-            expandableGenTitle: "Pruébalo tú: Tu propio generador N-grama",
+      },
+      countingComparison: {
+        bigramTitle: "Bigrama (N=1)",
+        bigramContext: "contexto de 1 carácter",
+        bigramNote: 'Muy disperso — muchos caracteres pueden seguir plausiblemente a "h".',
+        trigramTitle: "Trigrama (N=2)",
+        trigramContext: "contexto de 2 caracteres",
+        trigramNote: 'Más afilado — "th" casi siempre lleva a "e".',
+        tooltips: {
+          h_e: "Después de 'h', 'e' es el siguiente carácter más común — pero muchas otras letras también pueden seguir a 'h'.",
+          h_a: "Después de 'h', 'a' aparece en palabras como 'have', 'hand', 'hard'.",
+          h_i: "Después de 'h', 'i' aparece en palabras como 'his', 'him', 'hit'.",
+          th_e: "Después de 'th', 'e' es abrumadoramente probable — 'the' es la palabra más común en inglés.",
+          th_a: "Después de 'th', 'a' aparece en 'that', 'than', 'thank'.",
+          th_i: "Después de 'th', 'i' aparece en 'this', 'thing', 'think'.",
         },
-        celebration: {
-            text: "Has construido un predictor mucho más potente. El 4-grama escribe frases que casi parecen inglés. Pero toda mejora tiene un precio — y este crece más rápido de lo que piensas.",
+      },
+    },
+  },
+  ngramNarrative: {
+    v2: {
+      hero: {
+        eyebrow: "Capítulo 2 · La era del conteo",
+        title: "Una ventana más",
+        titleAccent: "ancha",
+        subtitle:
+          "El bigrama solo recordaba la última letra que escribías. Vamos a darle algo más de memoria.",
+        readTime: "12 min · sigue contando",
+      },
+      sectionNames: {
+        s01: "Mirar más atrás",
+        s02: "Contar con contexto",
+        s03: "El salto se siente",
+        s04: "El coste",
+        s05: "El muro",
+        s06: "No generaliza",
+        s07: "El puente",
+      },
+      ui: { collapse: "cerrar", expand: "abrir" },
+      s1: {
+        recap1:
+          "El bigrama se quedó a medias. Escribía bien, letra a letra, pero tenía la memoria de un pez: en cuanto ponía una letra se olvidaba de todo lo de antes y solo le quedaba esa, la última, para decidir la siguiente. Por eso «th», «sh» y «wh» le daban igual. Las tres acaban en h, y ahí se le acababa la historia.",
+        recap2:
+          "Tú no lees así. Cuando llevas escrito «th» no arrancas de cero, todavía tienes la t metida en la cabeza, y el trozo de palabra entero, y por eso hueles lo que viene aunque nadie te enseñara la regla. Eso que arrastras tiene nombre, y lo vas a reconocer en cuanto lo veas: el contexto.",
+        ask: "Así que la pregunta se cae sola. ¿Y si le dejamos mirar más de una letra atrás?",
+        payoff1:
+          "Con una sola letra de pista ibas a ciegas, y lo sabías. Con cuatro casi cantabas la respuesta antes de que apareciera. Lo único que cambió fue cuánto le dejaste recordar.",
+        payoff2:
+          "Y resulta que eso tiene nombres, uno por cada tamaño de memoria. Mirar dos letras atrás ya tiene nombre: trigrama. Tres, 4-grama. Y así hacia arriba, hasta el n-grama, que mira n. Lo bonito es lo que significa hacia atrás: el bigrama nunca fue un modelo aparte, era el más pequeño de la familia, un n-grama con n igual a dos.",
+        pull: "El bigrama no era un modelo aparte. Era un n-grama diminuto.",
+        bridge:
+          "Vale, mirar atrás ayuda. ¿Pero cómo aprende a hacer eso una máquina, si lo único que sabe hacer es contar?",
+      },
+      s2: {
+        lead1:
+          "Lo mejor es que no hay truco nuevo. Es el mismo de siempre, contar, y solo cambia una cosa de nada.",
+        lead2:
+          "Antes la máquina guardaba una fila por cada letra, la lista de lo que suele venir después de la t. Ahora guarda una fila por cada pareja: lo que viene después de t-h, que no es lo mismo que lo que viene después de una h suelta cualquiera. La llave del cajón es más larga, eso es todo. Pero una llave más larga abre un cajón más concreto.",
+        payoff:
+          "La fila de la t apostaba por la h, sí, pero con la boca pequeña: ganaba y aun así quedaba vida repartida por media docena de casillas más. La fila de t-h no tiene esas dudas. Después de «th», la «e» se lo come casi todo y al resto le deja las migajas.",
+        bridge:
+          "Si cada letra extra afila tanto la apuesta, la pregunta es inevitable: ¿qué sale si la dejamos escribir de verdad, párrafos enteros, recordando dos letras, o tres, o cuatro?",
+      },
+      s3: {
+        stage:
+          "Lo justo es verlo en marcha. Cuatro máquinas idénticas salvo en una cosa: a cada una le dejamos recordar una letra más que a la de su izquierda. Misma semilla para todas, y a escribir.",
+        triumph1:
+          "La de la izquierda escupe sopa de letras y la de la derecha casi hila frases, y entre una y otra no hay ni un solo truco nuevo, solo tres letras más de memoria. Acabas de hacer que una máquina escriba mejor sin enseñarle una palabra, ni una regla, ni nada. Solo le diste un poco de pasado.",
+        triumph2:
+          "Y ahí salta la tentación. Si cuatro va mejor que uno, ¿por qué parar? ¿Por qué no diez letras de memoria? ¿Por qué no cien?",
+      },
+      s4: {
+        lead1:
+          "Aquí es donde la idea, que venía tan bien, se estampa contra un muro que no es de ingenio sino de aritmética pura.",
+        lead2:
+          "La tabla del bigrama tenía una fila por letra. Veintisiete filas, algo que cabe en una hoja. El trigrama ya necesita una fila por cada pareja posible de letras, veintisiete por veintisiete: setecientas veintinueve. El 4-grama, una por cada trío: casi veinte mil. Cada letra de memoria que le sumas no añade unas pocas filas, multiplica la tabla entera por veintisiete.",
+        after: "Diez letras de memoria no son diez veces más tabla. Son billones de filas.",
+        wordsTitle: "¿y con palabras?",
+        words:
+          "Y todo esto contando solo letras, que son veintisiete. Si la máquina fuera con palabras enteras, el abecedario pasaría a tener decenas de miles de piezas, y estos números de ahora parecerían de juguete.",
+        bridge:
+          "Pero una tabla gigante, por gigante que sea, se puede guardar en algún disco. El problema de verdad es otro, y es bastante peor.",
+      },
+      s5: {
+        lead1: "Una tabla de veinte mil filas no vale nada si está vacía.",
+        lead2:
+          "Para rellenar la fila de t-h-e hace falta haber visto antes «the» en algún sitio, y eso pasa a cada paso, así que esa fila se llena sola. Pero la tabla guarda también un hueco para «zxq», y otro para «qjp», y para miles de combinaciones que no escribe nadie nunca. Ahí están, reservadas, esperando una visita que no llega.",
+        lead3:
+          "Y cuanto más larga haces la memoria, más se llena la tabla de filas rarísimas que jamás vas a ver. Crece y se vacía a la vez.",
+        afterSparsity:
+          "Casi todo negro. Y esos huecos no son un fallo del dibujo, son combinaciones que no se usan jamás.",
+        moreDataAsk:
+          "Llegados aquí casi todo el mundo piensa lo mismo: vale, pues le doy más texto. Más libros, más datos, lo que haga falta hasta llenarla.",
+        afterInfinite:
+          "No hay manera. Por mucho texto que le metas, las ventanas grandes siguen casi vacías, porque hay más combinaciones posibles que segundos lleva existiendo el universo. No es que falte esfuerzo. Es que no cabe.",
+        bridge:
+          "Y aun así, lo peor no es la tabla vacía. Es lo que la máquina hace al toparse con una casilla en blanco.",
+      },
+      s6: {
+        lead: "Le das un contexto que ha visto mil veces y contesta sin pestañear, segurísima. Le cambias una sola letra, una, por algo que no vio nunca, y se queda en blanco. En blanco de verdad, sin media palabra que ofrecer.",
+        after:
+          "Y lo absurdo es que esos dos contextos se parecen como dos gotas de agua. Tú contestarías lo mismo a los dos sin pensarlo, porque para ti se parecen. Para la máquina no se parecen en nada: o vio esa fila clavada, letra por letra, o no la vio, y entre esas dos opciones no hay término medio.",
+        typoBridge: "Y no hace falta rebuscar palabras raras. Un dedo torpe sobra.",
+        diagnosis:
+          "El bigrama predecía sin entender una palabra de lo que hacía. Su versión grande, el n-grama, predice bastante mejor, pero entender, lo que se dice entender, sigue sin entender nada. La diferencia es que ahora lo disimula. Hasta que le cambias una letra.",
+        takeaway:
+          "El n-grama no aprende reglas, memoriza trozos. Y lo que no memorizó no existe para él.",
+        bridge:
+          "El fallo tiene una raíz concreta, y ponerle nombre es ya medio camino hacia el capítulo siguiente.",
+      },
+      s7: {
+        lead: "Para la máquina, «gato» y «perro» no tienen nada que ver el uno con el otro. Son dos filas distintas de la tabla, dos etiquetas, dos números sin más, y dos números distintos se parecen entre sí lo mismo que dos teléfonos cualesquiera: nada.",
+        after1:
+          "Si la máquina supiera que «gato» y «perro» van juntos, lo que aprende de uno le serviría para el otro de regalo, y no necesitaría haber visto cada contexto del mundo, solo unos cuantos parecidos. Dejaría de memorizar de carrerilla y empezaría a entender de verdad.",
+        after2:
+          "Eso ya no se consigue contando. Hace falta otra cosa, y esa otra cosa es el capítulo que viene.",
+      },
+      history: {
+        kicker: "Historia · opcional",
+        title: "Cuando contar gobernaba el mundo",
+        paras: [
+          "Durante décadas, esto que acabas de tocar fue el estado del arte. No una curiosidad de clase, sino el motor de verdad detrás del reconocimiento de voz, los correctores y la primera traducción automática que llegó a funcionar.",
+          "En los laboratorios de IBM, en los años ochenta, un equipo dirigido por Fred Jelinek apostó todo a contar. Cuanta más transcripción le echaban, mejor reconocía el habla su sistema. De ahí salió una frase que se hizo célebre en el campo: no hay mejor dato que más dato.",
+          "Y aguantó años así, tragando cantidades absurdas de texto y conviviendo con las tablas medio vacías. Hasta que el muro que acabas de ver se volvió infranqueable, y a alguien se le ocurrió dejar de contar.",
+        ],
+      },
+      cta: {
+        quote: "Contar nos trajo hasta aquí. Para cruzar el muro hay que dejar de contar.",
+        hook: "Hace falta una idea nueva: que las cosas que se parecen se traten parecido. De eso van las redes neuronales.",
+        button: "Las redes neuronales",
+        buttonDesc: "El salto de memorizar a entender.",
+      },
+      footer: {
+        text: "Capítulo 2 de la era del conteo. Lo has construido tú, solo contando.",
+        brand: "LM-Lab",
+      },
+    },
+    v3: {
+      hero: {
+        eyebrow: "Capítulo 2 · La era del conteo",
+        title: "Una memoria más",
+        titleAccent: "larga",
+        subtitle:
+          "La máquina anterior solo recordaba la última letra que escribías. Vamos a darle más memoria y a ver hasta dónde llega.",
+        readTime: "12 min · sigue contando",
+      },
+      sectionNames: {
+        s1: "Mirar más atrás",
+        s2: "Cajas dentro de cajas",
+        s3: "La generación",
+        s4: "El precio de la memoria",
+        s5: "El fin de contar",
+        s6: "El fin de contar",
+      },
+      ui: { collapse: "cerrar", expand: "abrir" },
+      s1: {
+        recap:
+          "La máquina del capítulo anterior escribía sola, letra a letra, leyendo una tabla de cuentas. Tenía un punto flaco: memoria de pez. En cuanto ponía una letra se olvidaba de lo demás, le quedaba esa, la última, y a partir de ahí adivinaba.",
+        amnesiaLead: "Antes de tocar nada, dale tres palabras distintas y mira cómo apuesta.",
+        afterAmnesia:
+          "Tú no lees así. Cuando llevas escrito «th», la t sigue en tu cabeza, y por eso hueles lo que viene. Ella no la tiene: en cuanto pone la h, la t ya no existe. Por eso las tres acaban igual para ella. Y eso que arrastras tú, la palabra a medias que llevas en la cabeza, tiene un nombre que vas a reconocer en cuanto lo veas. Contexto.",
+        ask: "Así que la pregunta cae sola: ¿y si la dejamos mirar más de una letra atrás?",
+        payoff:
+          "Con una letra ibas a ciegas y lo notabas. Con tres o cuatro cantabas la respuesta antes de que saliera, y la máquina por dentro era la misma de siempre: lo único que tocaste fue cuánto la dejabas recordar.",
+        name: "Y la máquina de una sola letra, la del capítulo anterior, resulta que era solo la versión más pequeña de esto.",
+        bridge:
+          "Mirar atrás ayuda. ¿Pero cómo aprende a hacer eso una máquina que solo sabe contar?",
+      },
+      s2: {
+        lead: "Sigue siendo el mismo truco de siempre, contar. Pero ahora quieres guardar «lo que sigue a th», no «lo que sigue a una h cualquiera». ¿Cómo lo guardarías tú, con las mismas cuentas? Piénsalo un segundo antes de tocar. Y luego pruébalo: esta vez la construyes tú.",
+        payoff:
+          "Empezaste con una fila y acabaste con setecientas veintinueve, partiéndolas a mano, una a una. Nadie te dijo «esto es un trigrama». Lo levantaste tú.",
+        sharpenLead:
+          "Asómate a una de esas hijas, la que guarda lo que sigue a «th». Y compárala con la vieja, la de la h suelta.",
+        growLead: "Y esto no se acaba en parejas. ¿Qué pasa con la tabla si subes un nivel más?",
+        bridge:
+          "Si cada nivel afila la apuesta, la pregunta cae sola. ¿Qué sale si la dejamos escribir de verdad?",
+      },
+      s3: {
+        writeLead: "Antes de celebrar nada, abramos la tapa y miremos cómo escribe.",
+        afterWrite:
+          "Ya está, sin truco por ninguna parte: busca el contexto que llevas escrito, mira qué letra le suele seguir, la pone, y vuelve a empezar. No está pensando. Está leyendo una tabla.",
+        celebrateLead:
+          "Ponlas a escribir a la vez, la de una letra y la de cuatro, con la misma semilla.",
+        triumph:
+          "La de una letra escupe sopa de letras; la de cuatro casi hila frases. Entre una y otra no metiste ni una regla, ni una palabra de gramática, solo unas cuantas letras más de pasado en la apuesta.",
+        temptation:
+          "Y ahí salta la tentación. Si cuatro va mejor que una, ¿por qué parar? ¿Por qué no diez? ¿Por qué no cien?",
+      },
+      s4: {
+        zoomLead: "Súbele la memoria y aléjate, a ver hasta dónde aguanta la tabla.",
+        afterZoom:
+          "Sube otra letra y aléjate otra vez. ¿Llegas al borde? Sigue alejándote. ¿Y ahora?",
+        firehoseLead:
+          "Una tabla así pide texto, y mucho. Así que vamos a darle de comer: vuélcale un Shakespeare entero, y otro, y mil. Abre el grifo.",
+        afterFirehose: "Has volcado mil libros. Mira dónde está el nivel.",
+        bridge:
+          "Una tabla así, alimentada con todo eso, la pones a prueba con una palabra cualquiera que aún no habías escrito.",
+      },
+      s5: {
+        before:
+          "Le funciona de maravilla con lo que ya ha visto. Así que escribe algo de lo más normal, cámbiale una sola letra, y antes de mirar, apuesta: ¿qué crees que hará?",
+        after:
+          "Una sola letra de diferencia. Y ese hueco no tiene por qué ser mala suerte de una sola casilla: asómate a la tabla entera y mira cuántos más hay.",
+        close:
+          "¿Te suena lo que estás viendo? Es la fila plana del principio, la del pez sin memoria, vuelta a aparecer. Para ti los dos contextos son casi el mismo. Para ella no: o tenía esa fila guardada, exacta, o no la tenía.",
+      },
+      s6: {
+        progressLead: "Tiene un techo, sí. Y aun con ese techo, mira de dónde vienes.",
+        afterProgress:
+          "De dar cabezazos al teclado a escribir palabras de verdad, sin enseñarle ni una regla. Y no se quedó en juguete de clase: con esta misma idea funcionaron durante años los traductores, el reconocimiento de voz y el teclado de tu móvil.",
+        afterLimit:
+          "Llevada al límite, con datos de sobra, escribe tan bien que casi cuela. Y aun así, fíjate dónde ha puesto «gato» y «perro»: a tomar por saco el uno del otro, como dos desconocidos. Tú sabes que van juntos. ¿Cuántas veces tuvo que ver «gato» para saber algo de «perro»? Ni una le valió. Lo que aprendió de un contexto se quedó en ese contexto, y en ningún otro.",
+      },
+      history: {
+        kicker: "Historia · opcional",
+        title: "Cuando contar gobernaba el mundo",
+        paras: [
+          "Durante décadas, esto que acabas de tocar fue el estado del arte. No una curiosidad de clase, sino el motor de verdad detrás del reconocimiento de voz, los correctores y la primera traducción automática que llegó a funcionar.",
+          "En los laboratorios de IBM, en los años ochenta, un equipo dirigido por Fred Jelinek apostó todo a contar. Cuanta más transcripción le echaban, mejor reconocía el habla su sistema. De ahí salió una frase que se hizo célebre en el campo: no hay mejor dato que más dato.",
+          "Aguantó años así, tragando cantidades absurdas de texto y conviviendo con las tablas medio vacías. Hasta que ese mismo tope contra el que acabas de chocar dejó de moverse por mucho dato que le echaran, y a alguien se le ocurrió dejar de contar.",
+        ],
+      },
+      cta: {
+        quote: "Contar nos trajo hasta aquí. Cruzar el muro pide dejar de contar.",
+        hook: "Que las cosas que se parecen se traten parecido. De eso van las redes neuronales.",
+        button: "Las redes neuronales",
+        buttonDesc: "Donde se deja de contar.",
+      },
+      footer: {
+        text: "Lo has construido tú, solo contando.",
+        brand: "LM-Lab",
+      },
+    },
+    hero: {
+      eyebrow: "Comprendiendo los Modelos de Lenguaje",
+      titlePrefix: "¿Y si",
+      titleSuffix: "recordamos más?",
+      description:
+        "El modelo bigrama solo podía mirar un carácter atrás. ¿Qué sucede cuando le damos dos? ¿Tres? ¿Cinco? La respuesta es tan fascinante como devastadora.",
+    },
+    moreContext: {
+      label: "Más contexto",
+      title: "Más allá de un solo carácter",
+      lead: "¿Recuerdas el defecto fatal? 'th', 'sh', 'wh' daban predicciones idénticas porque el modelo solo veía un carácter. ¿Y si le diéramos dos? ¿Tres? ¿Cinco?",
+      confidenceBridge:
+        "Fíjate cómo la confianza salta del 18% con N=1 al 94% con N=5. Más memoria transforma un adivinador ciego en un predictor capaz.",
+      p1: "Un modelo N-grama mira los",
+      p1Highlight: "N caracteres anteriores",
+      p1End:
+        " antes de adivinar el siguiente. Ejemplo: N=2 significa que puede ver dos caracteres de contexto.",
+      p2: 'Más contexto hace que las conjeturas sean más inteligentes. Después de "qu", el modelo puede esperar fuertemente una "e" — ha visto ese patrón muchas veces.',
+      p3: "Pero más memoria tiene un coste oculto. Estamos a punto de observar cómo ese coste crece más rápido de lo que dicta tu intuición.",
+      calloutTitle: "La suposición N-grama",
+      calloutText:
+        "La suposición clave: el siguiente carácter depende solo de los N caracteres anteriores. Todo lo anterior se olvida. Es como una ventana deslizante — y la pregunta es: ¿cuánto debe medir?",
+      tryPrompt:
+        "Haz clic en los botones de arriba. ¿Qué le pasa a la predicción a medida que N crece?",
+    },
+    contextWindow: {
+      label: "Ventana de contexto",
+      title: "Viendo más del pasado",
+      lead: 'La ventana de contexto es cuántos caracteres anteriores puede "ver" el modelo antes de hacer una conjetura.',
+      caption:
+        "A medida que la ventana se hace más grande, el modelo puede usar patrones más ricos. Pero el número de ventanas posibles crece extremadamente rápido.",
+      hint: "Observa cómo crece el contexto a medida que aumenta N.",
+      p1: "Cada aumento en N le da al modelo más pistas. También crea muchas más situaciones que el modelo podría necesitar recordar después.",
+    },
+    howItWorks: {
+      label: "Mecánica",
+      title: "Contando con contexto",
+      lead: "El proceso de conteo es el mismo que en los bigramas — pero ahora, en lugar de contar parejas, contamos grupos más largos: el contexto de N caracteres más lo que viene después.",
+      p1: "Para cada posición en el texto de entrenamiento, el modelo toma el",
+      p1Highlight: "contexto de N caracteres",
+      p1End:
+        " y cuenta qué carácter le sigue. Después, usa esos conteos como una tabla de búsqueda: encuentra el contexto y lee el carácter siguiente habitual.",
+      p2: "A medida que N crece, la tabla de conteo gana dimensiones. Con N=1 (bigrama), es una cuadrícula simple. Con N=2, imagina una pila de cuadrículas — una para cada contexto posible de dos caracteres. La tabla crece en todas direcciones.",
+      bridge:
+        "Cada fila representa un contexto específico. Compara 'th' vs 'sh' — esta es exactamente la distinción que el bigrama no podía hacer. El widget de abajo compara el conteo de bigramas y trigramas lado a lado sobre el mismo texto de entrenamiento para que veas la diferencia directamente.",
+      discoveryPrompt:
+        "¿Recuerdas el defecto fatal del bigrama? 'th', 'sh' y 'wh' daban predicciones idénticas porque el modelo solo veía la última 'h'. Ahora observa lo que N=2 puede ver:",
+      tableInsight:
+        "Cada fila es ahora un contexto de dos caracteres. Las distribuciones para 'th' y 'sh' son diferentes — el modelo por fin puede distinguirlos. Ese es el punto clave.",
+    },
+    improvement: {
+      label: "Mejora",
+      title: "La predicción se vuelve mejor",
+      lead: "Aquí está la recompensa. Cuando el modelo ve más contexto, sus conjeturas se vuelven mucho más seguras y correctas.",
+      example:
+        'Después de "h", la siguiente letra no está clara. Después de "th", la "e" se vuelve muy probable. Después de "the", un espacio se vuelve muy probable.',
+      improvementReflection:
+        "Fíjate en el salto: 18% de confianza con N=1, más del 80% con N=3. Cada carácter extra de contexto elimina ambigüedad. El modelo no adivina — recuerda.",
+      battleBridge:
+        "Esa ganancia de confianza se acumula a lo largo de una frase entera. Abajo, la misma semilla alimenta modelos con diferentes tamaños de memoria simultáneamente — observa lo que un carácter extra de memoria hace al resultado:",
+      battleReflection:
+        "Mira la columna N=4: frases que casi parecen inglés. Mira N=1: ruido aleatorio. Misma lógica, mismos datos — solo la ventana de memoria difiere. Tres caracteres extra nos compraron un modelo de lenguaje.",
+      generatorBridge:
+        "Ahora es tu turno. Elige una frase semilla, elige cuánta memoria tiene el modelo (N=2, 3, o 4), y observa cómo escribe.",
+      expandableGenTitle: "Pruébalo tú: Tu propio generador N-grama",
+    },
+    celebration: {
+      text: "Has construido un predictor mucho más potente. El 4-grama escribe frases que casi parecen inglés. Pero toda mejora tiene un precio — y este crece más rápido de lo que piensas.",
+    },
+    whyNotMore: {
+      title: "¿Por qué no N=100?",
+      lead: "Si más contexto mejora las predicciones, ¿por qué parar en 3 o 4? ¿Por qué no mirar los últimos 100 caracteres?",
+      p1: "Porque cada carácter extra de contexto multiplica la tabla por el tamaño del vocabulario. Una tabla de bigrama tiene 9,216 entradas (96²). Un trigrama salta a 884,736 (96³). Un 4-grama alcanza más de 84 millones (96⁴). Ir a N=100 requeriría una tabla con más entradas que átomos en el universo observable. La siguiente sección hace esta explosión visceral.",
+      calloutInsight:
+        "Más memoria siempre mejora las predicciones — pero el coste crece exponencialmente. Esta es la tensión central que define toda la era N-grama.",
+    },
+    statistical: {
+      label: "Naturaleza Estadística",
+      title: "Un Modelo Puramente Estadístico",
+      lead: "Los modelos N-gram no entienden el lenguaje. Son máquinas de conteo sofisticadas.",
+      p1: "Cada predicción es una",
+      p1Highlight: "búsqueda en tabla",
+      p1End:
+        " — el modelo encuentra el contexto coincidente en su tabla y devuelve la distribución de probabilidad almacenada. No hay parámetros aprendidos, ni gradientes, ni optimización.",
+      p2: 'Esto hace que los N-gramas sean extremadamente rápidos en inferencia y trivialmente interpretables: siempre puedes preguntar "¿por qué el modelo predijo X?" y rastrear la respuesta hasta ejemplos exactos de entrenamiento.',
+      calloutTitle: "Sin Generalización",
+      calloutText:
+        "Si el modelo nunca ha visto un contexto particular en el entrenamiento, tiene cero información sobre lo que viene después. A diferencia de las redes neuronales, los N-gramas no pueden generalizar a partir de contextos similares — cada contexto se trata como completamente independiente.",
+    },
+    explosion: {
+      label: "La Explosión",
+      title: "El Precio de la Memoria",
+      lead: "Aquí es donde las matemáticas se vuelven contra nosotros.",
+      concreteBridge:
+        "Los números son abstractos. Hagámoslo concreto — ¿cómo se ven realmente estas tablas?",
+    },
+    growingTables: {
+      label: "Interactivo · Tablas Crecientes",
+      hint: "Observa cómo la tabla crece — y se vacía — a medida que N aumenta.",
+      bigramLabel: "Bigrama (N=1)",
+      trigramLabel: "Trigrama (N=2)",
+      fourgramLabel: "4-grama (N=3)",
+      fivegramLabel: "5-grama (N=4)",
+      filledLabel: "Llenas",
+      emptyLabel: "Vacías",
+      replay: "Repetir",
+    },
+    emptyTable: {
+      label: "La Tabla Vacía",
+      title: "La Mayor Parte de la Tabla Está Vacía",
+      lead: "La explosión crea otro problema devastador: casi ninguna de esas entradas se llenará con datos reales.",
+      bridge:
+        "La tabla de abajo no solo crece — se vacía. A medida que N aumenta, la gran mayoría de los contextos posibles nunca aparecen en ningún texto de entrenamiento realista. Esto se llama dispersión (sparsity).",
+    },
+    priceOfMemory: {
+      label: "El Precio",
+      title: "El Precio de la Memoria",
+      lead: "Cada mejora tiene un precio. Y este crece más rápido de lo que piensas.",
+      sparsityBridge:
+        "Pero la explosión es solo la mitad de la historia. Construir una tabla más grande es difícil — pero llenarla es imposible. A medida que N crece, la mayor parte de la tabla queda vacía:",
+      infiniteDataBridge:
+        "Incluso con todo el texto jamás escrito, ¿podrías llenar la tabla? Usa el deslizador de abajo:",
+      tokenizationBridge:
+        "Hasta ahora hemos contado caracteres — solo 96 tokens posibles. Los modelos de lenguaje reales usan palabras. Eso lo cambia todo:",
+      combinedInsight:
+        "La tabla es demasiado grande para construir, demasiado vacía para usar, y se vuelve catastróficamente peor con palabras. Tres facetas de un mismo problema fundamental.",
+    },
+    complexity: {
+      label: "Complejidad",
+      title: "El precio de la memoria",
+      lead: "Aquí es donde las matemáticas se vuelven contra nosotros.",
+      p1: "Con 96 caracteres posibles, cada carácter extra de contexto multiplica la tabla por 96. N=1: 96 contextos. N=2: 9.216. N=3: 884.736. N=4: 85 millones. N=5: más de 8 mil millones.",
+      p1Highlight: " 884.736",
+      p1End:
+        ". Un 5-grama tiene más de 84 millones. La mayoría de estos contextos nunca aparecerán en ningún corpus de entrenamiento realista.",
+      p2: "La mayoría de esos contextos nunca aparecen en texto real. Eso significa que la mayor parte de la tabla está vacía — esto se llama dispersión (sparsity) — y las filas vacías no pueden guiar las predicciones.",
+      vocabCalloutTitle: "Y empeora mucho más con palabras",
+      vocabCalloutText:
+        "Este laboratorio usa caracteres (~96 posibles). Los modelos de lenguaje reales usan palabras en su lugar. Con 50.000 palabras, incluso una matriz de bigramas necesita 2.500 millones de celdas. Una tabla de trigramas necesitaría 125 billones. Las matemáticas se vuelven catastróficas extremadamente rápido.",
+      comparisonLabel: "Comparativa N-Gram · Métricas del backend en vivo",
+      comparisonHint:
+        "Compara perplejidad, utilización de contexto y espacio de estados entre diferentes valores de N.",
+      metricsLegend: {
+        perplexity:
+          'La perplejidad significa "qué tan sorprendido está el modelo" en promedio; cuanto más baja, mejores conjeturas y más confianza.',
+        utilization:
+          "La utilización del contexto indica qué parte de la enorme tabla se llenó realmente con el texto de entrenamiento; una utilización baja significa que muchos contextos nunca se vieron.",
+        contextSpace:
+          "El espacio de contexto indica cuántos contextos diferentes podrían existir en teoría; crece extremadamente rápido a medida que aumenta N.",
+      },
+    },
+    tokenization: {
+      intro: "Esta complejidad se vuelve catastrófica cuando pasamos de caracteres a palabras.",
+      subsectionTitle: "Caracteres vs. Palabras: Un compromiso crítico",
+      charTitle: "Tokens a nivel de carácter",
+      charDesc:
+        "Vocabulario pequeño y fijo (~96 caracteres ASCII). Toda entrada es representable. Simple de implementar y visualizar — ideal para comprender los fundamentos. Pero cada token casi no lleva significado semántico.",
+      charExample: "Vocab: ~96 | Ejemplo: ['e', 'l', ' ']",
+      wordTitle: "Tokens a nivel de palabra",
+      wordDesc:
+        "Unidades semánticamente ricas que transmiten significado por token. Pero el vocabulario explota a 50.000–500.000 entradas, haciendo la matriz de transición enorme. Las palabras raras causan dispersión; las palabras no vistas causan fallo completo.",
+      wordExample: "Vocab: ~50.000 | Ejemplo: ['el', 'gato', 'se']",
+      explosionIntro:
+        "La explosión combinatoria a nivel de palabra hace que incluso los N-gramas simples sean computacionalmente inviables:",
+      tableLabel: "Explosión N-gram a nivel de palabra · Matemática combinatoria",
+      tableHint:
+        "Asumiendo vocabulario básico de inglés de 50.000 palabras. La mayoría de las celdas estarían vacías (dispersas).",
+      tableHeaders: {
+        model: "Modelo",
+        formula: "Fórmula",
+        combinations: "Combinaciones",
+        scientific: "Científico",
+      },
+      noteLabel: "Nota:",
+      noteText:
+        "Estos números asumen un vocabulario completo de 50.000 palabras en inglés. Los sistemas reales usan estrategias agresivas de poda, suavizado y retroceso para hacer esto manejable — pero el problema fundamental de escalado permanece.",
+      languageP1: "Los modelos a nivel de palabra también son",
+      languageH1: "rígidamente dependientes del idioma",
+      languageP2:
+        ". Un modelo tokenizado para palabras en inglés falla completamente cuando recibe entrada en español, requiriendo un vocabulario y matriz completamente nuevos. Los modelos a nivel de carácter, aunque menos ricos semánticamente por token, pueden manejar múltiples idiomas que comparten el mismo alfabeto.",
+      multilingualCalloutTitle: "El problema multilingüe",
+      multilingualCalloutText:
+        "Un bigrama a nivel de palabra en inglés entrenado con 'the cat sat' no tiene idea qué hacer con 'el gato se sentó'. Cada palabra está fuera del vocabulario. Los modelos de caracteres evitan esto operando a un nivel más bajo y universal — aunque sacrifican densidad semántica en el proceso.",
+    },
+    vocabulary: {
+      label: "Vocabulario",
+      title: "Caracteres vs. Palabras",
+      lead: "Usamos tokens a nivel de carácter en este laboratorio, pero los N-gramas del mundo real a menudo operan con palabras — haciendo la explosión aún peor.",
+      p1: "Con un vocabulario de 50.000 tokens, incluso una",
+      p1Highlight: " matriz bigrama necesita 2.500 millones de celdas",
+      p1End:
+        ". Una tabla de trigramas requeriría 125 billones de entradas. Por eso los N-gramas a nivel de palabra más allá de N=3 son esencialmente impracticables sin suavizado y poda agresivos.",
+      p2: "Los modelos a nivel de carácter mantienen el vocabulario pequeño (~96), haciendo factible visualizar y explorar la tabla completa. Pero el compromiso es que los caracteres individuales casi no portan significado semántico.",
+    },
+    noUnderstanding: {
+      label: "Limitaciones",
+      title: "Sin verdadera comprensión",
+      lead: "Los modelos N-gram capturan patrones de co-ocurrencia local pero no tienen noción de significado, gramática o coherencia de largo alcance.",
+      p1: 'El modelo trata "el gato se sentó en" y "el perro se sentó en" como contextos completamente no relacionados (para N < longitud de la oración). No puede reconocer que ambos involucran un animal sentado sobre algo.',
+      p2: "Esta incapacidad de",
+      p2Highlight: "generalizar entre contextos similares",
+      p2End:
+        " es lo que finalmente limita los modelos N-gram. Sin importar cuántos datos recojas, siempre habrá contextos válidos que el modelo nunca ha visto.",
+      p3: "Esta limitación fundamental es exactamente lo que motiva la transición a enfoques neuronales — modelos que aprenden representaciones densas y continuas capaces de reconocer similitud entre contextos.",
+    },
+    deeperProblem: {
+      label: "Limitaciones",
+      title: "El problema más profundo",
+      lead: "La explosión es un problema práctico — no puedes construir una tabla lo suficientemente grande. Pero hay un problema conceptual aún peor: incluso con datos infinitos, el conteo sigue fallando.",
+      p1: 'Imagina que el texto empieza con "el gato se sentó en". Si el modelo ha visto ese contexto exacto, puede predecir lo que sigue desde la memoria.',
+      p2: 'Ahora cambia una palabra: "el perro se sentó en". Un humano ve que es casi lo mismo. El modelo N-gram lo trata como una situación totalmente nueva.',
+      p3: "Los N-gramas no tienen concepto de 'similar'. Los contextos 'el gato' y 'el perro' son tan distintos para el modelo como 'el gato' y 'xyzq'. Cada uno es una fila separada en la tabla, sin conexión.",
+      infiniteData: {
+        title: "Ni siquiera datos infinitos pueden ayudar",
+        p1: "Supón que tuvieras texto de entrenamiento ilimitado — cada libro jamás escrito. ¿Podrías llenar la tabla? No. El lenguaje es creativo: la gente inventa oraciones nuevas constantemente. El número de secuencias posibles de 10 palabras supera con creces el número de oraciones jamás pronunciadas. Ningún corpus, por grande que sea, puede cubrir cada contexto válido.",
+      },
+      failureExamples: {
+        title: "Cuando el conteo falla",
+        typoLabel: "Errores tipográficos",
+        typoText:
+          "Un usuario escribe 'teh cat' en lugar de 'the cat'. El modelo nunca ha visto el contexto 'teh' y devuelve una distribución uniforme (aleatoria). Una tecla equivocada borra todo el conocimiento aprendido.",
+        novelLabel: "Palabras nuevas",
+        novelText:
+          "Una palabra nueva entra al idioma — 'selfie', 'blockchain', 'vibe-check'. El modelo tiene cero entradas para cualquier contexto que contenga estas palabras. Ni siquiera puede adivinar que 'selfie' se comporta como otros sustantivos.",
+      },
+      typoBridge:
+        "Estos no son casos extremos — son situaciones cotidianas. Primero, observa qué pasa cuando un usuario comete un solo error tipográfico:",
+      similarityBridge:
+        "Aún peor: el modelo no puede reconocer que palabras similares deberían comportarse de manera similar. Pruébalo abajo:",
+      typoSectionTitle: "¿Qué pasa con un solo error tipográfico?",
+      similaritySectionTitle: "¿Por qué no puede ver que 'perro' ≈ 'gato'?",
+      calloutTitle: "Sin generalización",
+      calloutText:
+        "Si el modelo nunca ha visto una secuencia particular en el entrenamiento, no tiene nada que decir. No puede adivinar. No puede razonar por analogía. Simplemente se encoge de hombros. Esta es la limitación fundamental que motiva los enfoques neuronales.",
+      sectionBridge:
+        "La tabla es demasiado grande y demasiado vacía. Pero incluso si pudiéramos llenarla — incluso con datos infinitos — hay una razón más profunda por la que el conteo falla. Es hora de ver el panorama completo.",
+    },
+    endOfCounting: {
+      label: "Reflexión",
+      title: "El Fin del Conteo",
+      lead: "Hemos llegado al límite de lo que el conteo puede hacer.",
+      p1: "Empezamos con bigramas, que recuerdan un carácter. Pasamos a N-gramas, que recuerdan más, y vimos mejorar las predicciones.",
+      p2: "Luego nos topamos con dos muros. El muro de la explosión: la tabla crece demasiado rápido para llenarse. Más memoria multiplica la tabla una y otra vez.",
+      p3: "El muro de la generalización: cada contexto es una isla. El modelo no puede compartir conocimiento entre contextos similares, por lo que falla con frases nuevas.",
+      consolidation: "Da un paso atrás y observa lo que has construido en tu mente:",
+      knows1: "Sabes cómo contar pares se convierte en un motor de predicción.",
+      knows2: "Sabes por qué más contexto ayuda — y por qué tiene un coste.",
+      knows3: "Sabes que la tabla explota y la mayor parte queda vacía.",
+      knows4: "Sabes que contar no puede generalizar: lo no visto = lo desconocido.",
+      bridge:
+        "Cada uno de estos problemas apunta a la misma conclusión: necesitamos modelos que no solo memoricen — necesitan aprender patrones. ¿Y si, en lugar de almacenar cada contexto como una fila aislada en una tabla, pudiéramos comprimir los contextos en vectores densos donde significados similares vivan cerca? Eso es exactamente lo que hacen las redes neuronales.",
+      quote: "La era del conteo ha terminado. La era del aprendizaje comienza.",
+      hookLine:
+        "En el próximo capítulo, reemplazamos la tabla por una red neuronal. En vez de contar, aprende. En vez de memorizar, generaliza. El salto es dramático — y empieza con una sola idea: embeddings.",
+    },
+    sectionNames: {
+      s01: "Más Contexto",
+      s02: "Contando con Contexto",
+      s03: "Mejores Predicciones",
+      s04: "El Precio de la Memoria",
+      s05: "El Problema Más Profundo",
+      s06: "Fin del Conteo",
+    },
+    readTime: "~15 min de lectura · 8 demos interactivas",
+    keyTakeaways: {
+      deeperProblem:
+        "Acabas de verlo de primera mano: si el modelo no ha visto una secuencia en el entrenamiento, no tiene nada que decir. No puede adivinar. No puede razonar por analogía. Memoriza — no comprende.",
+      endOfCounting:
+        "Has llegado al muro: memoria exponencial, cero generalización, ninguna comprensión de similitud. El siguiente salto requiere modelos que aprendan patrones en lugar de memorizarlos.",
+    },
+    cta: {
+      title: "Continúa Explorando",
+      labButton: "Abrir Lab Libre",
+      labDesc:
+        "Cambia al modo Lab Libre para acceso completo a la consola de inferencia N-gram, predictor paso a paso y generador de texto con tamaño de contexto ajustable.",
+      neuralButton: "Siguiente: Del Conteo al Aprendizaje",
+      neuralDesc: "Hemos llevado el conteo a su límite. Ahora construimos algo que aprende.",
+    },
+    generationBattle: {
+      title: "Batalla de Generación",
+      subtitle: "Misma semilla, diferente memoria",
+      description:
+        "Observa cómo el mismo texto inicial produce resultados dramáticamente diferentes a medida que crece la ventana de contexto del modelo.",
+      columnHeader: "N = {n}",
+      qualityLabels: {
+        1: "Ruido aleatorio",
+        2: "Emergen patrones de letras",
+        3: "Aparecen fragmentos de palabras",
+        4: "Frases reconocibles",
+      },
+      streaming: "Generando…",
+      seedLabel: "Texto semilla",
+      generateButton: "Generar Todo",
+      regenerateButton: "Regenerar",
+      tokensLabel: "{count} caracteres",
+      emptyState: "Presiona Generar para iniciar la batalla",
+      temperatureLabel: "temperatura",
+      copyToClipboard: "Copiar al portapapeles",
+    },
+    interactiveGenerator: {
+      seedLabel: "Tu texto semilla",
+      contextLabel: "Contexto (N)",
+      tempLabel: "Temperatura",
+      generate: "Generar",
+      generating: "Generando",
+      reset: "Reiniciar",
+      chars: "caracteres",
+      hint: "Escribe una frase semilla arriba y pulsa Generar para ver al modelo N-grama escribir.",
+      figureLabel: "Interactivo · Tu Generador N-grama",
+      figureHint:
+        "Elige una semilla, tamaño de contexto y temperatura — luego observa al modelo generar texto carácter por carácter.",
+    },
+    footer: {
+      text: "La era estadística ha terminado. Has visto lo que el conteo puede hacer — y dónde se rompe. Siguiente: modelos que aprenden.",
+      brand: "LM-Lab · Modo Educativo",
+    },
+    predictingAfter: "Prediciendo el siguiente carácter después de:",
+    readingChart: "Leyendo el gráfico",
+    ui: {
+      collapse: "contraer",
+      expand: "expandir",
+    },
+    exponentialGrowth: {
+      possibleContexts: "contextos posibles",
+      neverSeen: "La mayoría nunca vistos en entrenamiento",
+      multiply: "Cada carácter extra ×96 — tamaño del vocabulario",
+      replay: "Repetir",
+    },
+    similarityBlindSpot: {
+      ngramView: "Vista N-grama — sin similitud",
+      embeddingView: "Vista embedding — similitud preservada",
+      noConnection: "Los N-gramas ven estas palabras como entradas completamente independientes",
+      connected: "Los embeddings colocan palabras relacionadas cerca",
+      showEmbedding: "¿Y si el modelo supiera que están relacionadas?",
+      hideEmbedding: "Volver a vista N-grama",
+      figureLabel: "Punto Ciego · Por Qué Contar No Puede Generalizar",
+      figureHint:
+        "Los N-gramas tratan cada palabra como un ID aislado. Activa la vista de embeddings para ver cómo los modelos neuronales preservan el significado.",
+    },
+    statisticalEra: {
+      hoverHint: "Pasa el cursor sobre un nodo para saber más",
+      bigramLabel: "Bigrama",
+      bigramSublabel: "Un carácter de memoria",
+      bigramEra: "Comienza la era estadística",
+      bigramSummary:
+        "Un carácter de memoria. Rápido y simple. Sorprendentemente útil — pero olvida todo más allá del último carácter.",
+      ngramLabel: "N-grama",
+      ngramSublabel: "Más contexto, mismos límites",
+      ngramEra: "Dominante en PLN",
+      ngramSummary:
+        "Más contexto, predicciones más precisas. Pero la tabla explota exponencialmente, y el modelo aún no puede generalizar a partir de lo que ha visto.",
+      unknownLabel: "???",
+      unknownSublabel: "Algo diferente",
+      unknownEra: "Una nueva era",
+      unknownSummary:
+        "Redes Neuronales. Dejamos de contar y empezamos a aprender. Los contextos ya no son islas — entradas similares comparten conocimiento.",
+    },
+    figures: {
+      contextWindow: {
+        label: "Ventana de contexto · Ejemplo de lenguaje natural",
+        predictingAfter: "Prediciendo el siguiente carácter después de:",
+        sees: "ve:",
+        next: "¿siguiente?",
+        contextSize: "Tamaño de contexto:",
+        modelBestGuess: "Mejor predicción del modelo",
+        confident: "{pct}% de confianza",
+        candidates: "Candidatos:",
+        n1hint:
+          'Con solo 1 carácter, el modelo ve solo "a" — demasiado poco para reducir las opciones.',
+        n2hint: 'Dos caracteres dan "za" — aún ambiguo, pero empezando a formar patrones.',
+        n3hint:
+          'Tres caracteres revelan "zza" — el modelo empieza a reconocer fragmentos de palabras.',
+        n4hint: 'Cuatro caracteres muestran "izza" — señal fuerte de que probablemente es "pizza".',
+        n5hint: 'Cinco caracteres capturan "pizza" — el modelo sabe exactamente qué viene después.',
+      },
+      transitionExamples: {
+        label: "Tabla de transición · Lo que desbloquea más contexto",
+        hint: "Fíjate en las filas de 'th' y 'sh' — dos contextos que el bigrama trataba de forma idéntica. N=2 le da a cada uno su propia distribución de probabilidad distinta.",
+      },
+      countingComparison: {
+        label: "Comparación de conteo · Bigrama vs. Trigrama",
+        hint: "Mismo texto de entrenamiento, diferente granularidad. Observa cómo contextos más largos producen conteos más específicos.",
+      },
+      confidenceImprovement: {
+        label: "Mejora de la confianza · Efecto de la longitud del contexto",
+        hint: "Cada carácter extra de contexto agudiza la predicción.",
+      },
+      exponentialGrowth: {
+        label: "Crecimiento exponencial · Tamaño de la tabla por N",
+        hint: "Cada paso multiplica el conteo anterior por el tamaño del vocabulario.",
+      },
+      generalizationFailure: {
+        label: "Fallo de generalización · Gato vs. Perro",
+        hint: "Pasa el ratón por la columna derecha para ver qué devuelve el modelo para un contexto no visto.",
+      },
+      statisticalEra: {
+        label: "Era estadística · Ruta de aprendizaje",
+        hint: "La era del conteo ha terminado. Lo siguiente es algo fundamentalmente diferente.",
+      },
+      generationBattle: {
+        label: "Batalla de generación · Comparación lado a lado",
+        hint: "Cada columna usa el mismo texto semilla pero un tamaño de contexto diferente. Un contexto más largo produce resultados más coherentes — hasta que la dispersión toma el control.",
+      },
+      sparsityHeatmap: {
+        label: "Mapa de dispersión · Densidad de tabla por N",
+        hint: "Cambia entre valores de N para ver qué tan rápido se vacía la tabla de probabilidades.",
+      },
+      infiniteTable: {
+        label: "Cobertura de datos · El problema de datos infinitos",
+        hint: "Arrastra el deslizador para ver cuánto de cada tabla N-grama se puede llenar con datos de entrenamiento reales.",
+      },
+      typoBreaker: {
+        label: "Rompe el modelo · Fallo con errores tipográficos y palabras nuevas",
+        hint: "Escribe una palabra mal escrita o nueva para ver cómo el modelo N-grama pierde toda confianza.",
+      },
+    },
+  },
+  ngramPedagogy: {
+    primer: {
+      title: "¿Qué es un {name}?",
+      isEdu: {
+        p1: 'Imagina que intentas adivinar la siguiente letra que alguien escribirá. Un modelo <0>{name}</0> mira las últimas <1>{length}</1> letra{suffix} y pregunta: <2>"Basado en lo que acabo de ver, ¿qué suele venir después?"</2>',
+        n1: "Con solo 1 carácter de memoria, el modelo esencialmente adivina a ciegas basándose solo en la frecuencia.",
+        n2: "Dos caracteres de contexto son suficientes para aprender patrones simples como 'qu' → 'e', 'u', pero no mucho más.",
+        nSmall:
+          "Con {n} caracteres, el modelo comienza a capturar fragmentos de palabras cortos — pero el número de contextos posibles ya es {count}.",
+        nLarge:
+          "En N={n}, el modelo teóricamente tiene un rico contexto local — pero almacenar cada combinación posible de {n} caracteres requiere miles de millones de entradas.",
+      },
+      isFree: {
+        p1: "Un {name} condiciona sobre los últimos <0>{length}</0> token{suffix}. El espacio de contexto crece como |V|<sup>{n}</sup>.",
+      },
+      liveWindow: "Ventana de contexto en vivo",
+    },
+    growth: {
+      title: "Crecimiento de contexto",
+      body: "Mira cómo la ventana de historia visible se expande a medida que aumenta N. Más contexto permite suposiciones más certeras — pero también implica exponencialmente más posibilidades.",
+    },
+    transitions: {
+      title: "Ejemplos de transición",
+      isEduBody:
+        'En lugar de una tabla gigante, tracemos algunas transiciones a través de la frase <0>the qui</0>. Cada fila muestra: "dado este contexto, el siguiente carácter fue..." — además de evidencia real del corpus de entrenamiento.',
+      isFreeBody: "Ejemplos de transición de <0>the qui</0> con evidencia del corpus.",
+      matches: "{count} coincidencia{suffix}",
+      searching: "Buscando datos de entrenamiento...",
+      noMatches: "No se encontraron coincidencias en el corpus de muestra.",
+      corpusEvidence: "Evidencia del corpus",
+      noMatchesExpanded: {
+        title: "Sin coincidencias en la muestra",
+        explanation:
+          "La muestra del corpus de entrenamiento no contiene esta transición exacta. Esto es esperado — no todos los N-gramas posibles aparecen en un corpus finito. Este es el problema de la dispersión.",
+        hint: "Intenta expandir una fila diferente, o reduce N para ver más coincidencias.",
+      },
+    },
+    explosion: {
+      title: "Explosión Combinatoria",
+      body1:
+        "Un modelo {n}-gram con V={vocabSize} caracteres necesitaría almacenar probabilidades para cada contexto posible de {n} caracteres. Eso es:",
+      entries: "{count} entradas",
+      body2:
+        "Más de {billionCount} combinaciones. La mayoría nunca se observarían en los datos de entrenamiento, haciendo la tabla astronómicamente dispersa e impráctica.",
+      limitReached: "Límite de escalado clásico alcanzado",
+    },
+    comparison: {
+      title: "Comparación de modelos",
+      isEduBody:
+        "A medida que N crece, la perplejidad baja (el modelo mejora prediciendo localmente) — pero la utilización del contexto se desploma porque la mayoría de los contextos posibles nunca se ven en el entrenamiento.",
+      isFreeBody: "Métricas del backend por N. Menor perplejidad = mejor ajuste local.",
+      quality: "Calidad (↑ = menor ppl)",
+      utilization: "Utilización",
+    },
+    limitations: {
+      title: "Limitaciones clave",
+      items: {
+        context: {
+          title: "Contexto limitado",
+          isEdu:
+            "Incluso con N=5, el modelo olvida todo lo anterior a esos 5 caracteres. Nunca podrá aprender que un párrafo trata sobre cocina solo porque vio la palabra 'receta' diez oraciones atrás.",
+          isFree:
+            "Incluso N=5 captura solo 5 tokens de historia. Las dependencias a largo plazo permanecen invisibles.",
         },
-        whyNotMore: {
-            title: "¿Por qué no N=100?",
-            lead: "Si más contexto mejora las predicciones, ¿por qué parar en 3 o 4? ¿Por qué no mirar los últimos 100 caracteres?",
-            p1: "Porque cada carácter extra de contexto multiplica la tabla por el tamaño del vocabulario. Una tabla de bigrama tiene 9,216 entradas (96²). Un trigrama salta a 884,736 (96³). Un 4-grama alcanza más de 84 millones (96⁴). Ir a N=100 requeriría una tabla con más entradas que átomos en el universo observable. La siguiente sección hace esta explosión visceral.",
-            calloutInsight: "Más memoria siempre mejora las predicciones — pero el coste crece exponencialmente. Esta es la tensión central que define toda la era N-grama.",
-        },
-        statistical: {
-            label: "Naturaleza Estadística",
-            title: "Un Modelo Puramente Estadístico",
-            lead: "Los modelos N-gram no entienden el lenguaje. Son máquinas de conteo sofisticadas.",
-            p1: "Cada predicción es una",
-            p1Highlight: "búsqueda en tabla",
-            p1End: " — el modelo encuentra el contexto coincidente en su tabla y devuelve la distribución de probabilidad almacenada. No hay parámetros aprendidos, ni gradientes, ni optimización.",
-            p2: "Esto hace que los N-gramas sean extremadamente rápidos en inferencia y trivialmente interpretables: siempre puedes preguntar \"¿por qué el modelo predijo X?\" y rastrear la respuesta hasta ejemplos exactos de entrenamiento.",
-            calloutTitle: "Sin Generalización",
-            calloutText: "Si el modelo nunca ha visto un contexto particular en el entrenamiento, tiene cero información sobre lo que viene después. A diferencia de las redes neuronales, los N-gramas no pueden generalizar a partir de contextos similares — cada contexto se trata como completamente independiente.",
-        },
-        explosion: {
-            label: "La Explosión",
-            title: "El Precio de la Memoria",
-            lead: "Aquí es donde las matemáticas se vuelven contra nosotros.",
-            concreteBridge: "Los números son abstractos. Hagámoslo concreto — ¿cómo se ven realmente estas tablas?",
-        },
-        growingTables: {
-            label: "Interactivo · Tablas Crecientes",
-            hint: "Observa cómo la tabla crece — y se vacía — a medida que N aumenta.",
-            bigramLabel: "Bigrama (N=1)",
-            trigramLabel: "Trigrama (N=2)",
-            fourgramLabel: "4-grama (N=3)",
-            fivegramLabel: "5-grama (N=4)",
-            filledLabel: "Llenas",
-            emptyLabel: "Vacías",
-            replay: "Repetir",
-        },
-        emptyTable: {
-            label: "La Tabla Vacía",
-            title: "La Mayor Parte de la Tabla Está Vacía",
-            lead: "La explosión crea otro problema devastador: casi ninguna de esas entradas se llenará con datos reales.",
-            bridge: "La tabla de abajo no solo crece — se vacía. A medida que N aumenta, la gran mayoría de los contextos posibles nunca aparecen en ningún texto de entrenamiento realista. Esto se llama dispersión (sparsity).",
-        },
-        priceOfMemory: {
-            label: "El Precio",
-            title: "El Precio de la Memoria",
-            lead: "Cada mejora tiene un precio. Y este crece más rápido de lo que piensas.",
-            sparsityBridge: "Pero la explosión es solo la mitad de la historia. Construir una tabla más grande es difícil — pero llenarla es imposible. A medida que N crece, la mayor parte de la tabla queda vacía:",
-            infiniteDataBridge: "Incluso con todo el texto jamás escrito, ¿podrías llenar la tabla? Usa el deslizador de abajo:",
-            tokenizationBridge: "Hasta ahora hemos contado caracteres — solo 96 tokens posibles. Los modelos de lenguaje reales usan palabras. Eso lo cambia todo:",
-            combinedInsight: "La tabla es demasiado grande para construir, demasiado vacía para usar, y se vuelve catastróficamente peor con palabras. Tres facetas de un mismo problema fundamental.",
-        },
-        complexity: {
-            label: "Complejidad",
-            title: "El precio de la memoria",
-            lead: "Aquí es donde las matemáticas se vuelven contra nosotros.",
-            p1: "Con 96 caracteres posibles, cada carácter extra de contexto multiplica la tabla por 96. N=1: 96 contextos. N=2: 9.216. N=3: 884.736. N=4: 85 millones. N=5: más de 8 mil millones.",
-            p1Highlight: " 884.736",
-            p1End: ". Un 5-grama tiene más de 84 millones. La mayoría de estos contextos nunca aparecerán en ningún corpus de entrenamiento realista.",
-            p2: "La mayoría de esos contextos nunca aparecen en texto real. Eso significa que la mayor parte de la tabla está vacía — esto se llama dispersión (sparsity) — y las filas vacías no pueden guiar las predicciones.",
-            vocabCalloutTitle: "Y empeora mucho más con palabras",
-            vocabCalloutText: "Este laboratorio usa caracteres (~96 posibles). Los modelos de lenguaje reales usan palabras en su lugar. Con 50.000 palabras, incluso una matriz de bigramas necesita 2.500 millones de celdas. Una tabla de trigramas necesitaría 125 billones. Las matemáticas se vuelven catastróficas extremadamente rápido.",
-            comparisonLabel: "Comparativa N-Gram · Métricas del backend en vivo",
-            comparisonHint: "Compara perplejidad, utilización de contexto y espacio de estados entre diferentes valores de N.",
-            metricsLegend: {
-                perplexity: "La perplejidad significa \"qué tan sorprendido está el modelo\" en promedio; cuanto más baja, mejores conjeturas y más confianza.",
-                utilization: "La utilización del contexto indica qué parte de la enorme tabla se llenó realmente con el texto de entrenamiento; una utilización baja significa que muchos contextos nunca se vieron.",
-                contextSpace: "El espacio de contexto indica cuántos contextos diferentes podrían existir en teoría; crece extremadamente rápido a medida que aumenta N.",
-            },
-        },
-        tokenization: {
-            intro: "Esta complejidad se vuelve catastrófica cuando pasamos de caracteres a palabras.",
-            subsectionTitle: "Caracteres vs. Palabras: Un compromiso crítico",
-            charTitle: "Tokens a nivel de carácter",
-            charDesc: "Vocabulario pequeño y fijo (~96 caracteres ASCII). Toda entrada es representable. Simple de implementar y visualizar — ideal para comprender los fundamentos. Pero cada token casi no lleva significado semántico.",
-            charExample: "Vocab: ~96 | Ejemplo: ['e', 'l', ' ']",
-            wordTitle: "Tokens a nivel de palabra",
-            wordDesc: "Unidades semánticamente ricas que transmiten significado por token. Pero el vocabulario explota a 50.000–500.000 entradas, haciendo la matriz de transición enorme. Las palabras raras causan dispersión; las palabras no vistas causan fallo completo.",
-            wordExample: "Vocab: ~50.000 | Ejemplo: ['el', 'gato', 'se']",
-            explosionIntro: "La explosión combinatoria a nivel de palabra hace que incluso los N-gramas simples sean computacionalmente inviables:",
-            tableLabel: "Explosión N-gram a nivel de palabra · Matemática combinatoria",
-            tableHint: "Asumiendo vocabulario básico de inglés de 50.000 palabras. La mayoría de las celdas estarían vacías (dispersas).",
-            tableHeaders: {
-                model: "Modelo",
-                formula: "Fórmula",
-                combinations: "Combinaciones",
-                scientific: "Científico",
-            },
-            noteLabel: "Nota:",
-            noteText: "Estos números asumen un vocabulario completo de 50.000 palabras en inglés. Los sistemas reales usan estrategias agresivas de poda, suavizado y retroceso para hacer esto manejable — pero el problema fundamental de escalado permanece.",
-            languageP1: "Los modelos a nivel de palabra también son",
-            languageH1: "rígidamente dependientes del idioma",
-            languageP2: ". Un modelo tokenizado para palabras en inglés falla completamente cuando recibe entrada en español, requiriendo un vocabulario y matriz completamente nuevos. Los modelos a nivel de carácter, aunque menos ricos semánticamente por token, pueden manejar múltiples idiomas que comparten el mismo alfabeto.",
-            multilingualCalloutTitle: "El problema multilingüe",
-            multilingualCalloutText: "Un bigrama a nivel de palabra en inglés entrenado con 'the cat sat' no tiene idea qué hacer con 'el gato se sentó'. Cada palabra está fuera del vocabulario. Los modelos de caracteres evitan esto operando a un nivel más bajo y universal — aunque sacrifican densidad semántica en el proceso.",
+        scalability: {
+          title: "Escalabilidad exponencial",
+          isEdu:
+            "Cada carácter extra de contexto multiplica el tamaño de la tabla por el tamaño del vocabulario (~96×). Pasar de N=3 a N=4 significa ~96× más filas que almacenar.",
+          isFree:
+            "El espacio de contexto crece como |V|^N. Los requisitos de almacenamiento y datos se vuelven inmanejables para N > 4.",
         },
         vocabulary: {
-            label: "Vocabulario",
-            title: "Caracteres vs. Palabras",
-            lead: "Usamos tokens a nivel de carácter en este laboratorio, pero los N-gramas del mundo real a menudo operan con palabras — haciendo la explosión aún peor.",
-            p1: "Con un vocabulario de 50.000 tokens, incluso una",
-            p1Highlight: " matriz bigrama necesita 2.500 millones de celdas",
-            p1End: ". Una tabla de trigramas requeriría 125 billones de entradas. Por eso los N-gramas a nivel de palabra más allá de N=3 son esencialmente impracticables sin suavizado y poda agresivos.",
-            p2: "Los modelos a nivel de carácter mantienen el vocabulario pequeño (~96), haciendo factible visualizar y explorar la tabla completa. Pero el compromiso es que los caracteres individuales casi no portan significado semántico.",
+          title: "Explosión de vocabulario",
+          isEdu:
+            "Si usáramos palabras en lugar de caracteres, el vocabulario saltaría de ~96 a decenas de miles — haciendo que incluso una tabla de bigramas sea enorme.",
+          isFree:
+            "Los N-gramas a nivel de palabra enfrentan tamaños de vocabulario de más de 50k, lo que hace que las tablas sean imprácticas incluso para N pequeñas.",
         },
-        noUnderstanding: {
-            label: "Limitaciones",
-            title: "Sin verdadera comprensión",
-            lead: "Los modelos N-gram capturan patrones de co-ocurrencia local pero no tienen noción de significado, gramática o coherencia de largo alcance.",
-            p1: "El modelo trata \"el gato se sentó en\" y \"el perro se sentó en\" como contextos completamente no relacionados (para N < longitud de la oración). No puede reconocer que ambos involucran un animal sentado sobre algo.",
-            p2: "Esta incapacidad de",
-            p2Highlight: "generalizar entre contextos similares",
-            p2End: " es lo que finalmente limita los modelos N-gram. Sin importar cuántos datos recojas, siempre habrá contextos válidos que el modelo nunca ha visto.",
-            p3: "Esta limitación fundamental es exactamente lo que motiva la transición a enfoques neuronales — modelos que aprenden representaciones densas y continuas capaces de reconocer similitud entre contextos.",
-        },
-        deeperProblem: {
-            label: "Limitaciones",
-            title: "El problema más profundo",
-            lead: "La explosión es un problema práctico — no puedes construir una tabla lo suficientemente grande. Pero hay un problema conceptual aún peor: incluso con datos infinitos, el conteo sigue fallando.",
-            p1: "Imagina que el texto empieza con \"el gato se sentó en\". Si el modelo ha visto ese contexto exacto, puede predecir lo que sigue desde la memoria.",
-            p2: "Ahora cambia una palabra: \"el perro se sentó en\". Un humano ve que es casi lo mismo. El modelo N-gram lo trata como una situación totalmente nueva.",
-            p3: "Los N-gramas no tienen concepto de 'similar'. Los contextos 'el gato' y 'el perro' son tan distintos para el modelo como 'el gato' y 'xyzq'. Cada uno es una fila separada en la tabla, sin conexión.",
-            infiniteData: {
-                title: "Ni siquiera datos infinitos pueden ayudar",
-                p1: "Supón que tuvieras texto de entrenamiento ilimitado — cada libro jamás escrito. ¿Podrías llenar la tabla? No. El lenguaje es creativo: la gente inventa oraciones nuevas constantemente. El número de secuencias posibles de 10 palabras supera con creces el número de oraciones jamás pronunciadas. Ningún corpus, por grande que sea, puede cubrir cada contexto válido.",
-            },
-            failureExamples: {
-                title: "Cuando el conteo falla",
-                typoLabel: "Errores tipográficos",
-                typoText: "Un usuario escribe 'teh cat' en lugar de 'the cat'. El modelo nunca ha visto el contexto 'teh' y devuelve una distribución uniforme (aleatoria). Una tecla equivocada borra todo el conocimiento aprendido.",
-                novelLabel: "Palabras nuevas",
-                novelText: "Una palabra nueva entra al idioma — 'selfie', 'blockchain', 'vibe-check'. El modelo tiene cero entradas para cualquier contexto que contenga estas palabras. Ni siquiera puede adivinar que 'selfie' se comporta como otros sustantivos.",
-            },
-            typoBridge: "Estos no son casos extremos — son situaciones cotidianas. Primero, observa qué pasa cuando un usuario comete un solo error tipográfico:",
-            similarityBridge: "Aún peor: el modelo no puede reconocer que palabras similares deberían comportarse de manera similar. Pruébalo abajo:",
-            typoSectionTitle: "¿Qué pasa con un solo error tipográfico?",
-            similaritySectionTitle: "¿Por qué no puede ver que 'perro' ≈ 'gato'?",
-            calloutTitle: "Sin generalización",
-            calloutText: "Si el modelo nunca ha visto una secuencia particular en el entrenamiento, no tiene nada que decir. No puede adivinar. No puede razonar por analogía. Simplemente se encoge de hombros. Esta es la limitación fundamental que motiva los enfoques neuronales.",
-            sectionBridge: "La tabla es demasiado grande y demasiado vacía. Pero incluso si pudiéramos llenarla — incluso con datos infinitos — hay una razón más profunda por la que el conteo falla. Es hora de ver el panorama completo.",
-        },
-        endOfCounting: {
-            label: "Reflexión",
-            title: "El Fin del Conteo",
-            lead: "Hemos llegado al límite de lo que el conteo puede hacer.",
-            p1: "Empezamos con bigramas, que recuerdan un carácter. Pasamos a N-gramas, que recuerdan más, y vimos mejorar las predicciones.",
-            p2: "Luego nos topamos con dos muros. El muro de la explosión: la tabla crece demasiado rápido para llenarse. Más memoria multiplica la tabla una y otra vez.",
-            p3: "El muro de la generalización: cada contexto es una isla. El modelo no puede compartir conocimiento entre contextos similares, por lo que falla con frases nuevas.",
-            consolidation: "Da un paso atrás y observa lo que has construido en tu mente:",
-            knows1: "Sabes cómo contar pares se convierte en un motor de predicción.",
-            knows2: "Sabes por qué más contexto ayuda — y por qué tiene un coste.",
-            knows3: "Sabes que la tabla explota y la mayor parte queda vacía.",
-            knows4: "Sabes que contar no puede generalizar: lo no visto = lo desconocido.",
-            bridge: "Cada uno de estos problemas apunta a la misma conclusión: necesitamos modelos que no solo memoricen — necesitan aprender patrones. ¿Y si, en lugar de almacenar cada contexto como una fila aislada en una tabla, pudiéramos comprimir los contextos en vectores densos donde significados similares vivan cerca? Eso es exactamente lo que hacen las redes neuronales.",
-            quote: "La era del conteo ha terminado. La era del aprendizaje comienza.",
-            hookLine: "En el próximo capítulo, reemplazamos la tabla por una red neuronal. En vez de contar, aprende. En vez de memorizar, generaliza. El salto es dramático — y empieza con una sola idea: embeddings.",
-        },
-        sectionNames: {
-            s01: "Más Contexto",
-            s02: "Contando con Contexto",
-            s03: "Mejores Predicciones",
-            s04: "El Precio de la Memoria",
-            s05: "El Problema Más Profundo",
-            s06: "Fin del Conteo",
-        },
-        readTime: "~15 min de lectura · 8 demos interactivas",
-        keyTakeaways: {
-            deeperProblem: "Acabas de verlo de primera mano: si el modelo no ha visto una secuencia en el entrenamiento, no tiene nada que decir. No puede adivinar. No puede razonar por analogía. Memoriza — no comprende.",
-            endOfCounting: "Has llegado al muro: memoria exponencial, cero generalización, ninguna comprensión de similitud. El siguiente salto requiere modelos que aprendan patrones en lugar de memorizarlos.",
-        },
-        cta: {
-            title: "Continúa Explorando",
-            labButton: "Abrir Lab Libre",
-            labDesc: "Cambia al modo Lab Libre para acceso completo a la consola de inferencia N-gram, predictor paso a paso y generador de texto con tamaño de contexto ajustable.",
-            neuralButton: "Siguiente: Del Conteo al Aprendizaje",
-            neuralDesc: "Hemos llevado el conteo a su límite. Ahora construimos algo que aprende.",
-        },
-        generationBattle: {
-            title: "Batalla de Generación",
-            subtitle: "Misma semilla, diferente memoria",
-            description: "Observa cómo el mismo texto inicial produce resultados dramáticamente diferentes a medida que crece la ventana de contexto del modelo.",
-            columnHeader: "N = {n}",
-            qualityLabels: {
-                1: "Ruido aleatorio",
-                2: "Emergen patrones de letras",
-                3: "Aparecen fragmentos de palabras",
-                4: "Frases reconocibles",
-            },
-            streaming: "Generando…",
-            seedLabel: "Texto semilla",
-            generateButton: "Generar Todo",
-            regenerateButton: "Regenerar",
-            tokensLabel: "{count} caracteres",
-            emptyState: "Presiona Generar para iniciar la batalla",
-            temperatureLabel: "temperatura",
-            copyToClipboard: "Copiar al portapapeles",
-        },
-        interactiveGenerator: {
-            seedLabel: "Tu texto semilla",
-            contextLabel: "Contexto (N)",
-            tempLabel: "Temperatura",
-            generate: "Generar",
-            generating: "Generando",
-            reset: "Reiniciar",
-            chars: "caracteres",
-            hint: "Escribe una frase semilla arriba y pulsa Generar para ver al modelo N-grama escribir.",
-            figureLabel: "Interactivo · Tu Generador N-grama",
-            figureHint: "Elige una semilla, tamaño de contexto y temperatura — luego observa al modelo generar texto carácter por carácter.",
-        },
-        footer: {
-            text: "La era estadística ha terminado. Has visto lo que el conteo puede hacer — y dónde se rompe. Siguiente: modelos que aprenden.",
-            brand: "LM-Lab · Modo Educativo",
-        },
-        predictingAfter: "Prediciendo el siguiente carácter después de:",
-        readingChart: "Leyendo el gráfico",
-        ui: {
-            collapse: "contraer",
-            expand: "expandir",
-        },
-        exponentialGrowth: {
-            possibleContexts: "contextos posibles",
-            neverSeen: "La mayoría nunca vistos en entrenamiento",
-            multiply: "Cada carácter extra ×96 — tamaño del vocabulario",
-            replay: "Repetir",
-        },
-        similarityBlindSpot: {
-            ngramView: "Vista N-grama — sin similitud",
-            embeddingView: "Vista embedding — similitud preservada",
-            noConnection: "Los N-gramas ven estas palabras como entradas completamente independientes",
-            connected: "Los embeddings colocan palabras relacionadas cerca",
-            showEmbedding: "¿Y si el modelo supiera que están relacionadas?",
-            hideEmbedding: "Volver a vista N-grama",
-            figureLabel: "Punto Ciego · Por Qué Contar No Puede Generalizar",
-            figureHint: "Los N-gramas tratan cada palabra como un ID aislado. Activa la vista de embeddings para ver cómo los modelos neuronales preservan el significado.",
-        },
-        statisticalEra: {
-            hoverHint: "Pasa el cursor sobre un nodo para saber más",
-            bigramLabel: "Bigrama",
-            bigramSublabel: "Un carácter de memoria",
-            bigramEra: "Comienza la era estadística",
-            bigramSummary: "Un carácter de memoria. Rápido y simple. Sorprendentemente útil — pero olvida todo más allá del último carácter.",
-            ngramLabel: "N-grama",
-            ngramSublabel: "Más contexto, mismos límites",
-            ngramEra: "Dominante en PLN",
-            ngramSummary: "Más contexto, predicciones más precisas. Pero la tabla explota exponencialmente, y el modelo aún no puede generalizar a partir de lo que ha visto.",
-            unknownLabel: "???",
-            unknownSublabel: "Algo diferente",
-            unknownEra: "Una nueva era",
-            unknownSummary: "Redes Neuronales. Dejamos de contar y empezamos a aprender. Los contextos ya no son islas — entradas similares comparten conocimiento.",
-        },
-        figures: {
-            contextWindow: {
-                label: "Ventana de contexto · Ejemplo de lenguaje natural",
-                predictingAfter: "Prediciendo el siguiente carácter después de:",
-                sees: "ve:",
-                next: "¿siguiente?",
-                contextSize: "Tamaño de contexto:",
-                modelBestGuess: "Mejor predicción del modelo",
-                confident: "{pct}% de confianza",
-                candidates: "Candidatos:",
-                n1hint: "Con solo 1 carácter, el modelo ve solo \"a\" — demasiado poco para reducir las opciones.",
-                n2hint: "Dos caracteres dan \"za\" — aún ambiguo, pero empezando a formar patrones.",
-                n3hint: "Tres caracteres revelan \"zza\" — el modelo empieza a reconocer fragmentos de palabras.",
-                n4hint: "Cuatro caracteres muestran \"izza\" — señal fuerte de que probablemente es \"pizza\".",
-                n5hint: "Cinco caracteres capturan \"pizza\" — el modelo sabe exactamente qué viene después.",
-            },
-            transitionExamples: {
-                label: "Tabla de transición · Lo que desbloquea más contexto",
-                hint: "Fíjate en las filas de 'th' y 'sh' — dos contextos que el bigrama trataba de forma idéntica. N=2 le da a cada uno su propia distribución de probabilidad distinta.",
-            },
-            countingComparison: {
-                label: "Comparación de conteo · Bigrama vs. Trigrama",
-                hint: "Mismo texto de entrenamiento, diferente granularidad. Observa cómo contextos más largos producen conteos más específicos.",
-            },
-            confidenceImprovement: {
-                label: "Mejora de la confianza · Efecto de la longitud del contexto",
-                hint: "Cada carácter extra de contexto agudiza la predicción.",
-            },
-            exponentialGrowth: {
-                label: "Crecimiento exponencial · Tamaño de la tabla por N",
-                hint: "Cada paso multiplica el conteo anterior por el tamaño del vocabulario.",
-            },
-            generalizationFailure: {
-                label: "Fallo de generalización · Gato vs. Perro",
-                hint: "Pasa el ratón por la columna derecha para ver qué devuelve el modelo para un contexto no visto.",
-            },
-            statisticalEra: {
-                label: "Era estadística · Ruta de aprendizaje",
-                hint: "La era del conteo ha terminado. Lo siguiente es algo fundamentalmente diferente.",
-            },
-            generationBattle: {
-                label: "Batalla de generación · Comparación lado a lado",
-                hint: "Cada columna usa el mismo texto semilla pero un tamaño de contexto diferente. Un contexto más largo produce resultados más coherentes — hasta que la dispersión toma el control.",
-            },
-            sparsityHeatmap: {
-                label: "Mapa de dispersión · Densidad de tabla por N",
-                hint: "Cambia entre valores de N para ver qué tan rápido se vacía la tabla de probabilidades.",
-            },
-            infiniteTable: {
-                label: "Cobertura de datos · El problema de datos infinitos",
-                hint: "Arrastra el deslizador para ver cuánto de cada tabla N-grama se puede llenar con datos de entrenamiento reales.",
-            },
-            typoBreaker: {
-                label: "Rompe el modelo · Fallo con errores tipográficos y palabras nuevas",
-                hint: "Escribe una palabra mal escrita o nueva para ver cómo el modelo N-grama pierde toda confianza.",
-            },
-        }
+      },
     },
-    ngramPedagogy: {
-        primer: {
-            title: "¿Qué es un {name}?",
-            isEdu: {
-                p1: "Imagina que intentas adivinar la siguiente letra que alguien escribirá. Un modelo <0>{name}</0> mira las últimas <1>{length}</1> letra{suffix} y pregunta: <2>\"Basado en lo que acabo de ver, ¿qué suele venir después?\"</2>",
-                n1: "Con solo 1 carácter de memoria, el modelo esencialmente adivina a ciegas basándose solo en la frecuencia.",
-                n2: "Dos caracteres de contexto son suficientes para aprender patrones simples como 'qu' → 'e', 'u', pero no mucho más.",
-                nSmall: "Con {n} caracteres, el modelo comienza a capturar fragmentos de palabras cortos — pero el número de contextos posibles ya es {count}.",
-                nLarge: "En N={n}, el modelo teóricamente tiene un rico contexto local — pero almacenar cada combinación posible de {n} caracteres requiere miles de millones de entradas."
-            },
-            isFree: {
-                p1: "Un {name} condiciona sobre los últimos <0>{length}</0> token{suffix}. El espacio de contexto crece como |V|<sup>{n}</sup>."
-            },
-            liveWindow: "Ventana de contexto en vivo"
+    story: {
+      title: "La historia de los N-gramas",
+      subtitle: "Por qué más contexto parecía la respuesta — y por qué no fue suficiente",
+      steps: {
+        s1: {
+          title: "El cuello de botella del bigrama",
+          body: "Empezamos con la idea más simple: predecir el siguiente carácter usando solo el anterior. Pero un modelo bigrama tiene la memoria de un pez — olvida inmediatamente todo excepto la última letra.",
         },
-        growth: {
-            title: "Crecimiento de contexto",
-            body: "Mira cómo la ventana de historia visible se expande a medida que aumenta N. Más contexto permite suposiciones más certeras — pero también implica exponencialmente más posibilidades."
+        s2: {
+          title: "Una extensión natural",
+          body: "La solución obvia es mirar más historia. Un trigrama mira 2 caracteres anteriores, un 4-grama mira 3, y así sucesivamente. Cada paso le da al modelo un contexto local más rico y predicciones notablemente mejores.",
         },
-        transitions: {
-            title: "Ejemplos de transición",
-            isEduBody: "En lugar de una tabla gigante, tracemos algunas transiciones a través de la frase <0>the qui</0>. Cada fila muestra: \"dado este contexto, el siguiente carácter fue...\" — además de evidencia real del corpus de entrenamiento.",
-            isFreeBody: "Ejemplos de transición de <0>the qui</0> con evidencia del corpus.",
-            matches: "{count} coincidencia{suffix}",
-            searching: "Buscando datos de entrenamiento...",
-            noMatches: "No se encontraron coincidencias en el corpus de muestra.",
-            corpusEvidence: "Evidencia del corpus",
-            noMatchesExpanded: {
-                title: "Sin coincidencias en la muestra",
-                explanation: "La muestra del corpus de entrenamiento no contiene esta transición exacta. Esto es esperado — no todos los N-gramas posibles aparecen en un corpus finito. Este es el problema de la dispersión.",
-                hint: "Intenta expandir una fila diferente, o reduce N para ver más coincidencias.",
-            },
+        s3: {
+          title: "El coste de la memoria",
+          body: "Pero hay un truco. Cada carácter extra de contexto multiplica el número de estados posibles por el tamaño del vocabulario. Un trigrama con 96 caracteres ya tiene 884.736 contextos posibles. La mayoría nunca se observan en el entrenamiento — la tabla se vuelve astronómicamente dispersa.",
         },
-        explosion: {
-            title: "Explosión Combinatoria",
-            body1: "Un modelo {n}-gram con V={vocabSize} caracteres necesitaría almacenar probabilidades para cada contexto posible de {n} caracteres. Eso es:",
-            entries: "{count} entradas",
-            body2: "Más de {billionCount} combinaciones. La mayoría nunca se observarían en los datos de entrenamiento, haciendo la tabla astronómicamente dispersa e impráctica.",
-            limitReached: "Límite de escalado clásico alcanzado"
+        s4: {
+          title: "El muro de escalado",
+          body: "Para N=5, necesitaríamos más de 8 mil millones de entradas en la tabla. Ningún conjunto de datos es lo suficientemente grande como para llenar esa tabla de manera significativa. Esta es la razón fundamental por la que los N-gramas fueron finalmente reemplazados por modelos neuronales que pueden generalizar a través de contextos similares.",
         },
-        comparison: {
-            title: "Comparación de modelos",
-            isEduBody: "A medida que N crece, la perplejidad baja (el modelo mejora prediciendo localmente) — pero la utilización del contexto se desploma porque la mayoría de los contextos posibles nunca se ven en el entrenamiento.",
-            isFreeBody: "Métricas del backend por N. Menor perplejidad = mejor ajuste local.",
-            quality: "Calidad (↑ = menor ppl)",
-            utilization: "Utilización"
-        },
-        limitations: {
-            title: "Limitaciones clave",
-            items: {
-                context: {
-                    title: "Contexto limitado",
-                    isEdu: "Incluso con N=5, el modelo olvida todo lo anterior a esos 5 caracteres. Nunca podrá aprender que un párrafo trata sobre cocina solo porque vio la palabra 'receta' diez oraciones atrás.",
-                    isFree: "Incluso N=5 captura solo 5 tokens de historia. Las dependencias a largo plazo permanecen invisibles."
-                },
-                scalability: {
-                    title: "Escalabilidad exponencial",
-                    isEdu: "Cada carácter extra de contexto multiplica el tamaño de la tabla por el tamaño del vocabulario (~96×). Pasar de N=3 a N=4 significa ~96× más filas que almacenar.",
-                    isFree: "El espacio de contexto crece como |V|^N. Los requisitos de almacenamiento y datos se vuelven inmanejables para N > 4."
-                },
-                vocabulary: {
-                    title: "Explosión de vocabulario",
-                    isEdu: "Si usáramos palabras en lugar de caracteres, el vocabulario saltaría de ~96 a decenas de miles — haciendo que incluso una tabla de bigramas sea enorme.",
-                    isFree: "Los N-gramas a nivel de palabra enfrentan tamaños de vocabulario de más de 50k, lo que hace que las tablas sean imprácticas incluso para N pequeñas."
-                }
-            }
-        },
-        story: {
-            title: "La historia de los N-gramas",
-            subtitle: "Por qué más contexto parecía la respuesta — y por qué no fue suficiente",
-            steps: {
-                s1: {
-                    title: "El cuello de botella del bigrama",
-                    body: "Empezamos con la idea más simple: predecir el siguiente carácter usando solo el anterior. Pero un modelo bigrama tiene la memoria de un pez — olvida inmediatamente todo excepto la última letra."
-                },
-                s2: {
-                    title: "Una extensión natural",
-                    body: "La solución obvia es mirar más historia. Un trigrama mira 2 caracteres anteriores, un 4-grama mira 3, y así sucesivamente. Cada paso le da al modelo un contexto local más rico y predicciones notablemente mejores."
-                },
-                s3: {
-                    title: "El coste de la memoria",
-                    body: "Pero hay un truco. Cada carácter extra de contexto multiplica el número de estados posibles por el tamaño del vocabulario. Un trigrama con 96 caracteres ya tiene 884.736 contextos posibles. La mayoría nunca se observan en el entrenamiento — la tabla se vuelve astronómicamente dispersa."
-                },
-                s4: {
-                    title: "El muro de escalado",
-                    body: "Para N=5, necesitaríamos más de 8 mil millones de entradas en la tabla. Ningún conjunto de datos es lo suficientemente grande como para llenar esa tabla de manera significativa. Esta es la razón fundamental por la que los N-gramas fueron finalmente reemplazados por modelos neuronales que pueden generalizar a través de contextos similares."
-                }
-            }
-        }
-    }
+      },
+    },
+  },
 };

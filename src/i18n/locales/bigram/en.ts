@@ -1,1026 +1,1293 @@
 // bigram namespace (en). Slice of the original i18n dictionary — see src/i18n/README.md.
 export const bigram = {
-    bigramNarrative: {
-        hero: {
-            eyebrow: "Chapter 1 · The Counting Era",
-            titlePrefix: "The Bigram",
-            titleSuffix: "Model",
-            description: "In 1948, Claude Shannon made a bet: you could predict the next letter in a sentence just by counting which letters tend to follow which. No grammar. No understanding. Just counting. In this chapter, you'll test that bet yourself.",
-            autoCompleteHint: "This model predicts one character at a time. Try typing.",
-            readTime: "~10 min read · 6 interactive demos"
-        },
-        problem: {
-            title: "Guess the Missing Letter",
-            lead: "Let's start with a game. You see a sentence with one letter missing — can you guess what comes next?",
-            p1: "You just did something incredible: you ",
-            p1Highlight: "predicted the next letter",
-            p2: " without thinking about it. Your brain used the letters before it — the context — to make an educated guess.",
-            p3: "But here's the question that started it all:",
-            quote: "How could we teach a machine to do the same thing?",
-            p4: "A computer can't \"understand\" language. It can't read. It doesn't know what ",
-            h1: "words",
-            h2: "grammar",
-            h3: "meaning",
-            p5: " are. It only knows numbers. So we need a strategy so simple that even a calculator could do it. Let's invent one together.",
-            connector: ", or ",
-            label: "The Challenge",
-            heroAutoIntro: "Before we dive in — try this. Type any letter below and see what happens.",
-            heroAutoLabel: "Interactive · Type a Letter",
-            heroAutoHint: "This mini-demo predicts the next character based on a single letter. How does it know?",
-            heroAutoBridge: "You just saw a prediction. The machine looked at one letter and guessed what comes next. But how? Let's find out."
-        },
-        coreIdea: {
-            label: "The Simplest Idea",
-            title: "What If We Just Counted?",
-            lead: "What if there's a hidden pattern in every piece of text ever written? Let's see if you can spot it.",
-            p1: "What if we looked at a lot of text and asked one question: ",
-            h1: "what letter usually comes after this one?",
-            p2: " That's it. No understanding. No grammar rules. Just counting pairs. If 'e' follows 'h' 3,000 times and 'a' follows 'h' 800 times, then after 'h' we'd bet on 'e'. We just invented something — linguists call it a bigram.",
-            discoveryBridge: "Did you notice? Some pairs come up again and again — 'th', 'he', 'in', 'er'. These aren't random. Every language has favorite letter combinations. What if we counted all of them?",
-            spaceCalloutTitle: "Space Is a Character Too",
-            spaceCalloutText: "You might have noticed spaces in the pairs. In this model, the space character (␣) is just another letter in the vocabulary — it helps the model learn where words begin and end.",
-            namingBridge: "What you just discovered has a name. Linguists call a pair of two consecutive characters a ",
-            namingEnd: ". The idea is embarrassingly simple: count pairs, then guess based on the counts.",
-            formalTitle: "Deeper: The Name, the Math, and the History",
-            formalP1: "The prefix 'bi-' means two, and '-gram' comes from the Greek gramma (letter). A bigram is literally a two-letter unit. In NLP, the term extends to any pair of consecutive tokens — characters, words, or subwords. Andrey Markov formalized this approach in 1913 when he analyzed letter transitions in Pushkin's Eugene Onegin — one of the first data-driven language models in history.",
-            etymologyBridge: "Now for the math. The formula turns out to be exactly what you'd guess:",
-            formulaCaption: "Probability of character cₙ given the previous character cₙ₋₁",
-            formalP2: "In plain English: count how many times that specific pair appeared in the training text, then divide by how many times the first character appeared at all. That ratio is the probability.",
-            formalP3: "This is a Maximum Likelihood Estimate (MLE) — the simplest way to turn counts into probabilities. The same math appears in weather forecasts ('it rained 30 out of 100 Tuesdays, so P(rain|Tuesday) = 30%') and batting averages. Nothing exotic.",
-            caption: "The Bigram assumption: the next letter depends only on the current one.",
-            p3: "It's almost embarrassingly simple. But it works better than you'd expect.",
-            calloutTitle: "Why \"Bigram\"?",
-            calloutP1: "\"Bi\" means ",
-            calloutH1: "two",
-            calloutP2: ". A bigram is a pair of two characters — the current one and the next one. The model looks at pairs, counts them, and uses those counts to guess. That's the entire algorithm."
-        },
-        mechanics: {
-            label: "The Full Picture",
-            title: "The Transition Table",
-            lead: "You have hundreds of counted pairs. But where do you store them all?",
-            storageIntro: "Think about it: every character in the vocabulary could be followed by any other character. That means for each starting character, you need a slot for every possible next character. How many slots is that total?",
-            discoveryBridge: "Every pair has exactly two parts — the current letter and the next letter. What if we organized them into a grid?",
-            bridgeQuote: "Rows = current letter. Columns = next letter. Each cell = how many times we saw that pair.",
-            bridgeP3: "Let's start small — just 5 characters — and see what this table looks like:",
-            p1: "You'd get a giant table — a ",
-            h1: "transition matrix",
-            p2: ". Rows are the current character, columns are the next character, and each cell holds how many times that pair appeared. It's like a complete cheat sheet for letter prediction.",
-            p3: "The visualization below shows this table trained on real text. Brighter cells mean more frequent pairs — patterns the model discovered by counting.",
-            fullMatrixBridge: "Now zoom out. The 5×5 table above covers just a handful of characters. The real table below covers all 96 printable ASCII characters — trained on thousands of sentences. Brighter cells mean the model saw that pair more often.",
-            dataSourceTitle: "Where Does This Data Come From?",
-            dataSourceP1: "This table was built by scanning a real text corpus (an essay by Paul Graham) character by character, counting every pair it found.",
-            dataSourceP2: "For example, the text contains 'the' many times, so the cells for 't→h' and 'h→e' are bright — those transitions are very common.",
-            dataSourceP3: "The result: a 96×96 table where each of the 96 printable characters has its own row, showing what typically follows it.",
-            builderBridge: "Now it's your turn. Type any text below and watch how each character pair adds exactly +1 to its cell. By the end, you'll have built a complete transition table from scratch.",
-            builderLabel: "Interactive · Build the Table Yourself",
-            builderHint: "Type your own text and watch the table fill up pair by pair.",
-            tinyMatrixCountTooltip: "After {row}, {col} appeared {count} times",
-            calloutTitle: "Reading the Table",
-            calloutP1: "Each row is a \"current\" character. Each column is a \"next\" character. Bright cells = common pairs. Dark cells = rare or never seen. Notice how some rows have clear favorites while others are more spread out.",
-            tinyMatrixLabel: "Simplified 5×5 matrix · ['t', 'h', 'e', 'a', '·']",
-            tinyMatrixHint: "Hover any cell to see the exact probability. Rows = current character, Columns = next character.",
-            tinyMatrixHover: "Hover a cell to see its probability",
-            tinyMatrixColLabel: "next character →",
-            tinyMatrixRowLabel: "current character →",
-            tinyMatrixPlay: "Build the grid",
-            tinyMatrixReplay: "Again",
-            tinyMatrixBuilding: "Every new letter opens its own row. Stack them and the grid appears.",
-            tinyMatrixGrid: "Left: which letter you start from. Top: which one you go to. The cell where they cross: how many times it happened.",
-            tinyMatrixHigh: "frequent",
-            tinyMatrixLow: "rare",
-            tinyMatrixRare: "very rare / never",
-            tinyMatrixTooltip: "After {row}, {col} appears {pct} of the time",
-            fullMatrixHint: "Brighter cells = more frequent pairs. Click any cell to inspect it.",
-            sectionBridge: "You built the table. It holds everything the model knows about which letters follow which. But raw counts aren't predictions — how do we turn them into actual probabilities?",
-        },
-        history: {
-            title: "A Brief History of Counting Letters",
-            summary: "From Markov's vowel experiments to Shannon's information theory — counting pairs has a surprisingly deep history.",
-            subtitle: "The Counting Era Timeline",
-            p1: "Russian mathematician Andrei Markov analyzed 20,000 letters from Pushkin's Eugene Onegin, tracking how vowels and consonants followed each other. He proved that letter sequences weren't random — they had structure. This was the birth of the Markov chain.",
-            p2: "Claude Shannon published 'A Mathematical Theory of Communication' — one of the most influential papers ever written. He used character-level prediction (exactly what we just built) to measure the information content of English. His bigram tables were the first language models.",
-            p3: "Researchers at IBM and Bell Labs built the first computational language models for speech recognition. They counted word pairs (bigrams) and triplets (trigrams) in large text corpora. The idea was identical to ours — just at the word level instead of characters.",
-            p4: "Yoshua Bengio showed that neural networks could learn better language models than counting ever could. This was the beginning of the end for the counting era — but the intuition behind bigrams (predict from context) lives on in every modern language model, including GPT.",
-        },
-        normalization: {
-            label: "From Counts to Chances",
-            title: "Turning Counts Into Chances",
-            lead: "We have counts — but how do we turn \"h→e appeared 3,481 times\" into \"there's a 32% chance 'e' comes after 'h'\"?",
-            p1: "Simple: we ",
-            h1: "divide each count by the row total",
-            p2: ". If 'h' was followed by any character 10,800 times total, and 'h→e' appeared 3,481 times, then the chance is 3,481 ÷ 10,800 ≈ 32%. Now every row adds up to 100%.",
-            vizHint: "Pick a character and step through the normalization process — from raw counts to percentages.",
-            p3: "The model can now make concrete predictions: \"After 'h', there's a 32% chance the next letter is 'e', 15% chance it's 'a', and so on.\"",
-            queryVizBridge: "Let's put it all together. Pick a character below and walk through the full prediction pipeline: look up the row, see the counts, normalize to probabilities, and roll the weighted dice.",
-            plainEnglishTitle: "The Rule",
-            plainEnglish: "Chance of next letter = how often this pair appeared ÷ how often this starting letter appeared before anything.",
-            p4: "Try it below. Type any character and see what the model predicts comes next — based ",
-            h2: "only on the last character",
-            p5: " you typed."
-        },
-        normalizationViz: {
-            theRowLabel: "The \"t\" row",
-            context: "After '{char}', what are the chances of each next character?",
-            step1Title: "Step 1: Raw Counts",
-            step1Desc: "How many times each character appeared after '{char}' in the training text",
-            charHeader: "Char",
-            frequencyHeader: "Frequency",
-            countHeader: "Count",
-            totalLabel: "Total transitions from '{char}':",
-            step2Title: "Step 2: Divide by Total",
-            step2Desc: "Each count divided by the sum of all counts in the row",
-            step2Formula: "count({char}→{next})",
-            step2Total: "total",
-            step3Title: "Step 3: Probabilities",
-            step3Desc: "Each count divided by {total} gives the probability",
-            probabilityHeader: "Probability",
-            pctHeader: "%",
-            sumLabel: "Sum of probabilities:",
-            nextStep: "Next Step",
-            reset: "Reset",
-        },
-        queryViz: {
-            label: "Interactive · How a Bigram Predicts",
-            hint: "Walk through each step of the prediction process — from character selection to weighted dice roll.",
-            step0Label: "Pick",
-            step1Label: "Lookup",
-            step2Label: "Counts",
-            step3Label: "Normalize",
-            step4Label: "Predict",
-            pickChar: "Pick a character to query the model — we'll trace exactly how it predicts.",
-            lookingUp: "Looking up row '{char}' in the transition table…",
-            rawCountsIntro: "Here are the raw counts for what follows '{char}' in the training text:",
-            totalRaw: "Total: {total} occurrences",
-            normalizeIntro: "Now divide each count by the total to get probabilities — this is normalization.",
-            predictionIntro: "The model says: after '{char}', the most likely next character is…",
-            topPrediction: "Top prediction",
-            diceExplain: "But the model doesn't always pick the top one. It rolls a weighted dice — characters with higher probability are more likely to win.",
-            rollDice: "Roll the dice",
-            rolled: "After '{char}', the model wrote '{next}'",
-            tryAnother: "Try another character",
-            next: "Next",
-        },
-        sampling: {
-            label: "Let It Write",
-            title: "Let the Model Write",
-            lead: "Our table is ready. Now let's do something fun: let the model write text on its own.",
-            p1: "The process is simple — we call it ",
-            h1: "writing one letter at a time",
-            p2: ": pick a starting letter, look up its row in the table, roll a weighted dice to pick the next letter, then use that letter as the new starting point. Repeat.",
-            calloutTitle: "Temperature",
-            calloutP1: "The ",
-            calloutH1: "temperature",
-            calloutP2: " parameter controls how \"creative\" the generation is. At ",
-            calloutH2: "low temperatures",
-            calloutP3: ", the model almost always picks the most likely next token. At ",
-            calloutH3: "high temperatures",
-            calloutP4: ", it samples more uniformly — producing surprising and often nonsensical output.",
-            softmaxTitle: "Under the Hood: Softmax and Temperature",
-            softmaxIntuition: "Here's the intuition: bigger counts should get bigger probabilities, and the probabilities should sum to 1. Softmax does exactly that — it amplifies differences and normalizes, all in one step.",
-            softmaxP1: "Formally: softmax takes any list of numbers (called logits) and squashes them into probabilities that sum to 1, while preserving relative order. The exponential ensures all values are positive; dividing by the sum normalizes them.",
-            softmaxFormulaCaption: "Each output is the exponential of the input divided by the sum of all exponentials",
-            softmaxP2: "Temperature is a single number T that divides every logit before applying softmax. When T < 1, differences get amplified (the model becomes more confident). When T > 1, differences shrink (the model becomes more random). At T → 0 it always picks the top token; at T → ∞ every token is equally likely.",
-            softmaxTempCaption: "Temperature-scaled softmax — T controls the 'sharpness' of the distribution",
-            softmaxP3: "Softmax appears everywhere in modern AI: attention layers in Transformers, classification heads in neural networks, and reinforcement learning policies. The version you just saw in the bigram is the simplest case — but the math is identical to what GPT-4 uses.",
-            playgroundBridge: "Now let's give the model a starting letter and let it write. The playground below has a temperature slider — try low for safe and predictable, high for chaos and surprise.",
-            playgroundLabel: "Generation Playground",
-            playgroundHint: "Adjust temperature and watch how the generated text changes.",
-            samplingMechanismLabel: "Interactive · The Weighted Dice Roll",
-            samplingMechanismHint: "Click 'Roll' to see how the model randomly picks the next character based on probabilities.",
-            p3: "Generate some text and notice something: a model with ",
-            h2: "only one letter of memory",
-            p4: " produces gibberish that somehow feels letter-like. The pairs are right, but the words are wrong. Why?"
-        },
-        counting: {
-            title: "Building the Table",
-            lead: "Let's see exactly how counting pairs works, step by step.",
-            builderTitle: "Pair Counter",
-            builderDesc: "Watch each character pair add +1 to the table.",
-            p1: "The operation is almost too simple: scan through a text one character at a time. For every pair of consecutive characters (current → next), add one to the counter. That's it. After scanning enough text, these counts reveal which characters tend to follow which — and how strongly.",
-            p2: "The builder below makes this concrete. Watch how each pair in the text adds exactly one count to its cell. By the end, you've built a complete record of every transition in the text.",
-            calloutTitle: "Why does counting work?",
-            calloutText: "With enough text, the observed frequencies get very close to the true probabilities of the language. The more data you have, the more reliable your table becomes."
-        },
-        matrix: {
-            title: "The transition table",
-            lead: "Rows = current letter, columns = next.",
-            desc: "Build it step by step, then see the full picture."
-        },
-        probabilities: {
-            title: "From counts to chances",
-            lead: "Divide each count by the row total to get percentages.",
-            desc: "The model looks up the last character's row and picks the next one.",
-            inferenceIntro: "Walk through the inference pipeline step by step below: pick a character, see its row of counts, normalize to percentages, and sample the next character. Notice how the distribution changes depending on what came before.",
-            overlayTitle: "Counts → Chances → Prediction",
-            overlayDesc: "Pick a character, normalize its row, see what comes next.",
-            step1: "1) Raw counts",
-            step2: "2) Normalize",
-            step3: "3) Roll the dice",
-            currentToken: "Current letter",
-            typeChar: "Type a character",
-            normalizeSimple: "Simple division",
-            softmax: "Softmax",
-            sampleNext: "Roll the dice",
-            mostLikely: "Most likely:",
-            remaining: "Remaining:",
-            stochastic: "Each roll is random — the model picks based on chances, not certainty."
-        },
-        limitations: {
-            title: "Limitations",
-            lead: "One letter of memory. That's all it gets.",
-            desc: "No context. That's why we need N-grams and neural networks."
-        },
-        predictionExample: {
-            label: "See It In Action",
-            title: "One Prediction, Step by Step",
-            lead: "Before we dive into details, let's watch the model make a single prediction. Pick any character.",
-            inputLabel: "input",
-            lookupLabel: "model looks up",
-            step1: "Pick a character",
-            step2: "Row '{char}' in the table",
-            step3: "Top predictions",
-            hint: "Click any character to see what the model predicts next.",
-        },
-        predictionChallenge: {
-            label: "Your Turn",
-            title: "Can You Beat the Model?",
-            lead: "Before we explain how a machine does it, predict it yourself. Use your instinct for the language.",
-            prompt: "What letter do you think comes next?",
-            okLabel: "✓ Your instinct was right",
-            almostLabel: "Almost — the most natural is «{answer}»",
-            tally: "Your instinct",
-            figureOf: "of",
-            resultLabel: "See result",
-            advanceLabel: "Next",
-            restart: "↻ Try again",
-            thesis: "With no rules and no grammar, you used the context — the preceding letters — to guess the next one. The question that opens this chapter: how do we teach this to a machine?",
-            headlineTiers: {
-                perfect: "You predicted like a <em>native reader</em>.",
-                close: "Your instinct tracks the language <em>very closely</em>.",
-                half: "You already predict the next letter <em>without realizing it</em>.",
-                low: "The language hides its patterns — <em>try again</em>.",
-            },
-            explanations: {
-                0: "After «th», «e» shows up nearly half the time — it forms «the», the most common word in English.",
-                1: "«q» drags «u» along almost every time. In English it's practically a rule, not a probability.",
-                2: "«in», «ing», «ion»… after «i», «n» is the most frequent continuation, by far.",
-                3: "After a space a new word begins, and a great many start with «t»: the, to, that, this…",
-                4: "«e» tends to close a word. The most natural thing after it isn't another letter: it's a space.",
-            },
-        },
-        pairHighlighter: {
-            pairFound: "Pair found: {first} → {second}",
-            countsLabel: "Pair Counts",
-            replay: "Replay",
-            tryOwn: "Try your own phrase",
-            placeholder: "Type a phrase…",
-            go: "Go",
-            figureLabel: "Interactive · Can You Spot the Pattern?",
-            figureHint: "Click through each step to see how character pairs are counted. Which pairs repeat?",
-            summaryUnique: "Unique pairs:",
-            summaryTotal: "Total transitions:",
-            stepPrompt: "Let's look at the text below. We'll slide through it one pair at a time — click the button to reveal the first pair.",
-            startButton: "Start Counting",
-            nextStep: "Next Pair",
-            currentPairLabel: "Current pair",
-            firstTime: "first time",
-            seenRepeats: "seen {n}× · it repeats!",
-            patternLabel: "The pattern",
-            patternRepeats: "these pairs appear more than once:",
-            patternUnique: "almost everything is unique here — try a longer phrase to watch it emerge.",
-            countAll: "Count the rest",
-        },
-        corpusCounting: {
-            figureLabel: "Interactive · Counting Patterns in Real Text",
-            figureHint: "Pick a character and watch the model scan real text to count what follows it. Pause anytime to step through manually.",
-            selectChar: "Choose a starting character",
-            corpusLabel: "Training text",
-            countsLabel: "Pairs found",
-            scanning: "Scanning…",
-            found: "Found {count} pairs starting with '{char}'",
-            totalLabel: "Total pairs",
-            reveal: "That's it. Count which letters follow which. That's the entire algorithm.",
-            replay: "Scan again",
-            hint: "Pick a character above to start scanning the text.",
-            empty: "No pairs found for this character.",
-            stepExplain: "Match {pos} of {total}",
-            pauseBtn: "Pause",
-            nextBtn: "Next →",
-            verdictLabel: "The model's bet",
-            verdictMain: "After \"{char}\", the most likely is \"{best}\".",
-            verdictSub: "{n} of {total} times · {pct}",
-        },
-        samplingMechanism: {
-            after: "After",
-            probabilitySpace: "Probability space (0 → 1)",
-            roll: "Roll the dice",
-            rollAgain: "Roll again",
-            rolled: "Rolled",
-            history: "Picks:",
-        },
-        pipelineDemo: {
-            figureLabel: "Interactive · Prediction Pipeline",
-            figureHint: "Type any character and watch the model look up its row in the table.",
-            step1: "Input",
-            step2: "Lookup",
-            step3: "Predict",
-            inputLabel: "Type a character",
-            placeholder: "e.g. t",
-            lookup: "Look up",
-            lookingUp: "Looking up row in the transition table…",
-            resultsLabel: "Top predictions",
-            afterChar: "After",
-            insight: "These probabilities come directly from the transition table — each one reflects how often this pair appeared in the training text.",
-        },
-        storageProblem: {
-            figureLabel: "Interactive · The Storage Problem",
-            figureHint: "Pick characters and watch the number of pairs you'd need to track explode.",
-            pickPrompt: "Pick a character — what can follow it?",
-            afterChar: "After '{char}', the training text shows these followers:",
-            moreFollowers: "more possible",
-            needSlots: "'{char}' alone needs {count} slots — one for every possible follower.",
-            charsExplored: "{count} characters explored",
-            slotsTotal: "{total} slots needed so far",
-            growingRealization: "You've only explored {count} characters and already need {slots} slots. For all {total} characters, that's {total} pairs to track. How would you organize all of this?",
-            howToOrganize: "How would I organize this?",
-            insightTitle: "A 2D Table — Rows × Columns",
-            insightDesc: "Put every character on both axes. Each row is a starting character, each column is the next character. The cell where they meet holds the count. That's it — a transition table.",
-            fullSize: "Full table: {size} × {size} = {total} cells",
-        },
-        contextBlindness: {
-            pickPrompt: "Pick a prefix. What does the model predict next?",
-            modelSees: "The model only sees",
-            invisible: "is invisible",
-            topPredictions: "Top predictions",
-            tryOthers: "Try the other prefixes too…",
-            prompt: "What does the model predict after each of these?",
-            revealButton: "Are they different?",
-            whyButton: "But why?",
-            identical: "All three are identical!",
-            calloutTitle: "One-Letter Amnesia",
-            explanation: "The bigram only sees the last letter 'h'. The 't', 's', and 'w' before it are completely invisible. No matter how much data you feed it, it will never tell these apart. That's the fatal flaw.",
-            figureLabel: "Interactive · The Fatal Flaw",
-            figureHint: "Pick a prefix, see what the model sees — then discover the devastating blind spot.",
-        },
-        cliffhanger: {
-            label: "The Fatal Flaw",
-            title: "The One-Letter Amnesia",
-            lead: "You built a working text predictor from scratch. It counts pairs, normalizes them into probabilities, rolls a weighted dice, and writes text. That's real. But there's a devastating weakness hiding in plain sight.",
-            celebrationBridge: "Take a moment to appreciate what you've done: starting from nothing but raw text, you built a system that learns letter patterns, makes predictions, and generates new text. Every language model — including GPT — started from this same intuition. But now watch what happens when we push it.",
-            p1: "Ask the model what comes after 'th'. It doesn't know about 't' — it only sees 'h'. So it gives the exact same prediction as 'sh' or 'wh'. The context before 'h' is invisible. Gone forever. Try it yourself:",
-            blindnessP1: "The model is not just forgetful — it's structurally blind. No matter how much training data we feed it, the bigram will never distinguish 'th' from 'sh' from 'wh'. This isn't a bug we can fix with more data. It's a ceiling built into the architecture.",
-            hookLine: "What if we let the model remember more than one letter? That changes everything.",
-        },
-        keyTakeaways: {
-            bigram: "A bigram model predicts the next character by counting how often each pair appears in training text. The simplest form of language modeling — just count and guess.",
-            normalization: "Turning raw counts into percentages (0% to 100%) is what lets the model make actual predictions. Each row adds up to 100% — a valid probability distribution.",
-            fatalFlaw: "A bigram only sees one letter of context. That's its fundamental limitation — and exactly why we need n-grams and neural networks.",
-        },
-        cta: {
-            title: "What Comes Next?",
-            freeLabButton: "Open Free Lab",
-            freeLabDesc: "Skip the story. Full access to all tools, parameters, and visualizations.",
-            nextTitle: "Next: What If We Remember More?",
-            nextDesc: "The bigram forgets everything except the last letter. What if we let it see two? Three? Five? Welcome to the N-gram model.",
-        },
-        footer: {
-            text: "Next chapter: the N-gram model — what happens when you give a counter more memory.",
-            brand: "LM-Lab · The Counting Era"
-        },
-        /* ═══════════════════════════════════════════════════════════════════
+  bigramNarrative: {
+    hero: {
+      eyebrow: "Chapter 1 · The Counting Era",
+      titlePrefix: "The Bigram",
+      titleSuffix: "Model",
+      description:
+        "In 1948, Claude Shannon made a bet: you could predict the next letter in a sentence just by counting which letters tend to follow which. No grammar. No understanding. Just counting. In this chapter, you'll test that bet yourself.",
+      autoCompleteHint: "This model predicts one character at a time. Try typing.",
+      readTime: "~10 min read · 6 interactive demos",
+    },
+    problem: {
+      title: "Guess the Missing Letter",
+      lead: "Let's start with a game. You see a sentence with one letter missing — can you guess what comes next?",
+      p1: "You just did something incredible: you ",
+      p1Highlight: "predicted the next letter",
+      p2: " without thinking about it. Your brain used the letters before it — the context — to make an educated guess.",
+      p3: "But here's the question that started it all:",
+      quote: "How could we teach a machine to do the same thing?",
+      p4: "A computer can't \"understand\" language. It can't read. It doesn't know what ",
+      h1: "words",
+      h2: "grammar",
+      h3: "meaning",
+      p5: " are. It only knows numbers. So we need a strategy so simple that even a calculator could do it. Let's invent one together.",
+      connector: ", or ",
+      label: "The Challenge",
+      heroAutoIntro: "Before we dive in — try this. Type any letter below and see what happens.",
+      heroAutoLabel: "Interactive · Type a Letter",
+      heroAutoHint:
+        "This mini-demo predicts the next character based on a single letter. How does it know?",
+      heroAutoBridge:
+        "You just saw a prediction. The machine looked at one letter and guessed what comes next. But how? Let's find out.",
+    },
+    coreIdea: {
+      label: "The Simplest Idea",
+      title: "What If We Just Counted?",
+      lead: "What if there's a hidden pattern in every piece of text ever written? Let's see if you can spot it.",
+      p1: "What if we looked at a lot of text and asked one question: ",
+      h1: "what letter usually comes after this one?",
+      p2: " That's it. No understanding. No grammar rules. Just counting pairs. If 'e' follows 'h' 3,000 times and 'a' follows 'h' 800 times, then after 'h' we'd bet on 'e'. We just invented something — linguists call it a bigram.",
+      discoveryBridge:
+        "Did you notice? Some pairs come up again and again — 'th', 'he', 'in', 'er'. These aren't random. Every language has favorite letter combinations. What if we counted all of them?",
+      spaceCalloutTitle: "Space Is a Character Too",
+      spaceCalloutText:
+        "You might have noticed spaces in the pairs. In this model, the space character (␣) is just another letter in the vocabulary — it helps the model learn where words begin and end.",
+      namingBridge:
+        "What you just discovered has a name. Linguists call a pair of two consecutive characters a ",
+      namingEnd:
+        ". The idea is embarrassingly simple: count pairs, then guess based on the counts.",
+      formalTitle: "Deeper: The Name, the Math, and the History",
+      formalP1:
+        "The prefix 'bi-' means two, and '-gram' comes from the Greek gramma (letter). A bigram is literally a two-letter unit. In NLP, the term extends to any pair of consecutive tokens — characters, words, or subwords. Andrey Markov formalized this approach in 1913 when he analyzed letter transitions in Pushkin's Eugene Onegin — one of the first data-driven language models in history.",
+      etymologyBridge: "Now for the math. The formula turns out to be exactly what you'd guess:",
+      formulaCaption: "Probability of character cₙ given the previous character cₙ₋₁",
+      formalP2:
+        "In plain English: count how many times that specific pair appeared in the training text, then divide by how many times the first character appeared at all. That ratio is the probability.",
+      formalP3:
+        "This is a Maximum Likelihood Estimate (MLE) — the simplest way to turn counts into probabilities. The same math appears in weather forecasts ('it rained 30 out of 100 Tuesdays, so P(rain|Tuesday) = 30%') and batting averages. Nothing exotic.",
+      caption: "The Bigram assumption: the next letter depends only on the current one.",
+      p3: "It's almost embarrassingly simple. But it works better than you'd expect.",
+      calloutTitle: 'Why "Bigram"?',
+      calloutP1: '"Bi" means ',
+      calloutH1: "two",
+      calloutP2:
+        ". A bigram is a pair of two characters — the current one and the next one. The model looks at pairs, counts them, and uses those counts to guess. That's the entire algorithm.",
+    },
+    mechanics: {
+      label: "The Full Picture",
+      title: "The Transition Table",
+      lead: "You have hundreds of counted pairs. But where do you store them all?",
+      storageIntro:
+        "Think about it: every character in the vocabulary could be followed by any other character. That means for each starting character, you need a slot for every possible next character. How many slots is that total?",
+      discoveryBridge:
+        "Every pair has exactly two parts — the current letter and the next letter. What if we organized them into a grid?",
+      bridgeQuote:
+        "Rows = current letter. Columns = next letter. Each cell = how many times we saw that pair.",
+      bridgeP3: "Let's start small — just 5 characters — and see what this table looks like:",
+      p1: "You'd get a giant table — a ",
+      h1: "transition matrix",
+      p2: ". Rows are the current character, columns are the next character, and each cell holds how many times that pair appeared. It's like a complete cheat sheet for letter prediction.",
+      p3: "The visualization below shows this table trained on real text. Brighter cells mean more frequent pairs — patterns the model discovered by counting.",
+      fullMatrixBridge:
+        "Now zoom out. The 5×5 table above covers just a handful of characters. The real table below covers all 96 printable ASCII characters — trained on thousands of sentences. Brighter cells mean the model saw that pair more often.",
+      dataSourceTitle: "Where Does This Data Come From?",
+      dataSourceP1:
+        "This table was built by scanning a real text corpus (an essay by Paul Graham) character by character, counting every pair it found.",
+      dataSourceP2:
+        "For example, the text contains 'the' many times, so the cells for 't→h' and 'h→e' are bright — those transitions are very common.",
+      dataSourceP3:
+        "The result: a 96×96 table where each of the 96 printable characters has its own row, showing what typically follows it.",
+      builderBridge:
+        "Now it's your turn. Type any text below and watch how each character pair adds exactly +1 to its cell. By the end, you'll have built a complete transition table from scratch.",
+      builderLabel: "Interactive · Build the Table Yourself",
+      builderHint: "Type your own text and watch the table fill up pair by pair.",
+      tinyMatrixCountTooltip: "After {row}, {col} appeared {count} times",
+      calloutTitle: "Reading the Table",
+      calloutP1:
+        'Each row is a "current" character. Each column is a "next" character. Bright cells = common pairs. Dark cells = rare or never seen. Notice how some rows have clear favorites while others are more spread out.',
+      tinyMatrixLabel: "Simplified 5×5 matrix · ['t', 'h', 'e', 'a', '·']",
+      tinyMatrixHint:
+        "Hover any cell to see the exact probability. Rows = current character, Columns = next character.",
+      tinyMatrixHover: "Hover a cell to see its probability",
+      tinyMatrixColLabel: "next character →",
+      tinyMatrixRowLabel: "current character →",
+      tinyMatrixPlay: "Build the grid",
+      tinyMatrixReplay: "Again",
+      tinyMatrixBuilding: "Every new letter opens its own row. Stack them and the grid appears.",
+      tinyMatrixGrid:
+        "Left: which letter you start from. Top: which one you go to. The cell where they cross: how many times it happened.",
+      tinyMatrixHigh: "frequent",
+      tinyMatrixLow: "rare",
+      tinyMatrixRare: "very rare / never",
+      tinyMatrixTooltip: "After {row}, {col} appears {pct} of the time",
+      fullMatrixHint: "Brighter cells = more frequent pairs. Click any cell to inspect it.",
+      sectionBridge:
+        "You built the table. It holds everything the model knows about which letters follow which. But raw counts aren't predictions — how do we turn them into actual probabilities?",
+    },
+    history: {
+      title: "A Brief History of Counting Letters",
+      summary:
+        "From Markov's vowel experiments to Shannon's information theory — counting pairs has a surprisingly deep history.",
+      subtitle: "The Counting Era Timeline",
+      p1: "Russian mathematician Andrei Markov analyzed 20,000 letters from Pushkin's Eugene Onegin, tracking how vowels and consonants followed each other. He proved that letter sequences weren't random — they had structure. This was the birth of the Markov chain.",
+      p2: "Claude Shannon published 'A Mathematical Theory of Communication' — one of the most influential papers ever written. He used character-level prediction (exactly what we just built) to measure the information content of English. His bigram tables were the first language models.",
+      p3: "Researchers at IBM and Bell Labs built the first computational language models for speech recognition. They counted word pairs (bigrams) and triplets (trigrams) in large text corpora. The idea was identical to ours — just at the word level instead of characters.",
+      p4: "Yoshua Bengio showed that neural networks could learn better language models than counting ever could. This was the beginning of the end for the counting era — but the intuition behind bigrams (predict from context) lives on in every modern language model, including GPT.",
+    },
+    normalization: {
+      label: "From Counts to Chances",
+      title: "Turning Counts Into Chances",
+      lead: "We have counts — but how do we turn \"h→e appeared 3,481 times\" into \"there's a 32% chance 'e' comes after 'h'\"?",
+      p1: "Simple: we ",
+      h1: "divide each count by the row total",
+      p2: ". If 'h' was followed by any character 10,800 times total, and 'h→e' appeared 3,481 times, then the chance is 3,481 ÷ 10,800 ≈ 32%. Now every row adds up to 100%.",
+      vizHint:
+        "Pick a character and step through the normalization process — from raw counts to percentages.",
+      p3: "The model can now make concrete predictions: \"After 'h', there's a 32% chance the next letter is 'e', 15% chance it's 'a', and so on.\"",
+      queryVizBridge:
+        "Let's put it all together. Pick a character below and walk through the full prediction pipeline: look up the row, see the counts, normalize to probabilities, and roll the weighted dice.",
+      plainEnglishTitle: "The Rule",
+      plainEnglish:
+        "Chance of next letter = how often this pair appeared ÷ how often this starting letter appeared before anything.",
+      p4: "Try it below. Type any character and see what the model predicts comes next — based ",
+      h2: "only on the last character",
+      p5: " you typed.",
+    },
+    normalizationViz: {
+      theRowLabel: 'The "t" row',
+      context: "After '{char}', what are the chances of each next character?",
+      step1Title: "Step 1: Raw Counts",
+      step1Desc: "How many times each character appeared after '{char}' in the training text",
+      charHeader: "Char",
+      frequencyHeader: "Frequency",
+      countHeader: "Count",
+      totalLabel: "Total transitions from '{char}':",
+      step2Title: "Step 2: Divide by Total",
+      step2Desc: "Each count divided by the sum of all counts in the row",
+      step2Formula: "count({char}→{next})",
+      step2Total: "total",
+      step3Title: "Step 3: Probabilities",
+      step3Desc: "Each count divided by {total} gives the probability",
+      probabilityHeader: "Probability",
+      pctHeader: "%",
+      sumLabel: "Sum of probabilities:",
+      nextStep: "Next Step",
+      reset: "Reset",
+    },
+    queryViz: {
+      label: "Interactive · How a Bigram Predicts",
+      hint: "Walk through each step of the prediction process — from character selection to weighted dice roll.",
+      step0Label: "Pick",
+      step1Label: "Lookup",
+      step2Label: "Counts",
+      step3Label: "Normalize",
+      step4Label: "Predict",
+      pickChar: "Pick a character to query the model — we'll trace exactly how it predicts.",
+      lookingUp: "Looking up row '{char}' in the transition table…",
+      rawCountsIntro: "Here are the raw counts for what follows '{char}' in the training text:",
+      totalRaw: "Total: {total} occurrences",
+      normalizeIntro:
+        "Now divide each count by the total to get probabilities — this is normalization.",
+      predictionIntro: "The model says: after '{char}', the most likely next character is…",
+      topPrediction: "Top prediction",
+      diceExplain:
+        "But the model doesn't always pick the top one. It rolls a weighted dice — characters with higher probability are more likely to win.",
+      rollDice: "Roll the dice",
+      rolled: "After '{char}', the model wrote '{next}'",
+      tryAnother: "Try another character",
+      next: "Next",
+    },
+    sampling: {
+      label: "Let It Write",
+      title: "Let the Model Write",
+      lead: "Our table is ready. Now let's do something fun: let the model write text on its own.",
+      p1: "The process is simple — we call it ",
+      h1: "writing one letter at a time",
+      p2: ": pick a starting letter, look up its row in the table, roll a weighted dice to pick the next letter, then use that letter as the new starting point. Repeat.",
+      calloutTitle: "Temperature",
+      calloutP1: "The ",
+      calloutH1: "temperature",
+      calloutP2: ' parameter controls how "creative" the generation is. At ',
+      calloutH2: "low temperatures",
+      calloutP3: ", the model almost always picks the most likely next token. At ",
+      calloutH3: "high temperatures",
+      calloutP4: ", it samples more uniformly — producing surprising and often nonsensical output.",
+      softmaxTitle: "Under the Hood: Softmax and Temperature",
+      softmaxIntuition:
+        "Here's the intuition: bigger counts should get bigger probabilities, and the probabilities should sum to 1. Softmax does exactly that — it amplifies differences and normalizes, all in one step.",
+      softmaxP1:
+        "Formally: softmax takes any list of numbers (called logits) and squashes them into probabilities that sum to 1, while preserving relative order. The exponential ensures all values are positive; dividing by the sum normalizes them.",
+      softmaxFormulaCaption:
+        "Each output is the exponential of the input divided by the sum of all exponentials",
+      softmaxP2:
+        "Temperature is a single number T that divides every logit before applying softmax. When T < 1, differences get amplified (the model becomes more confident). When T > 1, differences shrink (the model becomes more random). At T → 0 it always picks the top token; at T → ∞ every token is equally likely.",
+      softmaxTempCaption:
+        "Temperature-scaled softmax — T controls the 'sharpness' of the distribution",
+      softmaxP3:
+        "Softmax appears everywhere in modern AI: attention layers in Transformers, classification heads in neural networks, and reinforcement learning policies. The version you just saw in the bigram is the simplest case — but the math is identical to what GPT-4 uses.",
+      playgroundBridge:
+        "Now let's give the model a starting letter and let it write. The playground below has a temperature slider — try low for safe and predictable, high for chaos and surprise.",
+      playgroundLabel: "Generation Playground",
+      playgroundHint: "Adjust temperature and watch how the generated text changes.",
+      samplingMechanismLabel: "Interactive · The Weighted Dice Roll",
+      samplingMechanismHint:
+        "Click 'Roll' to see how the model randomly picks the next character based on probabilities.",
+      p3: "Generate some text and notice something: a model with ",
+      h2: "only one letter of memory",
+      p4: " produces gibberish that somehow feels letter-like. The pairs are right, but the words are wrong. Why?",
+    },
+    counting: {
+      title: "Building the Table",
+      lead: "Let's see exactly how counting pairs works, step by step.",
+      builderTitle: "Pair Counter",
+      builderDesc: "Watch each character pair add +1 to the table.",
+      p1: "The operation is almost too simple: scan through a text one character at a time. For every pair of consecutive characters (current → next), add one to the counter. That's it. After scanning enough text, these counts reveal which characters tend to follow which — and how strongly.",
+      p2: "The builder below makes this concrete. Watch how each pair in the text adds exactly one count to its cell. By the end, you've built a complete record of every transition in the text.",
+      calloutTitle: "Why does counting work?",
+      calloutText:
+        "With enough text, the observed frequencies get very close to the true probabilities of the language. The more data you have, the more reliable your table becomes.",
+    },
+    matrix: {
+      title: "The transition table",
+      lead: "Rows = current letter, columns = next.",
+      desc: "Build it step by step, then see the full picture.",
+    },
+    probabilities: {
+      title: "From counts to chances",
+      lead: "Divide each count by the row total to get percentages.",
+      desc: "The model looks up the last character's row and picks the next one.",
+      inferenceIntro:
+        "Walk through the inference pipeline step by step below: pick a character, see its row of counts, normalize to percentages, and sample the next character. Notice how the distribution changes depending on what came before.",
+      overlayTitle: "Counts → Chances → Prediction",
+      overlayDesc: "Pick a character, normalize its row, see what comes next.",
+      step1: "1) Raw counts",
+      step2: "2) Normalize",
+      step3: "3) Roll the dice",
+      currentToken: "Current letter",
+      typeChar: "Type a character",
+      normalizeSimple: "Simple division",
+      softmax: "Softmax",
+      sampleNext: "Roll the dice",
+      mostLikely: "Most likely:",
+      remaining: "Remaining:",
+      stochastic: "Each roll is random — the model picks based on chances, not certainty.",
+    },
+    limitations: {
+      title: "Limitations",
+      lead: "One letter of memory. That's all it gets.",
+      desc: "No context. That's why we need N-grams and neural networks.",
+    },
+    predictionExample: {
+      label: "See It In Action",
+      title: "One Prediction, Step by Step",
+      lead: "Before we dive into details, let's watch the model make a single prediction. Pick any character.",
+      inputLabel: "input",
+      lookupLabel: "model looks up",
+      step1: "Pick a character",
+      step2: "Row '{char}' in the table",
+      step3: "Top predictions",
+      hint: "Click any character to see what the model predicts next.",
+    },
+    predictionChallenge: {
+      label: "Your Turn",
+      title: "Can You Beat the Model?",
+      lead: "Before we explain how a machine does it, predict it yourself. Use your instinct for the language.",
+      prompt: "What letter do you think comes next?",
+      okLabel: "✓ Your instinct was right",
+      almostLabel: "Almost — the most natural is «{answer}»",
+      tally: "Your instinct",
+      figureOf: "of",
+      resultLabel: "See result",
+      advanceLabel: "Next",
+      restart: "↻ Try again",
+      thesis:
+        "With no rules and no grammar, you used the context — the preceding letters — to guess the next one. The question that opens this chapter: how do we teach this to a machine?",
+      headlineTiers: {
+        perfect: "You predicted like a <em>native reader</em>.",
+        close: "Your instinct tracks the language <em>very closely</em>.",
+        half: "You already predict the next letter <em>without realizing it</em>.",
+        low: "The language hides its patterns — <em>try again</em>.",
+      },
+      explanations: {
+        0: "After «th», «e» shows up nearly half the time — it forms «the», the most common word in English.",
+        1: "«q» drags «u» along almost every time. In English it's practically a rule, not a probability.",
+        2: "«in», «ing», «ion»… after «i», «n» is the most frequent continuation, by far.",
+        3: "After a space a new word begins, and a great many start with «t»: the, to, that, this…",
+        4: "«e» tends to close a word. The most natural thing after it isn't another letter: it's a space.",
+      },
+    },
+    pairHighlighter: {
+      pairFound: "Pair found: {first} → {second}",
+      countsLabel: "Pair Counts",
+      replay: "Replay",
+      tryOwn: "Try your own phrase",
+      placeholder: "Type a phrase…",
+      go: "Go",
+      figureLabel: "Interactive · Can You Spot the Pattern?",
+      figureHint:
+        "Click through each step to see how character pairs are counted. Which pairs repeat?",
+      summaryUnique: "Unique pairs:",
+      summaryTotal: "Total transitions:",
+      stepPrompt:
+        "Let's look at the text below. We'll slide through it one pair at a time — click the button to reveal the first pair.",
+      startButton: "Start Counting",
+      nextStep: "Next Pair",
+      currentPairLabel: "Current pair",
+      firstTime: "first time",
+      seenRepeats: "seen {n}× · it repeats!",
+      patternLabel: "The pattern",
+      patternRepeats: "these pairs appear more than once:",
+      patternUnique: "almost everything is unique here — try a longer phrase to watch it emerge.",
+      countAll: "Count the rest",
+    },
+    corpusCounting: {
+      figureLabel: "Interactive · Counting Patterns in Real Text",
+      figureHint:
+        "Pick a character and watch the model scan real text to count what follows it. Pause anytime to step through manually.",
+      selectChar: "Choose a starting character",
+      corpusLabel: "Training text",
+      countsLabel: "Pairs found",
+      scanning: "Scanning…",
+      found: "Found {count} pairs starting with '{char}'",
+      totalLabel: "Total pairs",
+      reveal: "That's it. Count which letters follow which. That's the entire algorithm.",
+      replay: "Scan again",
+      hint: "Pick a character above to start scanning the text.",
+      empty: "No pairs found for this character.",
+      stepExplain: "Match {pos} of {total}",
+      pauseBtn: "Pause",
+      nextBtn: "Next →",
+      verdictLabel: "The model's bet",
+      verdictMain: 'After "{char}", the most likely is "{best}".',
+      verdictSub: "{n} of {total} times · {pct}",
+    },
+    samplingMechanism: {
+      after: "After",
+      probabilitySpace: "Probability space (0 → 1)",
+      roll: "Roll the dice",
+      rollAgain: "Roll again",
+      rolled: "Rolled",
+      history: "Picks:",
+    },
+    pipelineDemo: {
+      figureLabel: "Interactive · Prediction Pipeline",
+      figureHint: "Type any character and watch the model look up its row in the table.",
+      step1: "Input",
+      step2: "Lookup",
+      step3: "Predict",
+      inputLabel: "Type a character",
+      placeholder: "e.g. t",
+      lookup: "Look up",
+      lookingUp: "Looking up row in the transition table…",
+      resultsLabel: "Top predictions",
+      afterChar: "After",
+      insight:
+        "These probabilities come directly from the transition table — each one reflects how often this pair appeared in the training text.",
+    },
+    storageProblem: {
+      figureLabel: "Interactive · The Storage Problem",
+      figureHint: "Pick characters and watch the number of pairs you'd need to track explode.",
+      pickPrompt: "Pick a character — what can follow it?",
+      afterChar: "After '{char}', the training text shows these followers:",
+      moreFollowers: "more possible",
+      needSlots: "'{char}' alone needs {count} slots — one for every possible follower.",
+      charsExplored: "{count} characters explored",
+      slotsTotal: "{total} slots needed so far",
+      growingRealization:
+        "You've only explored {count} characters and already need {slots} slots. For all {total} characters, that's {total} pairs to track. How would you organize all of this?",
+      howToOrganize: "How would I organize this?",
+      insightTitle: "A 2D Table — Rows × Columns",
+      insightDesc:
+        "Put every character on both axes. Each row is a starting character, each column is the next character. The cell where they meet holds the count. That's it — a transition table.",
+      fullSize: "Full table: {size} × {size} = {total} cells",
+    },
+    contextBlindness: {
+      pickPrompt: "Pick a prefix. What does the model predict next?",
+      modelSees: "The model only sees",
+      invisible: "is invisible",
+      topPredictions: "Top predictions",
+      tryOthers: "Try the other prefixes too…",
+      prompt: "What does the model predict after each of these?",
+      revealButton: "Are they different?",
+      whyButton: "But why?",
+      identical: "All three are identical!",
+      calloutTitle: "One-Letter Amnesia",
+      explanation:
+        "The bigram only sees the last letter 'h'. The 't', 's', and 'w' before it are completely invisible. No matter how much data you feed it, it will never tell these apart. That's the fatal flaw.",
+      figureLabel: "Interactive · The Fatal Flaw",
+      figureHint:
+        "Pick a prefix, see what the model sees — then discover the devastating blind spot.",
+    },
+    cliffhanger: {
+      label: "The Fatal Flaw",
+      title: "The One-Letter Amnesia",
+      lead: "You built a working text predictor from scratch. It counts pairs, normalizes them into probabilities, rolls a weighted dice, and writes text. That's real. But there's a devastating weakness hiding in plain sight.",
+      celebrationBridge:
+        "Take a moment to appreciate what you've done: starting from nothing but raw text, you built a system that learns letter patterns, makes predictions, and generates new text. Every language model — including GPT — started from this same intuition. But now watch what happens when we push it.",
+      p1: "Ask the model what comes after 'th'. It doesn't know about 't' — it only sees 'h'. So it gives the exact same prediction as 'sh' or 'wh'. The context before 'h' is invisible. Gone forever. Try it yourself:",
+      blindnessP1:
+        "The model is not just forgetful — it's structurally blind. No matter how much training data we feed it, the bigram will never distinguish 'th' from 'sh' from 'wh'. This isn't a bug we can fix with more data. It's a ceiling built into the architecture.",
+      hookLine: "What if we let the model remember more than one letter? That changes everything.",
+    },
+    keyTakeaways: {
+      bigram:
+        "A bigram model predicts the next character by counting how often each pair appears in training text. The simplest form of language modeling — just count and guess.",
+      normalization:
+        "Turning raw counts into percentages (0% to 100%) is what lets the model make actual predictions. Each row adds up to 100% — a valid probability distribution.",
+      fatalFlaw:
+        "A bigram only sees one letter of context. That's its fundamental limitation — and exactly why we need n-grams and neural networks.",
+    },
+    cta: {
+      title: "What Comes Next?",
+      freeLabButton: "Open Free Lab",
+      freeLabDesc: "Skip the story. Full access to all tools, parameters, and visualizations.",
+      nextTitle: "Next: What If We Remember More?",
+      nextDesc:
+        "The bigram forgets everything except the last letter. What if we let it see two? Three? Five? Welcome to the N-gram model.",
+    },
+    footer: {
+      text: "Next chapter: the N-gram model — what happens when you give a counter more memory.",
+      brand: "LM-Lab · The Counting Era",
+    },
+    /* ═══════════════════════════════════════════════════════════════════
            v2 · Narrative rebuild (bigram-blueprint.md). EN derived faithfully
            and naturally from the ES source — same voice (second person, short
            sentences, no condescension, almost no em-dashes), no AI tone. The
            old bigramNarrative.* keys stay live until Phase 2 rewires the page.
            ═══════════════════════════════════════════════════════════════════ */
-        v2: {
-            /* ─── HERO · §0 Writing is guessing ─── */
-            hero: {
-                eyebrow: "Chapter 1 · The Counting Era",
-                title: "The bigram model",
-                subtitle: "Teaching a machine to write, from scratch and just by counting.",
-                predict: {
-                    hintLabel: "your word",
-                    exactNote: "It was already in your head before you decided to think one.",
-                    alsoNote: "Yours fits too.",
-                    commonHint: "Almost everyone puts «{word}» here.",
-                    again: "Again",
-                    idea: "That's prediction: knowing what comes next without thinking, because you've seen it a thousand times. You do it constantly. A machine that writes needs nothing more than this.",
-                    rounds: [
-                        { lead: "Better late than", accept: ["never"], real: "never" },
-                        { lead: "The cat slowly climbed up the", accept: ["tree", "stairs", "wall", "ladder", "roof", "fence", "curtain", "couch", "sofa"], real: "tree" },
-                        { lead: "And they all lived happily ever", accept: ["after"], real: "after" },
-                    ],
-                },
-                readTime: "~12 min read · 6 movements",
+    v2: {
+      /* ─── HERO · §0 Writing is guessing ─── */
+      hero: {
+        eyebrow: "Chapter 1 · The Counting Era",
+        title: "The bigram model",
+        subtitle: "Teaching a machine to write, from scratch and just by counting.",
+        predict: {
+          hintLabel: "your word",
+          exactNote: "It was already in your head before you decided to think one.",
+          alsoNote: "Yours fits too.",
+          commonHint: "Almost everyone puts «{word}» here.",
+          again: "Again",
+          idea: "That's prediction: knowing what comes next without thinking, because you've seen it a thousand times. You do it constantly. A machine that writes needs nothing more than this.",
+          rounds: [
+            { lead: "Better late than", accept: ["never"], real: "never" },
+            {
+              lead: "The cat slowly climbed up the",
+              accept: [
+                "tree",
+                "stairs",
+                "wall",
+                "ladder",
+                "roof",
+                "fence",
+                "curtain",
+                "couch",
+                "sofa",
+              ],
+              real: "tree",
             },
+            { lead: "And they all lived happily ever", accept: ["after"], real: "after" },
+          ],
+        },
+        readTime: "~12 min read · 6 movements",
+      },
 
-            /* ═══ FASE A · nuevo arco (intro infancia + fli-fla + showpieces) ═══ */
+      /* ═══ FASE A · nuevo arco (intro infancia + fli-fla + showpieces) ═══ */
 
-            /* ─── §0 · Intro: teach writing to something that never lived ─── */
-            intro: {
-                p1: "When we're small, nobody hands us a manual for learning to talk. We learn by living: we hear the people around us, we tie a tone of voice to a smiling face, and little by little the meaning of things sinks in.",
-                p2: "But how do you teach writing to a machine that has never lived a single day? To a box of wires and silicon, the word \"apple\" isn't sweet or red. It means nothing. If it can't understand the world, writing about it looks impossible.",
-                p3: "So before we build anything, a small experiment.",
-            },
+      /* ─── §0 · Intro: teach writing to something that never lived ─── */
+      intro: {
+        p1: "When we're small, nobody hands us a manual for learning to talk. We learn by living: we hear the people around us, we tie a tone of voice to a smiling face, and little by little the meaning of things sinks in.",
+        p2: "But how do you teach writing to a machine that has never lived a single day? To a box of wires and silicon, the word \"apple\" isn't sweet or red. It means nothing. If it can't understand the world, writing about it looks impossible.",
+        p3: "So before we build anything, a small experiment.",
+      },
 
-            /* ─── VIS 1 · FillTheBlank (three screens, fli-fla keystone) ─── */
-            fillBlank: {
-                label: "Finish the line in your head",
-                hintLabel: "your guess",
-                again: "Another",
-                tryAgain: "Almost. A hint:",
-                reveal: "Show the answer",
-                screens: [
-                    { lead: "Once upon a", accept: ["time"], real: "time", hint: "The classic way every fairy tale begins.", note: "You had that one without thinking." },
-                    { lead: "The dog barks, the bird sings, and the cat", accept: ["meows", "miaows", "purrs", "mews"], real: "meows", hint: "What sound does a cat make?", note: "That one you worked out from the sentence." },
-                    { lead: "Fli fli fla, fli fli fla, fli fli", accept: ["fla"], real: "fla", hint: "It means nothing. Just listen to the rhythm: fli fli fla, fli fli…", note: "And this last one means nothing. \"Fli fli fla\" isn't any language. You didn't understand it. You saw the pattern and kept going. That is the whole trick." },
-                ],
-                afterPlay: "You probably filled every blank without much effort. But look at the last one: you had no idea what “Fli fli fla” means. You just looked at what came before, sensed the logic, and guessed what came next.",
-                reframe: "You just found the trick. Since engineers couldn't teach machines to understand the world the way we do, they changed the rules of the game. Instead of teaching them to reflect, they taught them to predict.",
-                toLetters: "Today, the big models do this with whole sentences. But to really understand the magic behind it, we'll go to the most basic thing of all: predicting what the next letter is.",
-            },
+      /* ─── VIS 1 · FillTheBlank (three screens, fli-fla keystone) ─── */
+      fillBlank: {
+        label: "Finish the line in your head",
+        hintLabel: "your guess",
+        again: "Another",
+        tryAgain: "Almost. A hint:",
+        reveal: "Show the answer",
+        screens: [
+          {
+            lead: "Once upon a",
+            accept: ["time"],
+            real: "time",
+            hint: "The classic way every fairy tale begins.",
+            note: "You had that one without thinking.",
+          },
+          {
+            lead: "The dog barks, the bird sings, and the cat",
+            accept: ["meows", "miaows", "purrs", "mews"],
+            real: "meows",
+            hint: "What sound does a cat make?",
+            note: "That one you worked out from the sentence.",
+          },
+          {
+            lead: "Fli fli fla, fli fli fla, fli fli",
+            accept: ["fla"],
+            real: "fla",
+            hint: "It means nothing. Just listen to the rhythm: fli fli fla, fli fli…",
+            note: "And this last one means nothing. \"Fli fli fla\" isn't any language. You didn't understand it. You saw the pattern and kept going. That is the whole trick.",
+          },
+        ],
+        afterPlay:
+          "You probably filled every blank without much effort. But look at the last one: you had no idea what “Fli fli fla” means. You just looked at what came before, sensed the logic, and guessed what came next.",
+        reframe:
+          "You just found the trick. Since engineers couldn't teach machines to understand the world the way we do, they changed the rules of the game. Instead of teaching them to reflect, they taught them to predict.",
+        toLetters:
+          "Today, the big models do this with whole sentences. But to really understand the magic behind it, we'll go to the most basic thing of all: predicting what the next letter is.",
+      },
 
-            /* ─── VIS 1.5 · The goal (HeroAutoComplete reuse) ─── */
-            goalIntro: {
-                lead: "Our final goal is to build exactly this: you give it a letter, and it bets on the one that comes next.",
-                after: "It looks like magic, but underneath it's just very basic math. Now the big question: how do we build this from scratch, when the machine can't even read?",
-            },
+      /* ─── VIS 1.5 · The goal (HeroAutoComplete reuse) ─── */
+      goalIntro: {
+        lead: "Our final goal is to build exactly this: you give it a letter, and it bets on the one that comes next.",
+        after:
+          "It looks like magic, but underneath it's just very basic math. Now the big question: how do we build this from scratch, when the machine can't even read?",
+      },
 
-            /* ─── VIS 4 · Chaos and Order (showpiece) ─── */
-            isolateT: {
-                label: "Interactive · The “t” across texts",
-                tab: "Text",
-                followsLabel: "What follows the “t”",
-                spaceWord: "the space",
-                start: "Read this text",
-                autocomplete: "Show the total",
-                replay: "Again",
-                idleHint: "Count which letter follows each “t” in this text.",
-                verdict: "Here, after the “t”, {best} wins. Change the text and the rule changes.",
-            },
-            chaosOrder: {
-                label: "The machine reads",
-                playLabel: "Read the whole book",
-                readingHint: "Every “t” that goes by, we look at the letter right after it and add one.",
-                chaosHint: "That's the only thing it does, one “t” after another. Shall we let it loose on the whole book?",
-                orderLabel: "Read the rest",
-                orderingHint: "One row: a slot for every letter that could follow.",
-                scanningHint: "Now the rest of the book, no brakes. Watch the numbers climb.",
-                readingNow: "Reading the book",
-                rowLabel: "After “{char}”",
-                replay: "Read again",
-                pickLetter: "Try another letter",
-                inspectHint: "Hover a slot to see how many times it happened.",
-                rowIsTable: "The tallest bar, by far, is “h”: after a “t”, an “h” almost always follows, and it worked that out on its own. The second is the space, because so many words end in “t”. And the gaps say the same thing: after a “t” you almost never get another “t”, or a “z”, or a “q”.",
-                payoff: "What you just watched — feed it a mountain of text and let it count — has a name. It's called training data. You just watched a model being trained.",
-            },
+      /* ─── VIS 4 · Chaos and Order (showpiece) ─── */
+      isolateT: {
+        label: "Interactive · The “t” across texts",
+        tab: "Text",
+        followsLabel: "What follows the “t”",
+        spaceWord: "the space",
+        start: "Read this text",
+        autocomplete: "Show the total",
+        replay: "Again",
+        idleHint: "Count which letter follows each “t” in this text.",
+        verdict: "Here, after the “t”, {best} wins. Change the text and the rule changes.",
+      },
+      chaosOrder: {
+        label: "The machine reads",
+        playLabel: "Read the whole book",
+        readingHint: "Every “t” that goes by, we look at the letter right after it and add one.",
+        chaosHint:
+          "That's the only thing it does, one “t” after another. Shall we let it loose on the whole book?",
+        orderLabel: "Read the rest",
+        orderingHint: "One row: a slot for every letter that could follow.",
+        scanningHint: "Now the rest of the book, no brakes. Watch the numbers climb.",
+        readingNow: "Reading the book",
+        rowLabel: "After “{char}”",
+        replay: "Read again",
+        pickLetter: "Try another letter",
+        inspectHint: "Hover a slot to see how many times it happened.",
+        rowIsTable:
+          "The tallest bar, by far, is “h”: after a “t”, an “h” almost always follows, and it worked that out on its own. The second is the space, because so many words end in “t”. And the gaps say the same thing: after a “t” you almost never get another “t”, or a “z”, or a “q”.",
+        payoff:
+          "What you just watched — feed it a mountain of text and let it count — has a name. It's called training data. You just watched a model being trained.",
+      },
 
-            /* ─── VIS 9 · 27×27 matrix that grows (showpiece) ─── */
-            growingMatrix: {
-                label: "One row per letter",
-                playLabel: "Build it",
-                lead: "One row was enough for “t”. Stack one row for every letter and a grid appears on its own.",
-                scanningHint: "It keeps reading. Every new letter adds a row and a column; every pair warms a cell.",
-                gridCaption: "Row: the letter you start from. Column: the one that might follow. Cell: how often we saw it.",
-                twist: "And look what came out. Nobody dictated a single rule, yet there they are: the lit cells are the pairs the language repeats, the dark ones the pairs that almost never happen. The machine found them on its own, just by counting.",
-                growToFull: "Grow to full size",
-                totalLabel: "Pairs counted",
-                cellCount: "“{row}” → “{col}”: {n}",
-                hoverHint: "Each cell keeps how many times that pair happened.",
-            },
+      /* ─── VIS 9 · 27×27 matrix that grows (showpiece) ─── */
+      growingMatrix: {
+        label: "One row per letter",
+        playLabel: "Build it",
+        lead: "One row was enough for “t”. Stack one row for every letter and a grid appears on its own.",
+        scanningHint:
+          "It keeps reading. Every new letter adds a row and a column; every pair warms a cell.",
+        gridCaption:
+          "Row: the letter you start from. Column: the one that might follow. Cell: how often we saw it.",
+        twist:
+          "And look what came out. Nobody dictated a single rule, yet there they are: the lit cells are the pairs the language repeats, the dark ones the pairs that almost never happen. The machine found them on its own, just by counting.",
+        growToFull: "Grow to full size",
+        totalLabel: "Pairs counted",
+        cellCount: "“{row}” → “{col}”: {n}",
+        hoverHint: "Each cell keeps how many times that pair happened.",
+      },
 
-            /* ─── VIS 10 · Detective matrix (showpiece) ─── */
-            detective: {
-                label: "The whole table",
-                intro: "This is the whole table, for real. It looks like a mess of light, but it's the manual of a language written in numbers. Every lit cell is a rule; every dark gap, a pair that almost never happens. And nobody taught it any of them.",
-                prompt: "Find a square that never happens.",
-                searchHint: "Highlight a character",
-                cellCount: "“{row}” → “{col}” happened {n} times.",
-                cellNever: "“{row}” → “{col}” never happened. Not once.",
-                timesLabel: "times",
-                never: "never",
-                inspectHint: "Hover reveals the count; a click locks the row and column.",
-                rulesLabel: "Language rules",
-                rulesFound: "{n}/{total} found",
-                regionsLabel: "Or chase a hidden rule:",
-                regions: {
-                    uppercaseDesert: { title: "The capital desert", body: "A capital almost never follows a lowercase letter. Capitals live at the start of a word, not the middle.", hint: "a capital almost never appears in the middle of a word" },
-                    qCorner: { title: "The q corner", body: "After “q”, almost always “u”. Nearly everything else in that row is dark.", hint: "after “q” it's almost always “u”" },
-                    periodJump: { title: "The full-stop jump", body: "After a period comes a space, and after that space, a capital. The rhythm of a new sentence.", hint: "after a period almost always comes a space" },
-                    spaceEverywhere: { title: "Space goes with everything", body: "The space is the most sociable cell: almost any letter can come before or after it. That's why its row and column are nearly full.", hint: "the space joins almost any letter" },
-                    numberVoid: { title: "The number void", body: "Numbers keep to themselves. They almost never touch a letter: we write “2023” or “3.14”, but rarely “a7” or “k9”.", hint: "a number almost never touches a letter" },
-                },
-                clear: "Clear",
-            },
+      /* ─── VIS 10 · Detective matrix (showpiece) ─── */
+      detective: {
+        label: "The whole table",
+        intro:
+          "This is the whole table, for real. It looks like a mess of light, but it's the manual of a language written in numbers. Every lit cell is a rule; every dark gap, a pair that almost never happens. And nobody taught it any of them.",
+        prompt: "Find a square that never happens.",
+        searchHint: "Highlight a character",
+        cellCount: "“{row}” → “{col}” happened {n} times.",
+        cellNever: "“{row}” → “{col}” never happened. Not once.",
+        timesLabel: "times",
+        never: "never",
+        inspectHint: "Hover reveals the count; a click locks the row and column.",
+        rulesLabel: "Language rules",
+        rulesFound: "{n}/{total} found",
+        regionsLabel: "Or chase a hidden rule:",
+        regions: {
+          uppercaseDesert: {
+            title: "The capital desert",
+            body: "A capital almost never follows a lowercase letter. Capitals live at the start of a word, not the middle.",
+            hint: "a capital almost never appears in the middle of a word",
+          },
+          qCorner: {
+            title: "The q corner",
+            body: "After “q”, almost always “u”. Nearly everything else in that row is dark.",
+            hint: "after “q” it's almost always “u”",
+          },
+          periodJump: {
+            title: "The full-stop jump",
+            body: "After a period comes a space, and after that space, a capital. The rhythm of a new sentence.",
+            hint: "after a period almost always comes a space",
+          },
+          spaceEverywhere: {
+            title: "Space goes with everything",
+            body: "The space is the most sociable cell: almost any letter can come before or after it. That's why its row and column are nearly full.",
+            hint: "the space joins almost any letter",
+          },
+          numberVoid: {
+            title: "The number void",
+            body: "Numbers keep to themselves. They almost never touch a letter: we write “2023” or “3.14”, but rarely “a7” or “k9”.",
+            hint: "a number almost never touches a letter",
+          },
+        },
+        clear: "Clear",
+      },
 
-            sectionNames: {
-                s01: "The trick: predicting",
-                s02: "Hunting the pattern",
-                s03: "Too predictable",
-                s04: "The matrix is born",
-                s05: "Let's write!",
-                s06: "The fatal flaw, and seeing more",
-            },
-            sectionKickers: {
-                s1: "Predicting letters",
-                s2: "The pattern",
-                s3: "How to choose",
-                s4: "The matrix",
-                s5: "Writing alone",
-                s6: "The ceiling",
-            },
+      sectionNames: {
+        s01: "The trick: predicting",
+        s02: "Hunting the pattern",
+        s03: "Too predictable",
+        s04: "The matrix is born",
+        s05: "Let's write!",
+        s06: "The fatal flaw, and seeing more",
+      },
+      sectionKickers: {
+        s1: "Predicting letters",
+        s2: "The pattern",
+        s3: "How to choose",
+        s4: "The matrix",
+        s5: "Writing alone",
+        s6: "The ceiling",
+      },
 
-            /* ─── §1 · You already predict ─── */
-            s1: {
-                label: "The trick: predicting",
-                lead: "Here's where we're headed: a machine that, given one letter, bets on the next. The same thing you just did, only smaller.",
-                afterChallenge: "See? You almost always get it. And not because your English is flawless, but because your head has seen those combinations thousands of times. After \"q\" comes \"u\". After \"th\", almost always an \"e\". Nobody taught you the rule. You saw it so much it stuck.",
-                bridgeToMachine: "You do this with whole words. We're going to teach the machine something even smaller: letter by letter. And on English text, which is what we'll feed it. Look, it already does this:",
-                heroAutoPrompt: "Type a letter and see what it thinks comes next.",
-                afterHeroAuto: "It works. But it understands nothing. How does it know an \"h\" usually follows a \"t\"? We haven't taught it yet. Let's build it from scratch.",
-            },
+      /* ─── §1 · You already predict ─── */
+      s1: {
+        label: "The trick: predicting",
+        lead: "Here's where we're headed: a machine that, given one letter, bets on the next. The same thing you just did, only smaller.",
+        afterChallenge:
+          'See? You almost always get it. And not because your English is flawless, but because your head has seen those combinations thousands of times. After "q" comes "u". After "th", almost always an "e". Nobody taught you the rule. You saw it so much it stuck.',
+        bridgeToMachine:
+          "You do this with whole words. We're going to teach the machine something even smaller: letter by letter. And on English text, which is what we'll feed it. Look, it already does this:",
+        heroAutoPrompt: "Type a letter and see what it thinks comes next.",
+        afterHeroAuto:
+          'It works. But it understands nothing. How does it know an "h" usually follows a "t"? We haven\'t taught it yet. Let\'s build it from scratch.',
+      },
 
-            /* ─── PredictionChallenge (rework) ─── */
-            predictionChallenge: {
-                label: "Your turn",
-                prompt: "What letter do you think comes next?",
-                okLabel: "✓ Your gut was right",
-                almostLabel: "Close. The most natural is \"{answer}\"",
-                tally: "Your gut",
-                figureOf: "of",
-                resultLabel: "See result",
-                advanceLabel: "Next",
-                restart: "↻ Try again",
-                headlineTiers: {
-                    perfect: "You predicted like a <em>native reader</em>.",
-                    close: "Your gut tracks the language <em>very closely</em>.",
-                    half: "You already predict the next letter <em>without realising it</em>.",
-                    low: "The language hides its patterns. <em>Try again.</em>",
-                },
-                rounds: [
-                    { context: "th", answer: "e", explanation: "After \"th\", \"e\" shows up nearly half the time. It forms \"the\", the most common word in English." },
-                    { context: "q", answer: "u", explanation: "\"q\" drags \"u\" along almost every time. In English it's practically a rule, not a probability." },
-                    { context: "wh", answer: "a", explanation: "\"what\", \"when\", \"where\"… after \"wh\", \"a\" and \"e\" share the spotlight." },
-                    { context: "in", answer: "g", explanation: "\"ing\" is everywhere: running, talking, going. After \"in\", \"g\" is the star continuation." },
-                ],
-            },
+      /* ─── PredictionChallenge (rework) ─── */
+      predictionChallenge: {
+        label: "Your turn",
+        prompt: "What letter do you think comes next?",
+        okLabel: "✓ Your gut was right",
+        almostLabel: 'Close. The most natural is "{answer}"',
+        tally: "Your gut",
+        figureOf: "of",
+        resultLabel: "See result",
+        advanceLabel: "Next",
+        restart: "↻ Try again",
+        headlineTiers: {
+          perfect: "You predicted like a <em>native reader</em>.",
+          close: "Your gut tracks the language <em>very closely</em>.",
+          half: "You already predict the next letter <em>without realising it</em>.",
+          low: "The language hides its patterns. <em>Try again.</em>",
+        },
+        rounds: [
+          {
+            context: "th",
+            answer: "e",
+            explanation:
+              'After "th", "e" shows up nearly half the time. It forms "the", the most common word in English.',
+          },
+          {
+            context: "q",
+            answer: "u",
+            explanation:
+              '"q" drags "u" along almost every time. In English it\'s practically a rule, not a probability.',
+          },
+          {
+            context: "wh",
+            answer: "a",
+            explanation: '"what", "when", "where"… after "wh", "a" and "e" share the spotlight.',
+          },
+          {
+            context: "in",
+            answer: "g",
+            explanation:
+              '"ing" is everywhere: running, talking, going. After "in", "g" is the star continuation.',
+          },
+        ],
+      },
 
-            /* ─── HeroAutoComplete (rework) ─── */
-            heroAutoComplete: {
-                label: "Interactive · Type a letter",
-                prompt: "Type a letter and see what it thinks comes next.",
-                hint: "Type a letter to see what the machine predicts.",
-                after: "After \"{input}\", most likely",
-                bridge: "It works. But it understands nothing. How does it know an \"h\" usually follows a \"t\"?",
-            },
+      /* ─── HeroAutoComplete (rework) ─── */
+      heroAutoComplete: {
+        label: "Interactive · Type a letter",
+        prompt: "Type a letter and see what it thinks comes next.",
+        hint: "Type a letter to see what the machine predicts.",
+        after: 'After "{input}", most likely',
+        bridge:
+          'It works. But it understands nothing. How does it know an "h" usually follows a "t"?',
+      },
 
-            /* ─── §2 · Let's teach it to count ─── */
-            s2: {
-                label: "Hunting the pattern",
-                lead: "Our language isn't chaos. Mash the keyboard at random and you get something like “asdfghjkl”, which means nothing. We write following an invisible structure: nobody ever explained that after “q” comes almost always a “u”, or that three consonants in a row are rare. Your brain just absorbed it from reading and listening.",
-                pairPrompt: "Since the language already hides that pattern, all we need is for the machine to read text and notice who goes hand in hand with whom. Let's start with a simple sentence.",
-                afterPair: "We've seen how it hunts for little pairs of letters. To really get it, let's focus on a single one: the “t”. We'll give it different sentences and see which letter it decides is the “t”'s best partner.",
-                focusTPrompt: "Change the text and watch which letter wins after the “t”.",
-                afterCorpusCounting: "Depending on the text you give it, it learns a different rule, and with so little text the count lies. Feed it very short texts and its view of the world is limited and biased. To learn the real rules, it needs far more information: a giant text.",
-                bookPrompt: "So let's get serious. Let's have our machine read all of Shakespeare.",
-                afterShakespeare: "That row is everything there is about the “t” in all of Shakespeare. The machine pulled out every one of its connections on its own, just by counting.",
-                honestyNote: "This process —handing a machine a giant text so it reads, counts, and builds its own tables of rules— is called training data. You just watched, first-hand, how a model is trained. (One catch: it learned from Shakespeare, so it'll talk like it's 400 years ago. Change the book and you change the machine.)",
-            },
+      /* ─── §2 · Let's teach it to count ─── */
+      s2: {
+        label: "Hunting the pattern",
+        lead: "Our language isn't chaos. Mash the keyboard at random and you get something like “asdfghjkl”, which means nothing. We write following an invisible structure: nobody ever explained that after “q” comes almost always a “u”, or that three consonants in a row are rare. Your brain just absorbed it from reading and listening.",
+        pairPrompt:
+          "Since the language already hides that pattern, all we need is for the machine to read text and notice who goes hand in hand with whom. Let's start with a simple sentence.",
+        afterPair:
+          "We've seen how it hunts for little pairs of letters. To really get it, let's focus on a single one: the “t”. We'll give it different sentences and see which letter it decides is the “t”'s best partner.",
+        focusTPrompt: "Change the text and watch which letter wins after the “t”.",
+        afterCorpusCounting:
+          "Depending on the text you give it, it learns a different rule, and with so little text the count lies. Feed it very short texts and its view of the world is limited and biased. To learn the real rules, it needs far more information: a giant text.",
+        bookPrompt: "So let's get serious. Let's have our machine read all of Shakespeare.",
+        afterShakespeare:
+          "That row is everything there is about the “t” in all of Shakespeare. The machine pulled out every one of its connections on its own, just by counting.",
+        honestyNote:
+          "This process —handing a machine a giant text so it reads, counts, and builds its own tables of rules— is called training data. You just watched, first-hand, how a model is trained. (One catch: it learned from Shakespeare, so it'll talk like it's 400 years ago. Change the book and you change the machine.)",
+      },
 
-            /* ─── PairHighlighter (rework) ─── */
-            pairHighlighter: {
-                label: "Interactive · Find the pattern",
-                hint: "Slide through the sentence pair by pair. Which ones repeat?",
-                pairFound: "Pair found: {first} → {second}",
-                countsLabel: "Pair counts",
-                stepPrompt: "Slide through the sentence two letters at a time. Click to reveal the first pair.",
-                startButton: "Start counting",
-                nextStep: "Next pair",
-                countAll: "Count the rest",
-                currentPairLabel: "Current pair",
-                firstTime: "first time",
-                seenRepeats: "seen {n}× · it repeats",
-                patternLabel: "The pattern",
-                patternRepeats: "these pairs show up more than once:",
-                patternUnique: "almost everything is unique here. Try a longer sentence to watch it emerge.",
-                summaryUnique: "Unique pairs:",
-                summaryTotal: "Total transitions:",
-                replay: "Replay",
-                tryOwn: "Try your own sentence",
-                placeholder: "Type a sentence…",
-                go: "Go",
-            },
+      /* ─── PairHighlighter (rework) ─── */
+      pairHighlighter: {
+        label: "Interactive · Find the pattern",
+        hint: "Slide through the sentence pair by pair. Which ones repeat?",
+        pairFound: "Pair found: {first} → {second}",
+        countsLabel: "Pair counts",
+        stepPrompt:
+          "Slide through the sentence two letters at a time. Click to reveal the first pair.",
+        startButton: "Start counting",
+        nextStep: "Next pair",
+        countAll: "Count the rest",
+        currentPairLabel: "Current pair",
+        firstTime: "first time",
+        seenRepeats: "seen {n}× · it repeats",
+        patternLabel: "The pattern",
+        patternRepeats: "these pairs show up more than once:",
+        patternUnique:
+          "almost everything is unique here. Try a longer sentence to watch it emerge.",
+        summaryUnique: "Unique pairs:",
+        summaryTotal: "Total transitions:",
+        replay: "Replay",
+        tryOwn: "Try your own sentence",
+        placeholder: "Type a sentence…",
+        go: "Go",
+      },
 
-            /* ─── CorpusCountingIdea (focus t) ─── */
-            corpusCounting: {
-                label: "Interactive · Count the \"t\"s",
-                hint: "Watch us scan the sentence, counting what follows each \"t\".",
-                focusChar: "t",
-                selectChar: "Starting letter",
-                corpusLabel: "The sentence",
-                countsLabel: "What follows \"t\"",
-                scanning: "Scanning…",
-                found: "Found {count} \"t\"s",
-                totalLabel: "Total",
-                reveal: "With so little text, counting lies. What comes up most after \"t\" is a space.",
-                replay: "Scan again",
-                pauseBtn: "Pause",
-                nextBtn: "Next →",
-                verdictLabel: "What this sentence says",
-                verdictMain: "After \"t\", \"{best}\" wins here.",
-                verdictSub: "{n} of {total} times",
-            },
+      /* ─── CorpusCountingIdea (focus t) ─── */
+      corpusCounting: {
+        label: 'Interactive · Count the "t"s',
+        hint: 'Watch us scan the sentence, counting what follows each "t".',
+        focusChar: "t",
+        selectChar: "Starting letter",
+        corpusLabel: "The sentence",
+        countsLabel: 'What follows "t"',
+        scanning: "Scanning…",
+        found: 'Found {count} "t"s',
+        totalLabel: "Total",
+        reveal: 'With so little text, counting lies. What comes up most after "t" is a space.',
+        replay: "Scan again",
+        pauseBtn: "Pause",
+        nextBtn: "Next →",
+        verdictLabel: "What this sentence says",
+        verdictMain: 'After "t", "{best}" wins here.',
+        verdictSub: "{n} of {total} times",
+      },
 
-            /* ─── ShakespeareRowCounter (new) ─── */
-            shakespeareRow: {
-                label: "Interactive · Shakespeare's \"t\"",
-                hint: "Count the \"t\"s in a whole book. Starts by hand, then speeds up.",
-                prompt: "Let's count the \"t\"s in Shakespeare. All of them.",
-                messyHint: "We've counted {count} pairs by hand. This is getting messy.",
-                organizeCta: "What if we jot it down in a table?",
-                rowLabel: "After \"t\" →",
-                countingManually: "Counting by hand…",
-                fillingTable: "Filling the table…",
-                fullCorpus: "Full Shakespeare",
-                verdict: "With enough text, \"h\" wins after \"t\".",
-                verdictSub: "{best} {pct} of the time",
-            },
+      /* ─── ShakespeareRowCounter (new) ─── */
+      shakespeareRow: {
+        label: 'Interactive · Shakespeare\'s "t"',
+        hint: 'Count the "t"s in a whole book. Starts by hand, then speeds up.',
+        prompt: 'Let\'s count the "t"s in Shakespeare. All of them.',
+        messyHint: "We've counted {count} pairs by hand. This is getting messy.",
+        organizeCta: "What if we jot it down in a table?",
+        rowLabel: 'After "t" →',
+        countingManually: "Counting by hand…",
+        fillingTable: "Filling the table…",
+        fullCorpus: "Full Shakespeare",
+        verdict: 'With enough text, "h" wins after "t".',
+        verdictSub: "{best} {pct} of the time",
+      },
 
-            /* ─── §3 · The matrix is born ─── */
-            s3: {
-                label: "The matrix is born",
-                lead: "We have a row for \"t\". What about \"a\"? And \"h\"? And all the rest?",
-                rowByRowReveal: "Stack one row per letter and look what comes out: a grid. Each row is the letter you start from. Each column, the one that could come next. Each cell, how many times we saw it.",
-                rowByRowName: "You just built something with a name of its own: a <strong>transition table</strong>.",
-                tinyPrompt: "Take any row. On its own it's already a mini-prediction.",
-                sizePrompt: "One thing. If every letter needs a row, and every row a cell for each possible letter… that's a lot of cells. How many exactly? Count them.",
-            },
+      /* ─── §3 · The matrix is born ─── */
+      s3: {
+        label: "The matrix is born",
+        lead: 'We have a row for "t". What about "a"? And "h"? And all the rest?',
+        rowByRowReveal:
+          "Stack one row per letter and look what comes out: a grid. Each row is the letter you start from. Each column, the one that could come next. Each cell, how many times we saw it.",
+        rowByRowName:
+          "You just built something with a name of its own: a <strong>transition table</strong>.",
+        tinyPrompt: "Take any row. On its own it's already a mini-prediction.",
+        sizePrompt:
+          "One thing. If every letter needs a row, and every row a cell for each possible letter… that's a lot of cells. How many exactly? Count them.",
+      },
 
-            /* ─── MatrixRowByRowBuilder (new) ─── */
-            rowByRow: {
-                label: "Interactive · Stack the rows",
-                hint: "Add one row per letter until the grid forms. Then fill it with Shakespeare.",
-                startRow: "Row for \"t\"",
-                addRowCta: "Add the next letter",
-                addAllCta: "Add them all",
-                fillCta: "Fill it with Shakespeare",
-                rowAxisLabel: "starting letter ↓",
-                colAxisLabel: "next letter →",
-                filling: "Filling with Shakespeare…",
-                coda: "One row per letter. That's a transition table.",
-                verdict: "Each row is a starting letter. Each column, the one that could follow.",
-            },
+      /* ─── MatrixRowByRowBuilder (new) ─── */
+      rowByRow: {
+        label: "Interactive · Stack the rows",
+        hint: "Add one row per letter until the grid forms. Then fill it with Shakespeare.",
+        startRow: 'Row for "t"',
+        addRowCta: "Add the next letter",
+        addAllCta: "Add them all",
+        fillCta: "Fill it with Shakespeare",
+        rowAxisLabel: "starting letter ↓",
+        colAxisLabel: "next letter →",
+        filling: "Filling with Shakespeare…",
+        coda: "One row per letter. That's a transition table.",
+        verdict: "Each row is a starting letter. Each column, the one that could follow.",
+      },
 
-            /* ─── StorageProblemVisualizer ("how big it gets") ─── */
-            storage: {
-                label: "Interactive · Count the cells",
-                hint: "Pick letters and watch the number of cells explode.",
-                pickPrompt: "Pick a letter. What can follow it?",
-                afterChar: "After \"{char}\", these can follow:",
-                needSlots: "\"{char}\" alone already needs {count} cells, one for each possible next letter.",
-                charsExplored: "{count} letters explored",
-                slotsTotal: "{total} cells so far",
-                growingRealization: "You've explored {count} letters and that's already {slots} cells. For all {total} letters, that's {total} rows by {total} columns. Look how big it gets.",
-                fullSize: "Full table: {size} × {size} = {total} cells",
-            },
+      /* ─── StorageProblemVisualizer ("how big it gets") ─── */
+      storage: {
+        label: "Interactive · Count the cells",
+        hint: "Pick letters and watch the number of cells explode.",
+        pickPrompt: "Pick a letter. What can follow it?",
+        afterChar: 'After "{char}", these can follow:',
+        needSlots: '"{char}" alone already needs {count} cells, one for each possible next letter.',
+        charsExplored: "{count} letters explored",
+        slotsTotal: "{total} cells so far",
+        growingRealization:
+          "You've explored {count} letters and that's already {slots} cells. For all {total} letters, that's {total} rows by {total} columns. Look how big it gets.",
+        fullSize: "Full table: {size} × {size} = {total} cells",
+      },
 
-            /* ─── §4 · Where does what it learns come from? ─── */
-            s4: {
-                label: "Where does what it learns come from?",
-                lead: "Remember Shakespeare. What if instead of him we give it a different text? Does it learn the same thing?",
-                afterComparison: "It doesn't learn the same thing. The model is a mirror of the text you gave it. We call that text the <strong>training text</strong>. Change it and you change who the machine is.",
-                charsetPrompt: "And that's only one corner of the language: lowercase. Capitals, periods, commas, numbers are still missing. Count them all and the table grows to its real size, with far more hidden rules inside.",
-                afterCharset: "Each new character is another row and another column. The table grows, and grows, and grows.",
-                matrixGamePrompt: "This is the real table, all of it. You already understand it from scratch: rows, columns, cells. Now play with it. Notice: there are black gaps. Cells that never happen. Why?",
-            },
+      /* ─── §4 · Where does what it learns come from? ─── */
+      s4: {
+        label: "Where does what it learns come from?",
+        lead: "Remember Shakespeare. What if instead of him we give it a different text? Does it learn the same thing?",
+        afterComparison:
+          "It doesn't learn the same thing. The model is a mirror of the text you gave it. We call that text the <strong>training text</strong>. Change it and you change who the machine is.",
+        charsetPrompt:
+          "And that's only one corner of the language: lowercase. Capitals, periods, commas, numbers are still missing. Count them all and the table grows to its real size, with far more hidden rules inside.",
+        afterCharset:
+          "Each new character is another row and another column. The table grows, and grows, and grows.",
+        matrixGamePrompt:
+          "This is the real table, all of it. You already understand it from scratch: rows, columns, cells. Now play with it. Notice: there are black gaps. Cells that never happen. Why?",
+      },
 
-            /* ─── TrainingTextComparison (new) ─── */
-            trainingComparison: {
-                label: "Interactive · Two texts, two machines",
-                hint: "Pick a letter and compare its row across the two texts.",
-                corpusA: "Shakespeare",
-                corpusB: "Modern text",
-                pickCharPrompt: "Pick a letter to compare its rows.",
-                rowFor: "Row for \"{char}\"",
-                idle: "Pick a letter above.",
-                toggleLabel: "Switch text",
-                verdict: "Same algorithm, different text, different machine.",
-                diffHint: "Notice the differences: the text you give it decides what it learns.",
-            },
+      /* ─── TrainingTextComparison (new) ─── */
+      trainingComparison: {
+        label: "Interactive · Two texts, two machines",
+        hint: "Pick a letter and compare its row across the two texts.",
+        corpusA: "Shakespeare",
+        corpusB: "Modern text",
+        pickCharPrompt: "Pick a letter to compare its rows.",
+        rowFor: 'Row for "{char}"',
+        idle: "Pick a letter above.",
+        toggleLabel: "Switch text",
+        verdict: "Same algorithm, different text, different machine.",
+        diffHint: "Notice the differences: the text you give it decides what it learns.",
+      },
 
-            /* ─── CharsetGrowthMatrix (new) ─── */
-            charsetGrowth: {
-                label: "Interactive · The table grows",
-                hint: "Add character types and watch the table grow.",
-                steps: [
-                    { id: "lower", label: "Lowercase", note: "26 letters + the space", size: 27 },
-                    { id: "upper", label: "+ Capitals", note: "now A–Z too", size: 53 },
-                    { id: "digits", label: "+ Numbers", note: "0 through 9", size: 63 },
-                    { id: "punct", label: "+ Punctuation", note: "commas, periods, brackets…", size: 92 },
-                ],
-                dimensionsLabel: "{size} × {size} cells",
-                addNextCta: "Add the next type",
-                takeaway: "The more you want to predict, the bigger the table.",
-            },
+      /* ─── CharsetGrowthMatrix (new) ─── */
+      charsetGrowth: {
+        label: "Interactive · The table grows",
+        hint: "Add character types and watch the table grow.",
+        steps: [
+          { id: "lower", label: "Lowercase", note: "26 letters + the space", size: 27 },
+          { id: "upper", label: "+ Capitals", note: "now A–Z too", size: 53 },
+          { id: "digits", label: "+ Numbers", note: "0 through 9", size: 63 },
+          { id: "punct", label: "+ Punctuation", note: "commas, periods, brackets…", size: 92 },
+        ],
+        dimensionsLabel: "{size} × {size} cells",
+        addNextCta: "Add the next type",
+        takeaway: "The more you want to predict, the bigger the table.",
+      },
 
-            /* ─── TransitionMatrix (rework: curiosity game) ─── */
-            matrixGame: {
-                label: "Interactive · The real table",
-                hint: "There are black gaps: cells that never happen. Click to find out why.",
-                blackCellPrompt: "Find a cell that never happens.",
-                cellAfter: "After \"{row}\"",
-                cellNext: "\"{col}\"",
-                curiosities: {
-                    upperAfterLower: "A capital almost never follows a lowercase letter. Capitals live at the start of a word.",
-                    qWithoutU: "After \"q\", almost always \"u\". Nearly everything else is a black gap.",
-                    digitAfterLetter: "Letters and numbers rarely touch. That's why most of that zone is empty.",
-                    spaceAfterSpace: "Two spaces in a row almost never happen. One word, one space, another word.",
-                },
-                clickToDismiss: "Click to close",
-            },
+      /* ─── TransitionMatrix (rework: curiosity game) ─── */
+      matrixGame: {
+        label: "Interactive · The real table",
+        hint: "There are black gaps: cells that never happen. Click to find out why.",
+        blackCellPrompt: "Find a cell that never happens.",
+        cellAfter: 'After "{row}"',
+        cellNext: '"{col}"',
+        curiosities: {
+          upperAfterLower:
+            "A capital almost never follows a lowercase letter. Capitals live at the start of a word.",
+          qWithoutU: 'After "q", almost always "u". Nearly everything else is a black gap.',
+          digitAfterLetter:
+            "Letters and numbers rarely touch. That's why most of that zone is empty.",
+          spaceAfterSpace:
+            "Two spaces in a row almost never happen. One word, one space, another word.",
+        },
+        clickToDismiss: "Click to close",
+      },
 
-            /* ─── Expandable · Markov (1913) ─── */
-            markov: {
-                kicker: "Story · long read · optional",
-                title: "One man, one book, a lot of patience",
-                paras: [
-                    "What your machine just did in a millisecond, tallying little pairs of letters, is no modern invention. The first time anyone did it there were no computers, no internet, and not the slightest intention of building technology. It happened, quite literally, out of spite.",
-                    "Russia, 1913. A respected and deeply devout mathematician, Pavel Nekrasov, announced that he had proven the existence of free will with numbers. His reasoning: statistics only works when events are independent, like rolls of a die, where one roll doesn't affect the next. Since people decide things by free will, he concluded, the only way society could still be predictable was a divine plan.",
-                    "Enter our protagonist: Andrei Markov. Brilliant, a card-carrying atheist, and with a temper so short his students nicknamed him «Andrei the Furious» (he once formally asked to be struck from the Church rolls). Someone using his beloved mathematics to do theology struck him as a personal insult, and he took it as one.",
-                    "To dismantle his rival he had to show that statistics works even when events are not independent; when each step forces the next. And what is more chained together than language? If a «q» turns up, the next letter isn't free: it's almost forced to be a «u».",
-                    "So Markov grabbed a copy of «Eugene Onegin», Pushkin's novel in verse, stripped out the spaces and punctuation, and started counting its first 20,000 letters by hand. He split them into blocks of a hundred and spent months noting how often a vowel followed a consonant, and the other way round. He was hunting the invisible pattern.",
-                    "In the end, with paper and pencil, he built a probability table just like the one you have right above, and proved that although each letter depended on the one before it, the whole text settled into fixed percentages. Along the way, without meaning to, he had just invented the chains that now bear his name.",
-                    "His strangest rule is the one he called «memorylessness»: to bet on the next step, all that matters is where you are right now; everything before is erased. It's an idea with far more consequences than it first appears.",
-                ],
-            },
+      /* ─── Expandable · Markov (1913) ─── */
+      markov: {
+        kicker: "Story · long read · optional",
+        title: "One man, one book, a lot of patience",
+        paras: [
+          "What your machine just did in a millisecond, tallying little pairs of letters, is no modern invention. The first time anyone did it there were no computers, no internet, and not the slightest intention of building technology. It happened, quite literally, out of spite.",
+          "Russia, 1913. A respected and deeply devout mathematician, Pavel Nekrasov, announced that he had proven the existence of free will with numbers. His reasoning: statistics only works when events are independent, like rolls of a die, where one roll doesn't affect the next. Since people decide things by free will, he concluded, the only way society could still be predictable was a divine plan.",
+          "Enter our protagonist: Andrei Markov. Brilliant, a card-carrying atheist, and with a temper so short his students nicknamed him «Andrei the Furious» (he once formally asked to be struck from the Church rolls). Someone using his beloved mathematics to do theology struck him as a personal insult, and he took it as one.",
+          "To dismantle his rival he had to show that statistics works even when events are not independent; when each step forces the next. And what is more chained together than language? If a «q» turns up, the next letter isn't free: it's almost forced to be a «u».",
+          "So Markov grabbed a copy of «Eugene Onegin», Pushkin's novel in verse, stripped out the spaces and punctuation, and started counting its first 20,000 letters by hand. He split them into blocks of a hundred and spent months noting how often a vowel followed a consonant, and the other way round. He was hunting the invisible pattern.",
+          "In the end, with paper and pencil, he built a probability table just like the one you have right above, and proved that although each letter depended on the one before it, the whole text settled into fixed percentages. Along the way, without meaning to, he had just invented the chains that now bear his name.",
+          "His strangest rule is the one he called «memorylessness»: to bet on the next step, all that matters is where you are right now; everything before is erased. It's an idea with far more consequences than it first appears.",
+        ],
+      },
 
-            /* ─── §5 · From counts to writing ─── */
-            s5: {
-                label: "Too predictable",
-                lead: "Now the machine knows that after a \"t\", \"h\" shows up in droves and \"o\" far less. But a fistful of loose counts is useless for writing: 7,071 means nothing if you don't know out of how many. Those numbers have to become probabilities.",
-                lead2: "And it's plain old division: take the \"t\" row, add up everything in it, and see what slice each partner gets.",
-                afterNormalization: "There it is: the same row, now as percentages that add up to 100%. The \"h\" takes about 36%, the space 29%, the \"o\" 10%… Those are the machine's bets.",
-                choosePrompt: "And now the real question: with those bets on the table, which letter does it pick? The safe move would be to always take the highest one. Let's see what happens.",
-                afterAlwaysMax: "Always \"h\". The safe choice turns out to be the deadest one: this way, after a \"t\" nothing different would ever show up, one \"h\" after another. To write with any life it needs a pinch of randomness; but not just any kind.",
-                dicePrompt: "The engineers' idea was a die. A loaded one, of course: loads of \"h\" faces, plenty of space, the odd \"o\", and almost none of the rare letters. So the likely thing usually comes up, but every so often it surprises you. Roll it yourself and see.",
-                toMatrix: "Look at that! We've got the whole trick for the \"t\": count it, turn it into percentages, and pick with a spark of randomness. And the question asks itself: what if we did exactly this for every letter at once?",
-                writePrompt: "The table now holds every rule the language follows. And picking one letter we already know how to do: look at its row, roll the die. Here is that step in slow motion, and each letter that lands is the starting point for the next.",
-                toFullSpeed: "You've seen it in slow motion. At full speed it's this: one letter after another, no brakes, whole phrases pour out at once.",
-                playgroundPrompt: "One letter is enough to start. From there, it writes on its own.",
-            },
+      /* ─── §5 · From counts to writing ─── */
+      s5: {
+        label: "Too predictable",
+        lead: 'Now the machine knows that after a "t", "h" shows up in droves and "o" far less. But a fistful of loose counts is useless for writing: 7,071 means nothing if you don\'t know out of how many. Those numbers have to become probabilities.',
+        lead2:
+          'And it\'s plain old division: take the "t" row, add up everything in it, and see what slice each partner gets.',
+        afterNormalization:
+          'There it is: the same row, now as percentages that add up to 100%. The "h" takes about 36%, the space 29%, the "o" 10%… Those are the machine\'s bets.',
+        choosePrompt:
+          "And now the real question: with those bets on the table, which letter does it pick? The safe move would be to always take the highest one. Let's see what happens.",
+        afterAlwaysMax:
+          'Always "h". The safe choice turns out to be the deadest one: this way, after a "t" nothing different would ever show up, one "h" after another. To write with any life it needs a pinch of randomness; but not just any kind.',
+        dicePrompt:
+          'The engineers\' idea was a die. A loaded one, of course: loads of "h" faces, plenty of space, the odd "o", and almost none of the rare letters. So the likely thing usually comes up, but every so often it surprises you. Roll it yourself and see.',
+        toMatrix:
+          'Look at that! We\'ve got the whole trick for the "t": count it, turn it into percentages, and pick with a spark of randomness. And the question asks itself: what if we did exactly this for every letter at once?',
+        writePrompt:
+          "The table now holds every rule the language follows. And picking one letter we already know how to do: look at its row, roll the die. Here is that step in slow motion, and each letter that lands is the starting point for the next.",
+        toFullSpeed:
+          "You've seen it in slow motion. At full speed it's this: one letter after another, no brakes, whole phrases pour out at once.",
+        playgroundPrompt: "One letter is enough to start. From there, it writes on its own.",
+      },
 
-            /* ─── Normalization (bridges) ─── */
-            normalization: {
-                label: "From counts to percentages",
-                hint: "Pick a letter and turn its counts into percentages.",
-            },
+      /* ─── Normalization (bridges) ─── */
+      normalization: {
+        label: "From counts to percentages",
+        hint: "Pick a letter and turn its counts into percentages.",
+      },
 
-            /* ─── AlwaysMaxVsSampling (new) ─── */
-            alwaysMax: {
-                label: "Interactive · Always the most likely?",
-                hint: "Try both modes on the same row.",
-                maxModeLabel: "Always the max",
-                sampleModeLabel: "Loaded die",
-                maxResult: "Always the max: you get stuck on the same letter forever.",
-                sampleResult: "Loaded die: it respects the percentages and variety comes out.",
-                rollCta: "Roll the die",
-                regenerateCta: "Generate again",
-                toggleCta: "Switch mode",
-                diceTrack: "0 → 1",
-                verdict: "You need randomness, but the kind that respects the percentages.",
-            },
+      /* ─── AlwaysMaxVsSampling (new) ─── */
+      alwaysMax: {
+        label: "Interactive · Always the most likely?",
+        hint: "Try both modes on the same row.",
+        maxModeLabel: "Always the max",
+        sampleModeLabel: "Loaded die",
+        maxResult: "Always the max: you get stuck on the same letter forever.",
+        sampleResult: "Loaded die: it respects the percentages and variety comes out.",
+        rollCta: "Roll the die",
+        regenerateCta: "Generate again",
+        toggleCta: "Switch mode",
+        diceTrack: "0 → 1",
+        verdict: "You need randomness, but the kind that respects the percentages.",
+      },
 
-            /* ─── VIS 6 · Always the max on «t» → always «h» ─── */
-            alwaysMaxLoop: {
-                label: "Interactive · Always the most likely",
-                caption: "These are the \"t\"'s bets. What if we always pick the highest one?",
-                pickLabel: "After \"t\" it picks:",
-                play: "Always pick the max",
-                result: "Always \"h\". No matter how many times: with this method, after a \"t\" nothing else ever comes out. Predictable and dull.",
-                restart: "Again",
-            },
+      /* ─── VIS 6 · Always the max on «t» → always «h» ─── */
+      alwaysMaxLoop: {
+        label: "Interactive · Always the most likely",
+        caption: 'These are the "t"\'s bets. What if we always pick the highest one?',
+        pickLabel: 'After "t" it picks:',
+        play: "Always pick the max",
+        result:
+          'Always "h". No matter how many times: with this method, after a "t" nothing else ever comes out. Predictable and dull.',
+        restart: "Again",
+      },
 
-            /* ─── VIS 7 · The loaded die on «t» ─── */
-            loadedDie: {
-                label: "Interactive · The loaded die",
-                caption: "The die rolls a number from 0 to 100 and drops onto the bar. \"h\" covers the widest stretch, so it usually hits \"h\"… but not always.",
-                pickLabel: "After \"t\" it rolls:",
-                lands: "rolls {n} →",
-                play: "Roll the die",
-                rollAgain: "Roll again",
-                restart: "Start over",
-                rolling: "Rolling…",
-                result: "See? Usually \"h\", but every so often a space, an \"o\", an \"e\"… The die respects the percentages, and that little spark of chance gives it life.",
-            },
+      /* ─── VIS 7 · The loaded die on «t» ─── */
+      loadedDie: {
+        label: "Interactive · The loaded die",
+        caption:
+          'The die rolls a number from 0 to 100 and drops onto the bar. "h" covers the widest stretch, so it usually hits "h"… but not always.',
+        pickLabel: 'After "t" it rolls:',
+        lands: "rolls {n} →",
+        play: "Roll the die",
+        rollAgain: "Roll again",
+        restart: "Start over",
+        rolling: "Rolling…",
+        result:
+          'See? Usually "h", but every so often a space, an "o", an "e"… The die respects the percentages, and that little spark of chance gives it life.',
+      },
 
-            /* ─── VIS 10.5 · Letter by letter, step by step (bridge §4→§5) ─── */
-            letterStep: {
-                label: "Interactive · Letter by letter",
-                lead: "One letter written. To pick the next, the machine repeats the same move every time. Let's watch it in slow motion.",
-                seedPrompt: "Start with a letter and let it carry on by itself.",
-                wordLabel: "What it has written",
-                lookCaption: "We look at its row: what came after this letter, counted across the whole book.",
-                countCaption: "Each cell holds a number: how many times that pair showed up.",
-                calcCaption: "We divide by the total and the counts turn into percentages.",
-                rollCaption: "The die rolls a number from 0 to 100 and lands wherever the percentages say.",
-                appendCaption: "The chosen letter joins what's written… and now it's the one starting the next step.",
-                rollReadout: "rolls {n} →",
-                stepLook: "Look",
-                stepCount: "Count",
-                stepCalc: "Share out",
-                stepRoll: "Roll",
-                stepAppend: "Write",
-                next: "Next letter",
-                startStep: "Start the step",
-                nextPhase: "Next",
-                nextLetter: "The next letter",
-                auto: "Carry on",
-                pause: "Stop",
-                replay: "Start over",
-                coda: "That's all there is. A letter looks at its row, rolls the die, keeps the next one. Repeat without stopping and the machine writes on its own.",
-            },
+      /* ─── VIS 10.5 · Letter by letter, step by step (bridge §4→§5) ─── */
+      letterStep: {
+        label: "Interactive · Letter by letter",
+        lead: "One letter written. To pick the next, the machine repeats the same move every time. Let's watch it in slow motion.",
+        seedPrompt: "Start with a letter and let it carry on by itself.",
+        wordLabel: "What it has written",
+        lookCaption:
+          "We look at its row: what came after this letter, counted across the whole book.",
+        countCaption: "Each cell holds a number: how many times that pair showed up.",
+        calcCaption: "We divide by the total and the counts turn into percentages.",
+        rollCaption: "The die rolls a number from 0 to 100 and lands wherever the percentages say.",
+        appendCaption:
+          "The chosen letter joins what's written… and now it's the one starting the next step.",
+        rollReadout: "rolls {n} →",
+        stepLook: "Look",
+        stepCount: "Count",
+        stepCalc: "Share out",
+        stepRoll: "Roll",
+        stepAppend: "Write",
+        next: "Next letter",
+        startStep: "Start the step",
+        nextPhase: "Next",
+        nextLetter: "The next letter",
+        auto: "Carry on",
+        pause: "Stop",
+        replay: "Start over",
+        coda: "That's all there is. A letter looks at its row, rolls the die, keeps the next one. Repeat without stopping and the machine writes on its own.",
+      },
 
-            /* ─── TableWriter (VIS11) · the typewriter at full speed ─── */
-            tableWriter: {
-                label: "Interactive · The machine writes",
-                lead: "We saw one step in slow motion. Take the brakes off and let it run: a letter looks at its row, rolls the die, keeps the next one, and round it goes again.",
-                seedPrompt: "Pick where it starts.",
-                wordLabel: "What's coming out",
-                glimpseLabel: "Where each letter comes from",
-                glimpseFrom: "after",
-                write: "Write",
-                again: "Again",
-                coda: "From afar it almost looks like a language. Up close, babble. And still no magic: each letter comes from looking at the previous one's row and rolling the die. Nothing more.",
-            },
+      /* ─── TableWriter (VIS11) · the typewriter at full speed ─── */
+      tableWriter: {
+        label: "Interactive · The machine writes",
+        lead: "We saw one step in slow motion. Take the brakes off and let it run: a letter looks at its row, rolls the die, keeps the next one, and round it goes again.",
+        seedPrompt: "Pick where it starts.",
+        wordLabel: "What's coming out",
+        glimpseLabel: "Where each letter comes from",
+        glimpseFrom: "after",
+        write: "Write",
+        again: "Again",
+        coda: "From afar it almost looks like a language. Up close, babble. And still no magic: each letter comes from looking at the previous one's row and rolling the die. Nothing more.",
+      },
 
-            /* ─── The name · big reveal ─── */
-            naming: {
-                buildup: "And there it is: a machine that writes on its own. Nobody taught it spelling, or grammar, or a single rule. It just counted pairs of letters in a pile of text, and everything came out of that. You built it, from scratch.",
-                revealLead: "And what you built has a name:",
-                revealWord: "a bigram model",
-                revealCoda: "The simplest language model there is. And it's the first brick of everything else. ChatGPT included.",
-            },
+      /* ─── The name · big reveal ─── */
+      naming: {
+        buildup:
+          "And there it is: a machine that writes on its own. Nobody taught it spelling, or grammar, or a single rule. It just counted pairs of letters in a pile of text, and everything came out of that. You built it, from scratch.",
+        revealLead: "And what you built has a name:",
+        revealWord: "a bigram model",
+        revealCoda:
+          "The simplest language model there is. And it's the first brick of everything else. ChatGPT included.",
+      },
 
-            /* ─── Expandable · Shannon (1948) ─── */
-            shannon: {
-                kicker: "History · long read · optional",
-                title: "The man who measured language",
-                p1: "In 1948, an engineer named Claude Shannon published a paper that, quite literally, lit the digital age. The curious part: he wasn't trying to build an artificial intelligence or teach a machine to write. His problem was far more down-to-earth — he worked at Bell Labs and needed to compress data to fit more calls and telegrams down a single wire.",
-                p2: "He noticed something fascinating: human language is wildly predictable — redundant, as he called it. If I write “Ques”, your head doesn't need the final “o” to know the word. That “o” adds almost no new information, because you were already sure it was coming.",
-                p3: "To measure how much “real information” a language carries, Shannon did exactly what you just did: he worked out the letters' probabilities over mountains of text and let the maths write on their own, with his tables and a pinch of chance.",
-                quoteIntro: "Using a bigram model — looking only at the previous letter, just like your machine — here is what came out in his 1948 study:",
-                quote: "ON IE ANTSOUTINYS ARE T INCTORE ST BE S DEAMY ACHIN D ILONASIVE TUCOWE AT TEASONARE FUSO TIZIN ANDY TOBE SEACE CTISBE",
-                p4: "Exactly: the same babble-with-a-good-accent your model just produced. Letters that fit two by two, but unable to form real words, because the machine has no memory to speak of.",
-                p5: "With that experiment Shannon founded Information Theory, gave the world the “bit”, and proved for the first time that human language could be translated into pure statistics. The pair tables you built on this page are an exact replica of the first language model in history. You reinvented, in an afternoon, the brick the whole modern internet rests on.",
-            },
+      /* ─── Expandable · Shannon (1948) ─── */
+      shannon: {
+        kicker: "History · long read · optional",
+        title: "The man who measured language",
+        p1: "In 1948, an engineer named Claude Shannon published a paper that, quite literally, lit the digital age. The curious part: he wasn't trying to build an artificial intelligence or teach a machine to write. His problem was far more down-to-earth — he worked at Bell Labs and needed to compress data to fit more calls and telegrams down a single wire.",
+        p2: "He noticed something fascinating: human language is wildly predictable — redundant, as he called it. If I write “Ques”, your head doesn't need the final “o” to know the word. That “o” adds almost no new information, because you were already sure it was coming.",
+        p3: "To measure how much “real information” a language carries, Shannon did exactly what you just did: he worked out the letters' probabilities over mountains of text and let the maths write on their own, with his tables and a pinch of chance.",
+        quoteIntro:
+          "Using a bigram model — looking only at the previous letter, just like your machine — here is what came out in his 1948 study:",
+        quote:
+          "ON IE ANTSOUTINYS ARE T INCTORE ST BE S DEAMY ACHIN D ILONASIVE TUCOWE AT TEASONARE FUSO TIZIN ANDY TOBE SEACE CTISBE",
+        p4: "Exactly: the same babble-with-a-good-accent your model just produced. Letters that fit two by two, but unable to form real words, because the machine has no memory to speak of.",
+        p5: "With that experiment Shannon founded Information Theory, gave the world the “bit”, and proved for the first time that human language could be translated into pure statistics. The pair tables you built on this page are an exact replica of the first language model in history. You reinvented, in an afternoon, the brick the whole modern internet rests on.",
+      },
 
+      /* ─── The letdown ─── */
+      disappointment: {
+        text: "And now the bad news. Read it again and it almost sounds like a real language: the letters fit together… but they aren't words. Babble with a good accent. We pulled it off, it writes on its own. But what a mess, right? Why does it write so badly?",
+      },
 
-            /* ─── The letdown ─── */
-            disappointment: {
-                text: "And now the bad news. Read it again and it almost sounds like a real language: the letters fit together… but they aren't words. Babble with a good accent. We pulled it off, it writes on its own. But what a mess, right? Why does it write so badly?",
-            },
+      /* ─── §6 · The fatal flaw, and seeing more ─── */
+      s6: {
+        label: "Let's write!",
+        heading: "The bigram's ceiling",
+        lead: 'Before we fix it, let\'s understand why it writes so badly. What comes after "th"? The machine couldn\'t care less about the "t": it only looks at the "h". To it, "th", "sh" and "wh" are exactly the same thing.',
+        afterBlindness:
+          "It's not forgetful. It's blind from birth. No matter how much text you give it, it will never tell \"th\" from \"sh\". This isn't a bug you fix with more data. It's the ceiling of the model.",
+        ladderPrompt:
+          "What if it could see more than one letter? Your turn: a word reveals itself one letter at a time, and you bet on the next.",
+        afterLadder:
+          'Did you feel it? With one letter you were guessing blind. With almost the whole word in front of you, almost certain. More context, better prediction. That\'s exactly what our model is missing: it only sees one piece back. Just like you with "hi": it reacts to the last thing it heard, with no idea about the rest.',
+        ladderCoda:
+          "What if we teach it to look at two letters? Three? Five? That's already a different model. And it's the next one.",
+      },
 
-            /* ─── §6 · The fatal flaw, and seeing more ─── */
-            s6: {
-                label: "Let's write!",
-                heading: "The bigram's ceiling",
-                lead: "Before we fix it, let's understand why it writes so badly. What comes after \"th\"? The machine couldn't care less about the \"t\": it only looks at the \"h\". To it, \"th\", \"sh\" and \"wh\" are exactly the same thing.",
-                afterBlindness: "It's not forgetful. It's blind from birth. No matter how much text you give it, it will never tell \"th\" from \"sh\". This isn't a bug you fix with more data. It's the ceiling of the model.",
-                ladderPrompt: "What if it could see more than one letter? Your turn: a word reveals itself one letter at a time, and you bet on the next.",
-                afterLadder: "Did you feel it? With one letter you were guessing blind. With almost the whole word in front of you, almost certain. More context, better prediction. That's exactly what our model is missing: it only sees one piece back. Just like you with \"hi\": it reacts to the last thing it heard, with no idea about the rest.",
-                ladderCoda: "What if we teach it to look at two letters? Three? Five? That's already a different model. And it's the next one.",
-            },
+      /* ─── ContextBlindnessDemo (bridges) ─── */
+      contextBlindness: {
+        label: "Interactive · The fatal flaw",
+        hint: "Change the prefix and see whether the prediction moves.",
+        pickPrompt: "Pick a prefix. What does the machine predict next?",
+        modelSees: "The machine only sees",
+        invisible: "is invisible",
+        identical: "All three give the same thing.",
+      },
 
-            /* ─── ContextBlindnessDemo (bridges) ─── */
-            contextBlindness: {
-                label: "Interactive · The fatal flaw",
-                hint: "Change the prefix and see whether the prediction moves.",
-                pickPrompt: "Pick a prefix. What does the machine predict next?",
-                modelSees: "The machine only sees",
-                invisible: "is invisible",
-                identical: "All three give the same thing.",
-            },
+      /* ─── ShannonContextLadder · guess the word letter by letter («cupido») ─── */
+      shannonLadder: {
+        certaintyLabel: "Certainty",
+        progressLabel: "Correct",
+        roundLabel: "Round {n} of {total}",
+        nextLetter: "Another letter",
+        seeWord: "See the word",
+        again: "Again",
+        word: "cupido",
+        verdictLabel: "The bridge",
+        // A word is revealed letter by letter. The distributions are illustrative, not real counts;
+        // what's honest is that they NARROW. With little context you miss; near the end, near-certain.
+        rounds: [
+          {
+            prefix: "c",
+            answer: "u",
+            hint: "With one letter there's no way: ca, co, cu, ce, ci… all still alive.",
+          },
+          {
+            prefix: "cu",
+            answer: "p",
+            hint: "Two letters and it's still wide open: cua, cue, cui, cum, cup, cur…",
+          },
+          {
+            prefix: "cup",
+            answer: "i",
+            hint: 'The trap: cupo and cupón pull toward "o". But this time the word turns to "i".',
+          },
+          {
+            prefix: "cupi",
+            answer: "d",
+            hint: 'Now it tightens: "d" stands out clearly above the rest.',
+          },
+          {
+            prefix: "cupid",
+            answer: "o",
+            hint: 'With almost the whole word in front of you, "o" is all but a given.',
+          },
+        ],
+        verdict:
+          "With one letter you were guessing blind. With almost the whole word, almost certain. That's exactly what the bigram is missing.",
+      },
 
-            /* ─── ShannonContextLadder · guess the word letter by letter («cupido») ─── */
-            shannonLadder: {
-                certaintyLabel: "Certainty",
-                progressLabel: "Correct",
-                roundLabel: "Round {n} of {total}",
-                nextLetter: "Another letter",
-                seeWord: "See the word",
-                again: "Again",
-                word: "cupido",
-                verdictLabel: "The bridge",
-                // A word is revealed letter by letter. The distributions are illustrative, not real counts;
-                // what's honest is that they NARROW. With little context you miss; near the end, near-certain.
-                rounds: [
-                    { prefix: "c", answer: "u", hint: "With one letter there's no way: ca, co, cu, ce, ci… all still alive." },
-                    { prefix: "cu", answer: "p", hint: "Two letters and it's still wide open: cua, cue, cui, cum, cup, cur…" },
-                    { prefix: "cup", answer: "i", hint: "The trap: cupo and cupón pull toward \"o\". But this time the word turns to \"i\"." },
-                    { prefix: "cupi", answer: "d", hint: "Now it tightens: \"d\" stands out clearly above the rest." },
-                    { prefix: "cupid", answer: "o", hint: "With almost the whole word in front of you, \"o\" is all but a given." },
-                ],
-                verdict: "With one letter you were guessing blind. With almost the whole word, almost certain. That's exactly what the bigram is missing.",
-            },
-
-            /* ─── CTA rebuilt · bridge to n-gram ─── */
-            cta: {
-                primaryKicker: "Next chapter",
-                primaryChapter: "02 · N-grams",
-                primaryTitle: "The model only remembers the last letter. Let's give it memory.",
-                primaryDesc: "One letter of context isn't enough. What if it looks at two? Three? That's already the N-gram model.",
-                primaryCue: "Continue",
-                primaryHref: "/lab/ngram",
-                secondaryLabel: "Open Free Lab",
-                secondaryDesc: "Skip the story. All the tools, no script.",
-            },
-        }
+      /* ─── CTA rebuilt · bridge to n-gram ─── */
+      cta: {
+        primaryKicker: "Next chapter",
+        primaryChapter: "02 · N-grams",
+        primaryTitle: "The model only remembers the last letter. Let's give it memory.",
+        primaryDesc:
+          "One letter of context isn't enough. What if it looks at two? Three? That's already the N-gram model.",
+        primaryCue: "Continue",
+        primaryHref: "/lab/ngram",
+        secondaryLabel: "Open Free Lab",
+        secondaryDesc: "Skip the story. All the tools, no script.",
+      },
     },
-    bigramBuilder: {
-        placeholder: "Type your own text…",
-        editText: "edit text",
-        apply: "Apply",
-        cancel: "Cancel",
-        start: "Start Building",
-        complete: "✓ Table complete — every pair has been counted.",
+  },
+  /* "Train your own bigram" — the playground hero (bench-only for now). */
+  trainBigramLab: {
+    lead: "Let's train a bigram on your own text. The more you give it, the better it writes.",
+    placeholder: "a whole book fits here…",
+    upload: "upload a .txt",
+    sample: "Shakespeare sample",
+    clear: "empty",
+    count: "{n} characters · up to {cap}",
+    truncated: "over the limit: the first {cap} characters will be used",
+    tiny: "with this little text it'll come out stuttering — still worth it",
+    train: "train",
+    readingMarker: "reading your text",
+    pairsLabel: "pairs counted",
+    skip: "skip to the end",
+    cellsUsed: "{used} of 729 cells with data",
+    cellCount: "“{row}” → “{col}” · {n}",
+    cellNever: "“{row}” → “{col}” · never",
+    foldReport: "{letters} letters · {accents} accents flattened (á→a) · {symbols} symbols→␣",
+    foldTruncated: "cut at {cap}",
+    tabTable: "the table",
+    tabWrite: "write",
+    retrain: "another text",
+    tableHint: "each row is a letter and each column who follows it; tapping a cell opens its row",
+    rowLabel: "after “{ch}”",
+    rowTotal: "{n} times in total",
+    rowSlot: "“{ch}” · {n} times · {pct}%",
+    modeSolo: "solo",
+    modePaso: "step by step",
+    modeManual: "you choose",
+    tempLabel: "temperature",
+    tempCold: "faithful",
+    tempHot: "chaos",
+    seedLabel: "start from",
+    go: "write",
+    pause: "pause",
+    more: "keep going",
+    lettersWritten: "{n} letters",
+    backoffNote: "empty row → loose letter",
+    copy: "copy",
+    copied: "copied",
+    clearOut: "erase",
+    next: "next letter",
+    auto: "auto",
+    autoStop: "stop",
+    stepRow: "the row of “{ch}”",
+    stepSpin: "the loaded dice is spinning…",
+    stepLanded: "out comes “{ch}”",
+    manualHint: "you are the dice: any lit slot works; the dark ones, never",
+    pickSlot: "“{ch}” · {n} times · {pct}%",
+    pickZero: "“{ch}” · 0 times — the model can't choose it",
+    rollForMe: "roll the dice for me",
+    outEmpty: "whatever it writes will appear here…",
+    glimpseLabel: "the row it consults",
+  },
+  bigramBuilder: {
+    placeholder: "Type your own text…",
+    editText: "edit text",
+    apply: "Apply",
+    cancel: "Cancel",
+    start: "Start Building",
+    complete: "✓ Table complete — every pair has been counted.",
+  },
+  bigramWidgets: {
+    nnComparison: {
+      title: "Interactive · Bigram vs. Neural Network",
+      bigramTitle: "Bigram Probabilities (counting)",
+      neuralTitle: "Neural Network Weights (learned)",
+      stats: {
+        steps: "Training steps:",
+        distance: "Distance:",
+        match: "✓ Neural weights closely match bigram probabilities",
+      },
+      buttons: {
+        train: "Train 1 Step",
+        auto: "Auto-Train ×20",
+        reset: "Reset",
+      },
+      caption:
+        "The neural network learns weights that converge to the same transition probabilities the bigram model computes by counting.",
+      progression: "Snapshots:",
+      live: "Live",
+      emotionalMoment:
+        "These random numbers, trained with nothing but gradient descent, learned exactly what counting gave us.",
     },
-    bigramWidgets: {
-        nnComparison: {
-            title: "Interactive · Bigram vs. Neural Network",
-            bigramTitle: "Bigram Probabilities (counting)",
-            neuralTitle: "Neural Network Weights (learned)",
-            stats: {
-                steps: "Training steps:",
-                distance: "Distance:",
-                match: "✓ Neural weights closely match bigram probabilities"
-            },
-            buttons: {
-                train: "Train 1 Step",
-                auto: "Auto-Train ×20",
-                reset: "Reset"
-            },
-            caption: "The neural network learns weights that converge to the same transition probabilities the bigram model computes by counting.",
-            progression: "Snapshots:",
-            live: "Live",
-            emotionalMoment: "These random numbers, trained with nothing but gradient descent, learned exactly what counting gave us.",
+    textToNumbers: {
+      placeholder: "Type something…",
+      empty: "Start typing to see character codes…",
+      tooltip: "code:",
+    },
+    pairHighlighter: {
+      hint: "Hover a character to see its bigram pair",
+    },
+    memoryLimit: {
+      modelSees: "Model sees only",
+      invisible: "is invisible",
+      topPredictions: "Top predictions after 'h'",
+      tryOthers: "Try switching between th, sh, wh — are predictions different?",
+      allIdentical: "All three give identical predictions.",
+      explanation:
+        "The bigram only sees 'h'. The letter before it — t, s, or w — is completely invisible. Three different meanings, one blind guess.",
+    },
+    matrixOverlay: {
+      dismiss: "Click to dismiss",
+      after: "After",
+      mostCommon: "the most common next character is",
+      tryHovering: "— try hovering row",
+      inMatrix: "in the matrix below.",
+      clickToDismiss: "click to dismiss",
+    },
+    heroAutoComplete: {
+      placeholder: "a",
+      after: "After “{input}”, likely next",
+      hint: "Type one character to see predictions",
+    },
+    softmax: {
+      title: "Softmax Temperature · Conceptual",
+      description:
+        "Temperature reshapes the probability distribution without changing the ranking of tokens. Low temperature sharpens the distribution; high temperature flattens it.",
+      label: "Temperature",
+      deterministic: "Deterministic",
+      neutral: "Neutral",
+      chaotic: "Chaotic",
+      mode: {
+        deterministic: {
+          label: "Deterministic",
+          sub: "Always picks the top token. No creativity.",
         },
-        textToNumbers: {
-            placeholder: "Type something…",
-            empty: "Start typing to see character codes…",
-            tooltip: "code:"
+        conservative: {
+          label: "Conservative",
+          sub: "Mostly picks top tokens with occasional variety.",
         },
-        pairHighlighter: {
-            hint: "Hover a character to see its bigram pair"
+        neutral: { label: "Neutral", sub: "Standard sampling — balanced quality and diversity." },
+        creative: {
+          label: "Creative",
+          sub: "Explores less likely options. More surprising output.",
         },
-        memoryLimit: {
-            modelSees: "Model sees only",
-            invisible: "is invisible",
-            topPredictions: "Top predictions after 'h'",
-            tryOthers: "Try switching between th, sh, wh — are predictions different?",
-            allIdentical: "All three give identical predictions.",
-            explanation: "The bigram only sees 'h'. The letter before it — t, s, or w — is completely invisible. Three different meanings, one blind guess.",
-        },
-        matrixOverlay: {
-            dismiss: "Click to dismiss",
-            after: "After",
-            mostCommon: "the most common next character is",
-            tryHovering: "— try hovering row",
-            inMatrix: "in the matrix below.",
-            clickToDismiss: "click to dismiss"
-        },
-        heroAutoComplete: {
-            placeholder: "a",
-            after: "After “{input}”, likely next",
-            hint: "Type one character to see predictions"
-        },
-        softmax: {
-            title: "Softmax Temperature · Conceptual",
-            description: "Temperature reshapes the probability distribution without changing the ranking of tokens. Low temperature sharpens the distribution; high temperature flattens it.",
-            label: "Temperature",
-            deterministic: "Deterministic",
-            neutral: "Neutral",
-            chaotic: "Chaotic",
-            mode: {
-                deterministic: { label: "Deterministic", sub: "Always picks the top token. No creativity." },
-                conservative: { label: "Conservative", sub: "Mostly picks top tokens with occasional variety." },
-                neutral: { label: "Neutral", sub: "Standard sampling — balanced quality and diversity." },
-                creative: { label: "Creative", sub: "Explores less likely options. More surprising output." },
-                chaotic: { label: "Chaotic", sub: "Nearly uniform — picks almost any token at random." },
-            },
-            presets: {
-                deterministic: "Deterministic",
-                balanced: "Balanced",
-                neutral: "Neutral",
-                creative: "Creative",
-            },
-            stats: {
-                topToken: "Top token",
-                entropy: "Entropy",
-                spread: "Spread",
-                max: "of max",
-            },
-            note: "Temperature does not change the model's knowledge — only how randomly it samples from what it knows. The token rankings stay the same; only the sharpness of the distribution changes.",
-        },
-    }
+        chaotic: { label: "Chaotic", sub: "Nearly uniform — picks almost any token at random." },
+      },
+      presets: {
+        deterministic: "Deterministic",
+        balanced: "Balanced",
+        neutral: "Neutral",
+        creative: "Creative",
+      },
+      stats: {
+        topToken: "Top token",
+        entropy: "Entropy",
+        spread: "Spread",
+        max: "of max",
+      },
+      note: "Temperature does not change the model's knowledge — only how randomly it samples from what it knows. The token rankings stay the same; only the sharpness of the distribution changes.",
+    },
+  },
 };

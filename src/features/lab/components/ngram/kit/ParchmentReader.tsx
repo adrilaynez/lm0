@@ -14,73 +14,79 @@ import { MONO } from "./tokens";
  * safe (no rAF here; the only animation is the marker dot pulse, which a consumer can hide).
  */
 export interface ParchmentReaderProps {
-    text: string;
-    /** First absolute char index of the visible window. */
-    windowStart: number;
-    windowSize?: number;
-    /** Absolute index of the most-recently-read char (the cursor). */
-    head: number;
-    /** Absolute index lit as the filled «hot1» letter (e.g. the current «t»). -1 = none. */
-    hot1?: number;
-    /** Absolute index lit as the «hot2» follower. -1 = none. */
-    hot2?: number;
-    /** 0..1 read progress for the hairline. Omit to hide. */
-    progress?: number;
-    /** Show the pulsing "reading" marker. */
-    reading?: boolean;
-    markerLabel?: React.ReactNode;
-    maxWidth?: number;
+  text: string;
+  /** First absolute char index of the visible window. */
+  windowStart: number;
+  windowSize?: number;
+  /** Absolute index of the most-recently-read char (the cursor). */
+  head: number;
+  /** Absolute index lit as the filled «hot1» letter (e.g. the current «t»). -1 = none. */
+  hot1?: number;
+  /** Absolute index lit as the «hot2» follower. -1 = none. */
+  hot2?: number;
+  /** Chars ENDING at hot2 marked as «hot2» (a k-wide context window). Default 1 (a single letter). */
+  hot2Span?: number;
+  /** 0..1 read progress for the hairline. Omit to hide. */
+  progress?: number;
+  /** Show the pulsing "reading" marker. */
+  reading?: boolean;
+  markerLabel?: React.ReactNode;
+  maxWidth?: number;
 }
 
 export const ParchmentReader = memo(function ParchmentReader({
-    text,
-    windowStart,
-    windowSize = 200,
-    head,
-    hot1 = -1,
-    hot2 = -1,
-    progress,
-    reading = false,
-    markerLabel,
-    maxWidth = 560,
+  text,
+  windowStart,
+  windowSize = 200,
+  head,
+  hot1 = -1,
+  hot2 = -1,
+  hot2Span = 1,
+  progress,
+  reading = false,
+  markerLabel,
+  maxWidth = 560,
 }: ParchmentReaderProps) {
-    const win = text.slice(windowStart, windowStart + windowSize);
+  const win = text.slice(windowStart, windowStart + windowSize);
 
-    return (
-        <div className="nw-pr" style={{ maxWidth }}>
-            {markerLabel != null && (
-                <div className="nw-pr__mark" data-on={reading ? "1" : "0"}>
-                    <span className="nw-pr__dot" aria-hidden />
-                    {markerLabel}
-                </div>
-            )}
-            <div className="nw-pr__reader" aria-hidden>
-                {win.split("").map((ch, i) => {
-                    const abs = windowStart + i;
-                    const state =
-                        abs === hot1
-                            ? "hot1"
-                            : abs === hot2
-                              ? "hot2"
-                              : abs === head && hot1 < 0
-                                ? "cur"
-                                : abs < head + 1
-                                  ? "past"
-                                  : "future";
-                    return (
-                        <span key={i} className="nw-pr__ch" data-state={state}>
-                            {ch === "\n" ? " " : ch}
-                        </span>
-                    );
-                })}
-            </div>
-            {progress != null && (
-                <div className="nw-pr__progress" aria-hidden>
-                    <span className="nw-pr__fill" style={{ width: `${Math.min(1, Math.max(0, progress)) * 100}%` }} />
-                </div>
-            )}
+  return (
+    <div className="nw-pr" style={{ maxWidth }}>
+      {markerLabel != null && (
+        <div className="nw-pr__mark" data-on={reading ? "1" : "0"}>
+          <span className="nw-pr__dot" aria-hidden />
+          {markerLabel}
+        </div>
+      )}
+      <div className="nw-pr__reader" aria-hidden>
+        {win.split("").map((ch, i) => {
+          const abs = windowStart + i;
+          const state =
+            abs === hot1
+              ? "hot1"
+              : hot2 >= 0 && abs <= hot2 && abs > hot2 - hot2Span
+                ? "hot2"
+                : abs === head && hot1 < 0
+                  ? "cur"
+                  : abs < head + 1
+                    ? "past"
+                    : "future";
+          return (
+            <span key={i} className="nw-pr__ch" data-state={state}>
+              {ch === "\n" ? " " : ch}
+            </span>
+          );
+        })}
+      </div>
+      {progress != null && (
+        <div className="nw-pr__progress" aria-hidden>
+          <span
+            className="nw-pr__fill"
+            style={{ width: `${Math.min(1, Math.max(0, progress)) * 100}%` }}
+          />
+        </div>
+      )}
 
-            <style>{`
+      <style>{`
                 .nw-pr { width: 100%; margin: 0 auto; }
                 .nw-pr__mark { display: inline-flex; align-items: center; gap: 8px; font-family: ${MONO}; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ngram-accent); margin: 0 0 11px; opacity: 0; transition: opacity .3s ease; }
                 .nw-pr__mark[data-on="1"] { opacity: 1; }
@@ -105,8 +111,8 @@ export const ParchmentReader = memo(function ParchmentReader({
                 .nw-pr__progress { height: 3px; border-radius: 999px; background: var(--ngram-bg-2); margin: 14px auto 0; overflow: hidden; }
                 .nw-pr__fill { display: block; height: 100%; background: var(--ngram-accent); border-radius: 999px; transition: width .1s linear; }
             `}</style>
-        </div>
-    );
+    </div>
+  );
 });
 
 export default ParchmentReader;

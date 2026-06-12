@@ -2,387 +2,427 @@
 
 import { memo, useCallback, useMemo, useState } from "react";
 
-import { useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import {
-    CaptionLine,
-    CountUpNumber,
-    heat,
-    MONO,
-    PlayButton,
-    SERIF,
+  CaptionLine,
+  CountUpNumber,
+  displayChar,
+  heat,
+  MONO,
+  PlayButton,
+  SERIF,
+  SPRING_SNAP,
+  STD,
 } from "@/features/lab/components/ngram/kit";
-import {
-    contextRow,
-    contextSpace,
-    getCounts,
-    NGRAM_ALPHABET,
-} from "@/features/lab/data/ngramData";
+import { getCounts } from "@/features/lab/data/ngramData";
 
 /**
- * §2 · GrowingTable — "subir de nivel = la MISMA tabla, MÁS GRANDE" (spine `s2-grow`).
+ * §2.3 · GrowingTable — "Otra letra más". The reader has just built the N=2 table (RowSummer's 729-cell map).
+ * ONE idea, SEEN: one more letter of memory = EVERY row splits in 27 — the same map, 27× finer: 19.683.
  *
- * CONTEXT. Entering, the reader has built (by hand, in SplitTheRow) a table with one sharpened row PER PAIR —
- * the trigram. They learned that leveling up is the SAME counting with a longer key. The ONE NEW idea here,
- * DISCOVERED by pressing a button: each extra letter of memory keeps the table the same SHAPE but makes it
- * BIGGER — the block of rows you have built physically GROWS taller, fuller and brighter, and the count climbs
- * 729 → 19 683 → 531 441. This is the POSITIVE bridge to writing (§3): "subiste de nivel y es más grande". The
- * "astronomically huge / mostly empty" awe is deliberately held for §4 — here it is just "it GROWS".
+ * THE IMAGE. The right panel IS the table from RowSummer (same 27×27 map, same data, same heat). Pressing
+ * «cada fila ×27» springs the panel taller while its grain multiplies: each CELL becomes a whole ROW of 27
+ * (729 row-stripes × 27 = all 19.683 contexts — nothing is cut, it is ALL there, just 27× finer). The «th»
+ * marker makes the split concrete: the cell you knew shrinks into a hairline row, and a LENS shows, at
+ * readable size, the 27 real children that now live where that one cell was (tha, the, thi…). The left
+ * panel keeps it concrete: the real top rows of the CURRENT table, named, with their true counts.
  *
- * THE FIX (round-3, inverted). The previous version viewed the table through a FIXED window and packed more &
- * THINNER rows into it each level → the footprint never grew, the picture dimmed, the table "looked small". So
- * the growth was only stated by a number, never FELT. This version inverts it: the panel itself INFLATES each
- * level (its height literally scales up), the rows keep a CONSTANT legible pitch, and each level draws MORE of
- * them and BRIGHTER → the block of amber you have built unmistakably grows in a frozen frame. More memory =
- * more visible MASS, never less.
- *
- * HERO: the BLOCK OF ROWS that gets BIGGER (a changing picture, not just a number). It is a real STACK OF
- * ROWS — each row a single full-width horizontal heat-strip (one stored context's real distribution over the
- * alphabet, painted left→right). Rows are read top-to-bottom as a scannable table, never a field of cells.
- *
- * Scale gate solved IN A STILL: panel height, row count and brightness all step UP with the level, so the
- * trigram frame and the 5-grama frame are obviously different sizes — the second is a far bigger slab. A
- * "+N filas más" marker prints the TRUE remainder right at the overflow.
- *
- * Assembled from the kit (heat · CountUpNumber · PlayButton · CaptionLine + SERIF/MONO) + its ONE unique
- * mechanic: the level bump that GROWS the panel and re-stacks more, brighter real-count rows. Real data only —
- * every drawn row is `contextRow(ctxLen, ctx)` over Shakespeare; the hero count is `contextSpace(k)` (27^k,
- * continuing SplitTheRow's ×27 thread). Tokens-only, [data-ngram-theme], memo, reduced-motion safe.
+ * Real data only (getCounts(2)/getCounts(3) over Shakespeare). Tokens-only, memo, reduced-motion safe.
  */
 
-const ALPHA = NGRAM_ALPHABET; // [space, a–z] — 27 symbols
-const VOCAB = ALPHA.length;   // 27 — every level multiplies the rows by this
+const LETTERS = "abcdefghijklmnopqrstuvwxyz ".split(""); // a..z then ␣ — same axis order as RowSummer's map
+const VOCAB = LETTERS.length; // 27
+const ANCHOR: [string, string] = ["t", "h"]; // the cell the reader knows — «th»
 
-/**
- * The three levels of THIS beat (it begins where SplitTheRow ended, at the trigram).
- *   ctxLen 2 → trigram   (729 rows possible)
- *   ctxLen 3 → 4-grama   (19 683)
- *   ctxLen 4 → 5-grama   (531 441)
- * Each level is a BIGGER table: a TALLER panel, MORE drawn rows, BRIGHTER fill. Constant legible row pitch.
- *
- * POLISH NOTE: Level 0 intentionally kept shorter so the jump to level 2 is dramatic and unmissable.
- * panelH ratio 148:288:480 ≈ 1:1.95:3.24 — reader sees "this thing tripled in height".
- */
-const LEVELS = [
-    // panelH = the visible height of the block; drawn = rows painted; lift = brightness floor (rises per level).
-    { ctxLen: 2, memory: 2, panelH: 148, drawn: 10, lift: 26 },
-    { ctxLen: 3, memory: 3, panelH: 288, drawn: 21, lift: 38 },
-    { ctxLen: 4, memory: 4, panelH: 480, drawn: 35, lift: 52 },
-] as const;
+const SAMPLE_ROWS = 14; // named real rows in the left panel
 
-// CONSTANT row pitch (strip height + hairline) across ALL levels — rows never shrink. More memory packs MORE
-// of these same-size rows into a TALLER panel, so the block grows instead of getting finer/dimmer.
-const ROW_PITCH = 13; // px
+/** totals for every context of length k, keyed by context (missing = 0). One pass over the sparse counts. */
+function totalsOf(k: number): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const [ctx, row] of getCounts(k)) {
+    let t = 0;
+    for (const v of row.values()) t += v;
+    out.set(ctx, t);
+  }
+  return out;
+}
 
-/**
- * The MOST FREQUENT real contexts of length `ctxLen` (by row total), biggest-first, sliced to `drawn`.
- *
- * We deliberately pick frequent rows, NOT alphabetical-first ones: at deep levels the first alphabetical keys
- * ("␣␣␣␣", "␣␣␣a"…) are mostly UNSEEN → near-empty dim strips, which would make a BIGGER table look DIMMER —
- * the exact "looks small" inversion this widget exists to kill. Frequent contexts are real, dense, and bright,
- * so every level draws a slab of clearly-amber rows and deeper levels stay HOT, not faint. Memoized via the
- * shared getCounts cache. Cheap: we sort observed contexts (the map is built once per level, <50 ms).
- */
-function topKeysAt(ctxLen: number, drawn: number): string[] {
-    const counts = getCounts(ctxLen);
-    const withTotal: { key: string; total: number }[] = [];
-    for (const [key, row] of counts) {
-        let t = 0;
-        for (const v of row.values()) t += v;
-        withTotal.push({ key, total: t });
+/** One horizontal heat-strip: 27 hard-edged bands colored by `values` (normalized to the strip's own max). */
+function stripGradient(values: number[], floorPct: number): string {
+  let mx = 1;
+  for (const v of values) if (v > mx) mx = v;
+  const stops: string[] = [];
+  for (let i = 0; i < values.length; i++) {
+    const color = values[i] <= 0 ? "var(--ngram-bg-2)" : heat(values[i] / mx, floorPct);
+    const from = ((i / values.length) * 100).toFixed(2);
+    const to = (((i + 1) / values.length) * 100).toFixed(2);
+    stops.push(`${color} ${from}%`, `${color} ${to}%`);
+  }
+  return `linear-gradient(90deg, ${stops.join(", ")})`;
+}
+
+interface Level {
+  n: number; // letters of memory (= context length)
+  rows: number; // 27^n — the true row count (729 / 19.683)
+  stripes: string[]; // the map: one gradient per visual stripe (27 at N=2 · 729 at N=3)
+  panelH: number; // map panel height (px) — the frame itself also grows
+  samples: { key: string; total: number; gradient: string }[]; // left panel: top real rows, named
+  rest: number; // rows beyond the named sample (true remainder)
+}
+
+function buildLevels(): [Level, Level] {
+  const t2 = totalsOf(2);
+  const t3 = totalsOf(3);
+
+  // N=2 map: 27 stripes (first letter) × 27 bands (second letter) = the 729-cell map from RowSummer.
+  const stripes2 = LETTERS.map((l1) =>
+    stripGradient(
+      LETTERS.map((l2) => t2.get(l1 + l2) ?? 0),
+      14,
+    ),
+  );
+  // N=3 map: 729 stripes (first two letters) × 27 bands (third) = ALL 19.683 contexts, none cut.
+  const stripes3: string[] = [];
+  for (const l1 of LETTERS) {
+    for (const l2 of LETTERS) {
+      stripes3.push(
+        stripGradient(
+          LETTERS.map((l3) => t3.get(l1 + l2 + l3) ?? 0),
+          14,
+        ),
+      );
     }
-    // biggest-first; tie-break alphabetically so the order is stable/deterministic.
-    withTotal.sort((a, b) => (b.total - a.total) || (a.key < b.key ? -1 : 1));
-    return withTotal.slice(0, drawn).map((d) => d.key);
+  }
+
+  const sample = (k: number, totals: Map<string, number>) => {
+    const top = [...totals.entries()].sort((a, b) => b[1] - a[1]).slice(0, SAMPLE_ROWS);
+    return top.map(([key, total]) => {
+      const row = getCounts(k).get(key);
+      const values = LETTERS.map((c) => row?.get(c) ?? 0);
+      return { key, total, gradient: stripGradient(values, 18) };
+    });
+  };
+
+  return [
+    {
+      n: 2,
+      rows: VOCAB ** 2,
+      stripes: stripes2,
+      panelH: 330,
+      samples: sample(2, t2),
+      rest: VOCAB ** 2 - SAMPLE_ROWS,
+    },
+    {
+      n: 3,
+      rows: VOCAB ** 3,
+      stripes: stripes3,
+      panelH: 470,
+      samples: sample(3, t3),
+      rest: VOCAB ** 3 - SAMPLE_ROWS,
+    },
+  ];
 }
 
-interface WallRow {
-    key: string;       // the context this row stores (e.g. "th") — printed in the gutter
-    gradient: string;  // a CSS linear-gradient built from the real 27 counts → one solid heat-strip
+/** Render a context with the space symbol shown (e.g. "th", "t␣h"). */
+function labelKey(key: string): string {
+  return key.split("").map(displayChar).join("");
 }
 
-/**
- * Turn a real 27-count row into ONE continuous horizontal gradient. Each of the 27 alphabet slots becomes a
- * hard-edged band, colored by its share of the row max via the kit heat ramp. Hard stops keep the strip
- * reading as a single painted distribution — NOT a grid of detachable cells. `lift` is the brightness floor
- * for non-zero slots: it RISES with the level so a deeper (bigger) table also reads as a BRIGHTER block.
- */
-function rowGradient(full: number[], lift: number): string {
-    let mx = 1;
-    for (const v of full) if (v > mx) mx = v;
-    const n = full.length; // 27
-    const stops: string[] = [];
-    for (let i = 0; i < n; i++) {
-        const color = full[i] <= 0
-            ? `color-mix(in oklab, var(--ngram-accent-bright) 12%, var(--ngram-bg-2))`
-            : heat(full[i] / mx, lift);
-        const from = ((i / n) * 100).toFixed(2);
-        const to = (((i + 1) / n) * 100).toFixed(2);
-        stops.push(`${color} ${from}%`, `${color} ${to}%`);
-    }
-    return `linear-gradient(90deg, ${stops.join(", ")})`;
-}
+export const GrowingTable = memo(function GrowingTable({ accent }: { accent?: "ngram" } = {}) {
+  void accent;
+  const reduce = useReducedMotion();
 
-function buildWall(ctxLen: number, drawn: number, lift: number): WallRow[] {
-    return topKeysAt(ctxLen, drawn).map((key) => ({
-        key,
-        gradient: rowGradient(contextRow(ctxLen, key), lift),
-    }));
-}
+  const levels = useMemo(() => buildLevels(), []);
+  const [li, setLi] = useState(0);
+  const L = levels[li];
+  const grown = li === 1;
 
-export interface GrowingTableProps {
-    accent?: "ngram";
-}
+  // «th» marker geometry (percentages of the map box).
+  const r1 = LETTERS.indexOf(ANCHOR[0]); // 19
+  const r2 = LETTERS.indexOf(ANCHOR[1]); // 7
+  const marker = grown
+    ? {
+        top: ((r1 * VOCAB + r2) / (VOCAB * VOCAB)) * 100,
+        height: 100 / (VOCAB * VOCAB),
+        left: 0,
+        width: 100,
+      }
+    : {
+        top: (r1 / VOCAB) * 100,
+        height: 100 / VOCAB,
+        left: (r2 / VOCAB) * 100,
+        width: 100 / VOCAB,
+      };
 
-export const GrowingTable = memo(function GrowingTable({ accent }: GrowingTableProps) {
-    void accent;
-    const reduce = useReducedMotion();
+  // The lens: the 27 real children that now live where the «th» cell was (totals of th+letter).
+  const lens = useMemo(() => {
+    const t3 = totalsOf(3);
+    const values = LETTERS.map((l3) => t3.get(ANCHOR.join("") + l3) ?? 0);
+    let w = 0;
+    for (let i = 1; i < values.length; i++) if (values[i] > values[w]) w = i;
+    return { values, max: Math.max(1, ...values), winner: w };
+  }, []);
 
-    // level 0 = trigram (where SplitTheRow left off) · 1 = 4-grama · 2 = 5-grama
-    const [level, setLevel] = useState(0);
-    const L = LEVELS[level];
+  const grow = useCallback(() => setLi(1), []);
 
-    // Every drawn row, precomputed from REAL counts (memoized per level).
-    const wall = useMemo(() => buildWall(L.ctxLen, L.drawn, L.lift), [L.ctxLen, L.drawn, L.lift]);
+  return (
+    <div className="nw-gt" style={{ fontFamily: SERIF }}>
+      {/* HERO — the true row count, named by its N. */}
+      <div className="nw-gt__hero">
+        <CountUpNumber
+          key={L.rows}
+          value={L.rows}
+          durationMs={reduce ? 0 : 900}
+          className="nw-gt__count"
+          format={(v) => Math.round(v).toLocaleString("es-ES")}
+        />
+        <span className="nw-gt__herolbl">filas en la tabla · {L.n} letras de memoria</span>
+      </div>
 
-    // Hero count: 27^k — how many rows this level's table holds (continues the ×27 story).
-    const possible = useMemo(() => contextSpace(L.memory), [L.memory]);
-    // Honest remainder: rows beyond the legible slice we draw — the "+N filas más" at the overflow.
-    const remainder = Math.max(0, possible - L.drawn);
+      {/* N pills — both sizes one tap apart, so the jump stays comparable/explorable. */}
+      <div className="nw-gt__sel" role="group" aria-label="elegir N">
+        {levels.map((lv, i) => (
+          <button
+            key={lv.n}
+            type="button"
+            className={`nw-gt__seln${i === li ? " is-on" : ""}`}
+            onClick={() => setLi(i)}
+            aria-pressed={i === li}
+          >
+            N={lv.n}
+          </button>
+        ))}
+      </div>
 
-    const levelUp = useCallback(() => setLevel((l) => Math.min(LEVELS.length - 1, l + 1)), []);
-    const reset = useCallback(() => setLevel(0), []);
+      {/* STAGE — RowSummer's composition: named real rows (left) + the table itself (right). */}
+      <div className="nw-gt__stage">
+        {/* LEFT — the top rows of the CURRENT table, named, with true counts. */}
+        <div className="nw-gt__panel">
+          <div className="nw-gt__panelhd">
+            <span className="nw-gt__famchip">{L.n}</span>
+            <span className="nw-gt__panellbl">las filas más llenas · clave de {L.n} letras</span>
+          </div>
+          <div className="nw-gt__rows">
+            {L.samples.map((s) => (
+              <div key={s.key} className="nw-gt__row">
+                <span className="nw-gt__key">{labelKey(s.key)}</span>
+                <span className="nw-gt__strip" style={{ background: s.gradient }} />
+                <span className="nw-gt__rtot">{s.total.toLocaleString("es-ES")}</span>
+              </div>
+            ))}
+          </div>
+          <div className="nw-gt__spill">+ {L.rest.toLocaleString("es-ES")} filas más</div>
+        </div>
 
-    const atTop = level === LEVELS.length - 1;
-    // panel grows; rows keep a constant pitch; the whole block scales up with a quick ease.
-    const trans = reduce ? "none" : "height .55s cubic-bezier(.2,.8,.2,1)";
-
-    return (
-        <div className="nw-gt" style={{ fontFamily: SERIF }}>
-            {/* HERO LABEL — the climbing row count, sitting atop the table it describes */}
-            <div className="nw-gt__hero">
-                <CountUpNumber
-                    key={possible}
-                    value={possible}
-                    durationMs={620}
-                    className="nw-gt__count"
-                    format={(n) => Math.round(n).toLocaleString("es-ES")}
-                />
-                <span className="nw-gt__herolbl">filas en tu tabla</span>
+        {/* RIGHT — THE MAP: the same table you built, its grain ×27 when N grows. Nothing cut. */}
+        <div className="nw-gt__mapwrap">
+          <div className="nw-gt__maplbl">
+            <span className="nw-gt__mapnum">{L.rows.toLocaleString("es-ES")}</span>
+            <span className="nw-gt__mapcap">
+              {grown ? "filas · el mismo marco, 27× más fino" : "filas · tu tabla de antes"}
+            </span>
+          </div>
+          <motion.div
+            className="nw-gt__map"
+            animate={{ height: L.panelH }}
+            initial={false}
+            transition={reduce ? { duration: 0 } : SPRING_SNAP}
+          >
+            <div className="nw-gt__mapinner">
+              <div className="nw-gt__stripes" data-grown={grown ? "1" : "0"}>
+                {L.stripes.map((g, i) => (
+                  <span key={i} className="nw-gt__stripe" style={{ background: g }} />
+                ))}
+              </div>
+              {/* the «th» marker: the cell the reader knows → the hairline row it became */}
+              <motion.span
+                className="nw-gt__mark"
+                initial={false}
+                animate={{
+                  top: `${marker.top}%`,
+                  left: `${marker.left}%`,
+                  width: `${marker.width}%`,
+                  height: `${Math.max(marker.height, 0.32)}%`,
+                }}
+                transition={reduce ? { duration: 0 } : SPRING_SNAP}
+                aria-hidden
+              />
             </div>
+          </motion.div>
+        </div>
+      </div>
 
-            {/* THE BLOCK — a stack of REAL rows whose PANEL inflates each level. Rows keep a constant pitch and
-                each level draws MORE of them + BRIGHTER → the slab of amber you built visibly GROWS. The level
-                pills on the left make the three sizes comparable at a glance. */}
-            <div className="nw-gt__stage">
-                {/* growth ladder: the current level glows; each rung's HEIGHT mirrors that level's table, so the
-                    three sizes are visibly comparable — the climb you are on, drawn as steps. */}
-                <div className="nw-gt__ladder" aria-hidden>
-                    {[...LEVELS].reverse().map((lv) => {
-                        const i = LEVELS.indexOf(lv);
-                        return (
-                            <div
-                                key={lv.memory}
-                                className={`nw-gt__rung${i === level ? " is-on" : ""}${i < level ? " is-done" : ""}`}
-                                style={{ height: 18 + i * 16 }}
-                            >
-                                {lv.memory}<span className="nw-gt__rungu">letras</span>
-                            </div>
-                        );
-                    })}
-                </div>
+      {/* the reading of the marker, always present so the eye has a name for it */}
+      <p className="nw-gt__markread">
+        {grown ? (
+          <>
+            la celda «th» ahora es <b>una fila entera de 27</b> — igual que todas las demás
+          </>
+        ) : (
+          <>la celda «th» — una de las 729 filas de tu tabla</>
+        )}
+      </p>
 
-                <div
-                    className="nw-gt__panel"
-                    data-level={level}
-                    style={{ height: L.panelH, transition: trans }}
-                    aria-hidden
-                >
-                    <div className="nw-gt__rows" style={{ ["--pitch" as string]: `${ROW_PITCH}px` }}>
-                        {wall.map((row) => (
-                            <div key={row.key} className="nw-gt__row">
-                                <span className="nw-gt__key">{row.key.replace(/ /g, "␣")}</span>
-                                <span className="nw-gt__strip" style={{ background: row.gradient }} />
-                            </div>
-                        ))}
-                    </div>
-                    {/* overflow cut + the TRUE remainder, printed where the table runs past the block */}
-                    <div className="nw-gt__cut" />
-                    {remainder > 0 && (
-                        <div className="nw-gt__spill">+ {remainder.toLocaleString("es-ES")} filas más</div>
-                    )}
-                </div>
+      {/* THE LENS — only after growing: the 27 real children living where the «th» cell was. */}
+      <AnimatePresence>
+        {grown && (
+          <motion.div
+            key="lens"
+            className="nw-gt__lens"
+            initial={reduce ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, y: 6 }}
+            transition={reduce ? { duration: 0 } : { duration: 0.4, ease: STD }}
+          >
+            <span className="nw-gt__lenslbl">dentro de aquella celda, ahora:</span>
+            <div className="nw-gt__lensrow" aria-hidden>
+              {LETTERS.map((l3, i) => (
+                <span key={l3} className="nw-gt__lenscell" data-win={i === lens.winner ? "1" : "0"}>
+                  <i
+                    style={{
+                      background:
+                        lens.values[i] > 0
+                          ? heat(lens.values[i] / lens.max, 16)
+                          : "var(--ngram-bg-2)",
+                    }}
+                  />
+                  <b>th{displayChar(l3)}</b>
+                </span>
+              ))}
             </div>
+            <span className="nw-gt__lenssub">
+              27 filas nuevas donde había una · la más llena: «th{displayChar(LETTERS[lens.winner])}
+              » · {lens.values[lens.winner].toLocaleString("es-ES")} veces
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            {/* the one functional caption: each extra letter keeps the SAME table, just bigger (×27 each time) */}
-            <CaptionLine gap={0} className="nw-gt__caption">
-                {level === 0 ? (
-                    <>una fila por cada combinación de {L.memory} letras de antes</>
-                ) : atTop ? (
-                    <>y cada letra más la vuelve a multiplicar por {VOCAB}</>
-                ) : (
-                    <>la misma tabla · una letra más de memoria · ×{VOCAB} más grande</>
-                )}
-            </CaptionLine>
+      <CaptionLine gap={0} className="nw-gt__caption">
+        {grown ? (
+          <>27 × 729 = 19.683 · todas las filas están ahí — solo que ya casi no se ven</>
+        ) : (
+          <>una letra más de memoria = cada fila se parte en {VOCAB}</>
+        )}
+      </CaptionLine>
 
-            {/* controls — the single discovery action. NOTE on the terminal level: we keep a PRIMARY-matching
-                button present (DISABLED, a no-op) instead of swapping it for a plain label. The bench autoplay
-                falls back to btns[0] when no primary button is found, which would otherwise click the reset and
-                bounce the capture back to level 0 — so the still for clicks=3/6 must keep a matching, inert
-                primary in place. (Its text includes "otra letra" so the bench regex selects it, not the reset.) */}
-            <div className="nw-gt__controls">
-                <PlayButton onClick={atTop ? undefined : levelUp} disabled={atTop}>
-                    {atTop ? <>otra letra ya no cabe · ×{VOCAB} en cada nivel</> : <>añadir otra letra de memoria · ×{VOCAB}</>}
-                </PlayButton>
-                {level > 0 && (
-                    <button type="button" className="nw-gt__reset" onClick={reset} aria-label="volver al inicio">
-                        ↻
-                    </button>
-                )}
-            </div>
+      {/* the single discovery action */}
+      <div className="nw-gt__controls">
+        <PlayButton onClick={grown ? undefined : grow} disabled={grown}>
+          {grown ? (
+            <>cada fila ya partida ×{VOCAB}</>
+          ) : (
+            <>otra letra de memoria · cada fila ×{VOCAB}</>
+          )}
+        </PlayButton>
+      </div>
 
-            <style>{`
+      <style>{`
                 .nw-gt {
-                    width: 100%; max-width: 760px; margin: 0 auto;
-                    display: flex; flex-direction: column; align-items: center; gap: 18px;
+                    width: 100%; max-width: 720px; margin: 0 auto;
+                    display: flex; flex-direction: column; align-items: center; gap: 13px;
                     text-align: center;
                 }
 
-                /* HERO LABEL — the big climbing count names the block below it */
-                .nw-gt__hero { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+                /* HERO */
+                .nw-gt__hero { display: flex; flex-direction: column; align-items: center; gap: 3px; }
                 .nw-gt__count {
-                    font-size: clamp(40px, 8vw, 64px); font-weight: 700; line-height: 1;
-                    color: var(--ngram-accent-bright); letter-spacing: -0.01em;
+                    font-size: clamp(40px, 8vw, 58px); font-weight: 700; line-height: 1;
+                    color: var(--ngram-accent-bright); letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
                 }
-                .nw-gt__herolbl {
-                    font-family: ${MONO}; font-size: 11.5px; letter-spacing: .16em; text-transform: uppercase;
-                    color: var(--ngram-accent-2);
-                }
+                .nw-gt__herolbl { font-family: ${MONO}; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--ngram-accent-2); }
 
-                /* STAGE — the growth ladder + the inflating panel, side by side, top-aligned so the panel grows
-                   DOWNWARD from a fixed top as it gets taller. No reserved empty space → the widget itself is
-                   compact at level 0 and physically bigger at level 2 (the footprint growth IS the point). */
-                .nw-gt__stage {
-                    display: flex; align-items: flex-start; justify-content: center; gap: 14px;
-                    width: 100%;
+                /* N pills */
+                .nw-gt__sel {
+                    display: inline-flex; gap: 4px; padding: 4px; border-radius: var(--ngram-r-pill);
+                    background: color-mix(in oklab, var(--ngram-bg-2) 70%, var(--ngram-bg));
+                    box-shadow: inset 0 0 0 1px var(--ngram-rule);
                 }
+                .nw-gt__seln {
+                    font-family: ${MONO}; font-variant-numeric: tabular-nums; font-weight: 700;
+                    font-size: 12.5px; letter-spacing: .06em; padding: 6px 16px; border: 0;
+                    border-radius: var(--ngram-r-pill); cursor: pointer; color: var(--ngram-muted); background: transparent;
+                    transition: color .2s ease, background .2s ease, box-shadow .2s ease;
+                }
+                .nw-gt__seln:hover { color: var(--ngram-accent-ink); }
+                .nw-gt__seln.is-on { color: var(--ngram-on-accent); background: var(--ngram-accent); box-shadow: 0 4px 16px -6px var(--ngram-accent); }
 
-                /* the ladder of three sizes — three rising STEPS; the current step glows. Each rung's height
-                   echoes its table size so the climb is legible even in a still. */
-                .nw-gt__ladder {
-                    display: flex; flex-direction: column-reverse; align-items: stretch; gap: 8px;
-                    padding-top: 2px;
-                }
-                .nw-gt__rung {
-                    font-family: ${MONO}; font-variant-numeric: tabular-nums;
-                    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
-                    width: 50px; border-radius: var(--ngram-r-sm);
-                    font-size: 15px; font-weight: 700; line-height: 1;
-                    color: var(--ngram-dim);
-                    background: color-mix(in oklab, var(--ngram-bg-2) 60%, var(--ngram-bg));
-                    transition: color .3s ease, background .3s ease, box-shadow .3s ease;
-                }
-                .nw-gt__rungu { font-size: 7.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
-                .nw-gt__rung.is-done { color: var(--ngram-accent-2); background: color-mix(in oklab, var(--ngram-accent) 16%, var(--ngram-bg-2)); }
-                .nw-gt__rung.is-on {
-                    color: var(--ngram-on-accent);
-                    background: var(--ngram-accent);
-                    box-shadow: 0 0 0 1px var(--ngram-accent-bright), 0 6px 22px -8px var(--ngram-accent);
-                }
-
-                /* THE PANEL — its HEIGHT scales with the level (that IS the growth). Brighter outline & glow at
-                   deeper levels so the bigger block also reads as a hotter, denser slab — never dimmer. */
+                /* STAGE — left sample rows + right map, RowSummer's surface language */
+                .nw-gt__stage { display: grid; grid-template-columns: 1fr 250px; gap: 18px; align-items: start; width: 100%; }
                 .nw-gt__panel {
-                    position: relative; flex: 0 1 520px; min-width: 0; max-width: 520px; overflow: hidden;
-                    border-radius: var(--ngram-r-md);
-                    background: color-mix(in oklab, var(--ngram-bg-2) 78%, var(--ngram-bg));
-                    padding: 5px 0 0;
-                    text-align: left;
-                    border: 1px solid color-mix(in oklab, var(--ngram-accent) 22%, transparent);
-                    box-shadow: 0 10px 36px -20px var(--ngram-accent);
+                    display: flex; flex-direction: column; gap: 7px; padding: 11px 14px;
+                    border-radius: var(--ngram-r-md); text-align: left;
+                    background: var(--ngram-surface); border: 1px solid var(--ngram-rule-2);
+                    box-shadow: 0 1px 3px -1px color-mix(in oklab, var(--ngram-bg-2) 80%, transparent),
+                                0 8px 22px -12px color-mix(in oklab, var(--ngram-bg-2) 70%, transparent);
                 }
-                .nw-gt__panel[data-level="1"] {
-                    border-color: color-mix(in oklab, var(--ngram-accent) 38%, transparent);
-                    box-shadow: 0 14px 46px -20px var(--ngram-accent);
+                .nw-gt__panelhd { display: flex; align-items: center; gap: 9px; }
+                .nw-gt__famchip {
+                    font-family: ${MONO}; font-weight: 800; font-size: 14px; line-height: 1;
+                    color: var(--ngram-on-accent); background: var(--ngram-accent-bright);
+                    border-radius: 6px; padding: 4px 9px; min-width: 22px; text-align: center;
                 }
-                .nw-gt__panel[data-level="2"] {
-                    border-color: color-mix(in oklab, var(--ngram-accent-bright) 55%, transparent);
-                    box-shadow: 0 18px 60px -18px var(--ngram-accent-bright);
-                }
-                .nw-gt__rows { display: flex; flex-direction: column; }
+                .nw-gt__panellbl { font-family: ${MONO}; font-size: 10.5px; letter-spacing: .04em; color: var(--ngram-muted); }
+                .nw-gt__rows { display: flex; flex-direction: column; gap: 3px; }
+                .nw-gt__row { display: grid; grid-template-columns: 42px 1fr 50px; align-items: center; gap: 9px; height: 13px; }
+                .nw-gt__key { font-family: ${MONO}; font-size: 11px; letter-spacing: .02em; color: var(--ngram-accent-ink); font-weight: 700; text-align: left; white-space: nowrap; line-height: 1; }
+                .nw-gt__strip { display: block; height: 9px; border-radius: 2px; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ngram-accent) 22%, transparent); }
+                .nw-gt__rtot { font-family: ${MONO}; font-size: 10px; font-variant-numeric: tabular-nums; color: var(--ngram-dim); text-align: right; line-height: 1; }
+                .nw-gt__spill { font-family: ${MONO}; font-size: 10.5px; letter-spacing: .04em; color: var(--ngram-accent-2); padding-top: 3px; }
 
-                /* one ROW = a left key gutter + ONE continuous full-width heat-strip. CONSTANT pitch at every
-                   level (rows never shrink). A hairline under each row carves the strips into scannable bands. */
-                .nw-gt__row {
-                    display: flex; align-items: stretch; gap: 8px;
-                    height: var(--pitch); padding: 0 11px;
-                    border-bottom: 1px solid color-mix(in oklab, var(--ngram-bg) 60%, transparent);
-                    animation: nwGtIn .26s ease both;
+                /* MAP — the table itself; its grain multiplies, its frame springs taller. */
+                .nw-gt__mapwrap { display: flex; flex-direction: column; gap: 8px; }
+                .nw-gt__maplbl { display: flex; flex-direction: column; gap: 2px; text-align: left; }
+                .nw-gt__mapnum { font-family: ${MONO}; font-variant-numeric: tabular-nums; font-weight: 800; font-size: 20px; line-height: 1; color: var(--ngram-accent-bright); }
+                .nw-gt__mapcap { font-family: ${MONO}; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ngram-accent-2); }
+                .nw-gt__map {
+                    position: relative; width: 100%; overflow: hidden;
+                    border-radius: var(--ngram-r-md);
+                    background: var(--ngram-surface); border: 1px solid var(--ngram-rule-2);
+                    box-shadow: 0 1px 3px -1px color-mix(in oklab, var(--ngram-bg-2) 80%, transparent),
+                                0 8px 22px -12px color-mix(in oklab, var(--ngram-bg-2) 70%, transparent);
+                    padding: 6px;
                 }
-                .nw-gt__key {
-                    flex: 0 0 auto; align-self: center;
-                    font-family: ${MONO}; font-variant-numeric: tabular-nums;
-                    font-size: 8px; line-height: 1; letter-spacing: .03em;
-                    color: var(--ngram-dim);
-                    width: 26px; text-align: right; overflow: hidden; white-space: nowrap;
-                }
-                .nw-gt__strip {
-                    flex: 1 1 auto; align-self: center;
-                    height: calc(var(--pitch) - 3px); min-height: 3px;
+                .nw-gt__mapinner { position: relative; height: 100%; }
+                .nw-gt__stripes { display: flex; flex-direction: column; height: 100%; gap: 1px; }
+                .nw-gt__stripes[data-grown="1"] { gap: 0; }
+                .nw-gt__stripe { flex: 1 1 auto; min-height: 0; display: block; }
+                .nw-gt__mark {
+                    position: absolute; box-sizing: border-box; pointer-events: none;
+                    box-shadow: 0 0 0 2px var(--ngram-accent-bright), 0 0 12px -2px var(--ngram-accent-bright);
                     border-radius: 1px;
                 }
-                @keyframes nwGtIn { from { opacity: 0; transform: translateX(-5px); } to { opacity: 1; transform: none; } }
+                .nw-gt__markread { margin: 0; font-family: ${MONO}; font-size: 11px; letter-spacing: .03em; color: var(--ngram-accent-2); min-height: 14px; }
+                .nw-gt__markread b { color: var(--ngram-accent-ink); }
 
-                /* THE CUT — a hard accent line + fade where the table runs off the bottom of the (taller) block,
-                   saying "the table keeps going past here". Brighter line at deeper levels. */
-                .nw-gt__cut {
-                    position: absolute; left: 0; right: 0; bottom: 0; height: 58px; pointer-events: none;
-                    background: linear-gradient(to bottom,
-                        transparent,
-                        color-mix(in oklab, var(--ngram-bg-2) 78%, var(--ngram-bg)) 62%,
-                        color-mix(in oklab, var(--ngram-bg-2) 94%, var(--ngram-bg)) 100%);
-                    border-bottom: 2px solid var(--ngram-accent);
+                /* LENS — the 27 children of the old «th» cell, readable. */
+                .nw-gt__lens {
+                    display: flex; flex-direction: column; gap: 7px; width: 100%; max-width: 620px;
+                    padding: 12px 14px; border-radius: var(--ngram-r-md);
+                    background: var(--ngram-surface); border: 1px solid var(--ngram-rule-2);
                 }
-                .nw-gt__panel[data-level="2"] .nw-gt__cut { border-bottom-color: var(--ngram-accent-bright); }
-                /* the spill marker — the TRUE remainder, the still-frame scale number (≈ 716 → 19 659 → 531 405).
-                   Font size scales with the level so a bigger table gets a MORE prominent pill — the reader
-                   feels "this number just got huge" as well as sees the taller block. */
-                .nw-gt__spill {
-                    position: absolute; left: 50%; bottom: 7px; transform: translateX(-50%);
-                    padding: 5px 16px; pointer-events: none; white-space: nowrap;
-                    border-radius: var(--ngram-r-pill);
-                    background: color-mix(in oklab, var(--ngram-accent-soft) 90%, var(--ngram-bg));
-                    border: 1.5px solid color-mix(in oklab, var(--ngram-accent-bright) 42%, transparent);
-                    font-family: ${MONO}; font-size: 13px; letter-spacing: .04em; font-weight: 700;
-                    font-variant-numeric: tabular-nums;
-                    color: var(--ngram-accent-bright);
-                    box-shadow: 0 2px 12px -4px color-mix(in oklab, var(--ngram-accent) 50%, transparent);
-                }
+                .nw-gt__lenslbl { font-family: ${MONO}; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ngram-accent-2); }
+                .nw-gt__lensrow { display: grid; grid-template-columns: repeat(27, 1fr); gap: 2px; }
+                .nw-gt__lenscell { display: flex; flex-direction: column; gap: 2px; align-items: stretch; min-width: 0; }
+                .nw-gt__lenscell i { display: block; height: 14px; border-radius: 2px; }
+                .nw-gt__lenscell b { font-family: ${MONO}; font-weight: 400; font-size: 7px; color: var(--ngram-dim); transform: rotate(0); white-space: nowrap; overflow: hidden; }
+                .nw-gt__lenscell[data-win="1"] i { box-shadow: 0 0 0 1.5px var(--ngram-accent-bright); }
+                .nw-gt__lenscell[data-win="1"] b { color: var(--ngram-accent-ink); font-weight: 700; }
+                .nw-gt__lenssub { font-family: ${MONO}; font-size: 10.5px; letter-spacing: .02em; color: var(--ngram-muted); }
 
-                /* When the primary button hits its terminal (disabled) state it still carries a milestone message —
-                   keep it legible (higher opacity) so the reader can see WHY it stopped, not just that it did. */
-                .nw-gt__controls button[disabled] { opacity: 0.72 !important; cursor: default !important; }
-                /* Caption override — CaptionLine uses var(--ngram-dim) which is too faint at small size;
-                   bump to a mid tone so the one-liner instruction reads clearly without stealing focus. */
                 .nw-gt__caption { color: var(--ngram-accent-2) !important; }
+                .nw-gt__caption b { color: var(--ngram-accent-ink); font-weight: 800; }
                 .nw-gt__controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center; }
-                .nw-gt__reset {
-                    font-family: ${MONO}; font-size: 16px; color: var(--ngram-accent-bright); background: var(--ngram-accent-soft);
-                    border: 1px solid color-mix(in oklab, var(--ngram-accent) 35%, transparent);
-                    cursor: pointer; padding: 6px 12px; border-radius: var(--ngram-r-pill);
-                    transition: color .2s ease, background .2s ease;
-                }
-                .nw-gt__reset:hover { color: var(--ngram-on-accent); background: var(--ngram-accent); }
+                .nw-gt__controls button[disabled] { opacity: 0.72 !important; cursor: default !important; }
 
-                @media (max-width: 520px) {
-                    .nw-gt__ladder { display: none; }
-                }
-                @media (prefers-reduced-motion: reduce) {
-                    .nw-gt__row { animation: none; }
+                @media (max-width: 620px) {
+                    .nw-gt__stage { grid-template-columns: 1fr; }
+                    .nw-gt__lenscell b { font-size: 5.5px; }
                 }
             `}</style>
-        </div>
-    );
+    </div>
+  );
 });
 
 export default GrowingTable;

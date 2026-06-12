@@ -5,6 +5,112 @@
 
 ---
 
+## v7 (2026-06-10) — 3ª review del usuario: 10 widgets reworkeados en una pasada nocturna
+
+Spec literal en `ngram-v7-review.md` (dos tandas de capturas del usuario + un añadido en vivo). Regla de la
+sesión: "una a una, sin mirar la siguiente, no avanzar hasta que esté perfecta". Todo `tsc`/`eslint` limpio y
+verificado por DOM en el bench.
+
+- **RowSummer v2** (antes de la review): scan del libro real (ParchmentReader) alimentando las filas a mano →
+  surge "leyendo el libro entero" → muro de BANDAS horizontales → cascada (nunca snap) → **mapa 27×27
+  explorable** (hover = cuenta, click = la fila se abre con FixedAlphabetRow, «th» por defecto, scrub táctil).
+  Post-review: idle muestra la tabla de la «a» vacía ANTES de pulsar; ritmo más progresivo (12 hits a mano,
+  surge ~2,5 s en la «a», ×0,7 por familia); leyenda "cada cuadradito es una fila"; filas del panel
+  curioseables en «built»: hover → la nombra el caption, y **click → la fila se abre debajo** con el mismo
+  detalle de la tabla final (FixedAlphabetRow, números al hover, toggle) — el último añadido del usuario
+  antes de dormir ("que te deje ver").
+- **CountingPairs**: la lectura de la tabla hecha visible — chips con roles («ma» FILA → «t» COLUMNA → +1),
+  ruta-L tintada al aterrizar cada cuenta, hover en cualquier celda → "fila «th» · columna «e» → 1 vez",
+  tarjeta-superficie y celdas mayores.
+- **SplitTheRow**: fuera el blending 0.72 ("difuminado") — la capa viaja OPACA con marco nítido y *mantener
+  pulsado* deja ver el bigrama de debajo (nunca dos capas mezcladas). Bug real arreglado: la cabecera de
+  columnas estaba desalineada una posición (27 labels en 28 tracks). El viaje ahora también anima en Y (móvil).
+- **GrowingTable** (rebuild): N=2→N=3 como pide el usuario. El mapa ES la tabla de RowSummer; "otra letra" =
+  cada celda se vuelve una FILA de 27 (27→729 franjas, las 19.683 presentes, nada recortado), el marcador «th»
+  pasa de celda a hilo, y una LUPA muestra sus 27 hijas reales («the» 3.468). Muestras reales nombradas al lado.
+- **WriteFromMatrix**: el minimapa-columnita (¡posicionaba la lente con `rowNo % 24`!) sustituido por LA MATRIZ
+  REAL (729 franjas-gradiente = 19.683 filas) con la lente volando a la fila verdadera (visualRow exacto:
+  «the» = n.º 14.045). El bucle fila→%→dado→letra intacto.
+- **ExplosionZoom** (rebuild): de 55 clics idénticos a una ESCALERA de 6 saltos con imagen distinta por peldaño
+  (matriz real → mapa 729 real → mapa 19.683 real → malla → sólido → átomos), la referencia "un bigrama" como
+  BANDA-fila que se adelgaza ×27, y la **CINTA DE CEROS** (el % literal con todos sus ceros impresos: 100 % →
+  3,7 % → … → 0,000…018 % con 76 ceros). Marco del c=1 arreglado (el borde del marco ES la talla, sin caja interior).
+- **WordsExplosion** (rebuild): fuera las dos barras — un CAMPO de exactamente 1.852 baldosas (el multiplicador
+  real del hueco por paso), una baldosa destacada = tu tabla de letras entera (miniatura con datos reales) o
+  "el campo entero de antes" (recursión), cociente exacto: 1.852 veces → 3,4 millones → 6.350 millones.
+- **EmptyVoid**: celdas = combinaciones de 4 letras REALES (`getCounts(4)`, antes decodificaba 3 letras en una
+  tabla "de 4"); orden lexicográfico → los racimos/desiertos son los del idioma (fuera el patrón hasheado);
+  encendido por frecuencia real (lo común primero); inicio del auto más lento (1,4 s); readout grande de la
+  casilla abierta («␣ear» · 57 veces / vacía · 0).
+- **QuantumElephant** (estética): basura sin neón (chips sage calmados), el dado uniforme como UNA barra plana
+  de 27 tramos idénticos (antes 12 barras repetidas), panel del porqué editorial (regla izquierda, sin
+  caja-dentro-de-caja).
+- **BigModelLimit**: el momento «gato» ahora se explica solo — la causa en la fila ("Nadie escribió nunca
+  «el gato …» — su fila nació vacía"), la fila del perro sigue visible y ETIQUETADA («perro ✓») con un ✕
+  literal en el tether (sin puente), y la regla nombrada: "una fila solo se abre con su clave exacta".
+
+**Qué NO funcionó / aprendizajes de la sesión:**
+- **El preview se resetea solo**: la ventana pasa a `hidden` a los ~30-60 s y el harness la devuelve a la URL
+  base → screenshots solo válidos justo tras `preview_start`; timers throttleados a 1 s y rAF PAUSADO en
+  oculto (framer-motion no anima, AnimatePresence no completa exits) → verificar por DOM/atributos, nunca por
+  estilos animados. El truco del walker: clamp de `setTimeout` + clicks programáticos en un solo eval.
+- **`.next` se corrompe** al matar `next dev` a la fuerza (todas las rutas 404) → nuke + restart (confirmado).
+- **Candidato a kit**: el "stripes map" (franjas-gradiente de un nivel k) ya vive copiado en 5 widgets
+  (RowSummer/GrowingTable/WriteFromMatrix/ExplosionZoom/WordsExplosion) — extraer a `ngram/kit` en la próxima
+  pasada tranquila (esta noche no se tocaron shared files a propósito).
+- Pendiente ajeno: `TrainBigramLab.tsx` (capstone, edición de otro en curso) está roto a medias (`fmt` sin
+  definir) — excluido de mis checks de `tsc`; no tocado.
+
+## v6 (2026-06-08) — reconstrucción completa: narrativa nueva de 5 secciones + 12 visualizadores
+
+Nueva narrativa del autor (5 secciones: Mirar más atrás · Cajas dentro de cajas · La generación · El precio de
+la memoria · El fin de contar), `ngram.{es,en}.mdx` reescritos, shell a rail de 5 puntos. 12 widgets construidos
+con el workflow multi-agente (Opus/Sonnet) y **verificados uno a uno con captura real + interacción dirigida en
+el bench** (no fiarse del self-report de los agentes — fue justo lo que cazó los bugs).
+
+**Qué NO funcionó / aprendizajes:**
+- **N descuadrada (off-by-one) entre widgets.** `GrowingTable` decía N=4/N=5 mostrando contenido de N=3/N=4;
+  `EmptyVoid` etiquetaba 27⁴ como «5 letras»; `WordsExplosion` contaba el bigrama como vocab² (729), chocando
+  con `RowSummer` donde **729 = trigrama**. Unificado a **N = letras de memoria** (bigrama=N=1=27 filas;
+  trigrama=N=2=729; coherente con §1 y con §4.1 «N=3→19 683»). La narrativa del autor decía «N=4 y N=5» en §2.3
+  → corregido a **N=3 y N=4** (única lectura coherente; 729 = la rama «t» a N=3, un guiño a RowSummer).
+- **perro/gato NO se puede con datos reales.** §5.1 es un punto SEMÁNTICO (perro≈gato como animales) que un
+  modelo de caracteres sobre Shakespeare **inglés** no puede demostrar midiendo. El agente buscó «rro»/«ato»
+  sobre el corpus → perro salía vacío y gato con datos (¡al revés!). **Reconstruido como ejemplo ILUSTRATIVO
+  explícito** (perro lleno/predice «duerme», gato vacío/0%), enmarcado «ejemplo» en la UI; solo la distancia
+  entre filas (`contextIndex`) usa geometría real. Es el único paso letras→frase del capítulo, asumido abiertamente.
+- **Bench a ancho nativo (~389px) = layout móvil.** Los widgets con hero horizontal (p.ej. `WriteFromMatrix`:
+  minimapa+histograma+dado) ocultan piezas por debajo de 560px → hay que verificar el desktop por `eval` además
+  del screenshot. Ojo también: `location.href` a la MISMA URL no recarga (deja instancias duplicadas en el DOM
+  → lecturas contradictorias); usar `location.reload()` o cambiar `?w=`.
+- tsc + eslint limpios; capítulo renderiza es/en con los 12 widgets montando. El banner «Server unreachable» del
+  modo lab-libre es pre-existente (sin backend en dev), ajeno a la narrativa.
+
+## v5 (2026-06-05) — 2ª review del usuario: §1/§2/§3 + blindaje del método (review CIEGO)
+
+Plan en `ngram-v5-plan.md`. Fallo de método nuevo (la causa de que v4 "pasara" con widgets flojos): **reviso
+precondicionado por el texto de intro → el widget parece mejor de lo que es**. Fix en `method-failure-book.md
+§9`: gate **CIEGO** — juzgar el widget sin narrativa, sin `<Figure label>`, sin comentario de intención; si
+necesita la prosa de al lado para entenderse, FALLA (show-don't-tell roto).
+
+- **§1 (repetía el final de bigram, muy larga):** tensada — amnesia ahora es un *callback* breve («lo viste
+  de pasada al final»), y se añade **expectación** («para cuando termines… va a escribir frases que casi cuelan»).
+- **§2 (no se entendía — el fallo gordo):** **SplitTheRow rehecho** a 3 pasos legibles: (0) la fila de la «h»
+  con **números + letras** (he 5343, ha 3064…), (1) partida por la letra **de antes** (27 parejas, cada una con
+  su letra ganadora + hover→números), (2) **construcción gradual** letra a letra hasta **729 = trigrama**.
+  Quitada la **falsa celebración** «la has construido sin que nadie te dijera cómo se llamaba» (el usuario:
+  «horrible», no había construido nada). **RowSharpens** cortado del flujo (era repetición). **GrowingTable**
+  reencuadrada como *construir* el 4-grama (mismo corte ×27).
+- **§3:** **WriteFromMatrix** — añadido el **lookup en la matriz gigante**: minimapa de la tabla (19.683 filas)
+  con la fila del contexto encendida + bracket de **zoom** a la fila + **%** en el readout. (Pendiente posible:
+  el dado/muestreo como en bigram; ahora es greedy honesto «la cuenta más alta».) **LookWhatYouBuilt** — fuera
+  los glifos «raros» de la columna de 1 letra (texto normal; la sopa ya es mala sola).
+- **Verificación:** `tsc` 0, `eslint` 0 (arreglado `react-hooks/set-state-in-effect` en el rAF de SplitTheRow).
+  SplitTheRow v2 validado en el bench (3 pasos, ambos temas). **OJO:** el dev server tenía la CSS compilada
+  **corrupta** (HTML inyectado en globals.css por la reestructuración `app/[locale]` del otro chat; el FUENTE
+  está limpio) → no pude recapturar WriteFromMatrix/LookWhatYouBuilt en vivo; se verifican cuando el server
+  recompile. ES+EN en sync. Sin commits.
+
 ## v4 (2026-06-05) — reescritura de narrativa + reworks, sobre la estructura MDX nueva
 
 Tras la review dura del usuario (audio largo): la narrativa estaba **muy floja** (órdenes, "muy ella", frases

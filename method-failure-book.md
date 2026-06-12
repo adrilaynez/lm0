@@ -377,3 +377,33 @@ todos son buenos, fallas más que el gate... tu criterio no es bueno."* Leccione
   caen solos; los de idea ABSTRACTA (colapso de contextos, explosión combinatoria, escala astronómica) se
   resisten y necesitan **repensar el MECANISMO** (2-3 direcciones, elegir la más clara), no pulir. Si uno
   falla 2 rondas, no es polish: es mecanismo.
+
+---
+
+## §9 · El gate falla por PRECONDICIONAMIENTO del texto de intro (caso v4 → v5, 2026-06-05)
+
+El usuario, segunda review: *«como se pone el texto introductorio del visualizador de cómo funciona, tú ya te
+preconcibes cómo funciona; el visualizador parece mejor de lo que es y luego no cumple su función. ¿Cómo pasan
+bien los filtros de control?»* Es la causa raíz de por qué v4 «pasó» y aun así varios widgets no comunicaban.
+
+**El mecanismo del fallo:** cuando reviso un widget, ya he leído (o escrito) la prosa que lo rodea, el
+`label` del `<Figure>` y el comentario de intención. Mi cabeza **rellena los huecos**: «ah, claro, esto enseña
+X» — pero solo porque YO ya sé que enseña X. El widget parece claro. En la página real, sin embargo, el lector
+que «lo entiende» lo entiende por **el TEXTO**, no por el widget. Resultado: el widget **no cumple su función**
+(mostrar > contar) y aun así pasa el gate. Priming, otra vez — pero esta vez por el contexto editorial, no por
+soplar la respuesta en el prompt.
+
+**La regla (review CIEGO de verdad) — FIJA:**
+1. Se juzga el widget con **CERO** contexto: sin la narrativa, sin el `<Figure label>`, sin el comentario de
+   intención `{/* … */}`, sin saber en qué sección va ni qué «debe» enseñar. Solo la captura aislada
+   (`/lab/bench?w=…&bare=1`).
+2. Preguntas: «¿qué enseña esto? ¿cuál es la idea / el número héroe? ¿lo pillo en 5 s sin que nadie me diga
+   nada?». Lo que el widget muestra POR SÍ MISMO (sus propias etiquetas internas) vale; lo de fuera, no.
+3. **Si para entenderlo necesitas la prosa de alrededor → FALLA.** No es «casi PASS con un caption»: si el
+   caption/la narrativa es lo que lo salva, el widget no está haciendo su trabajo. Rehacer el mecanismo.
+4. El `label` del `<Figure>` y el comentario de intención son **ayudas externas**, no parte del widget; el
+   gate los IGNORA al juzgar si comunica.
+
+**Por qué importa (show-don't-tell):** el capítulo es «muchos visualizadores, poco texto». Si el texto es
+quien enseña y el widget solo decora, hemos vuelto a «contar», que es justo lo que queremos evitar. Un widget
+que solo se entiende con su párrafo al lado es un widget que falló — aunque a mí me «parezca» claro.

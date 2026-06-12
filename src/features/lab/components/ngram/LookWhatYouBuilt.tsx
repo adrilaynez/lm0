@@ -14,290 +14,265 @@ import { generateLocal } from "@/features/lab/data/ngramData";
  * De izquierda (k=1, galimatías) a derecha (k=6, palabras de verdad) ves la
  * progresión de golpe — sin leer una sola línea de texto.
  *
- * Layout: batalla de 5 columnas (k=1,2,3,4,6) sincronizadas, tipando al mismo tiempo.
+ * Layout: batalla de 5 columnas (k=1,2,4,5,6) sincronizadas, tipando al mismo tiempo.
  * Cada columna se calienta visualmente (fondo, borde, color de texto) según k.
  * El encabezado de cada columna muestra el número de letras de memoria.
  */
 
 const SEEDS = ["the ", "my lord ", "love "];
 
-// Battle columns: k=1 (broken) → k=2,3,4 (middle) → k=6 (clean)
-const BATTLE_KS = [1, 2, 3, 4, 6] as const;
+// Battle columns: k=1 (broken) → k=2,4,5 (middle) → k=6 (clean)
+const BATTLE_KS = [1, 2, 4, 5, 6] as const;
 type BattleK = (typeof BATTLE_KS)[number];
 
 const BATTLE_LEN = 80;
 const TEMP = 0.66;
 const TYPE_MS = 2400;
 
-/** Deterministic [0, 1) float seeded from integer n. */
-function det(n: number): number {
-    const s = Math.sin(n * 12.9898 + 1.0) * 43758.5453;
-    return s - Math.floor(s);
-}
-function detSigned(n: number): number {
-    return det(n) * 2 - 1;
-}
-
 // Returns a q in [0,1] where 0 = most broken (k=1), 1 = most clean (k=6)
 function kToQ(k: BattleK): number {
-    const idx = BATTLE_KS.indexOf(k);
-    return idx / (BATTLE_KS.length - 1);
+  const idx = BATTLE_KS.indexOf(k);
+  return idx / (BATTLE_KS.length - 1);
 }
 
 function BattleColumn({
-    k,
-    seed,
-    text,
-    elapsed,
-    reduce,
-    runId,
-    seedIdx,
-    colIdx,
+  k,
+  seed,
+  text,
+  elapsed,
+  reduce,
+  colIdx,
 }: {
-    k: BattleK;
-    seed: string;
-    text: string;
-    elapsed: number;
-    reduce: boolean | null;
-    runId: number;
-    seedIdx: number;
-    colIdx: number;
+  k: BattleK;
+  seed: string;
+  text: string;
+  elapsed: number;
+  reduce: boolean | null;
+  colIdx: number;
 }) {
-    const q = kToQ(k);
-    const isFirst = colIdx === 0;
-    const isLast = colIdx === BATTLE_KS.length - 1;
+  const q = kToQ(k);
+  const isFirst = colIdx === 0;
+  const isLast = colIdx === BATTLE_KS.length - 1;
 
-    // Slight stagger: leftmost column gets the most time, builds longest by TYPE_MS
-    // Actually all columns start at the same time but the first (k=1) types at a fixed rate
-    const delay = 0; // all start together — the chaos is in the text itself
-    void delay;
+  // Slight stagger: leftmost column gets the most time, builds longest by TYPE_MS
+  // Actually all columns start at the same time but the first (k=1) types at a fixed rate
+  const delay = 0; // all start together — the chaos is in the text itself
+  void delay;
 
-    const p = reduce ? 1 : Math.max(0, Math.min(1, elapsed / TYPE_MS));
-    const shown = text.slice(0, Math.floor(p * text.length));
-    const typing = p > 0 && p < 1;
+  const p = reduce ? 1 : Math.max(0, Math.min(1, elapsed / TYPE_MS));
+  const shown = text.slice(0, Math.floor(p * text.length));
+  const typing = p > 0 && p < 1;
 
-    // Chaos parameters for k=1 (garbage visual treatment)
-    const jbase = runId * 1009 + seedIdx * 211 + colIdx * 37;
-    const chars = Array.from(shown);
+  const label = k === 1 ? "1 letra" : k === 6 ? "6 letras" : `${k} letras`;
+  const sublabel = "de memoria";
 
-    const label = k === 1 ? "1 letra" : k === 6 ? "6 letras" : `${k} letras`;
-    const sublabel = "de memoria";
-
-    return (
-        <div
-            className="nw-lwb__col"
-            style={{
-                ["--q" as string]: q.toFixed(3),
-                ["--col-idx" as string]: colIdx,
-            }}
-            data-last={isLast || undefined}
-            data-first={isFirst || undefined}
-        >
-            {/* Column header: k number + label */}
-            <div className="nw-lwb__col-head">
-                <span className="nw-lwb__col-k">{k}</span>
-                <div className="nw-lwb__col-klabel">
-                    <span className="nw-lwb__col-klabel-main">{label}</span>
-                    <span className="nw-lwb__col-klabel-sub">{sublabel}</span>
-                </div>
-            </div>
-
-            {/* Text body */}
-            <div className="nw-lwb__col-body">
-                <span className="nw-lwb__col-seed">{seed}</span>
-                {isFirst ? (
-                    /* k=1: full chaos treatment — vary glyph size/opacity/rotation */
-                    chars.map((ch, i) => {
-                        const d1 = det(jbase + i * 3 + 1);
-                        const d2 = detSigned(jbase + i * 7 + 2);
-                        const d3 = detSigned(jbase + i * 5 + 3);
-                        const d4 = det(jbase + i * 11 + 4);
-                        const sz = 9 + d1 * 7;
-                        const op = 0.22 + d4 * 0.55;
-                        const rot = d2 * 16;
-                        const dy = d3 * 3.5;
-                        return (
-                            <span
-                                key={i}
-                                className="nw-lwb__gc"
-                                style={{
-                                    fontSize: `${sz.toFixed(1)}px`,
-                                    opacity: op.toFixed(2),
-                                    transform: `translateY(${dy.toFixed(1)}px) rotate(${rot.toFixed(1)}deg)`,
-                                    filter: d4 < 0.35 ? `blur(${((0.35 - d4) * 2.5).toFixed(1)}px)` : undefined,
-                                }}
-                            >
-                                {ch}
-                            </span>
-                        );
-                    })
-                ) : (
-                    /* k=2..6: clean text, progressively warmer color */
-                    <span className="nw-lwb__col-text">{shown}</span>
-                )}
-                {typing && <span className="nw-lwb__caret" aria-hidden>▌</span>}
-            </div>
-
-            {/* Footer stamp */}
-            <div className="nw-lwb__col-stamp">
-                {isFirst ? "galimatías" : isLast ? "palabras de verdad" : null}
-            </div>
+  return (
+    <div
+      className="nw-lwb__col"
+      style={{
+        ["--q" as string]: q.toFixed(3),
+        ["--col-idx" as string]: colIdx,
+      }}
+      data-last={isLast || undefined}
+      data-first={isFirst || undefined}
+    >
+      {/* Column header: k number + label */}
+      <div className="nw-lwb__col-head">
+        <span className="nw-lwb__col-k">{k}</span>
+        <div className="nw-lwb__col-klabel">
+          <span className="nw-lwb__col-klabel-main">{label}</span>
+          <span className="nw-lwb__col-klabel-sub">{sublabel}</span>
         </div>
-    );
+      </div>
+
+      {/* Text body */}
+      <div className="nw-lwb__col-body">
+        <span className="nw-lwb__col-seed">{seed}</span>
+        {/* plain text at every level — at k=1 the soup is already gibberish on its own, no gimmick needed */}
+        <span className="nw-lwb__col-text">{shown}</span>
+        {typing && (
+          <span className="nw-lwb__caret" aria-hidden>
+            ▌
+          </span>
+        )}
+      </div>
+
+      {/* Footer stamp */}
+      <div className="nw-lwb__col-stamp">
+        {isFirst ? "galimatías" : isLast ? "palabras de verdad" : null}
+      </div>
+    </div>
+  );
 }
 
 export const LookWhatYouBuilt = memo(function LookWhatYouBuilt({ accent }: { accent?: "ngram" }) {
-    void accent;
-    const reduce = useReducedMotion();
+  void accent;
+  const reduce = useReducedMotion();
 
-    const [seedIdx, setSeedIdx] = useState(0);
-    const [custom, setCustom] = useState("");
-    const [runId, setRunId] = useState(1);
-    const [elapsed, setElapsed] = useState(0);
-    const rafRef = useRef<number | null>(null);
+  const [seedIdx, setSeedIdx] = useState(0);
+  const [custom, setCustom] = useState("");
+  const [runId, setRunId] = useState(1);
+  const [elapsed, setElapsed] = useState(0);
+  const rafRef = useRef<number | null>(null);
 
-    // active seed = the reader's OWN word if they typed one, else the chosen preset. Sanitised to the corpus
-    // alphabet (lowercase letters + space) and given a trailing space so it starts a fresh word.
-    const activeSeed = useMemo(() => {
-        const c = custom.toLowerCase().replace(/[^a-z ]/g, "").slice(0, 16);
-        if (!c.trim()) return SEEDS[seedIdx];
-        return c.endsWith(" ") ? c : c + " ";
-    }, [custom, seedIdx]);
-    const seedHash = useMemo(() => {
-        let h = 0;
-        for (let i = 0; i < activeSeed.length; i++) h = (Math.imul(h, 31) + activeSeed.charCodeAt(i)) >>> 0;
-        return h;
-    }, [activeSeed]);
-    const seed = activeSeed;
+  // active seed = the reader's OWN word if they typed one, else the chosen preset. Sanitised to the corpus
+  // alphabet (lowercase letters + space) and given a trailing space so it starts a fresh word.
+  const activeSeed = useMemo(() => {
+    const c = custom
+      .toLowerCase()
+      .replace(/[^a-z ]/g, "")
+      .slice(0, 16);
+    if (!c.trim()) return SEEDS[seedIdx];
+    return c.endsWith(" ") ? c : c + " ";
+  }, [custom, seedIdx]);
+  const seedHash = useMemo(() => {
+    let h = 0;
+    for (let i = 0; i < activeSeed.length; i++)
+      h = (Math.imul(h, 31) + activeSeed.charCodeAt(i)) >>> 0;
+    return h;
+  }, [activeSeed]);
+  const seed = activeSeed;
 
-    // Generate text for all battle columns
-    const battleTexts = useMemo(
-        () =>
-            BATTLE_KS.map((k) =>
-                generateLocal(seed, {
-                    k,
-                    length: BATTLE_LEN,
-                    temperature: TEMP,
-                    rngSeed: 70001 * runId + seedHash + k,
-                }),
-            ),
-        [runId, seed, seedHash],
-    );
+  // Generate text for all battle columns
+  const battleTexts = useMemo(
+    () =>
+      BATTLE_KS.map((k) =>
+        generateLocal(seed, {
+          k,
+          length: BATTLE_LEN,
+          temperature: TEMP,
+          rngSeed: 70001 * runId + seedHash + k,
+        }),
+      ),
+    [runId, seed, seedHash],
+  );
 
-    useEffect(() => {
-        if (reduce) return;
-        let t0: number | null = null;
-        const frame = (now: number) => {
-            if (t0 === null) t0 = now;
-            const e = now - t0;
-            setElapsed(e);
-            if (e < TYPE_MS) rafRef.current = requestAnimationFrame(frame);
-        };
-        rafRef.current = requestAnimationFrame(frame);
-        return () => {
-            if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-        };
-    }, [runId, reduce]);
-
-    const reroll = () => {
-        setElapsed(0);
-        setRunId((r) => r + 1);
+  useEffect(() => {
+    if (reduce) return;
+    let t0: number | null = null;
+    const frame = (now: number) => {
+      if (t0 === null) t0 = now;
+      const e = now - t0;
+      setElapsed(e);
+      if (e < TYPE_MS) rafRef.current = requestAnimationFrame(frame);
     };
-
-    const pickSeed = (i: number) => {
-        setCustom("");
-        setSeedIdx(i);
-        setElapsed(0);
-        setRunId((r) => r + 1);
+    rafRef.current = requestAnimationFrame(frame);
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     };
+  }, [runId, reduce]);
 
-    return (
-        <div className="nw-lwb">
-            {/* Kicker */}
-            <div className="nw-lwb__kicker" aria-label="mira lo que escribiste">
-                <span className="nw-lwb__kicker-rule" aria-hidden />
-                <span className="nw-lwb__kicker-text">mira lo que escribiste</span>
-                <span className="nw-lwb__kicker-rule" aria-hidden />
-            </div>
+  const reroll = () => {
+    setElapsed(0);
+    setRunId((r) => r + 1);
+  };
 
-            {/* Directional label above the battle */}
-            <div className="nw-lwb__axis">
-                <span className="nw-lwb__axis-bad">poca memoria → galimatías</span>
-                <div className="nw-lwb__axis-arrow" aria-hidden>
-                    <svg viewBox="0 0 120 12" width="120" height="12" overflow="visible">
-                        <defs>
-                            <linearGradient id="nwLwbAxisGrad" x1="0" y1="0" x2="1" y2="0">
-                                <stop offset="0%" stopColor="var(--ngram-dim)" stopOpacity="0.4" />
-                                <stop offset="100%" stopColor="var(--ngram-accent-bright)" />
-                            </linearGradient>
-                        </defs>
-                        <line x1="0" y1="6" x2="110" y2="6" stroke="url(#nwLwbAxisGrad)" strokeWidth="1.5" />
-                        <polyline points="100,2 110,6 100,10" fill="none" stroke="var(--ngram-accent-bright)" strokeWidth="1.5" strokeLinejoin="round" />
-                    </svg>
-                </div>
-                <span className="nw-lwb__axis-good">más memoria → palabras de verdad</span>
-            </div>
+  const pickSeed = (i: number) => {
+    setCustom("");
+    setSeedIdx(i);
+    setElapsed(0);
+    setRunId((r) => r + 1);
+  };
 
-            {/* THE BATTLE: 5 columns side by side */}
-            <div className="nw-lwb__battle" role="img" aria-label="Cinco columnas de texto generado con distintos niveles de memoria">
-                {BATTLE_KS.map((k, colIdx) => (
-                    <BattleColumn
-                        key={k}
-                        k={k}
-                        seed={seed}
-                        text={battleTexts[colIdx]}
-                        elapsed={elapsed}
-                        reduce={reduce}
-                        runId={runId}
-                        seedIdx={seedIdx}
-                        colIdx={colIdx}
-                    />
-                ))}
-            </div>
+  return (
+    <div className="nw-lwb">
+      {/* Kicker */}
+      <div className="nw-lwb__kicker" aria-label="mira lo que escribiste">
+        <span className="nw-lwb__kicker-rule" aria-hidden />
+        <span className="nw-lwb__kicker-text">mira lo que escribiste</span>
+        <span className="nw-lwb__kicker-rule" aria-hidden />
+      </div>
 
-            {/* Controls */}
-            <div className="nw-lwb__controls">
-                <div className="nw-lwb__ctlgroup">
-                    <span className="nw-lwb__ctllabel">empieza por</span>
-                    <Tabs
-                        tabs={SEEDS.map((s) => `«${s.trim()}»`)}
-                        active={custom.trim() ? -1 : seedIdx}
-                        onChange={pickSeed}
-                        ariaLabel="Semilla"
-                    />
-                    <input
-                        className="nw-lwb__seedinput"
-                        type="text"
-                        value={custom}
-                        onChange={(e) => { setCustom(e.target.value); setElapsed(0); setRunId((r) => r + 1); }}
-                        placeholder="o la tuya…"
-                        maxLength={16}
-                        spellCheck={false}
-                        aria-label="escribe tu propia palabra de arranque"
-                    />
-                </div>
-                <button
-                    type="button"
-                    className="nw-lwb__reroll"
-                    onClick={reroll}
-                    aria-label="Generar otra muestra"
-                    title="Generar otra muestra"
-                >
-                    <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden focusable="false">
-                        <path
-                            d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.1"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        />
-                    </svg>
-                    <span className="nw-lwb__rerolllabel">generar otra</span>
-                </button>
-            </div>
+      {/* Directional label above the battle */}
+      <div className="nw-lwb__axis">
+        <span className="nw-lwb__axis-bad">poca memoria → galimatías</span>
+        <div className="nw-lwb__axis-arrow" aria-hidden>
+          <svg viewBox="0 0 120 12" width="120" height="12" overflow="visible">
+            <defs>
+              <linearGradient id="nwLwbAxisGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="var(--ngram-dim)" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="var(--ngram-accent-bright)" />
+              </linearGradient>
+            </defs>
+            <line x1="0" y1="6" x2="110" y2="6" stroke="url(#nwLwbAxisGrad)" strokeWidth="1.5" />
+            <polyline
+              points="100,2 110,6 100,10"
+              fill="none"
+              stroke="var(--ngram-accent-bright)"
+              strokeWidth="1.5"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+        <span className="nw-lwb__axis-good">más memoria → palabras de verdad</span>
+      </div>
 
-            <style>{`
+      {/* THE BATTLE: 5 columns side by side */}
+      <div
+        className="nw-lwb__battle"
+        role="img"
+        aria-label="Cinco columnas de texto generado con distintos niveles de memoria"
+      >
+        {BATTLE_KS.map((k, colIdx) => (
+          <BattleColumn
+            key={k}
+            k={k}
+            seed={seed}
+            text={battleTexts[colIdx]}
+            elapsed={elapsed}
+            reduce={reduce}
+            colIdx={colIdx}
+          />
+        ))}
+      </div>
+
+      {/* Controls */}
+      <div className="nw-lwb__controls">
+        <div className="nw-lwb__ctlgroup">
+          <span className="nw-lwb__ctllabel">empieza por</span>
+          <Tabs
+            tabs={SEEDS.map((s) => `«${s.trim()}»`)}
+            active={custom.trim() ? -1 : seedIdx}
+            onChange={pickSeed}
+            ariaLabel="Semilla"
+          />
+          <input
+            className="nw-lwb__seedinput"
+            type="text"
+            value={custom}
+            onChange={(e) => {
+              setCustom(e.target.value);
+              setElapsed(0);
+              setRunId((r) => r + 1);
+            }}
+            placeholder="o la tuya…"
+            maxLength={16}
+            spellCheck={false}
+            aria-label="escribe tu propia palabra de arranque"
+          />
+        </div>
+        <button
+          type="button"
+          className="nw-lwb__reroll"
+          onClick={reroll}
+          aria-label="Generar otra muestra"
+          title="Generar otra muestra"
+        >
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden focusable="false">
+            <path
+              d="M20 12a8 8 0 1 1-2.34-5.66M20 4v4h-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span className="nw-lwb__rerolllabel">generar otra</span>
+        </button>
+      </div>
+
+      <style>{`
                 /* ── root ── */
                 .nw-lwb {
                     display: flex; flex-direction: column; align-items: center; gap: 18px;
@@ -483,8 +458,8 @@ export const LookWhatYouBuilt = memo(function LookWhatYouBuilt({ accent }: { acc
                     .nw-lwb__reroll:hover svg { transform: none; }
                 }
             `}</style>
-        </div>
-    );
+    </div>
+  );
 });
 
 export default LookWhatYouBuilt;
