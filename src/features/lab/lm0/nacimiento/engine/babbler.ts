@@ -124,6 +124,62 @@ export function generate(
   return { text, stage: rung.stage, k: rung.k, temperature, bucket: b, attempt };
 }
 
+export interface FeedStatus {
+  /** chars of the folded stream actually counted into the current-k model. */
+  fedTo: number;
+  /** the bucket's target prefix. */
+  target: number;
+  /** total folded stream length. */
+  total: number;
+}
+
+/**
+ * Advance the current bucket's model toward its prefix by at most `maxChars` —
+ * the "throttle dirigido": the on-screen % follows REAL feeding, never a timer
+ * (spec v3 §4.6). Backward scroll rebuilds the slot first (real forgetting).
+ * generate() afterwards force-completes the remainder, and counts are additive,
+ * so a partially-prefed model lands on the identical state.
+ */
+export function feedToward(locale: BabbleLocale, bucket: number, maxChars: number): FeedStatus {
+  const b = clampBucket(bucket);
+  const rung = LADDER[b];
+  const target = prefixFor(locale, b);
+  const key = `${locale}|${rung.k}`;
+  let slot = slots.get(key);
+  if (!slot || slot.fedTo > target) {
+    slot = { model: new TrainedModel(rung.k), fedTo: 0 };
+    slots.set(key, slot);
+  }
+  if (slot.fedTo < target) {
+    const to = Math.min(target, slot.fedTo + Math.max(1, Math.floor(maxChars)));
+    slot.model.feedRange(streamFor(locale), slot.fedTo, to);
+    slot.fedTo = to;
+  }
+  return { fedTo: slot.fedTo, target, total: streamFor(locale).length };
+}
+
+const wordPrefixCounts = new Map<BabbleLocale, Uint32Array>();
+
+/** REAL words read after `chars` chars of the folded stream (prefix sums, O(1) per call). */
+export function wordsRead(locale: BabbleLocale, chars: number): number {
+  let arr = wordPrefixCounts.get(locale);
+  if (!arr) {
+    const stream = streamFor(locale);
+    arr = new Uint32Array(stream.length + 1);
+    let words = 0;
+    let inWord = false;
+    for (let i = 0; i < stream.length; i++) {
+      const isLetter = stream[i] !== " ";
+      if (isLetter && !inWord) words++;
+      inWord = isLetter;
+      arr[i + 1] = words;
+    }
+    wordPrefixCounts.set(locale, arr);
+  }
+  const idx = Math.max(0, Math.min(arr.length - 1, Math.floor(chars)));
+  return arr[idx];
+}
+
 /**
  * The broken machine's morralla (beat 2): the model BEFORE training knows nothing,
  * i.e. a uniform prior over the 27-symbol alphabet. Real, seeded, honest.

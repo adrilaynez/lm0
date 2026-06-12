@@ -1,0 +1,244 @@
+/* ─────────────────────────────────────────────
+   LM0 v3 — lm0.css ("El nacimiento", scoped under [data-lm0])
+   Dark-native: the landing's light arc IS the dawn (spec §6).
+   Five typographic voices (spec §2). Tokens only; nothing leaks out.
+   ───────────────────────────────────────────── */
+
+[data-lm0] {
+  --lm0-bg: #0a0b0d;
+  --lm0-ink: #f2ede2;
+  --lm0-voice: #efe9da;
+  --lm0-machine: #9be8c0;
+  --lm0-dim: #84888d;
+  --lm0-era-contar: #52e391;
+  --lm0-era-aprender: #ffb84d;
+  --lm0-era-atencion: #8f7bff;
+  --lm0-raw: 0;
+  --lm0-dawn: 0;
+  background: var(--lm0-bg);
+  color: var(--lm0-ink);
+}
+
+.lm0-wrapper {
+  position: relative;
+  height: 800vh;
+}
+
+.lm0-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.lm0-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 92% 72% at 50% 46%, transparent 56%, rgb(0 0 0 / 0.4) 100%);
+}
+
+.lm0-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* beat layers — always mounted (SEO/a11y), revealed by opacity */
+.lm0-beat {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  pointer-events: none;
+}
+
+.lm0-beat.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* the five voices */
+.lm0-serif {
+  font-family: var(--font-playfair), Georgia, "Times New Roman", serif;
+}
+
+.lm0-voice-font {
+  font-family: var(--font-lm0), ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--lm0-voice);
+}
+
+.lm0-machine-font {
+  font-family: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--lm0-machine);
+  text-transform: lowercase;
+}
+
+.lm0-ui-font {
+  font-family: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--lm0-dim);
+}
+
+/* LM0's avatar */
+.lm0-caret {
+  display: inline-block;
+  width: 0.52em;
+  height: 1.02em;
+  margin-left: 0.14em;
+  background: currentColor;
+  vertical-align: -0.08em;
+}
+
+.lm0-caret[data-blink="true"] {
+  animation: lm0-blink 1.06s steps(1, end) infinite;
+}
+
+@keyframes lm0-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* beat 1 — the question */
+.lm0-hero-q {
+  margin: 0;
+  max-width: 18ch;
+  font-size: clamp(1.9rem, 5vw, 3.3rem);
+  font-weight: 500;
+  line-height: 1.22;
+  text-align: center;
+  color: var(--lm0-ink);
+}
+
+.lm0-hint {
+  margin-top: 1.4rem;
+}
+
+/* beat 2 — the broken machine */
+.lm0-broken-line {
+  min-height: 1.6em;
+  font-size: 1.15rem;
+}
+
+.lm0-btn {
+  font-family: var(--font-lm0), ui-monospace, monospace;
+  font-size: 0.85rem;
+  color: var(--lm0-voice);
+  background: rgb(255 255 255 / 0.05);
+  border: 1px solid rgb(239 233 218 / 0.35);
+  border-radius: 999px;
+  padding: 0.55rem 1.6rem;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.lm0-btn:hover {
+  background: rgb(255 255 255 / 0.1);
+  border-color: rgb(239 233 218 / 0.6);
+}
+
+.lm0-btn:focus-visible {
+  outline: 2px solid var(--lm0-voice);
+  outline-offset: 3px;
+}
+
+/* beat 3 — training overlays */
+.lm0-reading {
+  position: absolute;
+  top: 11%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--lm0-machine);
+  opacity: 0.65;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.lm0-reading-bar {
+  display: block;
+  width: 130px;
+  height: 1.5px;
+  margin: 8px auto 0;
+  background: rgb(155 232 192 / 0.2);
+}
+
+.lm0-reading-bar > span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: rgb(155 232 192 / 0.7);
+}
+
+.lm0-counter {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.75rem;
+  font-size: 0.78rem;
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+
+.lm0-stagechip {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.lm0-attempt {
+  position: absolute;
+  top: 58%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(86vw, 46rem);
+  text-align: center;
+  font-size: 1.05rem;
+}
+
+.lm0-attempt[data-silent="true"] {
+  color: var(--lm0-machine);
+  opacity: 0.95;
+}
+
+/* reduced-motion static page (full version lands in Phase 4) */
+.lm0-static {
+  display: grid;
+  gap: 2.2rem;
+  justify-items: center;
+  padding: 5rem 1.5rem 6rem;
+  text-align: center;
+  min-height: 100vh;
+  align-content: center;
+}
+
+@media (max-width: 640px) {
+  .lm0-counter {
+    right: 1rem;
+  }
+
+  .lm0-attempt {
+    font-size: 0.95rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lm0-beat {
+    transition: none;
+  }
+
+  .lm0-caret[data-blink="true"] {
+    animation: none;
+  }
+}

@@ -2,7 +2,15 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { BUCKETS, LADDER } from "../data/script";
 
-import { type BabbleLocale, brokenSample, generate, resetBabbler, streamFor } from "./babbler";
+import {
+  type BabbleLocale,
+  brokenSample,
+  feedToward,
+  generate,
+  resetBabbler,
+  streamFor,
+  wordsRead,
+} from "./babbler";
 
 beforeEach(() => resetBabbler());
 
@@ -93,6 +101,38 @@ describe.each(["es", "en"] as const)("babbler %s", (locale) => {
     expect(a).toMatch(ALPHABET_RE);
     expect(a).toBe(brokenSample(locale));
     expect(brokenSample(locale, 1)).not.toBe(a);
+  });
+
+  it("feedToward is honest: monotonic, capped per step, converges on the target", () => {
+    let prev = 0;
+    let status = feedToward(locale, 5, 2000);
+    for (let guard = 0; guard < 100 && status.fedTo < status.target; guard++) {
+      expect(status.fedTo).toBeGreaterThan(prev);
+      expect(status.fedTo - prev).toBeLessThanOrEqual(2000);
+      expect(status.fedTo).toBeLessThanOrEqual(status.target);
+      prev = status.fedTo;
+      status = feedToward(locale, 5, 2000);
+    }
+    expect(status.fedTo).toBe(status.target);
+  });
+
+  it("a partially prefed model still produces the canonical take", () => {
+    const fresh = generate(locale, 23).text;
+    resetBabbler();
+    feedToward(locale, 23, 500); // throttled choreography starts…
+    expect(generate(locale, 23).text).toBe(fresh); // …generate completes the rest
+  });
+
+  it("wordsRead matches the folded stream's word count", () => {
+    const stream = streamFor(locale);
+    expect(wordsRead(locale, 0)).toBe(0);
+    expect(wordsRead(locale, stream.length)).toBe(stream.split(" ").length);
+    let prev = 0;
+    for (let i = 0; i <= stream.length; i += 997) {
+      const w = wordsRead(locale, i);
+      expect(w).toBeGreaterThanOrEqual(prev);
+      prev = w;
+    }
   });
 });
 

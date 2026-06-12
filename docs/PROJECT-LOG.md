@@ -8,6 +8,15 @@ Format: `## YYYY-MM-DD — title` · what changed · why · (optional) commit re
 
 ---
 
+## 2026-06-12 — STARTED: LM0 landing v3 "El nacimiento" 🚧
+
+Began the full rebuild of the lab landing on `redesign/lm0-landing-v3` (spec: `lm0-landing-v3-spec.md`).
+The previous direction (v2, top-down 3D world with vitrines) is PARKED intact on `redesign/lm0-landing-v2`.
+The new concept: the visitor trains a REAL char-level n-gram in the browser (Quijote es / Hamlet en),
+watches it improve through real escalones, and LM0 — a pure narrator voice (IBM Plex Mono) — takes over:
+"De ese balbuceo a mí: 70 años." Stack: DOM + Canvas 2D + Lenis + GSAP (no Three.js). Builds behind
+`/lab/lm0-preview` (noindex) through user-validated gates; `/lab` swaps only at the end.
+
 ## 2026-06-06 — Second-audit fixes (Rounds 1–3) ✅
 
 Acted on a fresh 4-auditor professional review. Plan: `docs/audit-fixes-plan.md`. Each item was its own
