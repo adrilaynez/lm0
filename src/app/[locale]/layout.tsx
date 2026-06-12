@@ -3,6 +3,7 @@ import {
   Bebas_Neue,
   Geist,
   Geist_Mono,
+  IBM_Plex_Mono,
   Inter,
   JetBrains_Mono,
   Playfair_Display,
@@ -53,6 +54,14 @@ const bebasNeue = Bebas_Neue({
   display: "swap",
 });
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
+// LM0's voice (landing narrator + chapter cameos). Plex is not a variable font: weights explicit.
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-lm0",
+  weight: ["400", "500"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  display: "swap",
+});
 const silkscreen = Silkscreen({
   variable: "--font-pixel",
   weight: ["400", "700"],
@@ -135,7 +144,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${jetbrainsMono.variable} ${bebasNeue.variable} ${inter.variable} ${silkscreen.variable} ${sourceSerif.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${jetbrainsMono.variable} ${bebasNeue.variable} ${inter.variable} ${silkscreen.variable} ${sourceSerif.variable} ${ibmPlexMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <NextIntlClientProvider>
