@@ -482,7 +482,7 @@
   left: 50%;
   top: 66vh;
   z-index: 4;
-  width: min(540px, 88vw);
+  width: min(660px, 84vw);
   transform: translateX(-50%);
   text-align: center;
   opacity: 0;
@@ -515,11 +515,11 @@
 }
 
 .lm0-reader-text {
-  font-size: clamp(0.82rem, 1.05vw, 0.95rem);
-  line-height: 1.95;
+  font-size: clamp(0.72rem, 0.95vw, 0.82rem);
+  line-height: 2;
   word-break: break-word;
   /* lock to exactly 3 rows (like the reference): the block never grows or jumps */
-  height: 5.85em;
+  height: 6em;
   overflow: hidden;
 }
 
