@@ -25,7 +25,10 @@ import { type BabbleLocale, feedToward, wordsRead } from "../engine/babbler";
 import type { NacimientoState } from "../engine/progressMap";
 
 const FEED_CHARS_PER_FRAME = 2600;
-const WINDOW_CHARS = 230;
+/** the live reading scan: a fixed head with the book flowing under it, always moving */
+const WINDOW_CHARS = 96;
+const HEAD_OFFSET = 40;
+const READ_CPS = 34;
 
 interface InstrumentsProps {
   locale: BabbleLocale;
@@ -39,36 +42,40 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
   const readRef = useRef<HTMLSpanElement>(null);
   const curRef = useRef<HTMLSpanElement>(null);
   const futureRef = useRef<HTMLSpanElement>(null);
-  const winStartRef = useRef(0);
+  const readPosRef = useRef(0);
 
   useEffect(() => {
-    const raw = locale === "en" ? corpusEn.raw : corpusEs.raw;
-    const tick = () => {
+    const raw = (locale === "en" ? corpusEn.raw : corpusEs.raw).replace(/\s+/g, " ");
+    const tick = (_time: number, deltaMs: number) => {
       const st = frameRef.current;
       if (!st || (st.beat !== "training" && st.beat !== "silence")) return;
+
+      // % and word count stay tied to the REAL feeding (honest)
       const feed = feedToward(locale, st.bucket, FEED_CHARS_PER_FRAME);
       const pct = Math.min(100, Math.floor((feed.fedTo / feed.total) * 100));
-
       if (fillRef.current) fillRef.current.style.height = `${pct}%`;
       if (tipRef.current) {
         tipRef.current.style.bottom = `${pct}%`;
         tipRef.current.textContent = `${pct}%`;
       }
-
       const odo = document.getElementById("lm0-odo");
       if (odo)
         odo.textContent = t("lm0.training.words", { n: fmtInt(wordsRead(locale, feed.fedTo)) });
 
-      // the reader window follows the REAL read position (mapped onto the raw text)
-      const rawPos = Math.min(raw.length - 1, Math.floor((feed.fedTo / feed.total) * raw.length));
-      if (rawPos > winStartRef.current + WINDOW_CHARS - 60 || rawPos < winStartRef.current) {
-        winStartRef.current = Math.max(0, rawPos - 36);
-      }
-      const ws = winStartRef.current;
-      if (readRef.current) readRef.current.textContent = raw.slice(ws, rawPos);
-      if (curRef.current) curRef.current.textContent = raw[rawPos] ?? "";
-      if (futureRef.current)
-        futureRef.current.textContent = raw.slice(rawPos + 1, ws + WINDOW_CHARS);
+      // the reading scan ALWAYS advances (the machine is reading, even on a plateau):
+      // a fixed head with the book flowing under it, looping through the corpus.
+      readPosRef.current += (Math.min(50, deltaMs) / 1000) * READ_CPS;
+      if (readPosRef.current >= raw.length) readPosRef.current -= raw.length;
+      const head = Math.floor(readPosRef.current);
+      const ws = head - HEAD_OFFSET;
+      const at = (i: number) => raw[((i % raw.length) + raw.length) % raw.length] ?? "";
+      let read = "";
+      for (let i = ws; i < head; i++) read += at(i);
+      let future = "";
+      for (let i = head + 1; i < ws + WINDOW_CHARS; i++) future += at(i);
+      if (readRef.current) readRef.current.textContent = read;
+      if (curRef.current) curRef.current.textContent = at(head);
+      if (futureRef.current) futureRef.current.textContent = future;
     };
     gsap.ticker.add(tick);
     return () => gsap.ticker.remove(tick);

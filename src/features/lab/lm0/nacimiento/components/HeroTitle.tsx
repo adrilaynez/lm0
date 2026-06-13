@@ -36,7 +36,10 @@ export function HeroTitle({ onTeach }: HeroTitleProps) {
             onTeach();
           }}
         >
-          {t("lm0.hero.teach")} →
+          <span>{t("lm0.hero.teach")}</span>
+          <span className="lm0-btn-arrow" aria-hidden="true">
+            →
+          </span>
         </button>
         <div className="lm0-ui lm0-hero-hint">{t("lm0.hero.hint")} ↓</div>
       </div>
