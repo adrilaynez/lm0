@@ -25,10 +25,32 @@ import { type BabbleLocale, feedToward, wordsRead } from "../engine/babbler";
 import type { NacimientoState } from "../engine/progressMap";
 
 const FEED_CHARS_PER_FRAME = 2600;
-/** the live reading scan: a fixed head with the book flowing under it, always moving */
-const WINDOW_CHARS = 96;
-const HEAD_OFFSET = 40;
-const READ_CPS = 34;
+/** reading scan: a full passage sits STILL while the head sweeps it start→end,
+    holds a beat at the end, then the next passage takes its place. */
+const READ_CPS = 32;
+const END_HOLD_MS = 1100;
+
+const passageCache = new Map<string, string[]>();
+function passagesFor(locale: "es" | "en"): string[] {
+  const cached = passageCache.get(locale);
+  if (cached) return cached;
+  const raw = (locale === "en" ? corpusEn.raw : corpusEs.raw).replace(/\s+/g, " ").trim();
+  const sentences = raw.match(/[^.;:!?]+[.;:!?]?/g) ?? [raw];
+  const out: string[] = [];
+  let cur = "";
+  for (const s of sentences) {
+    if (cur && (cur + s).length > 190) {
+      out.push(cur.trim());
+      cur = s;
+    } else {
+      cur += s;
+    }
+  }
+  if (cur.trim()) out.push(cur.trim());
+  const passages = out.filter((p) => p.length > 40);
+  passageCache.set(locale, passages);
+  return passages;
+}
 
 interface InstrumentsProps {
   locale: BabbleLocale;
@@ -42,13 +64,19 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
   const readRef = useRef<HTMLSpanElement>(null);
   const curRef = useRef<HTMLSpanElement>(null);
   const futureRef = useRef<HTMLSpanElement>(null);
-  const readPosRef = useRef(0);
+  const headRef = useRef(0);
+  const passageRef = useRef(0);
+  const holdRef = useRef(0);
 
   useEffect(() => {
-    const raw = (locale === "en" ? corpusEn.raw : corpusEs.raw).replace(/\s+/g, " ");
+    const passages = passagesFor(locale);
+    headRef.current = 0;
+    passageRef.current = 0;
+    holdRef.current = 0;
     const tick = (_time: number, deltaMs: number) => {
       const st = frameRef.current;
       if (!st || (st.beat !== "training" && st.beat !== "silence")) return;
+      const dt = Math.min(50, deltaMs) / 1000;
 
       // % and word count stay tied to the REAL feeding (honest)
       const feed = feedToward(locale, st.bucket, FEED_CHARS_PER_FRAME);
@@ -62,20 +90,25 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
       if (odo)
         odo.textContent = t("lm0.training.words", { n: fmtInt(wordsRead(locale, feed.fedTo)) });
 
-      // the reading scan ALWAYS advances (the machine is reading, even on a plateau):
-      // a fixed head with the book flowing under it, looping through the corpus.
-      readPosRef.current += (Math.min(50, deltaMs) / 1000) * READ_CPS;
-      if (readPosRef.current >= raw.length) readPosRef.current -= raw.length;
-      const head = Math.floor(readPosRef.current);
-      const ws = head - HEAD_OFFSET;
-      const at = (i: number) => raw[((i % raw.length) + raw.length) % raw.length] ?? "";
-      let read = "";
-      for (let i = ws; i < head; i++) read += at(i);
-      let future = "";
-      for (let i = head + 1; i < ws + WINDOW_CHARS; i++) future += at(i);
-      if (readRef.current) readRef.current.textContent = read;
-      if (curRef.current) curRef.current.textContent = at(head);
-      if (futureRef.current) futureRef.current.textContent = future;
+      // the reading scan: the passage stays STILL; the head sweeps it start→end,
+      // holds a beat at the end, then the next passage takes over.
+      const p = passages[passageRef.current % passages.length] ?? "";
+      headRef.current += dt * READ_CPS;
+      let head: number;
+      if (headRef.current >= p.length) {
+        head = p.length - 1; // parked on the last char while we hold
+        holdRef.current += deltaMs;
+        if (holdRef.current >= END_HOLD_MS) {
+          passageRef.current += 1;
+          headRef.current = 0;
+          holdRef.current = 0;
+        }
+      } else {
+        head = Math.floor(headRef.current);
+      }
+      if (readRef.current) readRef.current.textContent = p.slice(0, head);
+      if (curRef.current) curRef.current.textContent = p[head] ?? "";
+      if (futureRef.current) futureRef.current.textContent = p.slice(head + 1);
     };
     gsap.ticker.add(tick);
     return () => gsap.ticker.remove(tick);

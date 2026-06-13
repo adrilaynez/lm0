@@ -264,7 +264,7 @@
   z-index: 3;
   /* size by viewport HEIGHT (capped by width on narrow screens) so the machine
      and the vh-anchored CTA keep a consistent vertical gap across aspect ratios */
-  width: clamp(360px, min(64vh, 88vw), 720px);
+  width: clamp(400px, min(72vh, 92vw), 820px);
   transform: translateX(-50%);
   transition:
     top 0.9s cubic-bezier(0.22, 1, 0.36, 1),
@@ -518,6 +518,7 @@
   font-size: clamp(0.72rem, 0.95vw, 0.82rem);
   line-height: 2;
   word-break: break-word;
+  min-height: 5em; /* hold ~3 lines so a shorter passage doesn't jump the layout */
 }
 
 .lm0-reader-text .r-read {
