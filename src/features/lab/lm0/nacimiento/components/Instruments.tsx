@@ -25,21 +25,31 @@ import { type BabbleLocale, feedToward, wordsRead } from "../engine/babbler";
 import type { NacimientoState } from "../engine/progressMap";
 
 const FEED_CHARS_PER_FRAME = 2600;
-/** Two independent motions, like a real terminal:
-    · the head sweeps the visible block BY ITSELF (time-based) and STOPS at the end.
-    · SCROLL nudges which chunk of the corpus is shown — gently, so the phrase
-      flows on rather than jumping; sit still and the 3-line block stays put.  */
-const READ_SPAN = 800; // chars the scroll travels across the whole training (gentle)
-const WINDOW_CHARS = 150; // the static block (~3 lines)
+/** One whole phrase at a time, STATIC. The head sweeps it by itself and stops at
+    the end. A bit of SCROLL swaps in a completely new phrase (and the head restarts).  */
 const HEAD_CPS = 26; // the self-moving head's sweep speed
+const PHRASE_STEPS = 12; // how many phrases the scroll steps through across training
 
-const streamCache = new Map<string, string>();
-function streamText(locale: "es" | "en"): string {
-  const cached = streamCache.get(locale);
+const phraseCache = new Map<string, string[]>();
+function phrasesFor(locale: "es" | "en"): string[] {
+  const cached = phraseCache.get(locale);
   if (cached) return cached;
   const raw = (locale === "en" ? corpusEn.raw : corpusEs.raw).replace(/\s+/g, " ").trim();
-  streamCache.set(locale, raw);
-  return raw;
+  const sentences = raw.match(/[^.;:!?]+[.;:!?]?/g) ?? [raw];
+  const out: string[] = [];
+  let cur = "";
+  for (const s of sentences) {
+    if (cur && (cur + s).length > 175) {
+      out.push(cur.trim());
+      cur = s;
+    } else {
+      cur += s;
+    }
+  }
+  if (cur.trim()) out.push(cur.trim());
+  const phrases = out.filter((p) => p.length > 40);
+  phraseCache.set(locale, phrases);
+  return phrases;
 }
 
 interface InstrumentsProps {
@@ -55,10 +65,11 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
   const curRef = useRef<HTMLSpanElement>(null);
   const futureRef = useRef<HTMLSpanElement>(null);
   const headRef = useRef(0);
+  const phraseIdxRef = useRef(-1);
 
   useEffect(() => {
-    const stream = streamText(locale);
-    const span = Math.max(1, Math.min(READ_SPAN, stream.length - WINDOW_CHARS - 1));
+    const phrases = phrasesFor(locale);
+    const lastN = phrases.length;
     const tick = (_time: number, deltaMs: number) => {
       const st = frameRef.current;
       if (!st || (st.beat !== "training" && st.beat !== "silence")) return;
@@ -75,17 +86,22 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
       if (odo)
         odo.textContent = t("lm0.training.words", { n: fmtInt(wordsRead(locale, feed.fedTo)) });
 
-      // SCROLL picks the static block (sit still → fixed; scroll → the text changes)
+      // SCROLL steps through phrases (a bit of scroll → a completely new phrase)
       const local = st.beat === "silence" ? 1 : st.local;
-      const blockStart = Math.floor(local * span);
-      // the head sweeps that block BY ITSELF and STOPS at the end (no loop)
+      const idx = Math.min(lastN - 1, Math.floor(local * PHRASE_STEPS));
+      if (idx !== phraseIdxRef.current) {
+        phraseIdxRef.current = idx; // new phrase → restart the head from the start
+        headRef.current = 0;
+      }
+      const phrase = phrases[idx] ?? "";
+
+      // the head sweeps THIS phrase by itself and STOPS at its end (does nothing after)
       headRef.current += (Math.min(50, deltaMs) / 1000) * HEAD_CPS;
-      if (headRef.current > WINDOW_CHARS - 1) headRef.current = WINDOW_CHARS - 1;
+      if (headRef.current > phrase.length - 1) headRef.current = phrase.length - 1;
       const h = Math.floor(headRef.current);
-      if (readRef.current) readRef.current.textContent = stream.slice(blockStart, blockStart + h);
-      if (curRef.current) curRef.current.textContent = stream[blockStart + h] ?? "";
-      if (futureRef.current)
-        futureRef.current.textContent = stream.slice(blockStart + h + 1, blockStart + WINDOW_CHARS);
+      if (readRef.current) readRef.current.textContent = phrase.slice(0, h);
+      if (curRef.current) curRef.current.textContent = phrase[h] ?? "";
+      if (futureRef.current) futureRef.current.textContent = phrase.slice(h + 1);
     };
     gsap.ticker.add(tick);
     return () => gsap.ticker.remove(tick);
