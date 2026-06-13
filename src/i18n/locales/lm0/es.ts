@@ -1,20 +1,28 @@
 // lm0 namespace (es) — la landing "El nacimiento" (spec: lm0-landing-v3-spec.md).
-// La voz de LM0 se escribe en español PRIMERO (spec §8.2); en.ts es el espejo.
-// Borrador v1 del guion — la pasada anti-tells y la lectura en voz alta llegan en el Gate 2.
+// La voz de lm0 se escribe en español PRIMERO; en.ts es el espejo.
+// La voz va SIEMPRE en minúscula (decisión de dirección: lm0 escribe así).
 export const lm0Ns = {
   lm0: {
-    hero: {
-      question: "¿Cómo se enseña a hablar a una máquina?",
-      hint: "desliza",
+    boot: {
+      l1: "lm0-01",
+      l2: "iniciando sistema… ok",
+      l3: "alfabeto: 27 símbolos… ok",
+      l4: "memoria: 1 letra… ok",
+      l5: "corpus: no encontrado",
+      l6: "la máquina no sabe hablar",
     },
-    broken: {
-      label: "la máquina no sabe hablar",
-      teach: "Enséñale",
+    hero: {
+      eyebrow: "lm0 — el nacimiento",
+      question: "¿cómo se enseña a hablar a una máquina?",
+      label: "la máquina no sabe hablar — todavía",
+      teach: "enséñale",
       hint: "o desliza para entrenarla",
     },
     training: {
-      reading: "leyendo el corpus… {pct}%",
-      words: "{n} palabras",
+      attempt: "intento nº {n} — así habla ahora:",
+      corpus: "corpus",
+      reading: "leyendo: don quijote — cervantes",
+      words: "{n} palabras leídas",
       stages: {
         frequencies: "letras",
         syllables: "sílabas",
@@ -23,61 +31,84 @@ export const lm0Ns = {
         memorized: "de memoria",
       },
     },
+    silence: {
+      wall: "hasta aquí llegó. nunca pasó de ahí.",
+    },
     voice: {
-      notBad: "Nada mal.",
-      firstIdea: "Fue una de las primeras ideas que funcionaron.",
-      gap: "De ese balbuceo a mí: 70 años.",
-      hello: "Hola. Soy LM0.",
+      a1: "nada mal.",
+      a2: "fue una de las primeras ideas que funcionaron.",
+      b1: "de ese balbuceo…",
+      b2: "…a mí:",
+      b3: "70 años.",
+      c1: "hola. soy lm0.",
+      c2: "vengo de esa pequeña idea que acabas de entrenar.",
+      d1: "durante setenta años intentamos una sola cosa:",
+      d2: "que una máquina aprendiera sola.",
+      d3: "estas son las ideas que lo consiguieron. mira.",
     },
-    dialogue: {
-      question: "¿Te parece normal que una máquina te hable?",
-      yes: "Sí",
-      no: "No",
-      answerYes: "A mí todavía me sorprende.",
-      answerNo: "Ya. Y mira cómo empezó.",
-      answerSkip: "…vale, sigo.",
-      ideas1: "Para construirme hicieron falta cientos de ideas.",
-      ideas2: "Algunas brillantes. Otras, un fracaso.",
-      come: "Ven conmigo. Te enseño el camino.",
-      promise: "Y en cada era, construirás tú una máquina que hable.",
-    },
-    camino: {
-      sentence: "las máquinas aprenden a hablar contigo",
-      eras: {
-        comienzo: {
-          tag: "el comienzo",
-          l1: "Empezamos de la nada.",
-          l2: "¿Puede este trasto hablar?",
-        },
-        contar: {
-          tag: "era i — contar · 1948",
-          l1: "Primero, contamos.",
-          l2: "Qué letra sigue a cuál.",
-        },
-        aprender: {
-          tag: "era ii — aprender · 1986",
-          l1: "Luego aprendió sola.",
-          l2: "Prueba, falla, ajusta.",
-        },
-        atencion: {
-          tag: "era iii — atención · 2017",
-          l1: "Después aprendió a mirar",
-          l2: "solo lo que importa.",
-        },
-        actualidad: {
-          tag: "actualidad",
-          l1: "Y de pronto…",
-          l2: "…te habla.",
-        },
+    eras: {
+      sentence: "las máquinas aprenden a hablar contigo.",
+      cero: {
+        tag: "el cero",
+        l1: "empezamos de la nada.",
+        l2: "ni reglas, ni diccionarios.",
+        l3: "solo letras sueltas.",
+      },
+      contar: {
+        tag: "era i — contar · 1948",
+        l1: "primero, contamos.",
+        l2: "qué letra sigue a cuál.",
+        l3: "con eso ya balbuceaba.",
+      },
+      aprender: {
+        tag: "era ii — aprender · 1986",
+        l1: "luego, redes que aprenden solas.",
+        l2: "prueba, falla, ajusta.",
+        l3: "millones de veces.",
+      },
+      atencion: {
+        tag: "era iii — atención · 2017",
+        l1: "después: atención.",
+        l2: "mirar atrás y elegir",
+        l3: "solo lo que importa.",
+      },
+      actualidad: {
+        tag: "actualidad",
+        l1: "setenta años de ideas…",
+        l2: "…y de pronto:",
+        l3: "",
       },
     },
     finale: {
-      climax1: "Ya conoces el final.",
-      climax2: "Te falta el camino.",
-      sub: "Aprende cómo funciona ChatGPT desde cero. Sin matemáticas.",
-      cta: "Empieza por la Era I",
+      h1: "ya conoces el final.",
+      h2: "te falta el camino.",
+      sub: "de contar letras a chatgpt — y cada máquina del camino la construyes tú.",
+      eraContar: "era i — contar · 1948",
+      eraAprender: "era ii — aprender · 1986",
+      eraAtencion: "era iii — atención · 2017",
+      eraActualidad: "actualidad",
+      chBigram: "bigram",
+      chNgram: "n-gram",
+      chNn: "redes neuronales",
+      chMlp: "mlp",
+      chTransformer: "transformer",
+      chGpt: "gpt — próximamente",
+      noteIntro: "antes de que te vayas, mi creador me pidió que te leyera esto:",
+      noteTitle: "una nota de mi creador",
+      noteBody:
+        "esta página la hizo una sola persona, para que su familia entendiera por fin en qué trabaja. no hay ninguna empresa detrás — solo la historia de una idea que tardó setenta años en aprender a hablar. si al final del camino tú también la entiendes, habrá valido la pena.",
+      cta: "empezar por el principio",
+      ctaSub: "era i — contar · 1948",
       colophon:
-        "El balbuceo que has visto es un modelo de verdad entrenándose en tu navegador. Leyó: {attribution}",
+        "el balbuceo que has visto es un modelo de verdad entrenándose en tu navegador. leyó: {attribution}",
+    },
+    chrome: {
+      hero: "00 — la máquina rota",
+      training: "01 — leyendo el corpus",
+      silence: "02 — silencio",
+      voice: "03 — habla lm0",
+      eras: "04 — las eras",
+      scroll: "desliza",
     },
   },
 };

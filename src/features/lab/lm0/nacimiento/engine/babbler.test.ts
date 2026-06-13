@@ -139,37 +139,35 @@ describe.each(["es", "en"] as const)("babbler %s", (locale) => {
 describe("the directed takes (one per escalón — eyeball these in review)", () => {
   it("es ladder", () => {
     expect(generate("es", 2).text).toMatchInlineSnapshot(
-      `"ma es s elguezo flvo el esto equiguibale pellay eto erral asmaer"`,
+      `"ma es s elguezo flvo el esto equiguiba"`,
     );
     expect(generate("es", 7).text).toMatchInlineSnapshot(
-      `"spara y o nor el salmestarleernomas gracazonte iguscas lambres s"`,
+      `"spara y o nor el salmestarleernomas gracazonte"`,
     );
     expect(generate("es", 12).text).toMatchInlineSnapshot(
-      `"e fuertos su famoso caballeria sembredia ninguna del caballego d"`,
+      `"e fuertos su famoso caballeria sembredia ninguna del cab"`,
     );
     expect(generate("es", 17).text).toMatchInlineSnapshot(
-      `"ho esto que traidas que semejando fuera en todo aquella caso el"`,
+      `"ho esto que traidas que semejando fuera en todo aquella caso el e"`,
     );
     expect(generate("es", 22).text).toMatchInlineSnapshot(
-      `"o a roldan el mundo pueblo de la mancha el mundo busca porque en"`,
+      `"o a roldan el mundo pueblo de la mancha el mundo busca porque en la venter"`,
     );
   });
 
   it("en ladder", () => {
-    expect(generate("en", 2).text).toMatchInlineSnapshot(
-      `"heusth ter angrind d berswhirh athext prdonisiandiformam g tenng"`,
-    );
+    expect(generate("en", 2).text).toMatchInlineSnapshot(`"heusth ter angrind d berswhirh athext"`);
     expect(generate("en", 7).text).toMatchInlineSnapshot(
-      `"ky fritherous outleting th art throneemarbuting ack that buts ou"`,
+      `"ky fritherous outleting th art throneemarbuting"`,
     );
     expect(generate("en", 12).text).toMatchInlineSnapshot(
-      `"k so pleavenst now ophelps a bad see to his dier deary poorseles"`,
+      `"k so pleavenst now ophelps a bad see to his dier deary p"`,
     );
     expect(generate("en", 17).text).toMatchInlineSnapshot(
-      `"hemself where hamlet not but yet do hamlet s visage and seen we"`,
+      `"hemself where hamlet not but yet do hamlet s visage and seen we h"`,
     );
     expect(generate("en", 22).text).toMatchInlineSnapshot(
-      `"e pregnant of his was declining on with give hue of nothing to l"`,
+      `"e pregnant of his was declining on with give hue of nothing to lie better"`,
     );
   });
 });

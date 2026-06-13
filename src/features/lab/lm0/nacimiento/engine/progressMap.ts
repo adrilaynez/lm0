@@ -3,34 +3,26 @@
    The single source of truth of the scroll narrative: a PURE function
    raw progress (0..1) → typed NacimientoState. Deterministic and
    reversible by construction — scrubbing back replays the exact states.
-   Everything downstream (DOM beats, canvas painters, the babbler feeder)
+   Everything downstream (DOM beats, the eras canvas, the babbler feeder)
    reads THIS, never the scrollbar.
    ───────────────────────────────────────────── */
 
 import { BUCKETS } from "../data/script";
 
-/** Scroll share of each beat, in page order. MUST sum to exactly 1. */
+/** Scroll share of each beat, in page order. MUST sum to exactly 1.
+    (hero = the unified composition: machine + title + broken cycle.
+     The finale lives OUTSIDE the sticky stage, in normal document flow.) */
 export const SEGMENTS = {
-  hero: 0.08,
-  broken: 0.09,
-  training: 0.3,
-  silence: 0.05,
-  voice: 0.12,
-  dialogue: 0.12,
-  camino: 0.24,
+  hero: 0.18,
+  training: 0.34,
+  silence: 0.06,
+  voice: 0.16,
+  eras: 0.26,
 } as const;
 
 export type Beat = keyof typeof SEGMENTS;
 
-export const BEAT_ORDER: readonly Beat[] = [
-  "hero",
-  "broken",
-  "training",
-  "silence",
-  "voice",
-  "dialogue",
-  "camino",
-];
+export const BEAT_ORDER: readonly Beat[] = ["hero", "training", "silence", "voice", "eras"];
 
 /** Where a beat starts, as a fraction of total scroll (for lenis.scrollTo targets). */
 export function beatStart(beat: Beat): number {
@@ -55,6 +47,9 @@ export function smooth01(x: number): number {
 /** Training gears: word-by-word read → fast → light streaks. */
 export const GEAR_THRESHOLDS = { fast: 0.3, streaks: 0.6 } as const;
 
+/** Sub-scenes of the eras beat (4 morph transitions between 5 states). */
+export const ERA_COUNT = 5;
+
 export interface NacimientoState {
   /** raw scroll progress, clamped 0..1. */
   raw: number;
@@ -65,10 +60,8 @@ export interface NacimientoState {
   gear: 0 | 1 | 2;
   /** which ladder bucket the model should be at (0..BUCKETS-1). Caps at the end of training. */
   bucket: number;
-  /** camino only: which morph transition (chaos→table→net→arcs→caret). 0 elsewhere. */
-  caminoPhase: 0 | 1 | 2 | 3;
-  /** 0..1 inside the current morph transition. */
-  caminoLocal: number;
+  /** eras beat: which era state the narration shows (0..4). 0 elsewhere. */
+  eraIdx: number;
   /** the page-wide warm light — monotonic, luz = conocimiento. */
   dawn01: number;
 }
@@ -92,6 +85,7 @@ export function remapProgress(rawIn: number): NacimientoState {
     }
     acc += len;
   }
+  if (raw === 1) local = 1; // float-accumulation guard: the journey ends exactly closed
 
   // training locals — bucket ramps with an eased read so escalones land on plateaus
   const trainLocal = clamp01((raw - TRAINING_START) / SEGMENTS.training);
@@ -99,17 +93,12 @@ export function remapProgress(rawIn: number): NacimientoState {
   const gear: 0 | 1 | 2 =
     trainLocal < GEAR_THRESHOLDS.fast ? 0 : trainLocal < GEAR_THRESHOLDS.streaks ? 1 : 2;
 
-  // camino morph: 4 transitions across the beat (chaos→table→net→arcs→caret)
-  let caminoPhase: 0 | 1 | 2 | 3 = 0;
-  let caminoLocal = 0;
-  if (beat === "camino") {
-    const g = local * 4;
-    caminoPhase = Math.min(3, Math.floor(g)) as 0 | 1 | 2 | 3;
-    caminoLocal = raw >= 1 ? 1 : clamp01(g - caminoPhase);
-  }
+  // eras narration index: 5 states across the beat (matches the canvas morph)
+  const eraIdx =
+    beat === "eras" ? Math.max(0, Math.min(ERA_COUNT - 1, Math.round(local * (ERA_COUNT - 1)))) : 0;
 
   // dawn: 0 until the machine starts reading, then a single monotonic ease to 1
   const dawn01 = smooth01((raw - TRAINING_START) / (1 - TRAINING_START));
 
-  return { raw, beat, local, gear, bucket, caminoPhase, caminoLocal, dawn01 };
+  return { raw, beat, local, gear, bucket, eraIdx, dawn01 };
 }

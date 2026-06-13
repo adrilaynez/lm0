@@ -1,7 +1,7 @@
 /* ─────────────────────────────────────────────
    LM0 v3 — engine/stageStore.ts
    Tiny external store bridging the scroll loop → React (v2 pattern).
-   The loop writes THROTTLED snapshots (beat/gear/bucket changes);
+   The loop writes THROTTLED snapshots (beat/gear/bucket/era changes);
    components read via useSyncExternalStore. Per-frame values (raw
    progress, dawn) NEVER pass through here — they go straight to the
    CSS variables --lm0-raw / --lm0-dawn on the stage element.
@@ -11,17 +11,13 @@ import { useSyncExternalStore } from "react";
 
 import type { Beat } from "./progressMap";
 
-export type DialogChoice = "yes" | "no" | "skip" | null;
-
 export interface StageState {
-  /** spine mounted and fonts measured. */
+  /** spine mounted and measuring. */
   ready: boolean;
   beat: Beat;
   gear: 0 | 1 | 2;
   bucket: number;
-  caminoPhase: 0 | 1 | 2 | 3;
-  /** the visitor's sí/no answer (written by the Dialogue component). */
-  dialogChoice: DialogChoice;
+  eraIdx: number;
 }
 
 const INITIAL: StageState = {
@@ -29,21 +25,19 @@ const INITIAL: StageState = {
   beat: "hero",
   gear: 0,
   bucket: 0,
-  caminoPhase: 0,
-  dialogChoice: null,
+  eraIdx: 0,
 };
 
 export interface StageStore {
   get(): StageState;
   set(next: StageState): void;
-  patch(partial: Partial<StageState>): void;
   subscribe(cb: () => void): () => void;
 }
 
 export function createStageStore(): StageStore {
   let state = INITIAL;
   const listeners = new Set<() => void>();
-  const store: StageStore = {
+  return {
     get: () => state,
     set(next) {
       if (
@@ -51,23 +45,18 @@ export function createStageStore(): StageStore {
         next.beat === state.beat &&
         next.gear === state.gear &&
         next.bucket === state.bucket &&
-        next.caminoPhase === state.caminoPhase &&
-        next.dialogChoice === state.dialogChoice
+        next.eraIdx === state.eraIdx
       ) {
         return;
       }
       state = next;
       for (const cb of listeners) cb();
     },
-    patch(partial) {
-      store.set({ ...state, ...partial });
-    },
     subscribe(cb) {
       listeners.add(cb);
       return () => listeners.delete(cb);
     },
   };
-  return store;
 }
 
 export function useStage(store: StageStore): StageState {

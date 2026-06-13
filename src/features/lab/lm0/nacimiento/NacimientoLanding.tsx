@@ -1,35 +1,37 @@
 "use client";
 
 /**
- * NacimientoLanding — root of the LM0 v3 landing (spec: lm0-landing-v3-spec.md).
+ * NacimientoLanding — root of the LM0 v3 landing (frozen design 2026-06-13).
  *
- * Structure: a tall wrapper (800vh) + a sticky 100vh stage (CSS does the pinning,
- * no GSAP pin — v2 lesson). One scroll spine drives ONE pure progressMap; per-frame
- * values go to CSS variables on the stage, discrete state goes to the stageStore.
- * Beats are always-mounted layers revealed by opacity (SEO/a11y: the h1 and all
- * copy exist in the DOM regardless of scroll position).
+ * One tall wrapper (720vh) + a sticky 100vh stage (CSS pins, no GSAP pin).
+ * One scroll spine → one pure progressMap; per-frame values go to CSS vars,
+ * discrete state to the stage store. Five beats inside the stage
+ * (hero · training · silence · voice · eras) + the finale in normal flow.
  *
- * Reduced motion mounts a static page instead — no Lenis, no GSAP, no canvas.
- * (Minimal for Gate 1; the full NacimientoStatic lands in Phase 4.)
+ * The boot plays once on mount (time-based, Zajno-style) inside the machine's
+ * screen; the title fades in when it ends. Reduced motion mounts a static page.
  */
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useReducedMotion } from "framer-motion";
 
 import { useI18n } from "@/i18n/context";
 
-import { CanvasLayer } from "./canvas/CanvasLayer";
-import { BrokenMachine } from "./components/BrokenMachine";
-import { Escalones } from "./components/Escalones";
-import { HeroQuestion } from "./components/HeroQuestion";
-import { Phase2Placeholder } from "./components/Phase2Placeholder";
-import { TrainingRiver } from "./components/TrainingRiver";
+import { ChromeBar } from "./components/ChromeBar";
+import { ErasPanel } from "./components/ErasPanel";
+import { FinaleSection } from "./components/FinaleSection";
+import { HeroTitle } from "./components/HeroTitle";
+import { Instruments } from "./components/Instruments";
+import { MachineFigure } from "./components/MachineFigure";
+import { VoiceMonologue } from "./components/VoiceMonologue";
 import { BUCKETS } from "./data/script";
-import { type BabbleLocale, brokenSample, generate } from "./engine/babbler";
-import { beatStart, type NacimientoState, remapProgress } from "./engine/progressMap";
+import { type BabbleLocale, generate } from "./engine/babbler";
+import { beatStart, type NacimientoState, remapProgress, SEGMENTS } from "./engine/progressMap";
 import { initScrollSpine, type ScrollSpine } from "./engine/scrollSpine";
 import { createStageStore, useStage } from "./engine/stageStore";
+
+const NUDGE_AFTER_MS = 9000;
 
 export function NacimientoLanding() {
   const { t, language } = useI18n();
@@ -42,6 +44,7 @@ export function NacimientoLanding() {
   const spineRef = useRef<ScrollSpine | null>(null);
   const store = useMemo(() => createStageStore(), []);
   const stage = useStage(store);
+  const [booted, setBooted] = useState(false);
 
   useEffect(() => {
     if (reduced) return;
@@ -61,12 +64,24 @@ export function NacimientoLanding() {
           beat: st.beat,
           gear: st.gear,
           bucket: st.bucket,
-          caminoPhase: st.caminoPhase,
+          eraIdx: st.eraIdx,
         });
       },
     });
     spineRef.current = spine;
+
+    // the gentle nudge: if the visitor hasn't moved after the boot settles, drift them in
+    const nudge = window.setTimeout(() => {
+      if (frameRef.current.raw < 0.01 && wrapper.offsetHeight > window.innerHeight) {
+        spine.lenis.scrollTo(
+          wrapper.offsetTop + (wrapper.offsetHeight - window.innerHeight) * (SEGMENTS.hero * 0.45),
+          { duration: 1.8 },
+        );
+      }
+    }, NUDGE_AFTER_MS);
+
     return () => {
+      window.clearTimeout(nudge);
       spine.destroy();
       spineRef.current = null;
     };
@@ -78,40 +93,61 @@ export function NacimientoLanding() {
     if (!wrapper || !spine) return;
     const target =
       wrapper.offsetTop +
-      (wrapper.offsetHeight - window.innerHeight) * (beatStart("training") + 0.012);
-    spine.lenis.scrollTo(target, { duration: 1.4 });
+      (wrapper.offsetHeight - window.innerHeight) * (beatStart("training") + 0.015);
+    spine.lenis.scrollTo(target, { duration: 1.5 });
   }, []);
 
   if (reduced) {
-    // static fallback (Gate-1 minimal; full static version is Phase 4)
+    // static fallback: the full story, readable, no motion machinery at all
     return (
       <div data-lm0>
         <div className="lm0-static">
-          <h1 className="lm0-serif lm0-hero-q">{t("lm0.hero.question")}</h1>
-          <div className="lm0-machine-font">{brokenSample(locale)}</div>
-          <div className="lm0-ui-font">{t("lm0.broken.label")}</div>
-          <div className="lm0-machine-font">{generate(locale, BUCKETS - 1).text}</div>
-          <div className="lm0-voice-font" style={{ display: "grid", gap: "0.8rem" }}>
-            <span>{t("lm0.voice.notBad")}</span>
-            <span>{t("lm0.voice.firstIdea")}</span>
-            <span>{t("lm0.voice.gap")}</span>
-            <span style={{ fontSize: "1.3rem", fontWeight: 500 }}>{t("lm0.voice.hello")}</span>
+          <div className="lm0-ui">{t("lm0.hero.eyebrow")}</div>
+          <h1 className="lm0-serif" style={{ fontSize: "clamp(2rem,5vw,3.4rem)", margin: 0 }}>
+            {t("lm0.hero.question")}
+          </h1>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/lm0/maquina.webp" alt="" style={{ width: "min(420px, 80vw)" }} />
+          <div className="lm0-mono" style={{ color: "var(--lm0-ink-soft)" }}>
+            {generate(locale, BUCKETS - 1).text}
+          </div>
+          <div className="lm0-voice-font" style={{ display: "grid", gap: "0.7rem" }}>
+            <span>{t("lm0.voice.a1")}</span>
+            <span>
+              {t("lm0.voice.b1")} {t("lm0.voice.b2")} {t("lm0.voice.b3")}
+            </span>
+            <span style={{ fontSize: "1.3rem" }}>{t("lm0.voice.c1")}</span>
           </div>
         </div>
+        <FinaleSection />
       </div>
     );
   }
 
   return (
-    <div data-lm0 ref={wrapperRef} className="lm0-wrapper">
-      <div ref={stageRef} className="lm0-stage">
-        <CanvasLayer frameRef={frameRef} locale={locale} />
-        <HeroQuestion active={stage.beat === "hero"} />
-        <BrokenMachine active={stage.beat === "broken"} locale={locale} onTeach={handleTeach} />
-        <TrainingRiver active={stage.beat === "training"} locale={locale} frameRef={frameRef} />
-        <Escalones beat={stage.beat} bucket={stage.bucket} locale={locale} />
-        <Phase2Placeholder beat={stage.beat} />
+    <div data-lm0>
+      <div ref={wrapperRef} className="lm0-wrapper">
+        <div ref={stageRef} className="lm0-stage" data-beat={stage.beat} data-booted={booted}>
+          <div className="lm0-paper" />
+          <div className="lm0-warm" />
+          <HeroTitle onTeach={handleTeach} />
+          <MachineFigure
+            beat={stage.beat}
+            bucket={stage.bucket}
+            locale={locale}
+            booted={booted}
+            onBootDone={() => setBooted(true)}
+          />
+          <Instruments locale={locale} frameRef={frameRef} />
+          <VoiceMonologue frameRef={frameRef} />
+          <ErasPanel eraIdx={stage.eraIdx} frameRef={frameRef} />
+          <div className="lm0-grain" />
+          <div className="lm0-scan" />
+          <div className="lm0-vignette" />
+          <ChromeBar beat={stage.beat} />
+        </div>
       </div>
+      <FinaleSection />
     </div>
   );
 }

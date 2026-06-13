@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { BUCKETS } from "../data/script";
 
-import { type Beat, BEAT_ORDER, beatStart, remapProgress, SEGMENTS, smooth01 } from "./progressMap";
+import { BEAT_ORDER, beatStart, ERA_COUNT, remapProgress, SEGMENTS, smooth01 } from "./progressMap";
 
 describe("SEGMENTS", () => {
   it("sum to exactly 1", () => {
@@ -27,7 +27,7 @@ describe("remapProgress", () => {
       expect(remapProgress(acc + SEGMENTS[b] / 2).beat).toBe(b);
       acc += SEGMENTS[b];
     }
-    expect(remapProgress(1).beat).toBe("camino");
+    expect(remapProgress(1).beat).toBe("eras");
     expect(remapProgress(1).local).toBe(1);
     expect(remapProgress(0).beat).toBe("hero");
   });
@@ -42,8 +42,6 @@ describe("remapProgress", () => {
       const s = remapProgress(i / 2000);
       expect(s.local).toBeGreaterThanOrEqual(0);
       expect(s.local).toBeLessThanOrEqual(1);
-      expect(s.caminoLocal).toBeGreaterThanOrEqual(0);
-      expect(s.caminoLocal).toBeLessThanOrEqual(1);
     }
   });
 
@@ -74,37 +72,29 @@ describe("remapProgress", () => {
   });
 
   it("gears only shift up", () => {
-    const order: Record<number, number> = { 0: 0, 1: 1, 2: 2 };
     let prev = 0;
     for (let i = 0; i <= 2000; i++) {
-      const g = order[remapProgress(i / 2000).gear];
+      const g = remapProgress(i / 2000).gear;
       expect(g).toBeGreaterThanOrEqual(prev);
       prev = g;
     }
   });
 
-  it("camino phases advance 0→3 with locals resetting", () => {
-    const start = beatStart("camino");
-    const phases = new Set<number>();
+  it("eras index advances 0→4 and stays parked elsewhere", () => {
+    const start = beatStart("eras");
+    const seen = new Set<number>();
     let prev = 0;
     for (let i = 0; i <= 2000; i++) {
       const raw = start + (1 - start) * (i / 2000);
       const s = remapProgress(raw);
-      phases.add(s.caminoPhase);
-      expect(s.caminoPhase).toBeGreaterThanOrEqual(prev);
-      prev = s.caminoPhase;
+      seen.add(s.eraIdx);
+      expect(s.eraIdx).toBeGreaterThanOrEqual(prev);
+      prev = s.eraIdx;
     }
-    expect([...phases].sort()).toEqual([0, 1, 2, 3]);
-    expect(remapProgress(1).caminoPhase).toBe(3);
-    expect(remapProgress(1).caminoLocal).toBe(1);
-  });
-
-  it("outside camino the morph stays parked", () => {
-    const beats: Beat[] = ["hero", "broken", "training", "silence", "voice", "dialogue"];
-    for (const b of beats) {
-      const s = remapProgress(beatStart(b) + SEGMENTS[b] / 2);
-      expect(s.caminoPhase).toBe(0);
-      expect(s.caminoLocal).toBe(0);
+    expect([...seen].sort()).toEqual([0, 1, 2, 3, 4]);
+    expect(remapProgress(1).eraIdx).toBe(ERA_COUNT - 1);
+    for (const b of ["hero", "training", "silence", "voice"] as const) {
+      expect(remapProgress(beatStart(b) + SEGMENTS[b] / 2).eraIdx).toBe(0);
     }
   });
 });
@@ -114,7 +104,6 @@ describe("smooth01", () => {
     expect(smooth01(-1)).toBe(0);
     expect(smooth01(2)).toBe(1);
     expect(smooth01(0.5)).toBeCloseTo(0.5, 10);
-    // derivative ~0 at the edges → settle, never brake
     expect(smooth01(0.01) - smooth01(0)).toBeLessThan(0.001);
     expect(smooth01(1) - smooth01(0.99)).toBeLessThan(0.001);
   });

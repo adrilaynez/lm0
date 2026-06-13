@@ -29,10 +29,14 @@ export type BabbleLocale = "es" | "en";
 
 /** Far above any landing corpus — folding must never truncate. */
 const FOLD_CAP = 1_000_000;
-/** Length of one take (chars). Short enough to read in a beat, long enough to judge. */
-const OUTPUT_CHARS = 64;
 /** Re-roll budget when a take hits the blacklist. */
 const MAX_REROLLS = 6;
+
+/** Take length GROWS with progress: early buckets barely dare 30-some chars,
+    late buckets speak full lines (the length itself tells the story). */
+function takeLength(bucket: number): number {
+  return 34 + Math.round(bucket * 1.8);
+}
 
 const CORPORA = { es: corpusEs, en: corpusEn } as const;
 
@@ -110,8 +114,9 @@ export function generate(
   const model = modelFor(locale, rung.k, prefixFor(locale, b));
   const rng = makeRng(seedFrom(`${locale}|${b}|${attempt}`));
 
+  const outChars = takeLength(b);
   let text = model.randomContext(rng) ?? "";
-  while (text.length < OUTPUT_CHARS) {
+  while (text.length < outChars) {
     const step = sampleNext(model, text, temperature, rng);
     if (!step) break;
     text += step.ch;
