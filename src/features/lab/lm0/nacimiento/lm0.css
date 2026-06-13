@@ -7,17 +7,14 @@
    ───────────────────────────────────────────── */
 
 [data-lm0] {
-  /* paper = the chapters' cream (--ngram-bg family) so the landing and the chapters feel like one book */
-  --lm0-paper-0: #f5ecd6;
-  --lm0-paper-1: #efe4c9;
-  --lm0-paper-2: #e6d8b8;
-  --lm0-ink: #28231a;
-  --lm0-ink-soft: #463f30;
-  --lm0-ink-dim: #8a7d5d;
-  --lm0-ink-faint: #9b8e69;
-  /* warm editorial accent for the hero (chapter amber) — the paper world is gold, the machine world is green */
-  --lm0-accent-warm: #9a6a17;
-  --lm0-accent-warm-ink: #855a12;
+  /* paper = cool off-white (no yellow); the title borrows the chapters' WEIGHT, not their color */
+  --lm0-paper-0: #efece4;
+  --lm0-paper-1: #e6e2d8;
+  --lm0-paper-2: #dad5c8;
+  --lm0-ink: #23201a;
+  --lm0-ink-soft: #4a4538;
+  --lm0-ink-dim: #8c8678;
+  --lm0-ink-faint: #9a937f;
   --lm0-phos: #9fe9c4;
   --lm0-phos-dim: #5d6b62;
   --lm0-green: #3f8f63;
@@ -192,11 +189,11 @@
 }
 
 .lm0-title h1 {
-  margin: 1.2rem 0 0;
-  font-size: clamp(2.8rem, 6.6vw, 5.6rem);
+  margin: 1.1rem 0 0;
+  font-size: clamp(2.6rem, 5.2vw, 4.7rem);
   font-weight: 800;
-  line-height: 0.96;
-  letter-spacing: clamp(-2.4px, calc(1.2px - 0.3vw), -0.6px);
+  line-height: 0.98;
+  letter-spacing: clamp(-2px, calc(1px - 0.26vw), -0.5px);
   color: var(--lm0-ink);
   text-wrap: balance;
 }
@@ -205,10 +202,10 @@
   font-style: italic;
   font-weight: 600;
   letter-spacing: -0.018em;
-  color: var(--lm0-accent-warm);
+  color: var(--lm0-ink);
 }
 
-/* hero eyebrow — mono caps + short accent rule, like the chapter heroes */
+/* hero eyebrow — mono caps + short rule, like the chapter heroes (neutral ink, no color) */
 .lm0-hero-eyebrow {
   display: inline-flex;
   align-items: center;
@@ -218,7 +215,7 @@
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--lm0-accent-warm-ink);
+  color: var(--lm0-ink-dim);
 }
 
 .lm0-hero-eyebrow::before {
@@ -226,8 +223,8 @@
   display: inline-block;
   width: 34px;
   height: 1px;
-  background: var(--lm0-accent-warm);
-  opacity: 0.6;
+  background: var(--lm0-ink-dim);
+  opacity: 0.5;
 }
 
 .lm0-title .lm0-label {
@@ -263,9 +260,9 @@
 .lm0-machine {
   position: absolute;
   left: 50%;
-  top: 28vh;
+  top: 36vh;
   z-index: 3;
-  width: clamp(380px, 48vw, 620px);
+  width: clamp(360px, 44vw, 560px);
   transform: translateX(-50%);
   transition:
     top 0.9s cubic-bezier(0.22, 1, 0.36, 1),
