@@ -13,7 +13,8 @@ export const lm0Ns = {
     },
     hero: {
       eyebrow: "lm0 — el nacimiento",
-      question: "¿cómo se enseña a hablar a una máquina?",
+      question: "¿cómo se enseña a hablar a una",
+      questionAccent: "máquina?",
       label: "la máquina no sabe hablar — todavía",
       teach: "enséñale",
       hint: "o desliza para entrenarla",

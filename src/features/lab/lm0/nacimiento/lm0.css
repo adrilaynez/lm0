@@ -7,13 +7,17 @@
    ───────────────────────────────────────────── */
 
 [data-lm0] {
-  --lm0-paper-0: #efece4;
-  --lm0-paper-1: #e6e2d8;
-  --lm0-paper-2: #dad5c8;
-  --lm0-ink: #23201a;
-  --lm0-ink-soft: #4a4538;
-  --lm0-ink-dim: #8c8678;
-  --lm0-ink-faint: #9a937f;
+  /* paper = the chapters' cream (--ngram-bg family) so the landing and the chapters feel like one book */
+  --lm0-paper-0: #f5ecd6;
+  --lm0-paper-1: #efe4c9;
+  --lm0-paper-2: #e6d8b8;
+  --lm0-ink: #28231a;
+  --lm0-ink-soft: #463f30;
+  --lm0-ink-dim: #8a7d5d;
+  --lm0-ink-faint: #9b8e69;
+  /* warm editorial accent for the hero (chapter amber) — the paper world is gold, the machine world is green */
+  --lm0-accent-warm: #9a6a17;
+  --lm0-accent-warm-ink: #855a12;
   --lm0-phos: #9fe9c4;
   --lm0-phos-dim: #5d6b62;
   --lm0-green: #3f8f63;
@@ -188,16 +192,46 @@
 }
 
 .lm0-title h1 {
-  margin: 1.1rem 0 0;
-  font-size: clamp(2.5rem, 5.6vw, 4.5rem);
-  font-weight: 500;
-  line-height: 1.08;
-  letter-spacing: -0.015em;
+  margin: 1.2rem 0 0;
+  font-size: clamp(2.8rem, 6.6vw, 5.6rem);
+  font-weight: 800;
+  line-height: 0.96;
+  letter-spacing: clamp(-2.4px, calc(1.2px - 0.3vw), -0.6px);
   color: var(--lm0-ink);
+  text-wrap: balance;
+}
+
+.lm0-title h1 .lm0-title-accent {
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: -0.018em;
+  color: var(--lm0-accent-warm);
+}
+
+/* hero eyebrow — mono caps + short accent rule, like the chapter heroes */
+.lm0-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--lm0-accent-warm-ink);
+}
+
+.lm0-hero-eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 34px;
+  height: 1px;
+  background: var(--lm0-accent-warm);
+  opacity: 0.6;
 }
 
 .lm0-title .lm0-label {
-  margin-top: 1rem;
+  margin-top: 1.1rem;
 }
 
 /* hero CTA — lives BELOW the machine, hero-only */

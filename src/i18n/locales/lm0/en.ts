@@ -12,7 +12,8 @@ export const lm0Ns = {
     },
     hero: {
       eyebrow: "lm0 — the birth",
-      question: "how do we teach a machine to speak?",
+      question: "how do we teach a machine to",
+      questionAccent: "speak?",
       label: "the machine can't speak — yet",
       teach: "teach it",
       hint: "or scroll to train it",

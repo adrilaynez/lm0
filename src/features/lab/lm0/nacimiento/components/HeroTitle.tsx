@@ -18,8 +18,11 @@ export function HeroTitle({ onTeach }: HeroTitleProps) {
   return (
     <>
       <div className="lm0-title">
-        <div className="lm0-ui">{t("lm0.hero.eyebrow")}</div>
-        <h1 className="lm0-serif">{t("lm0.hero.question")}</h1>
+        <div className="lm0-hero-eyebrow">{t("lm0.hero.eyebrow")}</div>
+        <h1 className="lm0-serif">
+          {t("lm0.hero.question")}{" "}
+          <span className="lm0-title-accent">{t("lm0.hero.questionAccent")}</span>
+        </h1>
         <div className="lm0-ui lm0-label">{t("lm0.hero.label")}</div>
       </div>
       {/* CTA lives BELOW the machine */}
