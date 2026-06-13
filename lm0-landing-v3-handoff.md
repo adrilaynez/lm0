@@ -5,10 +5,36 @@
 
 ## Dónde estamos
 
-- **Rama:** `redesign/lm0-landing-v3` (nace de `redesign/ngram-amber-v1`, que es la base viva del ngram WIP).
-- **Último commit:** `55cda28` — "feat(lm0): the full landing — frozen design implemented end to end".
-- **Estado:** la landing COMPLETA está construida, de punta a punta, en `/lab/lm0-preview` (ES + EN). 82 tests verdes, `tsc` limpio, eslint limpio, **build de producción verde**.
-- **Pendiente:** validación del usuario scrolleando la página REAL (el navegador headless congela el rAF, así que el movimiento no se ha visto en vivo todavía). Ajustes finos tras esa pasada. Luego: fresh-eyes gates → swap a `/lab` → merge (ngram a main primero).
+- **Rama:** `redesign/lm0-landing-v3` (nace de `redesign/ngram-amber-v1`, base viva del ngram WIP).
+- **Último commit:** `37796e8` — el HEAD avanza con cada ajuste; mira `git log` para el más reciente.
+- **Estado:** landing COMPLETA en `/lab/lm0-preview` (ES + EN). 82 tests verdes, `tsc`/eslint limpios, build prod verde. Tras el commit `55cda28` (landing entera) hubo ~12 commits de **pulido del HERO + el lector** pedidos por el usuario en vivo (ver abajo).
+- **Pendiente:** (1) la **nota del creador** sigue siendo relleno de Claude → `i18n/locales/lm0/*.ts` clave `lm0.finale.noteBody` (el usuario debe poner su carta real); (2) **validar en vivo el acto oscuro + eras + finale** scrolleando (solo se ha pulido el hero/training; el navegador headless congela el rAF y Lenis no se puede conducir desde fuera, así que esas escenas no se han visto en movimiento); (3) luego: fresh-eyes gates → swap a `/lab` → merge (ngram a main primero).
+
+## Pulido del hero/lector (2026-06-13, sesión de mañana — sobre `55cda28`)
+
+Iteraciones en vivo con el usuario (cada una su commit). Estado final:
+- **Máquina:** el usuario probó varios renders; la actual es `public/lm0/maquina.webp` (PNG transparente
+  suyo, 1200×800). Caja de pantalla medida del render: `.lm0-screenbox` = left 22.5% / top 17% / 53% × 51%
+  (en `lm0.css`; si el texto fósforo no cae dentro del cristal, son esos 4 números). Sin máscara radial
+  (la imagen es transparente) + `drop-shadow` para asentarla.
+- **Tamaño máquina:** `width: clamp(400px, min(72vh, 92vw), 820px)`, `top: 31vh`. CLAVE: se escala con la
+  ALTURA (vh), no el ancho, para que el hueco con el CTA sea consistente entre dispositivos (antes
+  bailaba porque la máquina iba en vw y el CTA en vh). Hay regla `@media (max-width:760px)` aparte para móvil.
+- **Hero tipografía = la de los capítulos** (el usuario lo pidió): papel crema FRÍO `#efece4` (NO el cálido
+  `#f5ecd6` — lo rechazó por amarillo); título Playfair **weight 800** tracking apretado, última palabra
+  ("máquina?") en **cursiva pero en tinta, SIN ámbar** (rechazó el color amarillo); eyebrow con regla corta
+  neutra. Claves i18n `lm0.hero.question` + `lm0.hero.questionAccent`.
+- **CTA:** botón `enséñale` movido DEBAJO de la máquina (`.lm0-hero-cta`, `bottom: 9vh`, hero-only). Botón
+  bonito: superficie sólida crema, sombra en capas, hover = lift + flecha que se desplaza.
+- **EL LECTOR (corpus reader) — comportamiento final, costó MUCHO acordarlo** (`Instruments.tsx`):
+  UNA frase estática a la vez; el cabezal la recorre SOLO (por tiempo, `HEAD_CPS`) y al llegar al final SE
+  PARA y no hace nada; un poco de SCROLL cambia a una frase COMPLETAMENTE nueva (paso discreto,
+  `PHRASE_STEPS = 12`) y el cabezal reinicia desde el principio. NO bucle, NO ventana que fluye, NO
+  scroll-flow. Las frases salen de `phrasesFor()` (sentencias del corpus, ~175 chars). El bloque está
+  bloqueado a 3 filas en CSS (`.lm0-reader-text` height 6em + overflow hidden), fuente `clamp(0.72,...,0.82rem)`,
+  ancho `min(660px, 84vw)`. **Si el usuario pide tocar el lector, NO lo conviertas en teleprompter ni en
+  bucle automático — ese fue el malentendido que lo enfadó. Es: frase fija + cabezal que la barre y para +
+  scroll = frase nueva.**
 
 ## Decisión de dirección (cómo llegamos aquí)
 
