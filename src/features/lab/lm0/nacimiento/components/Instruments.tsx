@@ -25,31 +25,21 @@ import { type BabbleLocale, feedToward, wordsRead } from "../engine/babbler";
 import type { NacimientoState } from "../engine/progressMap";
 
 const FEED_CHARS_PER_FRAME = 2600;
-/** reading scan: a full passage sits STILL while the head sweeps it start→end,
-    holds a beat at the end, then the next passage takes its place. */
-const READ_CPS = 32;
-const END_HOLD_MS = 1100;
+/** The reading head is driven by SCROLL: as you scroll through training, the head
+    sweeps a span of the corpus start→end so it feels like YOU are reading it. A
+    windowed slice flows under a fixed head (monospace → no jitter). At the end of
+    training it parks at the end and stays static. */
+const READ_SPAN = 2400; // chars of the corpus traversed across the whole training scroll
+const WINDOW_CHARS = 108;
+const HEAD_OFFSET = 46;
 
-const passageCache = new Map<string, string[]>();
-function passagesFor(locale: "es" | "en"): string[] {
-  const cached = passageCache.get(locale);
+const streamCache = new Map<string, string>();
+function streamText(locale: "es" | "en"): string {
+  const cached = streamCache.get(locale);
   if (cached) return cached;
   const raw = (locale === "en" ? corpusEn.raw : corpusEs.raw).replace(/\s+/g, " ").trim();
-  const sentences = raw.match(/[^.;:!?]+[.;:!?]?/g) ?? [raw];
-  const out: string[] = [];
-  let cur = "";
-  for (const s of sentences) {
-    if (cur && (cur + s).length > 190) {
-      out.push(cur.trim());
-      cur = s;
-    } else {
-      cur += s;
-    }
-  }
-  if (cur.trim()) out.push(cur.trim());
-  const passages = out.filter((p) => p.length > 40);
-  passageCache.set(locale, passages);
-  return passages;
+  streamCache.set(locale, raw);
+  return raw;
 }
 
 interface InstrumentsProps {
@@ -64,19 +54,13 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
   const readRef = useRef<HTMLSpanElement>(null);
   const curRef = useRef<HTMLSpanElement>(null);
   const futureRef = useRef<HTMLSpanElement>(null);
-  const headRef = useRef(0);
-  const passageRef = useRef(0);
-  const holdRef = useRef(0);
 
   useEffect(() => {
-    const passages = passagesFor(locale);
-    headRef.current = 0;
-    passageRef.current = 0;
-    holdRef.current = 0;
-    const tick = (_time: number, deltaMs: number) => {
+    const stream = streamText(locale);
+    const span = Math.min(READ_SPAN, stream.length - WINDOW_CHARS - 1);
+    const tick = () => {
       const st = frameRef.current;
       if (!st || (st.beat !== "training" && st.beat !== "silence")) return;
-      const dt = Math.min(50, deltaMs) / 1000;
 
       // % and word count stay tied to the REAL feeding (honest)
       const feed = feedToward(locale, st.bucket, FEED_CHARS_PER_FRAME);
@@ -90,25 +74,14 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
       if (odo)
         odo.textContent = t("lm0.training.words", { n: fmtInt(wordsRead(locale, feed.fedTo)) });
 
-      // the reading scan: the passage stays STILL; the head sweeps it start→end,
-      // holds a beat at the end, then the next passage takes over.
-      const p = passages[passageRef.current % passages.length] ?? "";
-      headRef.current += dt * READ_CPS;
-      let head: number;
-      if (headRef.current >= p.length) {
-        head = p.length - 1; // parked on the last char while we hold
-        holdRef.current += deltaMs;
-        if (holdRef.current >= END_HOLD_MS) {
-          passageRef.current += 1;
-          headRef.current = 0;
-          holdRef.current = 0;
-        }
-      } else {
-        head = Math.floor(headRef.current);
-      }
-      if (readRef.current) readRef.current.textContent = p.slice(0, head);
-      if (curRef.current) curRef.current.textContent = p[head] ?? "";
-      if (futureRef.current) futureRef.current.textContent = p.slice(head + 1);
+      // reading head = f(scroll): training local 0→1 sweeps the span; silence parks at the end.
+      const local = st.beat === "silence" ? 1 : st.local;
+      const head = Math.floor(local * span);
+      const ws = Math.max(0, head - HEAD_OFFSET);
+      if (readRef.current) readRef.current.textContent = stream.slice(ws, head);
+      if (curRef.current) curRef.current.textContent = stream[head] ?? "";
+      if (futureRef.current)
+        futureRef.current.textContent = stream.slice(head + 1, ws + WINDOW_CHARS);
     };
     gsap.ticker.add(tick);
     return () => gsap.ticker.remove(tick);
