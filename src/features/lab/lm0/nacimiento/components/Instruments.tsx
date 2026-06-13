@@ -26,12 +26,12 @@ import type { NacimientoState } from "../engine/progressMap";
 
 const FEED_CHARS_PER_FRAME = 2600;
 /** Two independent motions, like a real terminal:
-    · the head sweeps the visible block BY ITSELF (time-based, loops) — "se mueve solo".
-    · SCROLL chooses which chunk of the corpus is shown (the static multi-line block);
-      sit still and the block stays put, scroll and the text changes.  */
-const READ_SPAN = 2400; // chars of the corpus the scroll travels across the whole training
-const WINDOW_CHARS = 108; // the static block (~3 lines)
-const HEAD_CPS = 28; // the self-moving head's sweep speed
+    · the head sweeps the visible block BY ITSELF (time-based) and STOPS at the end.
+    · SCROLL nudges which chunk of the corpus is shown — gently, so the phrase
+      flows on rather than jumping; sit still and the 3-line block stays put.  */
+const READ_SPAN = 800; // chars the scroll travels across the whole training (gentle)
+const WINDOW_CHARS = 150; // the static block (~3 lines)
+const HEAD_CPS = 26; // the self-moving head's sweep speed
 
 const streamCache = new Map<string, string>();
 function streamText(locale: "es" | "en"): string {
@@ -78,9 +78,9 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
       // SCROLL picks the static block (sit still → fixed; scroll → the text changes)
       const local = st.beat === "silence" ? 1 : st.local;
       const blockStart = Math.floor(local * span);
-      // the head sweeps that block BY ITSELF on a time loop ("se mueve solo")
+      // the head sweeps that block BY ITSELF and STOPS at the end (no loop)
       headRef.current += (Math.min(50, deltaMs) / 1000) * HEAD_CPS;
-      if (headRef.current >= WINDOW_CHARS) headRef.current -= WINDOW_CHARS;
+      if (headRef.current > WINDOW_CHARS - 1) headRef.current = WINDOW_CHARS - 1;
       const h = Math.floor(headRef.current);
       if (readRef.current) readRef.current.textContent = stream.slice(blockStart, blockStart + h);
       if (curRef.current) curRef.current.textContent = stream[blockStart + h] ?? "";
