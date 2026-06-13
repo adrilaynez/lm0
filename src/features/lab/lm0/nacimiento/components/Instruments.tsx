@@ -25,13 +25,13 @@ import { type BabbleLocale, feedToward, wordsRead } from "../engine/babbler";
 import type { NacimientoState } from "../engine/progressMap";
 
 const FEED_CHARS_PER_FRAME = 2600;
-/** The reading head is driven by SCROLL: as you scroll through training, the head
-    sweeps a span of the corpus start→end so it feels like YOU are reading it. A
-    windowed slice flows under a fixed head (monospace → no jitter). At the end of
-    training it parks at the end and stays static. */
-const READ_SPAN = 2400; // chars of the corpus traversed across the whole training scroll
-const WINDOW_CHARS = 108;
-const HEAD_OFFSET = 46;
+/** Two independent motions, like a real terminal:
+    · the head sweeps the visible block BY ITSELF (time-based, loops) — "se mueve solo".
+    · SCROLL chooses which chunk of the corpus is shown (the static multi-line block);
+      sit still and the block stays put, scroll and the text changes.  */
+const READ_SPAN = 2400; // chars of the corpus the scroll travels across the whole training
+const WINDOW_CHARS = 108; // the static block (~3 lines)
+const HEAD_CPS = 28; // the self-moving head's sweep speed
 
 const streamCache = new Map<string, string>();
 function streamText(locale: "es" | "en"): string {
@@ -54,11 +54,12 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
   const readRef = useRef<HTMLSpanElement>(null);
   const curRef = useRef<HTMLSpanElement>(null);
   const futureRef = useRef<HTMLSpanElement>(null);
+  const headRef = useRef(0);
 
   useEffect(() => {
     const stream = streamText(locale);
-    const span = Math.min(READ_SPAN, stream.length - WINDOW_CHARS - 1);
-    const tick = () => {
+    const span = Math.max(1, Math.min(READ_SPAN, stream.length - WINDOW_CHARS - 1));
+    const tick = (_time: number, deltaMs: number) => {
       const st = frameRef.current;
       if (!st || (st.beat !== "training" && st.beat !== "silence")) return;
 
@@ -74,14 +75,17 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
       if (odo)
         odo.textContent = t("lm0.training.words", { n: fmtInt(wordsRead(locale, feed.fedTo)) });
 
-      // reading head = f(scroll): training local 0→1 sweeps the span; silence parks at the end.
+      // SCROLL picks the static block (sit still → fixed; scroll → the text changes)
       const local = st.beat === "silence" ? 1 : st.local;
-      const head = Math.floor(local * span);
-      const ws = Math.max(0, head - HEAD_OFFSET);
-      if (readRef.current) readRef.current.textContent = stream.slice(ws, head);
-      if (curRef.current) curRef.current.textContent = stream[head] ?? "";
+      const blockStart = Math.floor(local * span);
+      // the head sweeps that block BY ITSELF on a time loop ("se mueve solo")
+      headRef.current += (Math.min(50, deltaMs) / 1000) * HEAD_CPS;
+      if (headRef.current >= WINDOW_CHARS) headRef.current -= WINDOW_CHARS;
+      const h = Math.floor(headRef.current);
+      if (readRef.current) readRef.current.textContent = stream.slice(blockStart, blockStart + h);
+      if (curRef.current) curRef.current.textContent = stream[blockStart + h] ?? "";
       if (futureRef.current)
-        futureRef.current.textContent = stream.slice(head + 1, ws + WINDOW_CHARS);
+        futureRef.current.textContent = stream.slice(blockStart + h + 1, blockStart + WINDOW_CHARS);
     };
     gsap.ticker.add(tick);
     return () => gsap.ticker.remove(tick);
