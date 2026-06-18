@@ -128,6 +128,7 @@ export async function generateMetadata({
   const description = t("siteDescription");
   return {
     metadataBase: new URL(SITE_URL),
+    verification: { google: "aWFXinCqzkMr_jwbGTibok8zznZNs6WquRSOAnwhcqQ" },
     title,
     description,
     alternates: {
