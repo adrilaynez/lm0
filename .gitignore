@@ -74,3 +74,22 @@ old-i18n-*.ts
 
 # Claude workspace
 .claude/
+
+# LM0 asset/brand/build scratch (local source-of-record, never committed)
+/.lm0-caps/
+/.lm0-logo/
+/lm0-brand/
+/_caps/
+
+# Local dev launcher (machine-specific)
+/start-frontend.bat
+
+# Dev-server / lint / build dumps (regenerated; never commit)
+.codex-next-dev*.log
+/.build-check.log
+/eslint-report.json
+
+# Loose AI image exports / scratch in public/lm0 (only maquina-front.webp ships)
+/public/lm0/ChatGPT Image*.png
+/public/lm0/*-dither.webp
+/public/lm0/*-cool.webp

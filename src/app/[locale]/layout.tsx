@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import {
   Bebas_Neue,
+  Fraunces,
   Geist,
   Geist_Mono,
   IBM_Plex_Mono,
@@ -9,7 +10,9 @@ import {
   Playfair_Display,
   Silkscreen,
   Source_Serif_4,
+  Space_Mono,
 } from "next/font/google";
+import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -42,6 +45,14 @@ const playfair = Playfair_Display({
   display: "swap",
   style: ["normal", "italic"],
 });
+// LM0 hero headline — a whispered editorial serif (Canela/Editorial New family feel).
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  display: "swap",
+  axes: ["SOFT", "WONK", "opsz"],
+  style: ["normal", "italic"],
+});
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
@@ -65,6 +76,28 @@ const ibmPlexMono = IBM_Plex_Mono({
 const silkscreen = Silkscreen({
   variable: "--font-pixel",
   weight: ["400", "700"],
+  subsets: ["latin"],
+  display: "swap",
+});
+// LM0 redesign type system (Fontshare, self-hosted): Sentient = serif voice of the big
+// truths, General Sans = human body copy, Space Mono = the machine / instrument register.
+const sentient = localFont({
+  variable: "--font-sentient",
+  display: "swap",
+  src: [
+    { path: "../../fonts/lm0/Sentient-Variable.woff2", style: "normal" },
+    { path: "../../fonts/lm0/Sentient-VariableItalic.woff2", style: "italic" },
+  ],
+});
+const generalSans = localFont({
+  variable: "--font-general-sans",
+  display: "swap",
+  src: "../../fonts/lm0/GeneralSans-Variable.woff2",
+});
+const spaceMono = Space_Mono({
+  variable: "--font-space-mono",
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
   subsets: ["latin"],
   display: "swap",
 });
@@ -144,7 +177,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${jetbrainsMono.variable} ${bebasNeue.variable} ${inter.variable} ${silkscreen.variable} ${sourceSerif.variable} ${ibmPlexMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${fraunces.variable} ${jetbrainsMono.variable} ${bebasNeue.variable} ${inter.variable} ${silkscreen.variable} ${sourceSerif.variable} ${ibmPlexMono.variable} ${sentient.variable} ${generalSans.variable} ${spaceMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <NextIntlClientProvider>

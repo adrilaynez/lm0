@@ -8,6 +8,87 @@ Format: `## YYYY-MM-DD — title` · what changed · why · (optional) commit re
 
 ---
 
+## 2026-06-18 — LM0 "El nacimiento" promoted to the lab landing (`/lab`) + repo cleanup ✅
+
+The LM0 v3 landing graduated from its `noindex` preview gate to **the real `/lab` landing**. `/lab/page.tsx`
+now renders `NacimientoLanding` (via the repurposed `lab-landing-client.tsx`), indexable, with the existing
+`LM-Lab` SEO metadata; the throwaway `lab/lm0-preview/` route was removed. The former "chill" editorial landing
+(`components/chill/*`, `chill-lab.css`) is retired (left in tree, no longer mounted). Navbar, home, and sitemap
+already pointed at `/lab`, so no link changes were needed; `LayoutShell` already hides global chrome for `/lab`.
+Verified in-browser (hero + reader + finale render, no console errors) and with a production `next build`.
+
+Working-tree cleanup the same pass: deleted scratch (dev/lint log dumps, 6 raw AI image exports, superseded
+`maquina*.webp` renders keeping only `maquina-front.webp`, throwaway HTML previews, the orphan `HeroChrome.tsx`),
+and `.gitignore` now excludes the local asset/brand/build scratch (`.lm0-caps/`, `.lm0-logo/`, `lm0-brand/`,
+`_caps/`, `start-frontend.bat`, log dumps). Next milestone: extract the whole lab to a standalone site at
+**lm0.dev** (own repo + Vercel project).
+
+## 2026-06-18 — LM0 finale to awwwards level: framed letter, phosphor-switch CTA, centered coda ✅
+
+On `redesign/lm0-landing-v3`, the warm epilogue (note · CTA · footer) was rebuilt to SOTD craft, and the
+creator's note was rewritten from his real letter. Three reworks:
+
+- **The note** is no longer a sticky line-by-line fade (which read as ephemeral). It's now a **framed cream
+  letter-sheet** (thin graphite hairline + a tiny `una carta · adri` label — the "sección pro" the user asked
+  for, but warm) that **lm0 types and leaves written**: lines accumulate and stay at full ink, one serif
+  pull-line ("ninguna de estas máquinas apareció de golpe."), signed `adrian laynez · a través de lm0`. The
+  text is SSR-rendered (selectable, no-JS safe); JS clears and types it when it scrolls into view; clicking the
+  sheet completes it instantly. The **copy is new** — the creator's letter in first person, synthesised from his
+  real note by a multi-agent run (analyze → 8 drafts → 4-lens judging → synthesis), ES + EN.
+- **The CTA** drops the glowing pill for **"el interruptor de fósforo"**: a left-aligned typeset line (kicker
+  `cruzar al capítulo 01` + label + hairline rule + arrow) whose rule lights phosphor green only on hover/focus;
+  lm0's caret types the label as its last words. Magnetic JS removed.
+- **The footer** is a quiet credit zone: lm0's living postscript with a parked green caret, an editorial
+  colophon naming the live corpus, and a studio colophon row with a click-to-copy github. Green stays precious.
+
+Reveals are driven by a scroll listener, not IntersectionObserver (which proved unreliable under Lenis here and
+had left elements clipped/invisible). Directions were chosen with the user via live `show_widget` mockups +
+research/judge workflows.
+
+**Revision 2 (same day) — composition fixed after a 4-lens critique graded the first build 4.5/10.** The
+materials were right but composed upside-down. Fixes: (1) the whole epilogue now sits in ONE **centered reading
+column** (~720px) instead of three left-flush blocks → symmetric whitespace (killed the "todo a la izquierda");
+(2) the **giant `adrian laynez` signature was removed entirely** — it was dwarfing the CTA and the author
+considers his name irrelevant; it now appears only small (the `AUTOR` credit + the in-letter signature);
+(3) the **CTA is the visual climax** (`clamp(2rem,4vw,2.8rem)`, generous air); (4) a left-anchored **`el
+epílogo`** eyebrow anchors the section and the dawn was trimmed (40→30vh) so the chapters→note gap reads
+intentional, not a void; (5) the corpus underline went ink (not green) so the one bright phosphor is the CTA on
+hover. Verified in-browser (ES + EN, desktop + mobile, reduced-motion safe); tsc + eslint green.
+
+## 2026-06-18 — LM0 eras beat reworked: faithful port of the "el mismo punto" particle widget ✅
+
+On `redesign/lm0-landing-v3`, the eras beat ("04 — las eras", `ErasPanel.tsx`) was fully rewritten to be a
+faithful copy of the approved "el mismo punto" prototype: ONE pool of ~720 motes the scroll re-forms through
+six shapes — point → corpus dust → counting **grid** (30×24) → **network** (6-10-10-5) → attention **ring**
+(16) → a **cursor** that types the closing sentence. The clean look = tiny ADDITIVE square dots (no glow
+blobs) + whisper-faint wiring (amber net, blue ring chords) over the page's green screenworld (transparent
+canvas, no dark panel). Pure function of scroll (no time-based motion) → scrub-safe + reversible. The left
+lm0 narration is remapped so each era's text shows while its structure is settled (grid↔contar, net↔aprender,
+ring↔atención, cursor↔actualidad). Two earlier attempts this session (heavy sprite-glow + dense wiring; and a
+mis-copied "clean" version) were discarded after the user found them too busy.
+
+**Polish pass (same day):** the figure was floating isolated in the right corner — fixed by making the canvas
+**full-bleed**, the figure **larger and centred** (`CX = W*0.56`, ring now a wide ellipse), plus an
+ever-present faint **ambient dust starfield** so the space never reads empty. Contrast lifted with a soft dark
+**focus pool** under the figure (pops on any background) + slightly brighter dots/wiring; the narration column
+sits on top via `z-index` + `text-shadow`. Direction validated with the user through interactive `show_widget`
+mockups before coding. tsc/eslint/82 tests green.
+
+## 2026-06-13 — LM0 landing v3: premium pass + finale "ss4" rebuilt 🚧
+
+Milestones on `redesign/lm0-landing-v3` (`/lab/lm0-preview`). **Transitions made Apple-smooth:** the
+machine's choreography (rise into training, zoom-into-its-own-screen for the dark act) is now scrub-linked
+per-frame from scroll (CSS vars written in `onProgress`) instead of discrete `data-beat` CSS transitions —
+the "horrible, 0 smooth" jump the user flagged. **Training** gained a Pulsar-style instrument frame + corpus
+HUD (corpus % + knowledge bars + context k) with a letters odometer. **Cooler Mac render**
+(`public/lm0/maquina-cool.webp`) to match the cool ivory. **The finale was fully rebuilt** into two movements:
+a DARK close that continues the act — "el viaje" (a horizontal era timeline coloured per era) and "los
+capítulos" (6 chapter cards each with a bespoke SVG mini-visualizer + hover reveal, gpt locked) — then a warm
+LIGHT epilogue (the creator's note rewritten in lm0's voice, the CTA, and a scoped footer). New components:
+`EraTimeline`, `ChapterCards`, `ChapterGlyph`, `FinaleSection` rewrite. Verified in Chrome (es + en); tsc /
+eslint / i18n-parity green. Still pending: lm0 interludes (narrating from the start) and a foreground
+motion pass. The previous v2 (3D world) stays parked on `redesign/lm0-landing-v2`.
+
 ## 2026-06-12 — STARTED: LM0 landing v3 "El nacimiento" 🚧
 
 Began the full rebuild of the lab landing on `redesign/lm0-landing-v3` (spec: `lm0-landing-v3-spec.md`).

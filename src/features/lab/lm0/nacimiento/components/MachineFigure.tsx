@@ -21,6 +21,7 @@ import { BUCKETS } from "../data/script";
 import { type BabbleLocale, brokenSample, generate } from "../engine/babbler";
 import type { Beat } from "../engine/progressMap";
 
+import { HeroQuestion } from "./HeroQuestion";
 import { TypedLine } from "./TypedLine";
 
 const BOOT_KEYS = ["l1", "l2", "l3", "l4", "l5", "l6"] as const;
@@ -40,6 +41,13 @@ export function MachineFigure({ beat, bucket, locale, booted, onBootDone }: Mach
   const [attempt, setAttempt] = useState(0);
   const [phase, setPhase] = useState<"type" | "stare" | "erase">("type");
   const [erased, setErased] = useState(0);
+  // the just-erased attempt, kept as a burned-in phosphor ghost so a FROZEN frame
+  // (mid-erase, the inter-attempt gap, the first chars of a new type) still shows
+  // "something just happened". Seeded on boot so the screen is never an empty caret.
+  const [prevText, setPrevText] = useState("");
+  // the headline waits a beat AFTER the boot states the failure, so it reads as the
+  // conclusion of the machine's failed attempt — not an independent sign.
+  const [titleArmed, setTitleArmed] = useState(false);
 
   const bootLines = BOOT_KEYS.map((k) => t(`lm0.boot.${k}`));
   const bootTotal = bootLines.reduce((a, l) => a + l.length, 0);
@@ -61,8 +69,20 @@ export function MachineFigure({ beat, bucket, locale, booted, onBootDone }: Mach
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [booted]);
 
+  // ── after the boot states "la máquina no sabe hablar": seed a burned-in ghost of
+  //    an aborted attempt (first frame is never empty) and bloom the headline a beat
+  //    later, so the title lands as the CONCLUSION of the failure ──
+  useEffect(() => {
+    if (!booted) return;
+    setPrevText((prev) => prev || brokenSample(locale, 0).slice(0, 4));
+    const id = window.setTimeout(() => setTitleArmed(true), 500);
+    return () => window.clearTimeout(id);
+  }, [booted, locale]);
+
   // ── broken cycle (hero) ──
-  const morralla = brokenSample(locale, attempt);
+  // SHORT broken attempt (≤8 chars): the live line must never read as a full line of
+  // gibberish / a hacker terminal — a few struggling symbols, then a stare, then erase.
+  const morralla = brokenSample(locale, attempt).slice(0, 8);
   useEffect(() => {
     if (!booted || beat !== "hero") return;
     if (phase === "stare") {
@@ -78,6 +98,7 @@ export function MachineFigure({ beat, bucket, locale, booted, onBootDone }: Mach
           if (e + 2 >= morralla.length) {
             window.clearInterval(id);
             window.setTimeout(() => {
+              setPrevText(morralla); // the erased attempt lingers as a phosphor ghost
               setAttempt((a) => a + 1);
               setPhase("type");
             }, 360);
@@ -88,7 +109,7 @@ export function MachineFigure({ beat, bucket, locale, booted, onBootDone }: Mach
       }, 26);
       return () => window.clearInterval(id);
     }
-  }, [phase, booted, beat, morralla.length]);
+  }, [phase, booted, beat, morralla]);
 
   const training = beat === "training";
   const silence = beat === "silence";
@@ -97,56 +118,97 @@ export function MachineFigure({ beat, bucket, locale, booted, onBootDone }: Mach
   const attemptNo = 13 + heldBucket * 4;
 
   return (
-    <div className="lm0-machine" aria-hidden={beat === "voice" || beat === "eras"}>
-      <div className="lm0-screen-glow" />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/lm0/maquina.webp" alt="" className="lm0-machine-img" draggable={false} />
-      <div className="lm0-screenbox">
-        <div className="lm0-screen-content">
-          {!booted ? (
-            <BootLines lines={bootLines} chars={bootChars} />
-          ) : training || silence ? (
-            <>
-              <span className="lm0-attempt-label">
-                {t("lm0.training.attempt", { n: attemptNo })}
-              </span>
-              {silence ? (
-                <span aria-label={take?.text}>
-                  <span aria-hidden="true">{take?.text}</span>
-                  <span className="lm0-caret" data-blink="true" aria-hidden="true" />
+    <>
+      <div className="lm0-machine" aria-hidden={beat === "voice" || beat === "eras"}>
+        {/* image-sized frame: the screen box is positioned in % of THIS, so the
+          glued hero text below it never distorts the screen geometry */}
+        <div className="lm0-screenframe">
+          <div className="lm0-screen-glow" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/lm0/maquina-front.webp" alt="" className="lm0-machine-img" draggable={false} />
+          {/* the screen's light spilled onto the bezel (mix-blend screen) */}
+          <div className="lm0-screen-spill" aria-hidden="true" />
+          <div className="lm0-screenbox">
+            <div className="lm0-screen-content">
+              {booted && beat === "hero" && prevText && (
+                <span className="lm0-screen-ghost" key={attempt} aria-hidden="true">
+                  {/* only a PARTIAL tail of the erased attempt — optical persistence, not
+                    readable content (the CSS keeps it near-invisible) */}
+                  {prevText.slice(-5)}
                 </span>
-              ) : (
-                <TypedLine
-                  key={`${locale}-${heldBucket}`}
-                  text={take?.text ?? ""}
-                  active
-                  cps={take && take.stage === "frequencies" ? 30 : 48}
-                  cadence={take && take.stage === "frequencies" ? "stutter" : "human"}
-                />
               )}
-            </>
-          ) : phase === "type" ? (
-            <TypedLine
-              key={`${locale}-${attempt}`}
-              text={morralla}
-              active={beat === "hero"}
-              cps={26}
-              cadence="stutter"
-              onDone={() => setPhase("stare")}
-            />
-          ) : (
-            <span aria-hidden="true">
-              {morralla.slice(0, Math.max(0, morralla.length - erased))}
-              <span className="lm0-caret" data-blink="false" />
-            </span>
-          )}
+              {!booted ? (
+                <BootLines lines={bootLines} chars={bootChars} />
+              ) : training || silence ? (
+                <>
+                  <span className="lm0-attempt-label">
+                    {t("lm0.training.attempt", { n: attemptNo })}
+                  </span>
+                  {silence ? (
+                    <span aria-label={take?.text}>
+                      <span aria-hidden="true">{take?.text}</span>
+                      <span className="lm0-caret" data-blink="true" aria-hidden="true" />
+                    </span>
+                  ) : (
+                    <TypedLine
+                      key={`${locale}-${heldBucket}`}
+                      text={take?.text ?? ""}
+                      active
+                      cps={take && take.stage === "frequencies" ? 30 : 48}
+                      cadence={take && take.stage === "frequencies" ? "stutter" : "human"}
+                    />
+                  )}
+                </>
+              ) : phase === "type" ? (
+                <TypedLine
+                  key={`${locale}-${attempt}`}
+                  text={morralla}
+                  active={beat === "hero"}
+                  cps={26}
+                  cadence="stutter"
+                  onDone={() => setPhase("stare")}
+                />
+              ) : (
+                <span aria-hidden="true">
+                  {morralla.slice(0, Math.max(0, morralla.length - erased))}
+                  <span className="lm0-caret" data-blink="false" />
+                </span>
+              )}
+            </div>
+          </div>
         </div>
+        {/* hero title block BELOW the machine (statement + subtitle), centred. Hero
+          only; fades with the boot — reads as the verdict born of the failure above. */}
+        {beat === "hero" && (
+          <div className="lm0-herohead">
+            <h1
+              className="lm0-display"
+              aria-label={`${t("lm0.hero.question")} ${t("lm0.hero.questionAccent")} ${t("lm0.hero.questionTail")}`}
+            >
+              <HeroQuestion
+                lead={t("lm0.hero.question")}
+                accent={t("lm0.hero.questionAccent")}
+                tail={t("lm0.hero.questionTail")}
+                play={titleArmed}
+              />
+            </h1>
+            <div className="lm0-headline-sub">{t("lm0.hero.label")}</div>
+          </div>
+        )}
+        {/* the scroll cue, glued just BELOW the machine (hero only) */}
+        {beat === "hero" && (
+          <div className="lm0-herofoot">
+            <div className="lm0-scrollcue" aria-hidden="true">
+              <span>{t("lm0.hero.hint")}</span>
+              <span className="lm0-cue-rule" />
+            </div>
+          </div>
+        )}
       </div>
-      <div className="lm0-under">
-        <div className="lm0-odometer" id="lm0-odo" />
-      </div>
+      {/* the silence verdict — stage-absolute (OUTSIDE .lm0-machine) so it stays
+          readable while the machine shrinks to a small specimen during training */}
       <div className="lm0-wall lm0-ui">{t("lm0.silence.wall")}</div>
-    </div>
+    </>
   );
 }
 

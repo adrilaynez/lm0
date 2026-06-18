@@ -13,15 +13,22 @@ interface ChromeBarProps {
 
 export function ChromeBar({ beat }: ChromeBarProps) {
   const { t } = useI18n();
+  // In the hero, show ONLY the thin progress hairline — the cue above already says
+  // "scroll", so the brand + "desliza · chapter" label are redundant chrome there.
+  // Both reappear the moment you scroll into training. (Conditional render, not CSS:
+  // a `:last-child` opacity hack would also blank the lone track in the hero.)
+  const hero = beat === "hero";
   return (
     <div className="lm0-chrome" aria-hidden="true">
-      <span className="lm0-chrome-brand">LM0</span>
+      {!hero && <span className="lm0-chrome-brand">lm0</span>}
       <span className="lm0-chrome-track">
         <span className="lm0-chrome-fill" />
       </span>
-      <span>
-        {t("lm0.chrome.scroll")} ↓ · {t(`lm0.chrome.${beat}`)}
-      </span>
+      {!hero && (
+        <span>
+          {t("lm0.chrome.scroll")} ↓ · {t(`lm0.chrome.${beat}`)}
+        </span>
+      )}
     </div>
   );
 }

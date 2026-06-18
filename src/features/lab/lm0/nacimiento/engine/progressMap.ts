@@ -12,12 +12,21 @@ import { BUCKETS } from "../data/script";
 /** Scroll share of each beat, in page order. MUST sum to exactly 1.
     (hero = the unified composition: machine + title + broken cycle.
      The finale lives OUTSIDE the sticky stage, in normal document flow.) */
+// silence grew (0.06→0.13) so the screen-hack reads as a real EVENT (a long "broken
+// screen" beat that can't be flicked past); voice grew (0.16→0.23) to hold lm0's 7-group
+// monologue with room for the held climaxes. The wrapper height grew to 960vh (lm0.css)
+// so eras/training keep their absolute scroll length despite the smaller fractions.
+//
+// TRAINING was then given MORE scroll (the corpus-reading must not flick past): share
+// moved from hero (0.15→0.10) to training (0.28→0.33). CRITICAL invariant: hero+training
+// stays 0.43, so the training/silence boundary is EXACTLY raw 0.43 — every dark-act window
+// keyed off it (ScreenHack/dive 0.47–0.60, green 0.55–0.60, the off power-off) is untouched.
 export const SEGMENTS = {
-  hero: 0.18,
-  training: 0.34,
-  silence: 0.06,
-  voice: 0.16,
-  eras: 0.26,
+  hero: 0.1,
+  training: 0.33,
+  silence: 0.13,
+  voice: 0.23,
+  eras: 0.21,
 } as const;
 
 export type Beat = keyof typeof SEGMENTS;

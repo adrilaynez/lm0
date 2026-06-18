@@ -1,48 +1,19 @@
 "use client";
 
-/** Beat 1 — the giant question over the machine. Appears after the boot;
-    the button vanishes once used (and the whole block fades past the hero). */
-
-import { useState } from "react";
+/** Beat 1 — the hero masthead: a thin top rule with the wordmark `lm0 · el
+    nacimiento` at the left and a STATE readout (`estado: sin corpus`) at the right,
+    so even a frozen screenshot tells you the machine is unfit to speak. Sides stay
+    open/airy; the chrome bar closes the bottom. The whispered question + scroll cue
+    live glued to the machine (in MachineFigure). Hero-only; fades with the boot. */
 
 import { useI18n } from "@/i18n/context";
 
-interface HeroTitleProps {
-  onTeach: () => void;
-}
-
-export function HeroTitle({ onTeach }: HeroTitleProps) {
+export function HeroTitle() {
   const { t } = useI18n();
-  const [used, setUsed] = useState(false);
-
   return (
-    <>
-      <div className="lm0-title">
-        <div className="lm0-hero-eyebrow">{t("lm0.hero.eyebrow")}</div>
-        <h1 className="lm0-serif">
-          {t("lm0.hero.question")}{" "}
-          <span className="lm0-title-accent">{t("lm0.hero.questionAccent")}</span>
-        </h1>
-        <div className="lm0-ui lm0-label">{t("lm0.hero.label")}</div>
-      </div>
-      {/* CTA lives BELOW the machine */}
-      <div className="lm0-hero-cta">
-        <button
-          type="button"
-          className="lm0-btn"
-          data-used={used}
-          onClick={() => {
-            setUsed(true);
-            onTeach();
-          }}
-        >
-          <span>{t("lm0.hero.teach")}</span>
-          <span className="lm0-btn-arrow" aria-hidden="true">
-            →
-          </span>
-        </button>
-        <div className="lm0-ui lm0-hero-hint">{t("lm0.hero.hint")} ↓</div>
-      </div>
-    </>
+    <div className="lm0-masthead" aria-hidden="true">
+      <span className="lm0-mast-brand">lm0 · {t("lm0.hero.eyebrow")}</span>
+      <span className="lm0-mast-state">{t("lm0.hero.state")}</span>
+    </div>
   );
 }

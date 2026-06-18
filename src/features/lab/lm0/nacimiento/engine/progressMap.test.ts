@@ -17,6 +17,14 @@ describe("SEGMENTS", () => {
       acc += SEGMENTS[b];
     }
   });
+
+  // the dark act (ScreenHack dive 0.47–0.60, green, the off power-off) is keyed off the
+  // training/silence boundary at raw 0.43. Lengthening training MUST keep hero+training=0.43
+  // so those windows stay aligned — this guards that invariant.
+  it("keeps the training/silence boundary at raw 0.43 (dark-act invariant)", () => {
+    expect(beatStart("silence")).toBeCloseTo(0.43, 10);
+    expect(SEGMENTS.hero + SEGMENTS.training).toBeCloseTo(0.43, 10);
+  });
 });
 
 describe("remapProgress", () => {
