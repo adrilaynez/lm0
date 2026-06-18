@@ -130,7 +130,7 @@ export function FinaleSection() {
           />
 
           <div className="lm0-finale-ctawrap">
-            <Link href="/lab/bigram" className="lm0-cta">
+            <Link href="/bigram" className="lm0-cta">
               <span className="lm0-cta-kicker">{t("lm0.finale.ctaKicker")}</span>
               <span className="lm0-cta-block">
                 <span className="lm0-cta-main">

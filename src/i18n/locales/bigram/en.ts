@@ -1131,7 +1131,7 @@ export const bigram = {
         primaryDesc:
           "One letter of context isn't enough. What if it looks at two? Three? That's already the N-gram model.",
         primaryCue: "Continue",
-        primaryHref: "/lab/ngram",
+        primaryHref: "/ngram",
         secondaryLabel: "Open Free Lab",
         secondaryDesc: "Skip the story. All the tools, no script.",
       },

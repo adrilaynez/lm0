@@ -1,3 +1,5 @@
+import "katex/dist/katex.min.css";
+
 import type { Metadata } from "next";
 import {
   Bebas_Neue,
@@ -20,11 +22,12 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-import { LayoutShell } from "@/components/layout/layout-shell";
 import { ThemeProvider } from "@/components/theme-provider";
+import { LabModeProvider } from "@/features/lab/context/LabModeContext";
+import { UserProvider } from "@/features/lab/context/UserContext";
 import { routing } from "@/i18n/routing";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://adrianlaynez.dev";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://lm0.dev";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: "swap" });
 const geistMono = Geist_Mono({
@@ -118,7 +121,10 @@ export async function generateMetadata({
     routing.locales.map((l) => [l, l === routing.defaultLocale ? SITE_URL : `${SITE_URL}/${l}`]),
   );
   languages["x-default"] = SITE_URL;
-  const title = "Adrián Laynez | Research & Engineering";
+  const title =
+    locale === "es"
+      ? "LM0 — el nacimiento de un modelo de lenguaje"
+      : "LM0 — how a language model is born";
   const description = t("siteDescription");
   return {
     metadataBase: new URL(SITE_URL),
@@ -167,7 +173,7 @@ export default async function LocaleLayout({
       },
       {
         "@type": "WebSite",
-        name: "Adrián Laynez | Research & Engineering",
+        name: "LM0",
         url: SITE_URL,
         inLanguage: locale,
       },
@@ -181,7 +187,9 @@ export default async function LocaleLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <NextIntlClientProvider>
-            <LayoutShell>{children}</LayoutShell>
+            <LabModeProvider>
+              <UserProvider>{children}</UserProvider>
+            </LabModeProvider>
           </NextIntlClientProvider>
         </ThemeProvider>
         <Analytics />

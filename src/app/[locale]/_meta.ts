@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { routing } from "@/i18n/routing";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://adrianlaynez.dev";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://lm0.dev";
 
 /**
  * Localized page metadata: canonical + hreflang (incl. x-default) + OpenGraph + Twitter.

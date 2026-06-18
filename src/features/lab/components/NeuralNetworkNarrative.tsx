@@ -1108,7 +1108,7 @@ export function NeuralNetworkNarrative() {
           <motion.button
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => router.push("/lab/mlp")}
+            onClick={() => router.push("/mlp")}
             className="group relative rounded-2xl border-2 border-violet-500/30 bg-gradient-to-br from-violet-950/30 via-rose-950/10 to-[var(--lab-viz-bg)]/80 p-6 text-left transition-all hover:border-violet-500/50 hover:shadow-[0_0_40px_-8px_rgba(139,92,246,0.2)] overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.08] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />

@@ -1,11 +1,8 @@
 import type { MetadataRoute } from "next";
 
 import { routing } from "@/i18n/routing";
-import { getEssays, getMindNotes } from "@/lib/mdx";
 
-import { getProjectSlugs } from "./[locale]/projects/projects-data";
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://adrianlaynez.dev";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://lm0.dev";
 
 /* Build a sitemap entry for one logical path, with per-locale hreflang alternates.
    Default locale (en) lives at the unprefixed URL; others are /<locale>/... (as-needed). */
@@ -25,22 +22,8 @@ function entry(path: string): MetadataRoute.Sitemap[number] {
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const staticPaths = [
-    "",
-    "/projects",
-    "/lab",
-    "/lab/bigram",
-    "/lab/ngram",
-    "/lab/neural-networks",
-    "/lab/mlp",
-    "/lab/transformer",
-    "/latent-space",
-    "/latent-space/mind",
-  ];
+  // lm0.dev is the lab: the landing at the root + the five chapters.
+  const staticPaths = ["", "/bigram", "/ngram", "/neural-networks", "/mlp", "/transformer"];
 
-  const projectPaths = getProjectSlugs().map((slug) => `/projects/${slug}`);
-  const essayPaths = getEssays().map((n) => `/latent-space/essays/${n.slug}`);
-  const mindPaths = getMindNotes().map((n) => `/latent-space/mind/${n.slug}`);
-
-  return [...staticPaths, ...projectPaths, ...essayPaths, ...mindPaths].map(entry);
+  return staticPaths.map(entry);
 }

@@ -1132,7 +1132,7 @@ export const bigram = {
         primaryDesc:
           "Una letra de contexto no basta. ¿Y si mira dos? ¿Tres? Eso ya es el modelo N-gram.",
         primaryCue: "Continuar",
-        primaryHref: "/lab/ngram",
+        primaryHref: "/ngram",
         secondaryLabel: "Abrir Lab Libre",
         secondaryDesc: "Salta la historia. Todas las herramientas, sin guion.",
       },

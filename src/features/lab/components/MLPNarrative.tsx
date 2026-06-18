@@ -776,7 +776,7 @@ function ChapterEndCTAs() {
       <motion.button
         whileHover={{ scale: 1.015, y: -2 }}
         whileTap={{ scale: 0.985 }}
-        onClick={() => router.push("/lab/transformer")}
+        onClick={() => router.push("/transformer")}
         className="group relative w-full rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-950/30 via-purple-950/20 to-violet-950/30 p-6 sm:p-8 text-left transition-all hover:border-violet-400/50 hover:shadow-[0_0_40px_-10px_rgba(139,92,246,0.25)] overflow-hidden"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-violet-500/[0.08] via-transparent to-purple-500/[0.04] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -827,7 +827,7 @@ function ChapterEndCTAs() {
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => router.push("/lab/rnn")}
+          onClick={() => router.push("/transformer")}
           className="group relative rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-950/20 to-[var(--lab-viz-bg)]/80 p-5 text-left transition-colors hover:border-cyan-500/40 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />

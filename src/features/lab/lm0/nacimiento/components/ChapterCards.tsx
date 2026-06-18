@@ -28,7 +28,7 @@ const CHAPTERS: {
     labelKey: "chBigram",
     subKey: "chBigramSub",
     era: "contar",
-    href: "/lab/bigram",
+    href: "/bigram",
   },
   {
     n: "02",
@@ -36,7 +36,7 @@ const CHAPTERS: {
     labelKey: "chNgram",
     subKey: "chNgramSub",
     era: "contar",
-    href: "/lab/ngram",
+    href: "/ngram",
   },
   {
     n: "03",
@@ -44,7 +44,7 @@ const CHAPTERS: {
     labelKey: "chNn",
     subKey: "chNnSub",
     era: "aprender",
-    href: "/lab/neural-networks",
+    href: "/neural-networks",
   },
   {
     n: "04",
@@ -52,7 +52,7 @@ const CHAPTERS: {
     labelKey: "chMlp",
     subKey: "chMlpSub",
     era: "aprender",
-    href: "/lab/mlp",
+    href: "/mlp",
   },
   {
     n: "05",
@@ -60,7 +60,7 @@ const CHAPTERS: {
     labelKey: "chTransformer",
     subKey: "chTransformerSub",
     era: "atencion",
-    href: "/lab/transformer",
+    href: "/transformer",
   },
   { n: "06", kind: "gpt", labelKey: "chGpt", subKey: "chGptSub", era: "actualidad", locked: true },
 ];

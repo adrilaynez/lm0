@@ -204,7 +204,7 @@ export function NgramNarrative({ contextSize, vocabSize }: NgramNarrativeProps) 
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => router.push("/lab/neural-networks")}
+                onClick={() => router.push("/neural-networks")}
                 className="group inline-flex items-center gap-4 rounded-[var(--ngram-r-md)] bg-ngram-accent-soft border border-[color-mix(in_oklab,var(--ngram-accent)_32%,transparent)] hover:border-[color-mix(in_oklab,var(--ngram-accent)_55%,transparent)] px-7 py-4 transition-colors"
               >
                 <BrainCircuit className="w-6 h-6 text-ngram-accent-ink shrink-0" />
