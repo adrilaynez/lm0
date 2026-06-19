@@ -65,6 +65,10 @@ export interface NacimientoState {
   beat: Beat;
   /** 0..1 inside the current beat. */
   local: number;
+  /** 0..1 across the READING window (corpus tape + ladder). 0 through hero/bridge,
+      1 from the end of training on. The machine only babbles real attempts once this
+      lifts off 0 — so training never starts before Don Quijote appears. */
+  readLocal: number;
   /** training only: 0 = word-by-word, 1 = fast, 2 = streaks. 2 stays after training. */
   gear: 0 | 1 | 2;
   /** which ladder bucket the model should be at (0..BUCKETS-1). Caps at the end of training. */
@@ -76,6 +80,13 @@ export interface NacimientoState {
 }
 
 const TRAINING_START = beatStart("training");
+
+/** Reading begins LATER than the training beat: the hero broken-cycle + the bridge message
+    ("vamos a darle Don Quijote") play over 0.10→READING_START first, so the machine never
+    babbles a real attempt before the corpus tape is on screen. The ladder + tape ramp across
+    [READING_START, training/silence boundary] — the corpus opens on its first sentence. */
+export const READING_START = 0.22;
+const READING_SPAN = beatStart("silence") - READING_START;
 
 /** The pure remap. */
 export function remapProgress(rawIn: number): NacimientoState {
@@ -96,11 +107,13 @@ export function remapProgress(rawIn: number): NacimientoState {
   }
   if (raw === 1) local = 1; // float-accumulation guard: the journey ends exactly closed
 
-  // training locals — bucket ramps with an eased read so escalones land on plateaus
-  const trainLocal = clamp01((raw - TRAINING_START) / SEGMENTS.training);
-  const bucket = Math.min(BUCKETS - 1, Math.floor(smooth01(trainLocal) * BUCKETS));
+  // reading locals — the bucket ladder + tape ramp across the READING window (not the whole
+  // training beat), eased so escalones land on plateaus. 0 through hero/bridge → the model
+  // sits at bucket 0 (broken) until the corpus appears, then climbs to 23 by the boundary.
+  const readLocal = clamp01((raw - READING_START) / READING_SPAN);
+  const bucket = Math.min(BUCKETS - 1, Math.floor(smooth01(readLocal) * BUCKETS));
   const gear: 0 | 1 | 2 =
-    trainLocal < GEAR_THRESHOLDS.fast ? 0 : trainLocal < GEAR_THRESHOLDS.streaks ? 1 : 2;
+    readLocal < GEAR_THRESHOLDS.fast ? 0 : readLocal < GEAR_THRESHOLDS.streaks ? 1 : 2;
 
   // eras narration index: 5 states across the beat (matches the canvas morph)
   const eraIdx =
@@ -109,5 +122,5 @@ export function remapProgress(rawIn: number): NacimientoState {
   // dawn: 0 until the machine starts reading, then a single monotonic ease to 1
   const dawn01 = smooth01((raw - TRAINING_START) / (1 - TRAINING_START));
 
-  return { raw, beat, local, gear, bucket, eraIdx, dawn01 };
+  return { raw, beat, local, readLocal, gear, bucket, eraIdx, dawn01 };
 }

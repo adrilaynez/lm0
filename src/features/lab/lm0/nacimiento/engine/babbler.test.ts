@@ -139,35 +139,37 @@ describe.each(["es", "en"] as const)("babbler %s", (locale) => {
 describe("the directed takes (one per escalón — eyeball these in review)", () => {
   it("es ladder", () => {
     expect(generate("es", 2).text).toMatchInlineSnapshot(
-      `"ma es s elguezo flvo el esto equiguiba"`,
+      `"la str y nan pama sto n fralpo mo qu quelivanias "`,
     );
     expect(generate("es", 7).text).toMatchInlineSnapshot(
-      `"spara y o nor el salmestarleernomas gracazonte"`,
+      `"ecitad dechon tro de re ta lo idanes inerimir sa "`,
     );
     expect(generate("es", 12).text).toMatchInlineSnapshot(
-      `"e fuertos su famoso caballeria sembredia ninguna del cab"`,
+      `"uentos con los pensada quiendien ochecer estro conventar "`,
     );
     expect(generate("es", 17).text).toMatchInlineSnapshot(
-      `"ho esto que traidas que semejando fuera en todo aquella caso el e"`,
+      `"arenta que se hallo salieran las y ansi para el morrion que en un "`,
     );
     expect(generate("es", 22).text).toMatchInlineSnapshot(
-      `"o a roldan el mundo pueblo de la mancha el mundo busca porque en la venter"`,
+      `"a tenia a la vuestra divinidad divinamente es el nombre de su huesped que "`,
     );
   });
 
   it("en ladder", () => {
-    expect(generate("en", 2).text).toMatchInlineSnapshot(`"heusth ter angrind d berswhirh athext"`);
+    expect(generate("en", 2).text).toMatchInlineSnapshot(
+      `"f morrd he hrsorigold oolave yeniles husy "`,
+    );
     expect(generate("en", 7).text).toMatchInlineSnapshot(
-      `"ky fritherous outleting th art throneemarbuting"`,
+      `"uall arsin king up strager he to mind to entleacumse "`,
     );
     expect(generate("en", 12).text).toMatchInlineSnapshot(
-      `"k so pleavenst now ophelps a bad see to his dier deary p"`,
+      `"orb betwear their if that cause in a dreaturesold them seen "`,
     );
     expect(generate("en", 17).text).toMatchInlineSnapshot(
-      `"hemself where hamlet not but yet do hamlet s visage and seen we h"`,
+      `"whethers prov d the rest and no more hamlet with all and he strutted "`,
     );
     expect(generate("en", 22).text).toMatchInlineSnapshot(
-      `"e pregnant of his was declining on with give hue of nothing to lie better"`,
+      `"id you ashamed to england fair work and fair state would behind honour father "`,
     );
   });
 });

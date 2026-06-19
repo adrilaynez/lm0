@@ -8,6 +8,59 @@ Format: `## YYYY-MM-DD — title` · what changed · why · (optional) commit re
 
 ---
 
+## 2026-06-19 — LM0 training beat (SS2): deliberate hero→reading transition + honest HUD ✅
+
+The training sequence read as cheap and confusing: the machine started babbling numbered "attempts" while
+still in the hero (training *before* the transition), the HUD/corpus faded in gradually, the corpus tape was
+too faint, the CRT clipped the top of the screen, and every visit produced the identical babble. Reworked the
+whole beat (no change to the dark act / eras / finale — all dark-act windows keyed off raw 0.43 are untouched):
+
+1. **Reading is now a real threshold, not the beat flip.** Added `READING_START` (raw 0.23) + a `readLocal` to
+   the progress map and a `reading` flag to the stage store: the n-gram ladder, the tape and the on-screen
+   attempts all ramp across the *reading* window, so the machine keeps **failing** through the hero **and** the
+   bridge and only babbles real attempts once Don Quijote is on screen. Kills the "training starts in the hero"
+   bug. (`progressMap.ts`, `stageStore.ts`, `MachineFigure.tsx`.)
+2. **Discrete, Apple-style transition.** A `data-phase` (`hero → bridge → reading → dark`) drives CSS
+   transitions instead of scrubbed opacity: the bridge message ("vamos a darle Don Quijote") rises in, then
+   leaves automatically as the corpus tape + HUD + reading bar rise in together — a clean reveal regardless of
+   scroll speed, not a "poco a poco" fade.
+3. **Honest, legible HUD.** Corner readouts darkened + always-on (k / temperature exposed live for the curious);
+   the faint chrome hairline replaced by a slim left→right reading bar with `% leído` and a real climbing
+   letters-read count; the CRT lowered so it never clips; the on-screen babble enlarged (the screen is the
+   protagonist) while the corpus tape was kept at its modest committed size, sitting just under the machine;
+   every take now ends on a whole word + space.
+4. **Different every visit.** A per-session salt (`setSessionSalt`, seeded once on mount) perturbs only the
+   sampling RNG — stable within a session (no flicker on scroll-back), fresh on every load. More scroll height
+   (960→1360vh) makes the read deliberate and holds the learned phrase longer before the screen-hack.
+
+Engine snapshots updated for the salt + trailing-space change; `tsc`, lint and the 45 nacimiento tests green.
+
+## 2026-06-19 — LM0 hero (SS1) compositing pass: the machine now *belongs* to the scene ✅
+
+The hero first screen read as a Mac **pasted** onto a cream field (it floated, the casing dissolved into the
+background, a green halo "stickered" the screen). Reworked as a pure visual-integration pass (no structural /
+narrative change — screen content, copy, layout, training and the dark act untouched). Done in four verified
+passes on `lm0.css` (+ one div in `MachineFigure.tsx`):
+
+1. **Room** — dropped the `paper-bg.webp` backdrop; rebuilt `.lm0-paper` as a warm marfil **studio room in pure
+   CSS** (luminous pool that tracks the machine + warm-tan, never grey, perimeter falloff) so it stays correct
+   at any aspect. Placement: machine pushed to the right half (`--lm0-mach-x` 10→14vw) and trimmed
+   (`67→63vh`) for clear negative space to the headline — *dominant, not monumental*.
+2. **Shadow** — removed the old screenframe-tied pseudo-shadows + the image `drop-shadow()`s (they doubled);
+   added a dedicated **`.lm0-machine-shadow`** layer under the machine wrapper (tight warm contact core + broad
+   soft penumbra), so it grounds the real base and travels with the machine. No more float, no double shadow.
+3. **Green + grade** — contained the phosphor to the glass in the hero (`.lm0-screen-glow`/`-spill` radii +
+   floors lowered, **blooms back via `--lm0-light`** in training); minimal green floor bounce + a faint
+   offset-right tint; machine-tracked **ambient-occlusion** halo (fades as it learns); graded the cutout warmer
+   /slightly darker to match the room (CRT depth kept); warm (not cold) vignette.
+4. **Micro** — recessive HUD masthead in the hero.
+
+Asset audit (sharp, pixel-level): the shipped `maquina-nueva.webp` is a clean transparent cutout (no baked
+shadow, no dark fringe, no external green); the raw 1024² source carries a baked shadow + dark halo, so it was
+*not* swapped in. The bottom-left "N" is the Next.js dev indicator (dev-only, absent in production). Verified
+in-browser at fullscreen (es/en), through the scroll into training (no jump, training blooms); `tsc` + lint
+green.
+
 ## 2026-06-18 — LM0 "El nacimiento" promoted to the lab landing (`/lab`) + repo cleanup ✅
 
 The LM0 v3 landing graduated from its `noindex` preview gate to **the real `/lab` landing**. `/lab/page.tsx`

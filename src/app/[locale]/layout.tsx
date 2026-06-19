@@ -97,6 +97,21 @@ const generalSans = localFont({
   display: "swap",
   src: "../../fonts/lm0/GeneralSans-Variable.woff2",
 });
+// LM0 hero (2026-06-19): Zodiak = the literary display serif for the thesis title;
+// Satoshi = the quiet editorial sub/microcopy register.
+const zodiak = localFont({
+  variable: "--font-zodiak",
+  display: "swap",
+  src: [
+    { path: "../../fonts/lm0/Zodiak-Variable.woff2", style: "normal" },
+    { path: "../../fonts/lm0/Zodiak-VariableItalic.woff2", style: "italic" },
+  ],
+});
+const satoshi = localFont({
+  variable: "--font-satoshi",
+  display: "swap",
+  src: "../../fonts/lm0/Satoshi-Variable.woff2",
+});
 const spaceMono = Space_Mono({
   variable: "--font-space-mono",
   weight: ["400", "700"],
@@ -184,7 +199,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${fraunces.variable} ${jetbrainsMono.variable} ${bebasNeue.variable} ${inter.variable} ${silkscreen.variable} ${sourceSerif.variable} ${ibmPlexMono.variable} ${sentient.variable} ${generalSans.variable} ${spaceMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${fraunces.variable} ${jetbrainsMono.variable} ${bebasNeue.variable} ${inter.variable} ${silkscreen.variable} ${sourceSerif.variable} ${ibmPlexMono.variable} ${sentient.variable} ${generalSans.variable} ${zodiak.variable} ${satoshi.variable} ${spaceMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <NextIntlClientProvider>

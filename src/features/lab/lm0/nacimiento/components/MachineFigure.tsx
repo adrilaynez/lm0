@@ -30,12 +30,22 @@ const BOOT_CPS = 38;
 interface MachineFigureProps {
   beat: Beat;
   bucket: number;
+  /** the corpus is up and the model is ingesting it — only now does the machine babble REAL
+      numbered attempts. false through hero + the bridge (it keeps failing/erasing instead). */
+  reading: boolean;
   locale: BabbleLocale;
   booted: boolean;
   onBootDone: () => void;
 }
 
-export function MachineFigure({ beat, bucket, locale, booted, onBootDone }: MachineFigureProps) {
+export function MachineFigure({
+  beat,
+  bucket,
+  reading,
+  locale,
+  booted,
+  onBootDone,
+}: MachineFigureProps) {
   const { t } = useI18n();
   const [bootChars, setBootChars] = useState(0);
   const [attempt, setAttempt] = useState(0);
@@ -80,16 +90,19 @@ export function MachineFigure({ beat, bucket, locale, booted, onBootDone }: Mach
   }, [booted, locale]);
 
   // ── broken cycle (hero) ──
-  // SHORT broken attempt (≤8 chars): the live line must never read as a full line of
-  // gibberish / a hacker terminal — a few struggling symbols, then a stare, then erase.
-  const morralla = brokenSample(locale, attempt).slice(0, 8);
+  // a LONGER broken attempt: the machine strains and produces a real run of morralla
+  // (a line+ of garbage), HOLDS it on screen so the failure is felt, then erases and
+  // tries again. It still must not read as a hacker terminal — it's struggle, not output.
+  const morralla = brokenSample(locale, attempt).slice(0, 34);
   useEffect(() => {
-    if (!booted || beat !== "hero") return;
+    // the machine keeps failing through the hero AND the bridge — it only stops the broken
+    // cycle once reading begins (the corpus is up), so training never precedes Don Quijote.
+    if (!booted || reading) return;
     if (phase === "stare") {
       const id = window.setTimeout(() => {
         setPhase("erase");
         setErased(0);
-      }, 700);
+      }, 2400); // HOLD the failed line on screen — let the silence sit before erasing
       return () => window.clearTimeout(id);
     }
     if (phase === "erase") {
@@ -109,28 +122,62 @@ export function MachineFigure({ beat, bucket, locale, booted, onBootDone }: Mach
       }, 26);
       return () => window.clearInterval(id);
     }
-  }, [phase, booted, beat, morralla]);
+  }, [phase, booted, reading, morralla]);
 
   const training = beat === "training";
   const silence = beat === "silence";
+  // the machine only shows REAL numbered attempts once reading has begun (corpus is up).
+  // before that — hero + bridge — it shows the broken cycle, so training never precedes the book.
+  const showTakes = reading && (training || silence);
   const heldBucket = silence ? BUCKETS - 1 : bucket;
-  const take = training || silence ? generate(locale, heldBucket) : null;
+  const take = showTakes ? generate(locale, heldBucket) : null;
   const attemptNo = 13 + heldBucket * 4;
 
   return (
     <>
+      {/* the editorial hero text — a LEFT column (statement + support line + cue). It lives
+          OUTSIDE .lm0-machine so the machine can slide right→centre independently, and is
+          rendered through hero AND the early training beat so --lm0-hero-text can fade it
+          out on scroll (the beat flips to "training" at raw 0.10, before the fade ends). */}
+      {(beat === "hero" || beat === "training") && (
+        <div className="lm0-herocol">
+          <div className="lm0-herohead">
+            <h1
+              className="lm0-display"
+              aria-label={`${t("lm0.hero.question")} ${t("lm0.hero.questionAccent")} ${t("lm0.hero.questionTail")}`}
+            >
+              <HeroQuestion
+                lead={t("lm0.hero.question")}
+                accent={t("lm0.hero.questionAccent")}
+                tail={t("lm0.hero.questionTail")}
+                play={titleArmed}
+              />
+            </h1>
+            <div className="lm0-headline-sub">{t("lm0.hero.label")}</div>
+          </div>
+          <div className="lm0-herofoot">
+            <div className="lm0-scrollcue" aria-hidden="true">
+              <span>{t("lm0.hero.hint")}</span>
+              <span className="lm0-cue-rule" />
+            </div>
+          </div>
+        </div>
+      )}
       <div className="lm0-machine" aria-hidden={beat === "voice" || beat === "eras"}>
-        {/* image-sized frame: the screen box is positioned in % of THIS, so the
-          glued hero text below it never distorts the screen geometry */}
+        {/* the machine is now a single finished PLATE (machine + grounded shadow + green
+          glow baked in, edges feathered into the room) — it moves/scales as ONE unit, so the
+          shadow always travels with it. The live screen text is overlaid on its glass below. */}
         <div className="lm0-screenframe">
-          <div className="lm0-screen-glow" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/lm0/maquina-front.webp" alt="" className="lm0-machine-img" draggable={false} />
-          {/* the screen's light spilled onto the bezel (mix-blend screen) */}
-          <div className="lm0-screen-spill" aria-hidden="true" />
+          <img
+            src="/lm0/machine-plate-final.webp"
+            alt=""
+            className="lm0-machine-img"
+            draggable={false}
+          />
           <div className="lm0-screenbox">
             <div className="lm0-screen-content">
-              {booted && beat === "hero" && prevText && (
+              {booted && !showTakes && prevText && (
                 <span className="lm0-screen-ghost" key={attempt} aria-hidden="true">
                   {/* only a PARTIAL tail of the erased attempt — optical persistence, not
                     readable content (the CSS keeps it near-invisible) */}
@@ -139,7 +186,7 @@ export function MachineFigure({ beat, bucket, locale, booted, onBootDone }: Mach
               )}
               {!booted ? (
                 <BootLines lines={bootLines} chars={bootChars} />
-              ) : training || silence ? (
+              ) : showTakes ? (
                 <>
                   <span className="lm0-attempt-label">
                     {t("lm0.training.attempt", { n: attemptNo })}
@@ -163,7 +210,7 @@ export function MachineFigure({ beat, bucket, locale, booted, onBootDone }: Mach
                 <TypedLine
                   key={`${locale}-${attempt}`}
                   text={morralla}
-                  active={beat === "hero"}
+                  active={!reading}
                   cps={26}
                   cadence="stutter"
                   onDone={() => setPhase("stare")}
@@ -177,33 +224,6 @@ export function MachineFigure({ beat, bucket, locale, booted, onBootDone }: Mach
             </div>
           </div>
         </div>
-        {/* hero title block BELOW the machine (statement + subtitle), centred. Hero
-          only; fades with the boot — reads as the verdict born of the failure above. */}
-        {beat === "hero" && (
-          <div className="lm0-herohead">
-            <h1
-              className="lm0-display"
-              aria-label={`${t("lm0.hero.question")} ${t("lm0.hero.questionAccent")} ${t("lm0.hero.questionTail")}`}
-            >
-              <HeroQuestion
-                lead={t("lm0.hero.question")}
-                accent={t("lm0.hero.questionAccent")}
-                tail={t("lm0.hero.questionTail")}
-                play={titleArmed}
-              />
-            </h1>
-            <div className="lm0-headline-sub">{t("lm0.hero.label")}</div>
-          </div>
-        )}
-        {/* the scroll cue, glued just BELOW the machine (hero only) */}
-        {beat === "hero" && (
-          <div className="lm0-herofoot">
-            <div className="lm0-scrollcue" aria-hidden="true">
-              <span>{t("lm0.hero.hint")}</span>
-              <span className="lm0-cue-rule" />
-            </div>
-          </div>
-        )}
       </div>
       {/* the silence verdict — stage-absolute (OUTSIDE .lm0-machine) so it stays
           readable while the machine shrinks to a small specimen during training */}

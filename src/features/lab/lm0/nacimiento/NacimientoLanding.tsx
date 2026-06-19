@@ -18,7 +18,6 @@ import { useReducedMotion } from "framer-motion";
 
 import { useI18n } from "@/i18n/context";
 
-import { ChromeBar } from "./components/ChromeBar";
 import { ErasPanel } from "./components/ErasPanel";
 import { FinaleSection } from "./components/FinaleSection";
 import { HeroTitle } from "./components/HeroTitle";
@@ -27,10 +26,11 @@ import { MachineFigure } from "./components/MachineFigure";
 import { ScreenHack } from "./components/ScreenHack";
 import { VoiceMonologue } from "./components/VoiceMonologue";
 import { BUCKETS } from "./data/script";
-import { type BabbleLocale, brokenSample } from "./engine/babbler";
+import { type BabbleLocale, brokenSample, setSessionSalt } from "./engine/babbler";
 import {
   clamp01,
   type NacimientoState,
+  READING_START,
   remapProgress,
   SEGMENTS,
   smooth01,
@@ -49,9 +49,19 @@ export function NacimientoLanding() {
   const stageRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<NacimientoState>(remapProgress(0));
   const spineRef = useRef<ScrollSpine | null>(null);
+  // the hero → reading transition is a DISCRETE, time-based reveal (not a scrubbed fade):
+  // data-phase drives the CSS — the bridge words leave and the HUD/tape/bar arrive together,
+  // automatically, the moment you cross into reading. Guarded so we only touch the DOM on change.
+  const phaseRef = useRef<string>("");
   const store = useMemo(() => createStageStore(), []);
   const stage = useStage(store);
   const [booted, setBooted] = useState(false);
+
+  // each visit babbles anew: seed the per-session salt once on the client. SSR-safe —
+  // the salt defaults to "0" and takes only render in client beats reached after scroll.
+  useEffect(() => {
+    setSessionSalt(String(Math.floor(Math.random() * 1e9)));
+  }, []);
 
   useEffect(() => {
     if (reduced) return;
@@ -67,12 +77,26 @@ export function NacimientoLanding() {
         // ── scrub-linked machine choreography (Apple-smooth, tied to scroll, NOT
         //    discrete beat CSS-transitions). hero(centered) → training(rises, recedes)
         //    → dark act(zooms INTO its own screen + fades while the green world fills). ──
-        const tIn = smooth01((r - 0.1) / (0.18 - 0.1)); // hero(→0.15) → training
+        // the machine reaches its place FAST (settled by ~0.15) so the brief bridge beat plays
+        // right after — "hasta que no se coloque la pantalla, no aparece", and without a long
+        // scroll trapped on the intro before the corpus reading (the real event) begins.
+        const tIn = smooth01((r - 0.1) / (0.15 - 0.1)); // hero → training (risen by 0.15)
+        // ── editorial hero → training settle (lives INSIDE the tIn era; never touches the
+        //    beat fractions or the dark-act windows). The machine slides RIGHT→centre and the
+        //    left text column fades out, all DONE before the bridge phase begins. ──
+        const settle = smooth01((r - 0.1) / (0.15 - 0.1));
+        // +14vw → centre X ~64% (right half, clear gap to the headline) → 0 (training: centred).
+        // On mobile the media query centres the machine (drops the right-shift), so the room
+        // pool / AO / floor light (all --lm0-mach-x-tracked) must centre too — keep it at 0 there.
+        const machX = window.innerWidth <= 760 ? 0 : 14 * (1 - settle);
+        const heroText = 1 - smooth01((r - 0.1) / (0.14 - 0.1)); // left column fades out (by 0.14)
         // the screen-hack DIVE. Spans the (now longer) silence beat after a clean hold:
         // silence is 0.43→0.56, so 0.43→0.47 holds the best phrase clean, then 0.47→0.60
         // the page tears (RGB/blur/datamosh) and hands off to green right before lm0 speaks
         // (voice-local 0.18 ≈ raw 0.60). Drives the machine fade + scanlines.
-        const dive = smooth01((r - 0.47) / (0.6 - 0.47));
+        // the learned phrase HOLDS clean for longer (0.43→0.50) before the page tears, so the
+        // reader gets to see "ya habla" before lm0 hacks the screen. dive then runs 0.50→0.60.
+        const dive = smooth01((r - 0.5) / (0.6 - 0.5));
         // the steady green BED (screenworld) is held back behind the "broken screen" phase:
         // it stays ~0 while the page tears (raw < 0.55), then fills and locks at 1 for the
         // whole dark act (voice + eras). The ScreenHack canvas paints the dramatic flood on top.
@@ -86,9 +110,19 @@ export function NacimientoLanding() {
         // dive into the Mac. The machine just settles a hair and GLITCHES OUT while the
         // ScreenHack canvas tears the viewport and floods it green.
         const machScale = base * (1 - 0.06 * dive); // ~flat (tiny settle), never a zoom
-        const machShift = -21 * tIn; // vh, rises into the upper third (clears room beneath for the tape)
+        const machShift = -10 * tIn; // vh, rises only a touch so the CRT never clips the top (room beneath stays for the tape)
         const machOp = clamp01(1 - dive * 1.5); // stays visible while it CORRUPTS, then the green covers it
-        const trainVis = clamp01(tIn) * (1 - dive); // instruments fade in for training, out at the dive
+        // ── the discrete narrative PHASE drives the hero→reading transition via CSS (an
+        //    automatic, Apple-style reveal, NOT a scrubbed fade): hero(broken) → bridge (the
+        //    "vamos a darle Don Quijote" message) → reading (HUD + tape + the machine's real
+        //    attempts). The HUD/tape arrive together AS the bridge words leave; both are CSS
+        //    transitions so the reveal plays cleanly regardless of scroll speed. reading ends
+        //    at the dive (0.50) so the instruments clear as the screen-hack takes over. ──
+        const phase = r < 0.15 ? "hero" : r < 0.2 ? "bridge" : r < 0.5 ? "reading" : "dark";
+        if (phase !== phaseRef.current) {
+          phaseRef.current = phase;
+          stageEl.setAttribute("data-phase", phase);
+        }
         // conocimiento = luz: the phosphor screen brightens with the REAL model bucket
         // and PLATEAUS at the ceiling (unlike dawn01, which keeps rising all page).
         const light = Math.min(1, st.bucket / (BUCKETS - 1)); // 0 (hero) → 1 (de memoria)
@@ -98,9 +132,10 @@ export function NacimientoLanding() {
         stageEl.style.setProperty("--lm0-mach-shift", `${machShift.toFixed(2)}vh`);
         stageEl.style.setProperty("--lm0-mach-scale", machScale.toFixed(3));
         stageEl.style.setProperty("--lm0-mach-op", machOp.toFixed(3));
+        stageEl.style.setProperty("--lm0-mach-x", `${machX.toFixed(2)}vw`);
+        stageEl.style.setProperty("--lm0-hero-text", clamp01(heroText).toFixed(3));
         stageEl.style.setProperty("--lm0-sw", dive.toFixed(3));
         stageEl.style.setProperty("--lm0-screenworld-op", green.toFixed(3));
-        stageEl.style.setProperty("--lm0-train", trainVis.toFixed(3));
         // CRT POWER-OFF at the very end of the eras: the green world collapses to a
         // bright horizontal line → pinches to a dot → blooms cream (an old TV switching
         // off). The eras now FINISH and hold their converged sentence (readable) BEFORE
@@ -132,6 +167,7 @@ export function NacimientoLanding() {
           gear: st.gear,
           bucket: st.bucket,
           eraIdx: st.eraIdx,
+          reading: r >= READING_START,
         });
       },
     });
@@ -174,7 +210,7 @@ export function NacimientoLanding() {
             {t("lm0.hero.questionTail")}
           </h1>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/lm0/maquina-front.webp" alt="" style={{ width: "min(340px, 72vw)" }} />
+          <img src="/lm0/maquina-nueva.webp" alt="" style={{ width: "min(340px, 72vw)" }} />
           <div className="lm0-ui" style={{ color: "var(--lm0-ink-dim)" }}>
             {t("lm0.hero.label")}
           </div>
@@ -214,11 +250,19 @@ export function NacimientoLanding() {
             <MachineFigure
               beat={stage.beat}
               bucket={stage.bucket}
+              reading={stage.reading}
               locale={locale}
               booted={booted}
               onBootDone={() => setBooted(true)}
             />
             <Instruments locale={locale} frameRef={frameRef} />
+            {/* the narrative bridge between hero and reading — shown only in the "bridge"
+                phase (data-phase) and revealed/dismissed by CSS transition, so it appears
+                cleanly and then leaves automatically as the corpus/HUD arrive. */}
+            <div className="lm0-interlude" aria-hidden="true">
+              <p>{t("lm0.intro.l1")}</p>
+              <p>{t("lm0.intro.l2")}</p>
+            </div>
           </div>
           {/* the green-black CRT world that fills the viewport in the dark act:
               "the machine is gone — now we are inside its screen" */}
@@ -229,7 +273,6 @@ export function NacimientoLanding() {
           <div className="lm0-grain" />
           <div className="lm0-scan" />
           <div className="lm0-vignette" />
-          <ChromeBar beat={stage.beat} />
           {/* the CRT power-off — top + bottom bars close to a line → dot → FULL cream
               bloom (the exact colour the finale opens with, so the climax + el viaje
               that follow in normal flow are one seamless continuation, no stranded card) */}

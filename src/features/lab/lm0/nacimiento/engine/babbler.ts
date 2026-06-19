@@ -6,9 +6,12 @@
  * temperature and re-rolls — "documental, no improvisación" (spec v3 §4.5).
  *
  * Determinism contract: `generate(locale, bucket, attempt)` is a pure function of
- * its arguments. Models are cached per (locale, k) and re-fed incrementally on
- * forward scroll; asking for a SMALLER prefix rebuilds from zero — the model
- * genuinely forgets when the visitor scrolls back.
+ * its arguments AND the per-session salt (`setSessionSalt`). Models are cached per
+ * (locale, k) and re-fed incrementally on forward scroll; asking for a SMALLER
+ * prefix rebuilds from zero — the model genuinely forgets when the visitor scrolls
+ * back. The salt ONLY perturbs the sampling RNG (which path through the same model),
+ * never the model counts/feeding — so within one session a given bucket is stable
+ * (scrubbing up/down never flickers a take), while each fresh load babbles anew.
  */
 
 import {
@@ -31,6 +34,18 @@ export type BabbleLocale = "es" | "en";
 const FOLD_CAP = 1_000_000;
 /** Re-roll budget when a take hits the blacklist. */
 const MAX_REROLLS = 6;
+
+/**
+ * Per-session salt mixed into every sampling seed. Defaults to "0" (deterministic,
+ * SSR-safe) and is set once on the client mount to a random value, so each visit
+ * produces a different babble while staying stable within the session.
+ */
+let sessionSalt = "0";
+
+/** Set the per-session salt — call once on the client (e.g. mount). */
+export function setSessionSalt(salt: string): void {
+  sessionSalt = salt;
+}
 
 /** Take length GROWS with progress: early buckets barely dare 30-some chars,
     late buckets speak full lines (the length itself tells the story). */
@@ -112,7 +127,7 @@ export function generate(
   const rung = LADDER[b];
   const temperature = Math.max(0.5, rung.temperature);
   const model = modelFor(locale, rung.k, prefixFor(locale, b));
-  const rng = makeRng(seedFrom(`${locale}|${b}|${attempt}`));
+  const rng = makeRng(seedFrom(`${locale}|${b}|${attempt}|${sessionSalt}`));
 
   const outChars = takeLength(b);
   let text = model.randomContext(rng) ?? "";
@@ -121,7 +136,15 @@ export function generate(
     if (!step) break;
     text += step.ch;
   }
-  text = text.trim().replace(/ {2,}/g, " ");
+  // never end mid-word: once we've reached length, finish the current word, then close on a
+  // single trailing space so the caret always sits after a whole word (a partial tail reads
+  // as "cut off"). Capped so a model that won't emit a space can't loop.
+  for (let guard = 0; guard < 24 && !text.endsWith(" "); guard++) {
+    const step = sampleNext(model, text, temperature, rng);
+    if (!step) break;
+    text += step.ch;
+  }
+  text = `${text.trim().replace(/ {2,}/g, " ")} `;
 
   if (attempt < MAX_REROLLS && blacklist.some((w) => text.includes(w))) {
     return generate(locale, bucket, attempt + 1, blacklist);
@@ -190,9 +213,9 @@ export function wordsRead(locale: BabbleLocale, chars: number): number {
  * i.e. a uniform prior over the 27-symbol alphabet. Real, seeded, honest.
  */
 export function brokenSample(locale: BabbleLocale, attempt = 0): string {
-  const rng = makeRng(seedFrom(`${locale}|broken|${attempt}`));
+  const rng = makeRng(seedFrom(`${locale}|broken|${attempt}|${sessionSalt}`));
   let out = "";
-  for (let i = 0; i < 18; i++) {
+  for (let i = 0; i < 56; i++) {
     out += TRAIN_ALPHABET[Math.floor(rng() * TRAIN_ALPHABET.length)];
   }
   return out.trim().replace(/ {2,}/g, " ");

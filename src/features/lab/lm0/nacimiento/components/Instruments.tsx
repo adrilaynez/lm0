@@ -1,42 +1,37 @@
 "use client";
 
 /**
- * Instruments — the live, honest readings of the training beat, all updated INSIDE
- * one gsap.ticker (per-frame values never pass through React state):
+ * Instruments — the live, honest readings of the training beat, all updated INSIDE one
+ * gsap.ticker (per-frame values never pass through React state):
  *
- *  · a thin "vitrine" frame (.lm0-tframe) with FOUR DRY corner readouts — instrument
- *    under glass, each UNIQUE (never duplicated with the CRT): tl lm0·n-grama ·
- *    tr corpus · bl alphabet · br temperature (real, drops as it learns).
- *  · the letters odometer (centred just under the BIG machine).
- *  · the CORPUS FEED-TAPE under the machine: a legible window of the REAL corpus that
- *    the reading head crosses GRANULARLY with scroll (a small gesture = a few words,
- *    never a whole phrase). NOT karaoke/teleprompter: real flowing text, the active
- *    word lit phosphor-green, future text barely-there, the ribbon rising like a tape.
- *  · one instrumental foot line: "k = N · aprendiendo {stage} ━●── {pct}% leído ·
- *    queda el {rest}%".
+ *  · a thin "vitrine" frame (.lm0-tframe) with FOUR DRY corner readouts (instrument under
+ *    glass): tl lm0·n-grama · tr corpus · bl alphabet · br = how much corpus is LEFT — the
+ *    ONLY moving number, faint + peripheral (never a dashboard).
+ *  · the CORPUS FEED-TAPE under the machine: a legible window of the REAL corpus that the
+ *    reading head crosses GRANULARLY with scroll — read text in ink, the active word lit
+ *    phosphor-green, future text barely-there, the ribbon rising like a tape.
  *
- * HONESTY (futuro visible ≠ futuro leído): the tape may show un-read corpus ahead,
- * very dim, but never AS read. The read text, the counter and the % follow the REAL
- * ingested corpus prefix (feedToward advances the real model every frame). Never a timer.
+ * HONESTY: the read text + the % follow the REAL ingested corpus prefix (feedToward advances
+ * the real model every frame). Never a timer. The big letters odometer and the foot progress
+ * bar were removed — they pulled the eye to a number instead of the screen + the corpus.
  */
 
 import { useEffect, useRef } from "react";
 
 import { gsap } from "gsap";
 
-import { fmtInt } from "@/features/lab/data/trainableModel";
 import { useI18n } from "@/i18n/context";
 
 import { corpusEn } from "../data/corpus.en";
 import { corpusEs } from "../data/corpus.es";
-import { BUCKETS, LADDER } from "../data/script";
+import { LADDER } from "../data/script";
 import { type BabbleLocale, feedToward, streamFor } from "../engine/babbler";
 import { clamp01, type NacimientoState, smooth01 } from "../engine/progressMap";
 
 const FEED_CHARS_PER_FRAME = 2600;
-/** The feed-tape: a legible window of the REAL corpus. TAPE_CHARS = how much of the
-    book the reading head crosses across the whole training beat — kept LOW + tunable so
-    a small gesture moves a few words, never a whole phrase (granular, causal). */
+/** The feed-tape: a legible window of the REAL corpus. TAPE_CHARS = how much of the book the
+    reading head crosses across the whole training beat — kept LOW + tunable so a small gesture
+    moves a few words, never a whole phrase (granular, causal). */
 const TAPE_CHARS = 1800;
 /** always keep some un-read (future) corpus past the head, so the ribbon never empties. */
 const TAPE_TAIL = 260;
@@ -65,21 +60,24 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
   const readRef = useRef<HTMLSpanElement>(null);
   const curRef = useRef<HTMLSpanElement>(null);
   const futureRef = useRef<HTMLSpanElement>(null);
-  // readouts
-  const odoRef = useRef<HTMLSpanElement>(null);
+  // the bottom reading bar: fill, % read, letters read
+  const fillRef = useRef<HTMLDivElement>(null);
+  const pctTextRef = useRef<HTMLSpanElement>(null);
+  const lettersRef = useRef<HTMLSpanElement>(null);
+  // the curious-reader corners: k (memory) + temperature, live with the ladder rung
+  const kRef = useRef<HTMLSpanElement>(null);
   const tempRef = useRef<HTMLSpanElement>(null);
-  const botLeftRef = useRef<HTMLSpanElement>(null);
-  const botRightRef = useRef<HTMLSpanElement>(null);
-  const botFillRef = useRef<HTMLDivElement>(null);
   // change-guards (so we only touch the DOM when a value actually moves)
   const pctRef = useRef(-1);
-  const bRef = useRef(-1);
   const wsRef = useRef(-1);
+  const bucketRef = useRef(-1);
 
   useEffect(() => {
     const excerpt = excerptFor(locale);
-    const streamTotal = streamFor(locale).length;
-    const lastB = BUCKETS - 1;
+    // total LETTERS (non-space chars) in the folded corpus — the readout climbs toward this
+    const stream = streamFor(locale);
+    let lettersTotal = 0;
+    for (let i = 0; i < stream.length; i++) if (stream[i] !== " ") lettersTotal++;
 
     const tick = () => {
       const st = frameRef.current;
@@ -88,39 +86,38 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
       // keep feeding the REAL model so the CRT take stays honest (motor intact)
       feedToward(locale, st.bucket, FEED_CHARS_PER_FRAME);
 
-      const b = Math.min(lastB, Math.max(0, st.bucket));
-      const rung = LADDER[b];
-
-      // ── ONE continuous reading progress drives the tape + the honest counters.
-      //    Eased (smooth01) so the start is tentative and it plateaus at the ceiling —
-      //    the emotional arc. In silence it is parked at 1 (training is done). ──
-      const read01 = st.beat === "silence" ? 1 : smooth01(clamp01(st.local));
-      // HONEST: letters/% are the REAL corpus prefix the head has reached (≤ what the
-      // model actually ingested for this bucket — never a timer, never over-claiming).
-      const letters = Math.round(read01 * streamTotal);
+      // ── ONE continuous reading progress drives the tape + the bar + the words count.
+      //    Keyed to readLocal (the READING window, not the whole beat) so it opens at 0 on the
+      //    first sentence of Don Quijote and plateaus at 1; eased so the start is tentative. ──
+      const read01 = smooth01(clamp01(st.readLocal));
       const pct = Math.min(100, Math.floor(read01 * 100));
 
-      if (odoRef.current)
-        odoRef.current.textContent = t("lm0.training.letters", { n: fmtInt(letters) });
-
-      // foot line — only rewrite labels when the % actually moves
+      // the bottom reading bar: fill + "% leído" + the real letters-read count (climbs into
+      // the thousands → honest SCALE, in lockstep with the bar). DOM touched only on change.
       if (pct !== pctRef.current) {
         pctRef.current = pct;
-        if (botFillRef.current) botFillRef.current.style.width = `${pct}%`;
-        if (botRightRef.current)
-          botRightRef.current.textContent = t("lm0.training.barProgress", { pct, rest: 100 - pct });
+        if (fillRef.current) fillRef.current.style.width = `${pct}%`;
+        if (pctTextRef.current) pctTextRef.current.textContent = t("lm0.training.pctRead", { pct });
+        if (lettersRef.current) {
+          const n = Math.floor(read01 * lettersTotal).toLocaleString(
+            locale === "es" ? "es-ES" : "en-US",
+          );
+          lettersRef.current.textContent = t("lm0.training.letters", { n });
+        }
       }
-      // k + stage (foot) and temperature (BR corner) — change with the bucket/escalón
-      if (b !== bRef.current) {
-        bRef.current = b;
-        if (botLeftRef.current)
-          botLeftRef.current.textContent = t("lm0.training.barLeftK", {
+
+      // the curious-reader corners — k (memory) + temperature, change only when the rung does
+      if (st.bucket !== bucketRef.current) {
+        bucketRef.current = st.bucket;
+        const rung = LADDER[Math.max(0, Math.min(LADDER.length - 1, st.bucket))];
+        if (kRef.current)
+          kRef.current.textContent = t("lm0.training.barLeftK", {
             k: rung.k,
             stage: t(`lm0.training.stages.${rung.stage}`),
           });
         if (tempRef.current)
           tempRef.current.textContent = t("lm0.training.teleTemp", {
-            t: rung.temperature.toFixed(1),
+            t: rung.temperature.toFixed(2),
           });
       }
 
@@ -158,10 +155,11 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
 
   return (
     <>
-      {/* the vitrine frame: bounds the machine + odometer + tape; the corners sit on it */}
+      {/* the vitrine frame: bounds the machine + tape; the corners sit on it */}
       <div className="lm0-tframe" aria-hidden="true" />
 
-      {/* four DRY corner readouts — each unique, instrument under glass */}
+      {/* four DRY corner readouts — instrument under glass. TL/TR name the experiment;
+          BL/BR expose k (memory) + temperature for the curious, live with the rung. */}
       <div className="lm0-tele-c lm0-tele-tl" aria-hidden="true">
         {t("lm0.training.teleTL")}
       </div>
@@ -169,15 +167,17 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
         {t("lm0.training.teleCorpus")}
       </div>
       <div className="lm0-tele-c lm0-tele-bl" aria-hidden="true">
-        {t("lm0.training.teleAlphabet")}
+        <span ref={kRef}>
+          {t("lm0.training.barLeftK", {
+            k: LADDER[0].k,
+            stage: t(`lm0.training.stages.${LADDER[0].stage}`),
+          })}
+        </span>
       </div>
       <div className="lm0-tele-c lm0-tele-br" aria-hidden="true">
-        <span ref={tempRef}>{t("lm0.training.teleTemp", { t: "1.3" })}</span>
-      </div>
-
-      {/* "N letras leídas" — centred just under the big machine */}
-      <div className="lm0-odo-line" aria-hidden="true">
-        <span ref={odoRef} className="lm0-odometer" />
+        <span ref={tempRef}>
+          {t("lm0.training.teleTemp", { t: LADDER[0].temperature.toFixed(2) })}
+        </span>
       </div>
 
       {/* the corpus feed-tape: a legible window of the real book, rising into the machine */}
@@ -195,13 +195,20 @@ export function Instruments({ locale, frameRef }: InstrumentsProps) {
         </div>
       </div>
 
-      {/* one instrumental foot line: k · learning {stage} ━●── {pct}% read · {rest}% to go */}
-      <div className="lm0-botline" aria-hidden="true">
-        <span ref={botLeftRef} className="lm0-botline-lab" />
-        <div className="lm0-botline-track">
-          <div ref={botFillRef} className="lm0-botline-fill" />
+      {/* the bottom reading bar — a real, legible progress bar (% read on the left) with the
+          letters-read count on the right. Replaces the old documentary chrome hairline. */}
+      <div className="lm0-readbar" aria-hidden="true">
+        <div className="lm0-readbar-left">
+          <div className="lm0-readbar-track">
+            <div ref={fillRef} className="lm0-readbar-fill" />
+          </div>
+          <span ref={pctTextRef} className="lm0-readbar-pct">
+            {t("lm0.training.pctRead", { pct: 0 })}
+          </span>
         </div>
-        <span ref={botRightRef} className="lm0-botline-lab lm0-botline-r" />
+        <span ref={lettersRef} className="lm0-readbar-words">
+          {t("lm0.training.letters", { n: "0" })}
+        </span>
       </div>
     </>
   );

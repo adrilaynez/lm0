@@ -18,6 +18,9 @@ export interface StageState {
   gear: 0 | 1 | 2;
   bucket: number;
   eraIdx: number;
+  /** the corpus is up and the machine is babbling REAL attempts (raw ≥ READING_START).
+      false through hero + the bridge, so training never starts before Don Quijote appears. */
+  reading: boolean;
 }
 
 const INITIAL: StageState = {
@@ -26,6 +29,7 @@ const INITIAL: StageState = {
   gear: 0,
   bucket: 0,
   eraIdx: 0,
+  reading: false,
 };
 
 export interface StageStore {
@@ -45,7 +49,8 @@ export function createStageStore(): StageStore {
         next.beat === state.beat &&
         next.gear === state.gear &&
         next.bucket === state.bucket &&
-        next.eraIdx === state.eraIdx
+        next.eraIdx === state.eraIdx &&
+        next.reading === state.reading
       ) {
         return;
       }
